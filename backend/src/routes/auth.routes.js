@@ -1,73 +1,80 @@
 /**
  * Routes d'authentification
- * @description Inscription, connexion, déconnexion
+ * @description Inscription, connexion, déconnexion, profil
  */
 
 const express = require('express');
 const router = express.Router();
 
+// Controllers
+const authController = require('../controllers/auth.controller');
+
+// Middlewares
+const { authenticate } = require('../middlewares/auth.middleware');
+
+// Validations
+const {
+  registerValidation,
+  loginValidation,
+  changePasswordValidation,
+  updateProfileValidation
+} = require('../validators/auth.validator');
+
 // ==========================================
-// ROUTES AUTH (à implémenter jour 4-5)
+// ROUTES PUBLIQUES (sans authentification)
 // ==========================================
 
 /**
  * POST /api/auth/register
  * @description Inscription d'un nouvel utilisateur
+ * @access Public
  */
-router.post('/register', (req, res) => {
-  // TODO: Jour 4 - Implémenter l'inscription
-  res.status(501).json({
-    success: false,
-    message: 'Route à implémenter (jour 4)'
-  });
-});
+router.post('/register', registerValidation, authController.register);
 
 /**
  * POST /api/auth/login
  * @description Connexion d'un utilisateur
+ * @access Public
  */
-router.post('/login', (req, res) => {
-  // TODO: Jour 5 - Implémenter la connexion
-  res.status(501).json({
-    success: false,
-    message: 'Route à implémenter (jour 5)'
-  });
-});
+router.post('/login', loginValidation, authController.login);
+
+// ==========================================
+// ROUTES PROTÉGÉES (authentification requise)
+// ==========================================
 
 /**
  * POST /api/auth/logout
- * @description Déconnexion
+ * @description Déconnexion de l'utilisateur
+ * @access Private
  */
-router.post('/logout', (req, res) => {
-  // TODO: Jour 5 - Implémenter la déconnexion
-  res.status(501).json({
-    success: false,
-    message: 'Route à implémenter (jour 5)'
-  });
-});
+router.post('/logout', authenticate, authController.logout);
 
 /**
  * GET /api/auth/me
- * @description Profil de l'utilisateur connecté
+ * @description Récupère le profil de l'utilisateur connecté
+ * @access Private
  */
-router.get('/me', (req, res) => {
-  // TODO: Jour 5 - Implémenter le profil
-  res.status(501).json({
-    success: false,
-    message: 'Route à implémenter (jour 5)'
-  });
-});
+router.get('/me', authenticate, authController.getProfile);
+
+/**
+ * PUT /api/auth/profile
+ * @description Met à jour le profil de l'utilisateur
+ * @access Private
+ */
+router.put('/profile', authenticate, updateProfileValidation, authController.updateProfile);
+
+/**
+ * PUT /api/auth/password
+ * @description Change le mot de passe
+ * @access Private
+ */
+router.put('/password', authenticate, changePasswordValidation, authController.changePassword);
 
 /**
  * POST /api/auth/refresh
- * @description Rafraîchir le token JWT
+ * @description Rafraîchit le token JWT
+ * @access Private
  */
-router.post('/refresh', (req, res) => {
-  // TODO: Bonus - Implémenter le refresh token
-  res.status(501).json({
-    success: false,
-    message: 'Route à implémenter (bonus)'
-  });
-});
+router.post('/refresh', authenticate, authController.refreshToken);
 
 module.exports = router;
