@@ -82,8 +82,8 @@ class CategoryRepository {
     const nextOrder = orderResult.rows[0].next_order;
 
     const sql = `
-      INSERT INTO categorie (nom, slug, description, image_url, couleur, icone, ordre, est_actif)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      INSERT INTO categorie (nom, slug, description, couleur, icone, ordre, est_actif)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
     `;
 
@@ -91,7 +91,6 @@ class CategoryRepository {
       data.nom,
       data.slug,
       data.description || null,
-      data.imageUrl || null,
       data.couleur || '#22C55E',
       data.icone || null,
       data.ordre || nextOrder,
@@ -115,7 +114,6 @@ class CategoryRepository {
       nom: 'nom',
       slug: 'slug',
       description: 'description',
-      imageUrl: 'image_url',
       couleur: 'couleur',
       icone: 'icone',
       ordre: 'ordre',
@@ -133,7 +131,6 @@ class CategoryRepository {
       return this.findById(id);
     }
 
-    fields.push(`updated_at = NOW()`);
     params.push(id);
 
     const sql = `
@@ -154,7 +151,7 @@ class CategoryRepository {
   async delete(id) {
     const sql = `
       UPDATE categorie 
-      SET est_actif = false, updated_at = NOW()
+      SET est_actif = false
       WHERE id = $1
       RETURNING *
     `;
@@ -200,7 +197,7 @@ class CategoryRepository {
       
       for (let i = 0; i < orderedIds.length; i++) {
         await client.query(
-          'UPDATE categorie SET ordre = $1, updated_at = NOW() WHERE id = $2',
+          'UPDATE categorie SET ordre = $1 WHERE id = $2',
           [i + 1, orderedIds[i]]
         );
       }
@@ -227,14 +224,12 @@ class CategoryRepository {
       nom: row.nom,
       slug: row.slug,
       description: row.description,
-      imageUrl: row.image_url,
       couleur: row.couleur,
       icone: row.icone,
       ordre: row.ordre,
       estActif: row.est_actif,
       productCount: row.product_count ? parseInt(row.product_count) : undefined,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at
+      createdAt: row.date_creation
     };
   }
 }

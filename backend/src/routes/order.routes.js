@@ -1,114 +1,89 @@
 /**
- * Routes Commandes
- * @description CRUD complet pour les commandes
+ * Order Routes
+ * @description Routes pour la gestion des commandes
  */
 
 const express = require('express');
 const router = express.Router();
 
 const orderController = require('../controllers/order.controller');
-const orderValidators = require('../validators/order.validator');
+const { authenticate } = require('../middlewares/auth.middleware');
 const validate = require('../middlewares/validate.middleware');
-const { authenticate, isAdmin } = require('../middlewares/auth.middleware');
+const {
+  createOrderValidation,
+  updateStatusValidation,
+  orderIdValidation,
+  orderNumeroValidation,
+  listOrdersValidation
+} = require('../validators/order.validator');
 
 // ==========================================
-// TOUTES LES ROUTES NÉCESSITENT UNE AUTHENTIFICATION
+// ROUTES CLIENT (authentification requise)
 // ==========================================
 
 /**
- * @route   GET /api/orders/stats
- * @desc    Statistiques des commandes
- * @access  Admin
+ * @route   POST /api/orders
+ * @desc    Créer une commande depuis le panier
+ * @access  Private (Client)
  */
-router.get('/stats',
+router.post(
+  '/',
   authenticate,
-  isAdmin,
-  orderController.getStats
-);
-
-/**
- * @route   GET /api/orders/my
- * @desc    Liste des commandes de l'utilisateur connecté
- * @access  Client authentifié
- */
-router.get('/my',
-  authenticate,
-  orderValidators.listQuery,
+  createOrderValidation,
   validate,
-  orderController.getMyOrders
+  orderController.createOrder
 );
 
 /**
  * @route   GET /api/orders
- * @desc    Liste de toutes les commandes (admin) ou de l'utilisateur (client)
- * @access  Authentifié
+ * @desc    Récupérer mes commandes
+ * @access  Private (Client)
  */
-router.get('/',
+router.get(
+  '/',
   authenticate,
-  orderValidators.listQuery,
+  listOrdersValidation,
   validate,
-  orderController.getAll
+  orderController.getUserOrders
 );
 
 /**
  * @route   GET /api/orders/numero/:numero
- * @desc    Détail d'une commande par numéro
- * @access  Authentifié (propriétaire ou admin)
+ * @desc    Récupérer une commande par numéro
+ * @access  Private (Client/Admin)
  */
-router.get('/numero/:numero',
+router.get(
+  '/numero/:numero',
   authenticate,
-  orderValidators.numeroParam,
+  orderNumeroValidation,
   validate,
-  orderController.getByNumero
+  orderController.getOrderByNumero
 );
 
 /**
  * @route   GET /api/orders/:id
- * @desc    Détail d'une commande par ID
- * @access  Authentifié (propriétaire ou admin)
+ * @desc    Récupérer une commande par ID
+ * @access  Private (Client/Admin)
  */
-router.get('/:id',
+router.get(
+  '/:id',
   authenticate,
-  orderValidators.idParam,
+  orderIdValidation,
   validate,
-  orderController.getById
-);
-
-/**
- * @route   POST /api/orders
- * @desc    Créer une nouvelle commande
- * @access  Client authentifié
- */
-router.post('/',
-  authenticate,
-  orderValidators.create,
-  validate,
-  orderController.create
-);
-
-/**
- * @route   PATCH /api/orders/:id/status
- * @desc    Mettre à jour le statut d'une commande
- * @access  Admin
- */
-router.patch('/:id/status',
-  authenticate,
-  isAdmin,
-  orderValidators.updateStatus,
-  validate,
-  orderController.updateStatus
+  orderController.getOrderById
 );
 
 /**
  * @route   POST /api/orders/:id/cancel
  * @desc    Annuler une commande
- * @access  Authentifié (propriétaire ou admin)
+ * @access  Private (Client/Admin)
  */
-router.post('/:id/cancel',
+router.post(
+  '/:id/cancel',
   authenticate,
-  orderValidators.idParam,
+  orderIdValidation,
   validate,
-  orderController.cancel
+  orderController.cancelOrder
 );
 
 module.exports = router;

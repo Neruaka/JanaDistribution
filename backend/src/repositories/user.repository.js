@@ -62,7 +62,7 @@ class UserRepository {
       SELECT 
         id, email, mot_de_passe_hash, nom, prenom, telephone,
         role, type_client, siret, raison_sociale, numero_tva,
-        accepte_cgu, accepte_newsletter, est_actif, permissions,
+        accepte_cgu, accepte_newsletter, est_actif,
         date_creation, date_modification, derniere_connexion
       FROM utilisateur
       WHERE email = $1
@@ -87,7 +87,7 @@ class UserRepository {
       SELECT 
         id, email, nom, prenom, telephone,
         role, type_client, siret, raison_sociale, numero_tva,
-        accepte_cgu, accepte_newsletter, est_actif, permissions,
+        accepte_cgu, accepte_newsletter, est_actif,
         date_creation, date_modification, derniere_connexion
       FROM utilisateur
       WHERE id = $1
@@ -306,7 +306,6 @@ class UserRepository {
       accepteCgu: row.accepte_cgu,
       accepteNewsletter: row.accepte_newsletter,
       estActif: row.est_actif,
-      permissions: row.permissions,
       dateCreation: row.date_creation,
       dateModification: row.date_modification,
       derniereConnexion: row.derniere_connexion

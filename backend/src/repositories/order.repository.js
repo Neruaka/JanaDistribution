@@ -1,12 +1,20 @@
 /**
  * Repository Commandes
  * @description Accès aux données commandes PostgreSQL avec transactions
+ * 
+ * IMPORTANT - Mapping colonnes SQL:
+ * - numero_commande (pas numero)
+ * - date_commande (pas created_at)
+ * - date_modification (pas updated_at)
+ * - total_ht (pas sous_total_ht)
+ * - instructions_livraison (pas notes)
  */
 
-const { query, getClient } = require('../config/database');
+const { query, pool } = require('../config/database');
 const logger = require('../config/logger');
 
 class OrderRepository {
+  
   /**
    * Récupère toutes les commandes avec filtres et pagination
    */
@@ -39,26 +47,41 @@ class OrderRepository {
     }
 
     if (dateDebut) {
-      whereClause += ` AND c.created_at >= $${paramIndex++}`;
+      whereClause += ` AND c.date_commande >= $${paramIndex++}`;
       params.push(dateDebut);
     }
 
     if (dateFin) {
-      whereClause += ` AND c.created_at <= $${paramIndex++}`;
+      whereClause += ` AND c.date_commande <= $${paramIndex++}`;
       params.push(dateFin);
     }
 
+    // Mapping des colonnes pour ORDER BY
     const orderByMap = {
-      'createdAt': 'c.created_at',
+      'createdAt': 'c.date_commande',
       'total': 'c.total_ttc',
-      'statut': 'c.statut'
+      'statut': 'c.statut',
+      'numero': 'c.numero_commande'
     };
-    const orderColumn = orderByMap[orderBy] || 'c.created_at';
+    const orderColumn = orderByMap[orderBy] || 'c.date_commande';
     const direction = orderDir.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
     const sql = `
       SELECT 
-        c.*,
+        c.id,
+        c.numero_commande,
+        c.utilisateur_id,
+        c.statut,
+        c.date_commande,
+        c.total_ht,
+        c.total_tva,
+        c.total_ttc,
+        c.adresse_livraison,
+        c.adresse_facturation,
+        c.mode_paiement,
+        c.frais_livraison,
+        c.instructions_livraison,
+        c.date_modification,
         u.nom as utilisateur_nom,
         u.prenom as utilisateur_prenom,
         u.email as utilisateur_email,
@@ -88,7 +111,7 @@ class OrderRepository {
     const totalPages = Math.ceil(total / limit);
 
     return {
-      orders: ordersResult.rows.map(this.mapOrder),
+      orders: ordersResult.rows.map(row => this._mapOrder(row)),
       pagination: {
         page,
         limit,
@@ -106,7 +129,20 @@ class OrderRepository {
   async findById(id) {
     const orderSql = `
       SELECT 
-        c.*,
+        c.id,
+        c.numero_commande,
+        c.utilisateur_id,
+        c.statut,
+        c.date_commande,
+        c.total_ht,
+        c.total_tva,
+        c.total_ttc,
+        c.adresse_livraison,
+        c.adresse_facturation,
+        c.mode_paiement,
+        c.frais_livraison,
+        c.instructions_livraison,
+        c.date_modification,
         u.nom as utilisateur_nom,
         u.prenom as utilisateur_prenom,
         u.email as utilisateur_email,
@@ -119,8 +155,15 @@ class OrderRepository {
 
     const linesSql = `
       SELECT 
-        lc.*,
-        p.nom as produit_nom,
+        lc.id,
+        lc.commande_id,
+        lc.produit_id,
+        lc.quantite,
+        lc.prix_unitaire_ht,
+        lc.taux_tva,
+        lc.total_ht,
+        lc.total_ttc,
+        lc.nom_produit,
         p.reference as produit_reference,
         p.image_url as produit_image
       FROM ligne_commande lc
@@ -136,8 +179,8 @@ class OrderRepository {
 
     if (!orderResult.rows[0]) return null;
 
-    const order = this.mapOrder(orderResult.rows[0]);
-    order.lignes = linesResult.rows.map(this.mapOrderLine);
+    const order = this._mapOrder(orderResult.rows[0]);
+    order.lignes = linesResult.rows.map(row => this._mapOrderLine(row));
 
     return order;
   }
@@ -146,7 +189,7 @@ class OrderRepository {
    * Récupère une commande par numéro
    */
   async findByNumero(numero) {
-    const sql = `SELECT id FROM commande WHERE numero = $1`;
+    const sql = `SELECT id FROM commande WHERE numero_commande = $1`;
     const result = await query(sql, [numero]);
     
     if (!result.rows[0]) return null;
@@ -161,43 +204,71 @@ class OrderRepository {
   }
 
   /**
+   * Génère un numéro de commande unique
+   * Format: CMD-YYYYMMDD-XXXX
+   */
+  async _generateNumeroCommande(client) {
+    // Utiliser la séquence si elle existe, sinon compter les commandes du jour
+    try {
+      const result = await client.query(
+        "SELECT 'CMD-' || TO_CHAR(NOW(), 'YYYYMMDD') || '-' || LPAD(NEXTVAL('commande_numero_seq')::text, 4, '0') as numero"
+      );
+      return result.rows[0].numero;
+    } catch (error) {
+      // Fallback: compter les commandes du jour
+      const countResult = await client.query(`
+        SELECT COUNT(*) + 1 as next_num 
+        FROM commande 
+        WHERE DATE(date_commande) = CURRENT_DATE
+      `);
+      const nextNum = countResult.rows[0].next_num;
+      const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      return `CMD-${today}-${String(nextNum).padStart(4, '0')}`;
+    }
+  }
+
+  /**
    * Crée une nouvelle commande avec ses lignes (transaction)
    */
   async create(data) {
-    const client = await getClient();
+    const client = await pool.connect();
 
     try {
       await client.query('BEGIN');
 
       // Générer le numéro de commande
-      const numeroResult = await client.query(
-        "SELECT 'CMD-' || TO_CHAR(NOW(), 'YYYYMMDD') || '-' || LPAD(NEXTVAL('commande_numero_seq')::text, 4, '0') as numero"
-      );
-      const numero = numeroResult.rows[0].numero;
+      const numeroCommande = await this._generateNumeroCommande(client);
 
       // Créer la commande
       const orderSql = `
         INSERT INTO commande (
-          numero, utilisateur_id, statut,
-          adresse_livraison, adresse_facturation,
-          mode_paiement, sous_total_ht, total_tva, total_ttc,
-          frais_livraison, notes
+          numero_commande,
+          utilisateur_id,
+          statut,
+          total_ht,
+          total_tva,
+          total_ttc,
+          adresse_livraison,
+          adresse_facturation,
+          mode_paiement,
+          frais_livraison,
+          instructions_livraison
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         RETURNING *
       `;
 
       const orderParams = [
-        numero,
+        numeroCommande,
         data.utilisateurId,
         'EN_ATTENTE',
+        data.totalHt,
+        data.totalTva,
+        data.totalTtc,
         JSON.stringify(data.adresseLivraison),
         JSON.stringify(data.adresseFacturation || data.adresseLivraison),
         data.modePaiement || 'CARTE',
-        data.sousTotalHt,
-        data.totalTva,
-        data.totalTtc,
         data.fraisLivraison || 0,
-        data.notes || null
+        data.instructionsLivraison || null
       ];
 
       const orderResult = await client.query(orderSql, orderParams);
@@ -206,26 +277,37 @@ class OrderRepository {
       // Créer les lignes de commande
       const lineSql = `
         INSERT INTO ligne_commande (
-          commande_id, produit_id, quantite, prix_unitaire_ht,
-          taux_tva, total_ht, total_ttc
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+          commande_id,
+          produit_id,
+          quantite,
+          prix_unitaire_ht,
+          taux_tva,
+          total_ht,
+          total_ttc,
+          nom_produit
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING *
       `;
 
       const lines = [];
       for (const ligne of data.lignes) {
+        // Calculer les totaux de la ligne
+        const totalHt = ligne.prixUnitaireHt * ligne.quantite;
+        const totalTtc = totalHt * (1 + ligne.tauxTva / 100);
+
         const lineResult = await client.query(lineSql, [
           order.id,
           ligne.produitId,
           ligne.quantite,
           ligne.prixUnitaireHt,
           ligne.tauxTva,
-          ligne.totalHt,
-          ligne.totalTtc
+          totalHt,
+          totalTtc,
+          ligne.nomProduit
         ]);
         lines.push(lineResult.rows[0]);
 
-        // Mettre à jour le stock du produit
+        // Décrémenter le stock du produit
         await client.query(
           'UPDATE produit SET stock_quantite = stock_quantite - $1 WHERE id = $2',
           [ligne.quantite, ligne.produitId]
@@ -234,10 +316,10 @@ class OrderRepository {
 
       await client.query('COMMIT');
 
-      logger.info(`Commande créée: ${numero} pour utilisateur ${data.utilisateurId}`);
+      logger.info(`Commande créée: ${numeroCommande} pour utilisateur ${data.utilisateurId}`);
 
-      const mappedOrder = this.mapOrder(order);
-      mappedOrder.lignes = lines.map(this.mapOrderLine);
+      const mappedOrder = this._mapOrder(order);
+      mappedOrder.lignes = lines.map(row => this._mapOrderLine(row));
       return mappedOrder;
 
     } catch (error) {
@@ -252,31 +334,50 @@ class OrderRepository {
   /**
    * Met à jour le statut d'une commande
    */
-  async updateStatus(id, statut, notes = null) {
+  async updateStatus(id, statut, instructionsLivraison = null) {
     const sql = `
       UPDATE commande 
-      SET statut = $2, notes = COALESCE($3, notes), updated_at = NOW()
+      SET 
+        statut = $2, 
+        instructions_livraison = COALESCE($3, instructions_livraison)
       WHERE id = $1
       RETURNING *
     `;
 
-    const result = await query(sql, [id, statut, notes]);
+    const result = await query(sql, [id, statut, instructionsLivraison]);
     
     if (result.rows[0]) {
       logger.info(`Commande ${id} mise à jour: ${statut}`);
     }
 
-    return result.rows[0] ? this.mapOrder(result.rows[0]) : null;
+    return result.rows[0] ? this._mapOrder(result.rows[0]) : null;
   }
 
   /**
    * Annule une commande (restaure le stock)
    */
   async cancel(id) {
-    const client = await getClient();
+    const client = await pool.connect();
 
     try {
       await client.query('BEGIN');
+
+      // Vérifier que la commande peut être annulée
+      const checkResult = await client.query(
+        'SELECT statut FROM commande WHERE id = $1',
+        [id]
+      );
+
+      if (!checkResult.rows[0]) {
+        throw new Error('Commande non trouvée');
+      }
+
+      const currentStatut = checkResult.rows[0].statut;
+      
+      // On ne peut annuler que les commandes EN_ATTENTE ou CONFIRMEE
+      if (!['EN_ATTENTE', 'CONFIRMEE'].includes(currentStatut)) {
+        throw new Error(`Impossible d'annuler une commande ${currentStatut}`);
+      }
 
       // Récupérer les lignes pour restaurer le stock
       const linesResult = await client.query(
@@ -294,14 +395,14 @@ class OrderRepository {
 
       // Mettre à jour le statut
       const result = await client.query(
-        `UPDATE commande SET statut = 'ANNULEE', updated_at = NOW() WHERE id = $1 RETURNING *`,
+        `UPDATE commande SET statut = 'ANNULEE' WHERE id = $1 RETURNING *`,
         [id]
       );
 
       await client.query('COMMIT');
 
       logger.info(`Commande annulée: ${id}`);
-      return result.rows[0] ? this.mapOrder(result.rows[0]) : null;
+      return result.rows[0] ? this._mapOrder(result.rows[0]) : null;
 
     } catch (error) {
       await client.query('ROLLBACK');
@@ -320,21 +421,22 @@ class OrderRepository {
     let paramIndex = 1;
 
     if (dateDebut) {
-      whereClause += ` AND created_at >= $${paramIndex++}`;
+      whereClause += ` AND date_commande >= $${paramIndex++}`;
       params.push(dateDebut);
     }
 
     if (dateFin) {
-      whereClause += ` AND created_at <= $${paramIndex++}`;
+      whereClause += ` AND date_commande <= $${paramIndex++}`;
       params.push(dateFin);
     }
 
     const sql = `
       SELECT 
         COUNT(*) as total_commandes,
-        SUM(total_ttc) as chiffre_affaires,
-        AVG(total_ttc) as panier_moyen,
+        COALESCE(SUM(total_ttc), 0) as chiffre_affaires,
+        COALESCE(AVG(total_ttc), 0) as panier_moyen,
         COUNT(*) FILTER (WHERE statut = 'EN_ATTENTE') as en_attente,
+        COUNT(*) FILTER (WHERE statut = 'CONFIRMEE') as confirmees,
         COUNT(*) FILTER (WHERE statut = 'EN_PREPARATION') as en_preparation,
         COUNT(*) FILTER (WHERE statut = 'EXPEDIEE') as expediees,
         COUNT(*) FILTER (WHERE statut = 'LIVREE') as livrees
@@ -351,6 +453,7 @@ class OrderRepository {
       panierMoyen: parseFloat(row.panier_moyen) || 0,
       parStatut: {
         enAttente: parseInt(row.en_attente) || 0,
+        confirmees: parseInt(row.confirmees) || 0,
         enPreparation: parseInt(row.en_preparation) || 0,
         expediees: parseInt(row.expediees) || 0,
         livrees: parseInt(row.livrees) || 0
@@ -359,14 +462,14 @@ class OrderRepository {
   }
 
   /**
-   * Mappe une commande
+   * Mappe une commande (row SQL → objet JS)
    */
-  mapOrder(row) {
+  _mapOrder(row) {
     if (!row) return null;
 
     return {
       id: row.id,
-      numero: row.numero,
+      numeroCommande: row.numero_commande,
       utilisateurId: row.utilisateur_id,
       utilisateur: row.utilisateur_nom ? {
         nom: row.utilisateur_nom,
@@ -376,43 +479,46 @@ class OrderRepository {
         typeClient: row.utilisateur_type
       } : null,
       statut: row.statut,
+      dateCommande: row.date_commande,
+      totalHt: parseFloat(row.total_ht) || 0,
+      totalTva: parseFloat(row.total_tva) || 0,
+      totalTtc: parseFloat(row.total_ttc) || 0,
       adresseLivraison: typeof row.adresse_livraison === 'string' 
         ? JSON.parse(row.adresse_livraison) 
         : row.adresse_livraison,
-      adresseFacturation: typeof row.adresse_facturation === 'string'
-        ? JSON.parse(row.adresse_facturation)
-        : row.adresse_facturation,
+      adresseFacturation: row.adresse_facturation 
+        ? (typeof row.adresse_facturation === 'string' 
+            ? JSON.parse(row.adresse_facturation) 
+            : row.adresse_facturation)
+        : null,
       modePaiement: row.mode_paiement,
-      sousTotalHt: parseFloat(row.sous_total_ht),
-      totalTva: parseFloat(row.total_tva),
-      totalTtc: parseFloat(row.total_ttc),
-      fraisLivraison: parseFloat(row.frais_livraison),
-      notes: row.notes,
+      fraisLivraison: parseFloat(row.frais_livraison) || 0,
+      instructionsLivraison: row.instructions_livraison,
       nbArticles: row.nb_articles ? parseInt(row.nb_articles) : undefined,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at
+      dateModification: row.date_modification
     };
   }
 
   /**
    * Mappe une ligne de commande
    */
-  mapOrderLine(row) {
+  _mapOrderLine(row) {
     if (!row) return null;
 
     return {
       id: row.id,
+      commandeId: row.commande_id,
       produitId: row.produit_id,
-      produit: row.produit_nom ? {
-        nom: row.produit_nom,
+      nomProduit: row.nom_produit,
+      produit: row.produit_reference ? {
         reference: row.produit_reference,
         imageUrl: row.produit_image
       } : null,
       quantite: parseInt(row.quantite),
       prixUnitaireHt: parseFloat(row.prix_unitaire_ht),
       tauxTva: parseFloat(row.taux_tva),
-      totalHt: parseFloat(row.total_ht),
-      totalTtc: parseFloat(row.total_ttc)
+      totalHt: parseFloat(row.total_ht) || 0,
+      totalTtc: parseFloat(row.total_ttc) || 0
     };
   }
 }

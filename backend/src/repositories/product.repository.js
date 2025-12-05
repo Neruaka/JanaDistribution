@@ -77,12 +77,12 @@ class ProductRepository {
 
     // Mapping des colonnes pour l'ORDER BY
     const orderByMap = {
-      'createdAt': 'p.created_at',
+      'createdAt': 'p.date_creation',
       'prix': 'p.prix',
       'nom': 'p.nom',
       'stock': 'p.stock_quantite'
     };
-    const orderColumn = orderByMap[orderBy] || 'p.created_at';
+    const orderColumn = orderByMap[orderBy] || 'p.date_creation';
     const direction = orderDir.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
     // Requête principale
@@ -103,8 +103,9 @@ class ProductRepository {
         p.labels,
         p.origine,
         p.est_actif,
-        p.created_at,
-        p.updated_at,
+        p.est_mis_en_avant,
+        p.date_creation,
+        p.date_modification,
         c.id as categorie_id,
         c.nom as categorie_nom,
         c.slug as categorie_slug
@@ -267,7 +268,7 @@ class ProductRepository {
       return this.findById(id);
     }
 
-    fields.push(`updated_at = NOW()`);
+    fields.push(`date_modification = NOW()`);
     params.push(id);
 
     const sql = `
@@ -288,7 +289,7 @@ class ProductRepository {
   async delete(id) {
     const sql = `
       UPDATE produit 
-      SET est_actif = false, updated_at = NOW()
+      SET est_actif = false, date_modification = NOW()
       WHERE id = $1
       RETURNING *
     `;
@@ -317,21 +318,21 @@ class ProductRepository {
     if (operation === 'add') {
       sql = `
         UPDATE produit 
-        SET stock_quantite = stock_quantite + $2, updated_at = NOW()
+        SET stock_quantite = stock_quantite + $2, date_modification = NOW()
         WHERE id = $1
         RETURNING *
       `;
     } else if (operation === 'subtract') {
       sql = `
         UPDATE produit 
-        SET stock_quantite = GREATEST(0, stock_quantite - $2), updated_at = NOW()
+        SET stock_quantite = GREATEST(0, stock_quantite - $2), date_modification = NOW()
         WHERE id = $1
         RETURNING *
       `;
     } else {
       sql = `
         UPDATE produit 
-        SET stock_quantite = $2, updated_at = NOW()
+        SET stock_quantite = $2, date_modification = NOW()
         WHERE id = $1
         RETURNING *
       `;
@@ -385,8 +386,8 @@ class ProductRepository {
       FROM produit p
       LEFT JOIN categorie c ON p.categorie_id = c.id
       WHERE p.est_actif = true 
-        AND p.created_at >= NOW() - INTERVAL '${days} days'
-      ORDER BY p.created_at DESC
+        AND p.date_creation >= NOW() - INTERVAL '${days} days'
+      ORDER BY p.date_creation DESC
       LIMIT $1
     `;
     
@@ -448,14 +449,15 @@ class ProductRepository {
       labels: row.labels || [],
       origine: row.origine,
       estActif: row.est_actif,
+      estMisEnAvant: row.est_mis_en_avant,
       categorieId: row.categorie_id,
       categorie: row.categorie_nom ? {
         id: row.categorie_id,
         nom: row.categorie_nom,
         slug: row.categorie_slug
       } : null,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at
+      createdAt: row.date_creation,
+      updatedAt: row.date_modification
     };
   }
 }

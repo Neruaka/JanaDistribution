@@ -1,0 +1,518 @@
+/**
+ * Page d'accueil - Version modernisée avec animations
+ * @description Landing page avec catégories et produits vedettes
+ * Animations: Framer Motion + Tailwind CSS
+ */
+
+import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { motion } from 'framer-motion';
+import { 
+  ShoppingCart, 
+  Truck, 
+  Shield, 
+  BadgePercent, 
+  ArrowRight,
+  Sparkles,
+  Building2,
+  MapPin,
+  Phone,
+  Mail
+} from 'lucide-react';
+
+// Animation variants
+const fadeInUp = {
+  initial: { opacity: 0, y: 30 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.6, ease: 'easeOut' }
+};
+
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const scaleIn = {
+  initial: { opacity: 0, scale: 0.9 },
+  animate: { opacity: 1, scale: 1 },
+  transition: { duration: 0.4 }
+};
+
+const HomePage = () => {
+  const { user, isAuthenticated } = useAuth();
+
+  // Catégories
+  const categories = [
+    { id: 1, nom: 'Fruits & Légumes', icone: '🥬', slug: 'fruits-legumes', color: 'from-green-400 to-emerald-500', bgLight: 'bg-green-50' },
+    { id: 2, nom: 'Produits Laitiers', icone: '🧀', slug: 'produits-laitiers', color: 'from-yellow-400 to-amber-500', bgLight: 'bg-yellow-50' },
+    { id: 3, nom: 'Boucherie', icone: '🥩', slug: 'boucherie', color: 'from-red-400 to-rose-500', bgLight: 'bg-red-50' },
+    { id: 4, nom: 'Boulangerie', icone: '🥖', slug: 'boulangerie', color: 'from-amber-400 to-orange-500', bgLight: 'bg-amber-50' },
+    { id: 5, nom: 'Épicerie', icone: '🫒', slug: 'epicerie', color: 'from-orange-400 to-red-500', bgLight: 'bg-orange-50' },
+    { id: 6, nom: 'Poissonnerie', icone: '🐟', slug: 'poissonnerie', color: 'from-blue-400 to-cyan-500', bgLight: 'bg-blue-50' },
+  ];
+
+  // Produits vedettes
+  const produitsVedettes = [
+    { id: 1, nom: 'Pommes Gala Bio', prix: 2.50, unite: 'kg', image: '🍎', promo: false, badge: 'Bio' },
+    { id: 2, nom: 'Tomates Grappe', prix: 3.20, unite: 'kg', image: '🍅', promo: true, ancienPrix: 3.80, reduction: '-16%' },
+    { id: 3, nom: 'Comté AOP 12 mois', prix: 18.50, unite: 'kg', image: '🧀', promo: false, badge: 'AOP' },
+    { id: 4, nom: 'Entrecôte de Bœuf', prix: 24.90, unite: 'kg', image: '🥩', promo: false, badge: 'Local' },
+  ];
+
+  // Avantages
+  const avantages = [
+    { icon: Truck, title: 'Livraison rapide', desc: 'Livraison sous 24-48h pour les professionnels', color: 'text-blue-600', bg: 'bg-blue-100' },
+    { icon: Shield, title: 'Qualité garantie', desc: 'Produits frais sélectionnés avec soin', color: 'text-green-600', bg: 'bg-green-100' },
+    { icon: BadgePercent, title: 'Prix compétitifs', desc: 'Tarifs grossiste pour les professionnels', color: 'text-amber-600', bg: 'bg-amber-100' },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-green-600 via-green-700 to-emerald-800 text-white">
+        {/* Decorative elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-emerald-500/20 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-green-500/10 to-transparent rounded-full" />
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Text content */}
+            <motion.div 
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-sm mb-6"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Grossiste alimentaire de confiance</span>
+              </motion.div>
+              
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+                Produits frais,{' '}
+                <span className="text-green-300">qualité premium</span>
+                {isAuthenticated && (
+                  <span className="block text-3xl md:text-4xl mt-2 font-normal text-green-200">
+                    Bienvenue, {user?.prenom} ! 👋
+                  </span>
+                )}
+              </h1>
+              
+              <p className="text-lg md:text-xl text-green-100 mb-8 max-w-xl">
+                Votre partenaire alimentaire en ligne. Des produits soigneusement sélectionnés pour particuliers et professionnels.
+              </p>
+              
+              <motion.div 
+                className="flex flex-col sm:flex-row gap-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <Link 
+                  to="/catalogue"
+                  className="group inline-flex items-center justify-center gap-2 bg-white text-green-700 px-8 py-4 rounded-xl font-semibold hover:bg-green-50 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                >
+                  Voir le catalogue
+                  <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                </Link>
+                {!isAuthenticated && (
+                  <Link 
+                    to="/register"
+                    className="inline-flex items-center justify-center gap-2 border-2 border-white/50 text-white px-8 py-4 rounded-xl font-semibold hover:bg-white/10 backdrop-blur-sm transition-all duration-300"
+                  >
+                    <Building2 className="w-5 h-5" />
+                    Espace Pro
+                  </Link>
+                )}
+              </motion.div>
+            </motion.div>
+
+            {/* Hero illustration */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="hidden lg:flex items-center justify-center"
+            >
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-emerald-500/20 rounded-3xl blur-2xl scale-110" />
+                <div className="relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 border border-white/20">
+                  <div className="grid grid-cols-2 gap-4">
+                    {['🥬', '🍅', '🧀', '🥖'].map((emoji, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 + i * 0.1 }}
+                        className="bg-white/20 backdrop-blur rounded-2xl p-6 text-center"
+                      >
+                        <span className="text-5xl">{emoji}</span>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust badges */}
+      <section className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+          <motion.div 
+            className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center"
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+          >
+            {[
+              { icon: '🚚', text: 'Livraison 24-48h' },
+              { icon: '✅', text: 'Qualité garantie' },
+              { icon: '💰', text: 'Prix grossiste' },
+              { icon: '🔒', text: 'Paiement sécurisé' },
+            ].map((item, i) => (
+              <motion.div 
+                key={i}
+                variants={fadeInUp}
+                className="flex items-center justify-center gap-2 text-gray-600"
+              >
+                <span className="text-2xl">{item.icon}</span>
+                <span className="font-medium">{item.text}</span>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Catégories */}
+      <section className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Nos catégories</h2>
+          <p className="text-gray-600 mb-8">Découvrez notre sélection de produits frais</p>
+        </motion.div>
+        
+        <motion.div 
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true }}
+          variants={staggerContainer}
+        >
+          {categories.map((cat, index) => (
+            <motion.div
+              key={cat.id}
+              variants={scaleIn}
+              whileHover={{ scale: 1.05, y: -5 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Link
+                to={`/categorie/${cat.slug}`}
+                className={`block ${cat.bgLight} p-6 rounded-2xl text-center transition-all duration-300 hover:shadow-lg border border-transparent hover:border-gray-200`}
+              >
+                <span className="text-5xl block mb-3">{cat.icone}</span>
+                <span className="font-semibold text-gray-800">{cat.nom}</span>
+              </Link>
+            </motion.div>
+          ))}
+        </motion.div>
+      </section>
+
+      {/* Produits vedettes */}
+      <section className="bg-gray-100/50 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div 
+            className="flex justify-between items-end mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Produits vedettes</h2>
+              <p className="text-gray-600">Les favoris de nos clients</p>
+            </div>
+            <Link 
+              to="/catalogue" 
+              className="group hidden sm:inline-flex items-center gap-1 text-green-600 hover:text-green-700 font-semibold"
+            >
+              Voir tout 
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </motion.div>
+          
+          <motion.div 
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+          >
+            {produitsVedettes.map((produit) => (
+              <motion.div 
+                key={produit.id}
+                variants={fadeInUp}
+                whileHover={{ y: -8 }}
+                className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group"
+              >
+                {/* Image */}
+                <div className="h-44 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center relative overflow-hidden">
+                  <motion.span 
+                    className="text-7xl"
+                    whileHover={{ scale: 1.2, rotate: 5 }}
+                    transition={{ type: 'spring', stiffness: 300 }}
+                  >
+                    {produit.image}
+                  </motion.span>
+                  
+                  {/* Badges */}
+                  <div className="absolute top-3 left-3 flex gap-2">
+                    {produit.promo && (
+                      <span className="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                        {produit.reduction}
+                      </span>
+                    )}
+                    {produit.badge && (
+                      <span className="bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+                        {produit.badge}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Wishlist button */}
+                  <button className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-50">
+                    <span className="text-gray-400 hover:text-red-500 transition-colors">♡</span>
+                  </button>
+                </div>
+                
+                {/* Content */}
+                <div className="p-5">
+                  <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">
+                    {produit.nom}
+                  </h3>
+                  <div className="flex items-baseline gap-2 mb-4">
+                    <span className="text-2xl font-bold text-green-600">
+                      {produit.prix.toFixed(2)} €
+                    </span>
+                    <span className="text-sm text-gray-500">/ {produit.unite}</span>
+                    {produit.promo && produit.ancienPrix && (
+                      <span className="text-sm text-gray-400 line-through">
+                        {produit.ancienPrix.toFixed(2)} €
+                      </span>
+                    )}
+                  </div>
+                  <motion.button 
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full bg-green-600 text-white py-3 rounded-xl font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <ShoppingCart className="w-4 h-4" />
+                    Ajouter au panier
+                  </motion.button>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+          
+          <div className="sm:hidden mt-6 text-center">
+            <Link 
+              to="/catalogue" 
+              className="inline-flex items-center gap-1 text-green-600 hover:text-green-700 font-semibold"
+            >
+              Voir tout le catalogue <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Avantages */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl font-bold text-gray-900 mb-3">Pourquoi nous choisir ?</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Jana Distribution, c'est l'assurance d'un service de qualité pour vos achats alimentaires
+            </p>
+          </motion.div>
+          
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+          >
+            {avantages.map((item, i) => (
+              <motion.div 
+                key={i}
+                variants={fadeInUp}
+                whileHover={{ y: -5 }}
+                className="text-center p-8 rounded-2xl bg-gray-50 hover:bg-white hover:shadow-lg transition-all duration-300"
+              >
+                <div className={`inline-flex items-center justify-center w-16 h-16 ${item.bg} rounded-2xl mb-5`}>
+                  <item.icon className={`w-8 h-8 ${item.color}`} />
+                </div>
+                <h3 className="font-bold text-xl mb-3 text-gray-900">{item.title}</h3>
+                <p className="text-gray-600">{item.desc}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* CTA Pro */}
+      {!isAuthenticated && (
+        <motion.section 
+          className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-700 py-16"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+        >
+          <div className="absolute inset-0">
+            <div className="absolute -top-20 -right-20 w-60 h-60 bg-white/10 rounded-full blur-3xl" />
+            <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-blue-400/20 rounded-full blur-3xl" />
+          </div>
+          
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <motion.h2 
+                  className="text-3xl md:text-4xl font-bold text-white mb-4"
+                  initial={{ opacity: 0, x: -30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                >
+                  Vous êtes professionnel ?
+                </motion.h2>
+                <motion.p 
+                  className="text-blue-100 text-lg mb-6"
+                  initial={{ opacity: 0, x: -30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1 }}
+                >
+                  Créez votre compte professionnel et bénéficiez de tarifs préférentiels, 
+                  de la facturation à 30 jours et d'un service dédié.
+                </motion.p>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <Link 
+                    to="/register"
+                    className="inline-flex items-center gap-2 bg-white text-blue-700 px-8 py-4 rounded-xl font-semibold hover:bg-blue-50 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  >
+                    <Building2 className="w-5 h-5" />
+                    Créer un compte pro
+                    <ArrowRight className="w-5 h-5" />
+                  </Link>
+                </motion.div>
+              </div>
+              <div className="hidden md:flex justify-center">
+                <motion.div 
+                  className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <div className="text-center text-white">
+                    <span className="text-6xl block mb-4">🏢</span>
+                    <p className="font-semibold text-xl">+150 professionnels</p>
+                    <p className="text-blue-200">nous font confiance</p>
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+          </div>
+        </motion.section>
+      )}
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-gray-400">
+        <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <div className="flex items-center gap-2 text-white text-lg font-bold mb-4">
+                <span className="text-2xl">🥬</span>
+                Jana Distribution
+              </div>
+              <p className="text-sm leading-relaxed">
+                Votre partenaire alimentaire depuis 2020. 
+                Produits frais et de qualité pour tous.
+              </p>
+            </div>
+            <div>
+              <h4 className="text-white font-semibold mb-4">Navigation</h4>
+              <ul className="space-y-3 text-sm">
+                <li><Link to="/catalogue" className="hover:text-white transition-colors">Catalogue</Link></li>
+                <li><Link to="/categories" className="hover:text-white transition-colors">Catégories</Link></li>
+                <li><Link to="/promotions" className="hover:text-white transition-colors">Promotions</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-white font-semibold mb-4">Mon compte</h4>
+              <ul className="space-y-3 text-sm">
+                <li><Link to="/login" className="hover:text-white transition-colors">Connexion</Link></li>
+                <li><Link to="/register" className="hover:text-white transition-colors">Inscription</Link></li>
+                <li><Link to="/mes-commandes" className="hover:text-white transition-colors">Mes commandes</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-white font-semibold mb-4">Contact</h4>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4" />
+                  123 Rue du Commerce, 75001 Paris
+                </li>
+                <li className="flex items-center gap-2">
+                  <Phone className="w-4 h-4" />
+                  01 23 45 67 89
+                </li>
+                <li className="flex items-center gap-2">
+                  <Mail className="w-4 h-4" />
+                  contact@jana-distribution.fr
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 mt-10 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
+              <p>© 2024 Jana Distribution - SIREN 798 787 784 00012</p>
+              <div className="flex gap-6">
+                <a href="#" className="hover:text-white transition-colors">CGU</a>
+                <a href="#" className="hover:text-white transition-colors">Confidentialité</a>
+                <a href="#" className="hover:text-white transition-colors">Mentions légales</a>
+                <a href="#" className="hover:text-white transition-colors">Accessibilité</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default HomePage;
