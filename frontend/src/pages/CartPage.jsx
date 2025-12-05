@@ -51,7 +51,7 @@ const CartPage = () => {
   // Rediriger si non connecté
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/connexion', { state: { from: '/panier' } });
+      navigate('/login', { state: { from: '/panier' } });
     }
   }, [isAuthenticated, navigate]);
 
@@ -96,7 +96,7 @@ const CartPage = () => {
     setIsValidating(false);
 
     if (result.isValid) {
-      navigate('/commander');
+      navigate('/checkout');
     }
   };
 

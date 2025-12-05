@@ -4,8 +4,10 @@
  * Animations: Framer Motion + Tailwind CSS
  */
 
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
 import { motion } from 'framer-motion';
 import { 
   ShoppingCart, 
@@ -17,8 +19,11 @@ import {
   Building2,
   MapPin,
   Phone,
-  Mail
+  Mail,
+  Loader2
 } from 'lucide-react';
+import productService from '../services/productService';
+import toast from 'react-hot-toast';
 
 // Animation variants
 const fadeInUp = {
@@ -43,6 +48,41 @@ const scaleIn = {
 
 const HomePage = () => {
   const { user, isAuthenticated } = useAuth();
+  const { addItem } = useCart();
+  
+  // État pour les produits vedettes
+  const [produitsVedettes, setProduitsVedettes] = useState([]);
+  const [loadingProduits, setLoadingProduits] = useState(true);
+  const [addingToCart, setAddingToCart] = useState(null);
+
+  // Charger les produits vedettes depuis l'API
+  useEffect(() => {
+    const fetchProduits = async () => {
+      try {
+        const response = await productService.getAll({ limit: 4, orderBy: 'createdAt', orderDir: 'DESC' });
+        if (response.success && response.data) {
+          setProduitsVedettes(response.data);
+        }
+      } catch (error) {
+        console.error('Erreur chargement produits:', error);
+      } finally {
+        setLoadingProduits(false);
+      }
+    };
+    fetchProduits();
+  }, []);
+
+  // Ajouter au panier
+  const handleAddToCart = async (produit) => {
+    if (!isAuthenticated) {
+      toast.error('Connectez-vous pour ajouter au panier');
+      return;
+    }
+    
+    setAddingToCart(produit.id);
+    const success = await addItem(produit.id, 1);
+    setAddingToCart(null);
+  };
 
   // Catégories
   const categories = [
@@ -54,20 +94,20 @@ const HomePage = () => {
     { id: 6, nom: 'Poissonnerie', icone: '🐟', slug: 'poissonnerie', color: 'from-blue-400 to-cyan-500', bgLight: 'bg-blue-50' },
   ];
 
-  // Produits vedettes
-  const produitsVedettes = [
-    { id: 1, nom: 'Pommes Gala Bio', prix: 2.50, unite: 'kg', image: '🍎', promo: false, badge: 'Bio' },
-    { id: 2, nom: 'Tomates Grappe', prix: 3.20, unite: 'kg', image: '🍅', promo: true, ancienPrix: 3.80, reduction: '-16%' },
-    { id: 3, nom: 'Comté AOP 12 mois', prix: 18.50, unite: 'kg', image: '🧀', promo: false, badge: 'AOP' },
-    { id: 4, nom: 'Entrecôte de Bœuf', prix: 24.90, unite: 'kg', image: '🥩', promo: false, badge: 'Local' },
-  ];
-
   // Avantages
   const avantages = [
     { icon: Truck, title: 'Livraison rapide', desc: 'Livraison sous 24-48h pour les professionnels', color: 'text-blue-600', bg: 'bg-blue-100' },
     { icon: Shield, title: 'Qualité garantie', desc: 'Produits frais sélectionnés avec soin', color: 'text-green-600', bg: 'bg-green-100' },
     { icon: BadgePercent, title: 'Prix compétitifs', desc: 'Tarifs grossiste pour les professionnels', color: 'text-amber-600', bg: 'bg-amber-100' },
   ];
+  
+  // Formater le prix
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: 'EUR'
+    }).format(price);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -256,78 +296,124 @@ const HomePage = () => {
             </Link>
           </motion.div>
           
-          <motion.div 
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-          >
-            {produitsVedettes.map((produit) => (
-              <motion.div 
-                key={produit.id}
-                variants={fadeInUp}
-                whileHover={{ y: -8 }}
-                className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group"
-              >
-                {/* Image */}
-                <div className="h-44 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center relative overflow-hidden">
-                  <motion.span 
-                    className="text-7xl"
-                    whileHover={{ scale: 1.2, rotate: 5 }}
-                    transition={{ type: 'spring', stiffness: 300 }}
-                  >
-                    {produit.image}
-                  </motion.span>
-                  
-                  {/* Badges */}
-                  <div className="absolute top-3 left-3 flex gap-2">
-                    {produit.promo && (
-                      <span className="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
-                        {produit.reduction}
-                      </span>
-                    )}
-                    {produit.badge && (
-                      <span className="bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full">
-                        {produit.badge}
-                      </span>
-                    )}
-                  </div>
-                  
-                  {/* Wishlist button */}
-                  <button className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-50">
-                    <span className="text-gray-400 hover:text-red-500 transition-colors">♡</span>
-                  </button>
-                </div>
+          {/* Loader */}
+          {loadingProduits ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="w-8 h-8 text-green-600 animate-spin" />
+            </div>
+          ) : produitsVedettes.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <p>Aucun produit disponible pour le moment</p>
+              <Link to="/catalogue" className="text-green-600 hover:underline mt-2 inline-block">
+                Voir le catalogue complet
+              </Link>
+            </div>
+          ) : (
+            <motion.div 
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+              initial="initial"
+              whileInView="animate"
+              viewport={{ once: true }}
+              variants={staggerContainer}
+            >
+              {produitsVedettes.map((produit) => {
+                const hasPromo = produit.prixPromo && produit.prixPromo < produit.prix;
+                const discount = hasPromo ? Math.round((1 - produit.prixPromo / produit.prix) * 100) : 0;
+                const inStock = produit.stockQuantite > 0;
                 
-                {/* Content */}
-                <div className="p-5">
-                  <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">
-                    {produit.nom}
-                  </h3>
-                  <div className="flex items-baseline gap-2 mb-4">
-                    <span className="text-2xl font-bold text-green-600">
-                      {produit.prix.toFixed(2)} €
-                    </span>
-                    <span className="text-sm text-gray-500">/ {produit.unite}</span>
-                    {produit.promo && produit.ancienPrix && (
-                      <span className="text-sm text-gray-400 line-through">
-                        {produit.ancienPrix.toFixed(2)} €
-                      </span>
-                    )}
-                  </div>
-                  <motion.button 
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full bg-green-600 text-white py-3 rounded-xl font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                return (
+                  <motion.div 
+                    key={produit.id}
+                    variants={fadeInUp}
+                    whileHover={{ y: -8 }}
+                    className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group"
                   >
-                    <ShoppingCart className="w-4 h-4" />
-                    Ajouter au panier
-                  </motion.button>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
+                    {/* Image avec lien */}
+                    <Link to={`/produit/${produit.slug}`}>
+                      <div className="h-44 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center relative overflow-hidden">
+                        {produit.imageUrl ? (
+                          <img 
+                            src={produit.imageUrl} 
+                            alt={produit.nom} 
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                        ) : (
+                          <motion.span 
+                            className="text-7xl"
+                            whileHover={{ scale: 1.2, rotate: 5 }}
+                            transition={{ type: 'spring', stiffness: 300 }}
+                          >
+                            🥬
+                          </motion.span>
+                        )}
+                        
+                        {/* Badges */}
+                        <div className="absolute top-3 left-3 flex gap-2">
+                          {hasPromo && (
+                            <span className="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                              -{discount}%
+                            </span>
+                          )}
+                          {produit.labels && produit.labels[0] && (
+                            <span className="bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+                              {produit.labels[0]}
+                            </span>
+                          )}
+                        </div>
+                        
+                        {/* Stock épuisé */}
+                        {!inStock && (
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                            <span className="bg-white text-gray-800 font-semibold px-4 py-2 rounded-full text-sm">
+                              Rupture de stock
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </Link>
+                    
+                    {/* Content */}
+                    <div className="p-5">
+                      <Link to={`/produit/${produit.slug}`}>
+                        <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-green-600 transition-colors line-clamp-2">
+                          {produit.nom}
+                        </h3>
+                      </Link>
+                      <div className="flex items-baseline gap-2 mb-4">
+                        <span className={`text-2xl font-bold ${hasPromo ? 'text-red-600' : 'text-green-600'}`}>
+                          {formatPrice(hasPromo ? produit.prixPromo : produit.prix)}
+                        </span>
+                        <span className="text-sm text-gray-500">/ {produit.uniteMesure || 'unité'}</span>
+                        {hasPromo && (
+                          <span className="text-sm text-gray-400 line-through">
+                            {formatPrice(produit.prix)}
+                          </span>
+                        )}
+                      </div>
+                      <motion.button 
+                        whileHover={{ scale: inStock ? 1.02 : 1 }}
+                        whileTap={{ scale: inStock ? 0.98 : 1 }}
+                        onClick={() => handleAddToCart(produit)}
+                        disabled={!inStock || addingToCart === produit.id}
+                        className={`w-full py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
+                          inStock 
+                            ? 'bg-green-600 text-white hover:bg-green-700' 
+                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        }`}
+                      >
+                        {addingToCart === produit.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <ShoppingCart className="w-4 h-4" />
+                        )}
+                        {addingToCart === produit.id ? 'Ajout...' : 'Ajouter au panier'}
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          )}
           
           <div className="sm:hidden mt-6 text-center">
             <Link 

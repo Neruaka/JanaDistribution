@@ -130,19 +130,33 @@ export function CartProvider({ children }) {
 
   /**
    * Vider le panier
+   * @param {boolean} silent - Si true, pas de toast (utile après commande)
    */
-  const clearCart = async () => {
+  const clearCart = async (silent = false) => {
     try {
       const result = await cartService.clearCart();
       setCart(result.data.cart);
       setItemCount(0);
-      toast.success(result.message);
+      if (!silent) {
+        toast.success(result.message);
+      }
       return true;
     } catch (err) {
       const message = err.response?.data?.message || 'Erreur lors du vidage du panier';
-      toast.error(message);
+      if (!silent) {
+        toast.error(message);
+      }
       return false;
     }
+  };
+
+  /**
+   * Réinitialiser le panier localement (sans appel API)
+   * Utile quand le backend a déjà vidé le panier (ex: après commande)
+   */
+  const resetCartLocal = () => {
+    setCart(null);
+    setItemCount(0);
   };
 
   /**
@@ -212,6 +226,12 @@ export function CartProvider({ children }) {
     warnings: cart?.warnings || null,
     isEmpty: !cart?.items || cart.items.length === 0,
     
+    // Computed totaux (pour checkout)
+    subtotalHT: cart?.summary?.totalHT || 0,
+    totalTVA: cart?.summary?.totalTVA || 0,
+    totalTTC: cart?.summary?.totalTTC || 0,
+    savings: cart?.summary?.economies || 0,
+    
     // Actions
     fetchCart,
     fetchItemCount,
@@ -219,6 +239,7 @@ export function CartProvider({ children }) {
     updateQuantity,
     removeItem,
     clearCart,
+    resetCartLocal,
     validateCart,
     applyFixes,
     
