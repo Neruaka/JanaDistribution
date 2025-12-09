@@ -25,6 +25,8 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderConfirmationPage from './pages/OrderConfirmationPage';
+import OrderHistoryPage from './pages/OrderHistoryPage';
+import OrderDetailPage from './pages/OrderDetailPage';
 
 // Pages Admin
 // import AdminLayout from './components/admin/AdminLayout';
@@ -37,16 +39,6 @@ const MonComptePage = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-4">👤 Mon compte</h1>
-      <p className="text-gray-600">Page à implémenter...</p>
-    </div>
-  );
-};
-
-// Page Mes Commandes (temporaire)
-const MesCommandesPage = () => {
-  return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-4">📦 Mes commandes</h1>
       <p className="text-gray-600">Page à implémenter...</p>
     </div>
   );
@@ -72,7 +64,7 @@ const PromotionsPage = () => {
   );
 };
 
-// // Pages Admin temporaires
+// Pages Admin temporaires
 // const AdminCategoriesPage = () => (
 //   <div>
 //     <h1 className="text-2xl font-bold mb-4">Catégories</h1>
@@ -197,18 +189,24 @@ function App() {
         <Route path="/mes-commandes" element={
           <PrivateRoute>
             <Navbar />
-            <MesCommandesPage />
+            <OrderHistoryPage />
+          </PrivateRoute>
+        } />
+        <Route path="/mes-commandes/:orderId" element={
+          <PrivateRoute>
+            <Navbar />
+            <OrderDetailPage />
           </PrivateRoute>
         } />
         
         {/* ==================== */}
         {/* Pages Admin avec AdminLayout */}
         {/* ==================== */}
-        {/* <Route path="/admin" element={
+        <Route path="/admin" element={
           <PrivateRoute adminOnly>
-            <AdminLayout />
+            {/* <AdminLayout /> */}
           </PrivateRoute>
-        }> */}
+        }>
           {/* Dashboard */}
           {/* <Route index element={<AdminDashboard />} /> */}
           
@@ -229,7 +227,7 @@ function App() {
           
           {/* Paramètres */}
           {/* <Route path="parametres" element={<AdminSettingsPage />} /> */}
-        {/* </Route> */}
+        </Route>
         
         {/* ==================== */}
         {/* 404 */}

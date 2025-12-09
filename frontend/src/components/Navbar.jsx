@@ -230,6 +230,27 @@ const Navbar = () => {
             >
               🏷️ Promotions
             </Link>
+            
+            {/* Liens utilisateur connecté - mobile */}
+            {isAuthenticated && (
+              <>
+                <div className="border-t my-2"></div>
+                <Link 
+                  to="/mes-commandes" 
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  📋 Mes commandes
+                </Link>
+                <Link 
+                  to="/panier" 
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  🛒 Mon panier {itemCount > 0 && `(${itemCount})`}
+                </Link>
+              </>
+            )}
           </div>
         )}
       </div>

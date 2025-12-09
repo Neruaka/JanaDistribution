@@ -374,8 +374,8 @@ const OrderConfirmationPage = () => {
             {order?.lignes?.map((ligne, index) => (
               <div key={index} className="flex items-center gap-4 py-3">
                 <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
-                  {ligne.imageUrl ? (
-                    <img src={ligne.imageUrl} alt={ligne.nomProduit} className="w-full h-full object-cover" />
+                  {ligne.produit?.imageUrl ? (
+                    <img src={ligne.produit.imageUrl} alt={ligne.nomProduit} className="w-full h-full object-cover" />
                   ) : (
                     <Package className="w-6 h-6 text-gray-400" />
                   )}
@@ -383,11 +383,11 @@ const OrderConfirmationPage = () => {
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-800">{ligne.nomProduit}</p>
                   <p className="text-sm text-gray-500">
-                    {formatPrice(ligne.prixUnitaire)} × {ligne.quantite}
+                    {formatPrice(ligne.prixUnitaireHt)} × {ligne.quantite}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-gray-800">{formatPrice(ligne.totalTTC)}</p>
+                  <p className="font-semibold text-gray-800">{formatPrice(ligne.totalTtc)}</p>
                   <p className="text-xs text-gray-500">TTC</p>
                 </div>
               </div>
@@ -398,11 +398,11 @@ const OrderConfirmationPage = () => {
           <div className="border-t border-gray-200 mt-4 pt-4 space-y-2">
             <div className="flex justify-between text-gray-600">
               <span>Sous-total HT</span>
-              <span>{formatPrice(order?.totalHT || 0)}</span>
+              <span>{formatPrice(order?.totalHt || 0)}</span>
             </div>
             <div className="flex justify-between text-gray-600">
               <span>TVA</span>
-              <span>{formatPrice(order?.totalTVA || 0)}</span>
+              <span>{formatPrice(order?.totalTva || 0)}</span>
             </div>
             <div className="flex justify-between text-gray-600">
               <span className="flex items-center gap-1">
@@ -413,7 +413,7 @@ const OrderConfirmationPage = () => {
             </div>
             <div className="flex justify-between text-xl font-bold text-gray-800 pt-2 border-t border-gray-200">
               <span>Total TTC</span>
-              <span className="text-green-600">{formatPrice(order?.totalTTC || 0)}</span>
+              <span className="text-green-600">{formatPrice(order?.totalTtc || 0)}</span>
             </div>
           </div>
         </motion.div>
