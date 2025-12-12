@@ -18,7 +18,8 @@ const validate = (req, res, next) => {
       message: err.msg
     }));
 
-    throw ApiError.badRequest('Erreur de validation', errorMessages);
+  console.log('❌ Erreurs de validation:', JSON.stringify(errorMessages, null, 2));
+  throw ApiError.badRequest('Erreur de validation', errorMessages);
   }
   
   next();

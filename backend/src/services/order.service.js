@@ -1,13 +1,18 @@
 /**
- * Order Service
+ * Order Service - AVEC NOTIFICATIONS EMAIL
  * @description Logique métier pour la gestion des commandes
+ * 
+ * ✅ AJOUT:
+ * - Envoi d'email au changement de statut de commande
  */
 
 const orderRepository = require('../repositories/order.repository');
 const cartRepository = require('../repositories/cart.repository');
 const productRepository = require('../repositories/product.repository');
+const userRepository = require('../repositories/user.repository');
 const logger = require('../config/logger');
 const { ApiError } = require('../middlewares/errorHandler');
+const emailService = require('./email.service');
 
 // Statuts valides et transitions autorisées
 const STATUT_TRANSITIONS = {
@@ -122,6 +127,11 @@ class OrderService {
       numeroCommande: order.numeroCommande,
       totalTtc
     });
+
+    // ✅ AJOUT: Envoyer email de confirmation de commande
+    this._sendOrderStatusEmail(order, null, 'EN_ATTENTE', userId).catch(err => {
+      logger.error('Erreur envoi email nouvelle commande:', err.message);
+    });
     
     return {
       order,
@@ -197,8 +207,6 @@ class OrderService {
    * @param {string} newStatut - Nouveau statut
    * @param {string} instructionsLivraison - Instructions optionnelles
    * @returns {Object} La commande mise à jour
-   * 
-   * ✅ CORRECTION: Si statut = ANNULEE, on appelle cancelOrder() pour restaurer le stock
    */
   async updateStatus(orderId, newStatut, instructionsLivraison = null) {
     const order = await orderRepository.findById(orderId);
@@ -207,17 +215,19 @@ class OrderService {
       throw ApiError.notFound('Commande non trouvée');
     }
     
+    const oldStatut = order.statut;
+    
     // Vérifier que la transition est valide
-    const allowedTransitions = STATUT_TRANSITIONS[order.statut];
+    const allowedTransitions = STATUT_TRANSITIONS[oldStatut];
     
     if (!allowedTransitions || !allowedTransitions.includes(newStatut)) {
       throw ApiError.badRequest(
-        `Transition de statut invalide: ${order.statut} → ${newStatut}. ` +
+        `Transition de statut invalide: ${oldStatut} → ${newStatut}. ` +
         `Transitions autorisées: ${allowedTransitions?.join(', ') || 'aucune'}`
       );
     }
     
-    // ✅ CORRECTION: Si annulation, utiliser cancelOrder() qui restaure le stock
+    // Si annulation, utiliser cancelOrder() qui restaure le stock
     if (newStatut === 'ANNULEE') {
       logger.info(`Annulation via updateStatus, redirection vers cancelOrder`, { orderId });
       return this.cancelOrder(orderId, null, true); // isAdmin = true
@@ -227,9 +237,14 @@ class OrderService {
     
     logger.info(`Statut commande mis à jour`, {
       orderId,
-      oldStatut: order.statut,
+      oldStatut,
       newStatut,
       numeroCommande: order.numeroCommande
+    });
+    
+    // ✅ AJOUT: Envoyer email de notification
+    this._sendOrderStatusEmail(updatedOrder, oldStatut, newStatut, order.utilisateurId).catch(err => {
+      logger.error('Erreur envoi email changement statut:', err.message);
     });
     
     return {
@@ -252,6 +267,8 @@ class OrderService {
       throw ApiError.notFound('Commande non trouvée');
     }
     
+    const oldStatut = order.statut;
+    
     // Vérifier les permissions
     if (!isAdmin && userId && order.utilisateurId !== userId) {
       throw ApiError.forbidden('Vous n\'avez pas accès à cette commande');
@@ -272,7 +289,7 @@ class OrderService {
       );
     }
     
-    // ✅ cancel() dans le repository restaure le stock
+    // cancel() dans le repository restaure le stock
     const cancelledOrder = await orderRepository.cancel(orderId);
     
     logger.info(`Commande annulée`, {
@@ -280,6 +297,11 @@ class OrderService {
       numeroCommande: order.numeroCommande,
       byAdmin: isAdmin,
       userId
+    });
+    
+    // ✅ AJOUT: Envoyer email de notification d'annulation
+    this._sendOrderStatusEmail(cancelledOrder, oldStatut, 'ANNULEE', order.utilisateurId).catch(err => {
+      logger.error('Erreur envoi email annulation:', err.message);
     });
     
     return {
@@ -349,6 +371,37 @@ class OrderService {
    */
   getPossibleTransitions(statut) {
     return STATUT_TRANSITIONS[statut] || [];
+  }
+
+  // ==========================================
+  // ✅ MÉTHODE PRIVÉE : ENVOI EMAIL
+  // ==========================================
+
+  /**
+   * Envoie un email de notification de changement de statut
+   * @private
+   * @param {Object} order - La commande
+   * @param {string} oldStatus - Ancien statut (null si nouvelle commande)
+   * @param {string} newStatus - Nouveau statut
+   * @param {string} userId - ID de l'utilisateur
+   */
+  async _sendOrderStatusEmail(order, oldStatus, newStatus, userId) {
+    try {
+      // Récupérer les infos de l'utilisateur
+      const user = await userRepository.findById(userId);
+      
+      if (!user || !user.email) {
+        logger.warn(`Impossible d'envoyer email: utilisateur ${userId} introuvable`);
+        return;
+      }
+
+      // Envoyer l'email
+      await emailService.sendOrderStatusEmail(order, oldStatus, newStatus, user);
+      
+    } catch (error) {
+      // On log l'erreur mais on ne bloque pas le processus
+      logger.error('Erreur dans _sendOrderStatusEmail:', error.message);
+    }
   }
 }
 

@@ -1,19 +1,27 @@
 /**
- * Service d'Authentification
- * @description Logique métier pour inscription, connexion, JWT
+ * Service d'Authentification - AVEC MOT DE PASSE OUBLIÉ
+ * @description Logique métier pour inscription, connexion, JWT, reset password
+ * 
+ * ✅ AJOUTS:
+ * - forgotPassword() : génère un token de reset et envoie l'email
+ * - resetPassword() : réinitialise le mot de passe avec le token
+ * - Utilisation du service email pour les notifications
  */
 
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const userRepository = require('../repositories/user.repository');
 const logger = require('../config/logger');
 const { ApiError } = require('../middlewares/errorHandler');
+const emailService = require('./email.service');
 
 class AuthService {
   constructor() {
     this.saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
     this.jwtSecret = process.env.JWT_SECRET;
     this.jwtExpiresIn = process.env.JWT_EXPIRES_IN || '7d';
+    this.resetTokenExpiry = 60 * 60 * 1000; // 1 heure en millisecondes
   }
 
   /**
@@ -81,6 +89,11 @@ class AuthService {
 
     logger.info(`Nouvel utilisateur inscrit: ${user.email} (${user.typeClient})`);
 
+    // ✅ Envoyer email de bienvenue (asynchrone, non bloquant)
+    emailService.sendWelcomeEmail(user).catch(err => {
+      logger.error('Erreur envoi email bienvenue:', err.message);
+    });
+
     return {
       user: this.sanitizeUser(user),
       token
@@ -147,7 +160,7 @@ class AuthService {
   }
 
   /**
-   * Change le mot de passe
+   * Change le mot de passe (utilisateur connecté)
    * @param {string} userId - ID de l'utilisateur
    * @param {string} ancienMotDePasse - Ancien mot de passe
    * @param {string} nouveauMotDePasse - Nouveau mot de passe
@@ -173,6 +186,114 @@ class AuthService {
     await userRepository.updatePassword(userId, nouveauHash);
 
     logger.info(`Mot de passe changé pour: ${user.email}`);
+
+    // ✅ Envoyer email de confirmation
+    emailService.sendPasswordChangedEmail(user).catch(err => {
+      logger.error('Erreur envoi email changement mdp:', err.message);
+    });
+  }
+
+  // ==========================================
+  // ✅ NOUVELLES MÉTHODES : MOT DE PASSE OUBLIÉ
+  // ==========================================
+
+  /**
+   * Demande de réinitialisation de mot de passe
+   * Génère un token et envoie l'email
+   * @param {string} email - Email de l'utilisateur
+   * @returns {Promise<Object>} Message de confirmation
+   */
+  async forgotPassword(email) {
+    // Toujours retourner le même message (sécurité : ne pas révéler si l'email existe)
+    const genericResponse = {
+      message: 'Si cette adresse email est associée à un compte, vous recevrez un lien de réinitialisation.'
+    };
+
+    // Chercher l'utilisateur
+    const user = await userRepository.findByEmail(email.toLowerCase().trim());
+    
+    if (!user) {
+      logger.info(`Tentative reset password pour email inconnu: ${email}`);
+      return genericResponse;
+    }
+
+    if (!user.estActif) {
+      logger.info(`Tentative reset password pour compte désactivé: ${email}`);
+      return genericResponse;
+    }
+
+    // Générer un token sécurisé
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    
+    // Hasher le token avant de le stocker (sécurité)
+    const resetTokenHash = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
+
+    // Calculer la date d'expiration
+    const resetTokenExpiry = new Date(Date.now() + this.resetTokenExpiry);
+
+    // Sauvegarder le token hashé en base
+    await userRepository.setResetToken(user.id, resetTokenHash, resetTokenExpiry);
+
+    logger.info(`Token reset password généré pour: ${user.email}`);
+
+    // Envoyer l'email avec le token NON hashé (celui qu'on envoie à l'utilisateur)
+    const emailResult = await emailService.sendPasswordResetEmail(user, resetToken);
+    
+    if (!emailResult.success) {
+      logger.error(`Échec envoi email reset pour: ${user.email}`);
+      // On ne révèle pas l'erreur à l'utilisateur
+    }
+
+    return genericResponse;
+  }
+
+  /**
+   * Réinitialise le mot de passe avec le token
+   * @param {string} token - Token de réinitialisation (reçu par email)
+   * @param {string} nouveauMotDePasse - Nouveau mot de passe
+   * @returns {Promise<Object>} Confirmation
+   */
+  async resetPassword(token, nouveauMotDePasse) {
+    // Hasher le token pour le comparer avec celui en base
+    const resetTokenHash = crypto
+      .createHash('sha256')
+      .update(token)
+      .digest('hex');
+
+    // Chercher l'utilisateur avec ce token et vérifier l'expiration
+    const user = await userRepository.findByResetToken(resetTokenHash);
+
+    if (!user) {
+      throw ApiError.badRequest('Token invalide ou expiré. Veuillez refaire une demande de réinitialisation.');
+    }
+
+    // Vérifier l'expiration
+    if (new Date() > new Date(user.resetTokenExpiry)) {
+      // Nettoyer le token expiré
+      await userRepository.clearResetToken(user.id);
+      throw ApiError.badRequest('Ce lien a expiré. Veuillez refaire une demande de réinitialisation.');
+    }
+
+    // Hasher le nouveau mot de passe
+    const nouveauHash = await bcrypt.hash(nouveauMotDePasse, this.saltRounds);
+
+    // Mettre à jour le mot de passe et supprimer le token
+    await userRepository.updatePassword(user.id, nouveauHash);
+    await userRepository.clearResetToken(user.id);
+
+    logger.info(`Mot de passe réinitialisé pour: ${user.email}`);
+
+    // Envoyer email de confirmation
+    emailService.sendPasswordChangedEmail(user).catch(err => {
+      logger.error('Erreur envoi email confirmation reset:', err.message);
+    });
+
+    return {
+      message: 'Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter.'
+    };
   }
 
   /**
@@ -232,7 +353,7 @@ class AuthService {
    * @returns {Object} Utilisateur nettoyé
    */
   sanitizeUser(user) {
-    const { motDePasseHash, ...safeUser } = user;
+    const { motDePasseHash, resetToken, resetTokenExpiry, ...safeUser } = user;
     return safeUser;
   }
 }

@@ -1,6 +1,10 @@
 /**
- * Routes d'authentification
- * @description Inscription, connexion, déconnexion, profil
+ * Routes d'authentification - AVEC MOT DE PASSE OUBLIÉ
+ * @description Inscription, connexion, déconnexion, profil, reset password
+ * 
+ * ✅ AJOUTS:
+ * - POST /api/auth/forgot-password
+ * - POST /api/auth/reset-password
  */
 
 const express = require('express');
@@ -37,6 +41,20 @@ router.post('/register', registerValidation, authController.register);
  * @access Public
  */
 router.post('/login', loginValidation, authController.login);
+
+/**
+ * POST /api/auth/forgot-password
+ * @description Demande de réinitialisation de mot de passe
+ * @access Public
+ */
+router.post('/forgot-password', authController.forgotPassword);
+
+/**
+ * POST /api/auth/reset-password
+ * @description Réinitialise le mot de passe avec le token
+ * @access Public
+ */
+router.post('/reset-password', authController.resetPassword);
 
 // ==========================================
 // ROUTES PROTÉGÉES (authentification requise)

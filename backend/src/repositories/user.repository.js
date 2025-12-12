@@ -1,6 +1,11 @@
 /**
- * Repository Utilisateur
+ * Repository Utilisateur - AVEC RESET TOKEN
  * @description Accès aux données de la table utilisateur
+ * 
+ * ✅ AJOUTS:
+ * - setResetToken() : stocke le token de reset
+ * - findByResetToken() : trouve un utilisateur par son token
+ * - clearResetToken() : supprime le token après utilisation
  */
 
 const { query, getClient } = require('../config/database');
@@ -63,7 +68,8 @@ class UserRepository {
         id, email, mot_de_passe_hash, nom, prenom, telephone,
         role, type_client, siret, raison_sociale, numero_tva,
         accepte_cgu, accepte_newsletter, est_actif,
-        date_creation, date_modification, derniere_connexion
+        date_creation, date_modification, derniere_connexion,
+        reset_token, reset_token_expiry
       FROM utilisateur
       WHERE email = $1
     `;
@@ -159,7 +165,7 @@ class UserRepository {
     values.push(id);
     const sql = `
       UPDATE utilisateur 
-      SET ${setClauses.join(', ')}
+      SET ${setClauses.join(', ')}, date_modification = CURRENT_TIMESTAMP
       WHERE id = $${paramIndex}
       RETURNING 
         id, email, nom, prenom, telephone,
@@ -181,12 +187,88 @@ class UserRepository {
   async updatePassword(id, hashedPassword) {
     const sql = `
       UPDATE utilisateur 
-      SET mot_de_passe_hash = $1
+      SET mot_de_passe_hash = $1, date_modification = CURRENT_TIMESTAMP
       WHERE id = $2
     `;
     await query(sql, [hashedPassword, id]);
     logger.info(`Mot de passe mis à jour pour: ${id}`);
   }
+
+  // ==========================================
+  // ✅ NOUVELLES MÉTHODES : RESET TOKEN
+  // ==========================================
+
+  /**
+   * Stocke le token de réinitialisation de mot de passe
+   * @param {string} id - UUID de l'utilisateur
+   * @param {string} tokenHash - Token hashé (SHA256)
+   * @param {Date} expiry - Date d'expiration
+   */
+  async setResetToken(id, tokenHash, expiry) {
+    const sql = `
+      UPDATE utilisateur 
+      SET reset_token = $1, reset_token_expiry = $2, date_modification = CURRENT_TIMESTAMP
+      WHERE id = $3
+    `;
+    await query(sql, [tokenHash, expiry, id]);
+    logger.info(`Reset token défini pour utilisateur: ${id}`);
+  }
+
+  /**
+   * Trouve un utilisateur par son token de reset (non expiré)
+   * @param {string} tokenHash - Token hashé
+   * @returns {Promise<Object|null>} Utilisateur ou null
+   */
+  async findByResetToken(tokenHash) {
+    const sql = `
+      SELECT 
+        id, email, nom, prenom, telephone,
+        role, type_client, est_actif,
+        reset_token, reset_token_expiry
+      FROM utilisateur
+      WHERE reset_token = $1 
+        AND reset_token_expiry > CURRENT_TIMESTAMP
+        AND est_actif = true
+    `;
+
+    const result = await query(sql, [tokenHash]);
+    
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const row = result.rows[0];
+    return {
+      id: row.id,
+      email: row.email,
+      nom: row.nom,
+      prenom: row.prenom,
+      telephone: row.telephone,
+      role: row.role,
+      typeClient: row.type_client,
+      estActif: row.est_actif,
+      resetToken: row.reset_token,
+      resetTokenExpiry: row.reset_token_expiry
+    };
+  }
+
+  /**
+   * Supprime le token de reset après utilisation
+   * @param {string} id - UUID de l'utilisateur
+   */
+  async clearResetToken(id) {
+    const sql = `
+      UPDATE utilisateur 
+      SET reset_token = NULL, reset_token_expiry = NULL, date_modification = CURRENT_TIMESTAMP
+      WHERE id = $1
+    `;
+    await query(sql, [id]);
+    logger.info(`Reset token supprimé pour utilisateur: ${id}`);
+  }
+
+  // ==========================================
+  // FIN NOUVELLES MÉTHODES
+  // ==========================================
 
   /**
    * Désactive un utilisateur (soft delete)
@@ -313,6 +395,12 @@ class UserRepository {
 
     if (includePassword) {
       user.motDePasseHash = row.mot_de_passe_hash;
+    }
+
+    // Inclure les infos de reset token si présentes
+    if (row.reset_token !== undefined) {
+      user.resetToken = row.reset_token;
+      user.resetTokenExpiry = row.reset_token_expiry;
     }
 
     return user;

@@ -1,6 +1,7 @@
 /**
- * Controller d'Authentification
+ * Controller d'Authentification - AVEC MOT DE PASSE OUBLIÉ
  * @description Gère les requêtes HTTP pour l'authentification
+ * 
  */
 
 const authService = require('../services/auth.service');
@@ -127,7 +128,7 @@ class AuthController {
 
   /**
    * PUT /api/auth/password
-   * Change le mot de passe
+   * Change le mot de passe (utilisateur connecté)
    */
   async changePassword(req, res, next) {
     try {
@@ -160,6 +161,75 @@ class AuthController {
       res.json({
         success: true,
         data: { token }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // ==========================================
+  // MOT DE PASSE OUBLIÉ
+  // ==========================================
+
+  /**
+   * POST /api/auth/forgot-password
+   * Demande de réinitialisation de mot de passe
+   */
+  async forgotPassword(req, res, next) {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          message: 'L\'adresse email est requise'
+        });
+      }
+
+      const result = await authService.forgotPassword(email);
+
+      // Toujours retourner un succès (sécurité)
+      res.json({
+        success: true,
+        message: result.message
+      });
+    } catch (error) {
+      // Ne jamais révéler si l'email existe ou pas
+      logger.error('Erreur forgot-password:', error.message);
+      res.json({
+        success: true,
+        message: 'Si cette adresse email est associée à un compte, vous recevrez un lien de réinitialisation.'
+      });
+    }
+  }
+
+  /**
+   * POST /api/auth/reset-password
+   * Réinitialise le mot de passe avec le token
+   */
+  async resetPassword(req, res, next) {
+    try {
+      const { token, nouveauMotDePasse } = req.body;
+
+      if (!token) {
+        return res.status(400).json({
+          success: false,
+          message: 'Token de réinitialisation requis'
+        });
+      }
+
+      if (!nouveauMotDePasse || nouveauMotDePasse.length < 8) {
+        return res.status(400).json({
+          success: false,
+          message: 'Le mot de passe doit contenir au moins 8 caractères'
+        });
+      }
+
+      const result = await authService.resetPassword(token, nouveauMotDePasse);
+
+      res.json({
+        success: true,
+        message: result.message
       });
     } catch (error) {
       next(error);
