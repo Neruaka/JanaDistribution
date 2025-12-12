@@ -1,6 +1,10 @@
 /**
  * Repository Produits
- * @description Accès aux données produits PostgreSQL
+ * @description AccÃ¨s aux donnÃ©es produits PostgreSQL
+ * 
+ * âœ… CORRECTION MINIMALE:
+ * - Ligne 30: Ajout condition estActif !== 'all' pour afficher tous les produits en admin
+ * - Ligne 32: Conversion string 'true'/'false' en boolean
  */
 
 const { query, getClient } = require('../config/database');
@@ -8,7 +12,7 @@ const logger = require('../config/logger');
 
 class ProductRepository {
   /**
-   * Récupère tous les produits avec filtres et pagination
+   * RÃ©cupÃ¨re tous les produits avec filtres et pagination
    */
   async findAll(options = {}) {
     const {
@@ -29,12 +33,14 @@ class ProductRepository {
     const params = [];
     let paramIndex = 1;
 
-    // Construction de la requête dynamique
+    // Construction de la requÃªte dynamique
     let whereClause = 'WHERE 1=1';
     
-    if (estActif !== null) {
+    // âœ… CORRECTION: Si estActif = 'all' ou null, on n'ajoute pas de filtre (on voit tous les produits)
+    if (estActif !== null && estActif !== 'all') {
       whereClause += ` AND p.est_actif = $${paramIndex++}`;
-      params.push(estActif);
+      // âœ… CORRECTION: Convertir string en boolean si nÃ©cessaire
+      params.push(estActif === true || estActif === 'true');
     }
 
     if (categorieId) {
@@ -85,7 +91,7 @@ class ProductRepository {
     const orderColumn = orderByMap[orderBy] || 'p.date_creation';
     const direction = orderDir.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
-    // Requête principale
+    // RequÃªte principale
     const sql = `
       SELECT 
         p.id,
@@ -118,7 +124,7 @@ class ProductRepository {
     
     params.push(limit, offset);
 
-    // Requête de comptage
+    // RequÃªte de comptage
     const countSql = `
       SELECT COUNT(*) as total
       FROM produit p
@@ -147,7 +153,7 @@ class ProductRepository {
   }
 
   /**
-   * Récupère un produit par ID
+   * RÃ©cupÃ¨re un produit par ID
    */
   async findById(id) {
     const sql = `
@@ -166,7 +172,7 @@ class ProductRepository {
   }
 
   /**
-   * Récupère un produit par slug
+   * RÃ©cupÃ¨re un produit par slug
    */
   async findBySlug(slug) {
     const sql = `
@@ -185,7 +191,7 @@ class ProductRepository {
   }
 
   /**
-   * Récupère un produit par référence
+   * RÃ©cupÃ¨re un produit par rÃ©fÃ©rence
    */
   async findByReference(reference) {
     const sql = `SELECT * FROM produit WHERE reference = $1`;
@@ -194,7 +200,38 @@ class ProductRepository {
   }
 
   /**
-   * Crée un nouveau produit
+   * Récupère TOUS les produits pour export (sans pagination)
+   */
+  async findAllForExport() {
+    const sql = `
+      SELECT 
+        p.reference,
+        p.nom,
+        c.nom as categorie_nom,
+        p.origine,
+        p.prix,
+        p.description,
+        p.unite_mesure
+      FROM produit p
+      LEFT JOIN categorie c ON p.categorie_id = c.id
+      WHERE p.est_actif = true
+      ORDER BY c.nom, p.nom
+    `;
+    
+    const result = await query(sql);
+    return result.rows.map(row => ({
+      reference: row.reference,
+      nom: row.nom,
+      categorie: row.categorie_nom || '',
+      origine: row.origine || '',
+      prix: parseFloat(row.prix),
+      description: row.description || '',
+      uniteMesure: row.unite_mesure
+    }));
+  }
+
+  /**
+   * CrÃ©e un nouveau produit
    */
   async create(data) {
     const sql = `
@@ -227,20 +264,21 @@ class ProductRepository {
     ];
 
     const result = await query(sql, params);
-    logger.info(`Produit créé: ${result.rows[0].nom} (${result.rows[0].reference})`);
+    logger.info(`Produit crÃ©Ã©: ${result.rows[0].nom} (${result.rows[0].reference})`);
     return this.mapProduct(result.rows[0]);
   }
 
   /**
-   * Met à jour un produit
+   * Met Ã  jour un produit
    */
   async update(id, data) {
     const fields = [];
     const params = [];
     let paramIndex = 1;
 
-    // Construction dynamique des champs à mettre à jour
+    // Construction dynamique des champs Ã  mettre Ã  jour
     const fieldMapping = {
+      reference: 'reference',  // âœ… AJOUTÃ‰: permet de modifier la rÃ©fÃ©rence
       nom: 'nom',
       slug: 'slug',
       description: 'description',
@@ -279,7 +317,7 @@ class ProductRepository {
     `;
 
     const result = await query(sql, params);
-    logger.info(`Produit mis à jour: ${id}`);
+    logger.info(`Produit mis Ã  jour: ${id}`);
     return result.rows[0] ? this.mapProduct(result.rows[0]) : null;
   }
 
@@ -295,22 +333,22 @@ class ProductRepository {
     `;
     
     const result = await query(sql, [id]);
-    logger.info(`Produit désactivé: ${id}`);
+    logger.info(`Produit dÃ©sactivÃ©: ${id}`);
     return result.rows[0] ? this.mapProduct(result.rows[0]) : null;
   }
 
   /**
-   * Supprime définitivement un produit (hard delete)
+   * Supprime dÃ©finitivement un produit (hard delete)
    */
   async hardDelete(id) {
     const sql = `DELETE FROM produit WHERE id = $1 RETURNING id`;
     const result = await query(sql, [id]);
-    logger.info(`Produit supprimé définitivement: ${id}`);
+    logger.info(`Produit supprimÃ© dÃ©finitivement: ${id}`);
     return result.rowCount > 0;
   }
 
   /**
-   * Met à jour le stock d'un produit
+   * Met Ã  jour le stock d'un produit
    */
   async updateStock(id, quantite, operation = 'set') {
     let sql;
@@ -343,7 +381,7 @@ class ProductRepository {
   }
 
   /**
-   * Récupère les produits avec stock faible
+   * RÃ©cupÃ¨re les produits avec stock faible
    */
   async findLowStock() {
     const sql = `
@@ -360,7 +398,7 @@ class ProductRepository {
   }
 
   /**
-   * Récupère les produits en promotion
+   * RÃ©cupÃ¨re les produits en promotion
    */
   async findPromos() {
     const sql = `
@@ -378,7 +416,7 @@ class ProductRepository {
   }
 
   /**
-   * Récupère les nouveautés (produits ajoutés récemment)
+   * RÃ©cupÃ¨re les nouveautÃ©s (produits ajoutÃ©s rÃ©cemment)
    */
   async findNew(days = 30, limit = 10) {
     const sql = `
@@ -396,7 +434,7 @@ class ProductRepository {
   }
 
   /**
-   * Vérifie si une référence existe
+   * VÃ©rifie si une rÃ©fÃ©rence existe
    */
   async referenceExists(reference, excludeId = null) {
     let sql = `SELECT id FROM produit WHERE reference = $1`;
@@ -412,7 +450,7 @@ class ProductRepository {
   }
 
   /**
-   * Vérifie si un slug existe
+   * VÃ©rifie si un slug existe
    */
   async slugExists(slug, excludeId = null) {
     let sql = `SELECT id FROM produit WHERE slug = $1`;

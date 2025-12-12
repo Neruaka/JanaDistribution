@@ -12,7 +12,10 @@ class CategoryService {
    * Récupère toutes les catégories
    */
   async getCategories(options = {}) {
-    return categoryRepository.findAll(options);
+    return categoryRepository.findAll({
+      includeProductCount: options.includeProductCount,
+      estActif: options.estActif !== undefined ? options.estActif : true
+    });
   }
 
   /**
@@ -119,6 +122,18 @@ class CategoryService {
     }
 
     return categoryRepository.reorder(orderedIds);
+  }
+
+  /**
+   * Active/désactive une catégorie
+   */
+  async toggleActive(id) {
+    const category = await categoryRepository.findById(id);
+    if (!category) {
+      throw ApiError.notFound('Catégorie non trouvée');
+    }
+
+    return categoryRepository.toggleActive(id);
   }
 
   /**

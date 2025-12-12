@@ -197,6 +197,8 @@ class OrderService {
    * @param {string} newStatut - Nouveau statut
    * @param {string} instructionsLivraison - Instructions optionnelles
    * @returns {Object} La commande mise à jour
+   * 
+   * ✅ CORRECTION: Si statut = ANNULEE, on appelle cancelOrder() pour restaurer le stock
    */
   async updateStatus(orderId, newStatut, instructionsLivraison = null) {
     const order = await orderRepository.findById(orderId);
@@ -213,6 +215,12 @@ class OrderService {
         `Transition de statut invalide: ${order.statut} → ${newStatut}. ` +
         `Transitions autorisées: ${allowedTransitions?.join(', ') || 'aucune'}`
       );
+    }
+    
+    // ✅ CORRECTION: Si annulation, utiliser cancelOrder() qui restaure le stock
+    if (newStatut === 'ANNULEE') {
+      logger.info(`Annulation via updateStatus, redirection vers cancelOrder`, { orderId });
+      return this.cancelOrder(orderId, null, true); // isAdmin = true
     }
     
     const updatedOrder = await orderRepository.updateStatus(orderId, newStatut, instructionsLivraison);
@@ -257,13 +265,14 @@ class OrderService {
       );
     }
     
-    // Vérifier que la commande peut être annulée
+    // Vérifier que la commande peut être annulée (admin peut annuler EN_ATTENTE et CONFIRMEE)
     if (!['EN_ATTENTE', 'CONFIRMEE'].includes(order.statut)) {
       throw ApiError.badRequest(
         `Impossible d'annuler une commande ${order.statut.toLowerCase().replace('_', ' ')}`
       );
     }
     
+    // ✅ cancel() dans le repository restaure le stock
     const cancelledOrder = await orderRepository.cancel(orderId);
     
     logger.info(`Commande annulée`, {

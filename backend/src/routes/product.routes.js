@@ -55,7 +55,7 @@ router.get('/new',
 
 /**
  * @route   GET /api/products/slug/:slug
- * @desc    Détail d'un produit par slug
+ * @desc    DÃ©tail d'un produit par slug
  * @access  Public
  */
 router.get('/slug/:slug',
@@ -66,7 +66,7 @@ router.get('/slug/:slug',
 
 /**
  * @route   GET /api/products/:id
- * @desc    Détail d'un produit par ID
+ * @desc    DÃ©tail d'un produit par ID
  * @access  Public
  */
 router.get('/:id',
@@ -76,8 +76,41 @@ router.get('/:id',
 );
 
 // ==========================================
-// ROUTES ADMIN (authentification + rôle admin)
+// ROUTES ADMIN (authentification + rÃ´le admin)
 // ==========================================
+
+/**
+ * @route   GET /api/products/admin/export
+ * @desc    Export de tous les produits
+ * @access  Admin
+ */
+router.get('/admin/export',
+  authenticate,
+  isAdmin,
+  productController.exportProducts
+);
+
+/**
+ * @route   POST /api/products/admin/import
+ * @desc    Import de produits depuis Excel/JSON
+ * @access  Admin
+ */
+router.post('/admin/import',
+  authenticate,
+  isAdmin,
+  productController.importProducts
+);
+
+/**
+ * @route   DELETE /api/products/admin/bulk
+ * @desc    Suppression multiple de produits
+ * @access  Admin
+ */
+router.delete('/admin/bulk',
+  authenticate,
+  isAdmin,
+  productController.bulkDelete
+);
 
 /**
  * @route   GET /api/products/low-stock
@@ -92,7 +125,7 @@ router.get('/admin/low-stock',
 
 /**
  * @route   POST /api/products
- * @desc    Créer un nouveau produit
+ * @desc    CrÃ©er un nouveau produit
  * @access  Admin
  */
 router.post('/',
@@ -105,7 +138,7 @@ router.post('/',
 
 /**
  * @route   PUT /api/products/:id
- * @desc    Mettre à jour un produit
+ * @desc    Mettre Ã  jour un produit
  * @access  Admin
  */
 router.put('/:id',
@@ -118,7 +151,7 @@ router.put('/:id',
 
 /**
  * @route   PATCH /api/products/:id/stock
- * @desc    Mettre à jour le stock d'un produit
+ * @desc    Mettre Ã  jour le stock d'un produit
  * @access  Admin
  */
 router.patch('/:id/stock',
@@ -131,7 +164,7 @@ router.patch('/:id/stock',
 
 /**
  * @route   DELETE /api/products/:id
- * @desc    Désactiver un produit (soft delete)
+ * @desc    DÃ©sactiver un produit (soft delete)
  * @access  Admin
  */
 router.delete('/:id',
@@ -144,7 +177,7 @@ router.delete('/:id',
 
 /**
  * @route   DELETE /api/products/:id/hard
- * @desc    Supprimer définitivement un produit
+ * @desc    Supprimer dÃ©finitivement un produit
  * @access  Admin
  */
 router.delete('/:id/hard',

@@ -124,6 +124,9 @@ const isAdmin = (req, res, next) => {
   next();
 };
 
+// Alias pour requireAdmin (même fonction que isAdmin)
+const requireAdmin = isAdmin;
+
 /**
  * Middleware pour vérifier le rôle client
  */
@@ -195,6 +198,7 @@ module.exports = {
   authenticate,
   optionalAuth,
   isAdmin,
+  requireAdmin,  // ✅ AJOUTÉ - alias pour isAdmin
   isClient,
   hasPermission,
   isOwnerOrAdmin

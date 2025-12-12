@@ -13,10 +13,11 @@ class CategoryController {
    */
   async getAll(req, res, next) {
     try {
-      const { includeProductCount = 'true' } = req.query;
+      const { includeProductCount = 'true', includeInactive = 'false' } = req.query;
 
       const categories = await categoryService.getCategories({
-        includeProductCount: includeProductCount === 'true'
+        includeProductCount: includeProductCount === 'true',
+        estActif: includeInactive === 'true' ? null : true
       });
 
       res.json({
@@ -136,6 +137,25 @@ class CategoryController {
       res.json({
         success: true,
         message: 'Ordre des catégories mis à jour'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * PATCH /api/categories/:id/toggle-active
+   * Activer/désactiver une catégorie (admin)
+   */
+  async toggleActive(req, res, next) {
+    try {
+      const { id } = req.params;
+      const category = await categoryService.toggleActive(id);
+
+      res.json({
+        success: true,
+        message: category.estActive ? 'Catégorie activée' : 'Catégorie désactivée',
+        data: category
       });
     } catch (error) {
       next(error);

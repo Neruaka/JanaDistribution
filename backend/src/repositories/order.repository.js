@@ -2,6 +2,10 @@
  * Repository Commandes
  * @description Accès aux données commandes PostgreSQL avec transactions
  * 
+ * ✅ CORRECTIONS MINIMALES (2 modifications):
+ * - _mapOrder(): ajout alias 'client' en plus de 'utilisateur'
+ * - _mapOrderLine(): ajout 'nom' dans l'objet 'produit'
+ * 
  * IMPORTANT - Mapping colonnes SQL:
  * - numero_commande (pas numero)
  * - date_commande (pas created_at)
@@ -164,6 +168,7 @@ class OrderRepository {
         lc.total_ht,
         lc.total_ttc,
         lc.nom_produit,
+        p.nom as produit_nom,
         p.reference as produit_reference,
         p.image_url as produit_image
       FROM ligne_commande lc
@@ -339,7 +344,8 @@ class OrderRepository {
       UPDATE commande 
       SET 
         statut = $2, 
-        instructions_livraison = COALESCE($3, instructions_livraison)
+        instructions_livraison = COALESCE($3, instructions_livraison),
+        date_modification = NOW()
       WHERE id = $1
       RETURNING *
     `;
@@ -388,20 +394,21 @@ class OrderRepository {
       // Restaurer le stock
       for (const ligne of linesResult.rows) {
         await client.query(
-          'UPDATE produit SET stock_quantite = stock_quantite + $1 WHERE id = $2',
+          'UPDATE produit SET stock_quantite = stock_quantite + $1, date_modification = NOW() WHERE id = $2',
           [ligne.quantite, ligne.produit_id]
         );
+        logger.info(`Stock restauré: +${ligne.quantite} pour produit ${ligne.produit_id}`);
       }
 
       // Mettre à jour le statut
       const result = await client.query(
-        `UPDATE commande SET statut = 'ANNULEE' WHERE id = $1 RETURNING *`,
+        `UPDATE commande SET statut = 'ANNULEE', date_modification = NOW() WHERE id = $1 RETURNING *`,
         [id]
       );
 
       await client.query('COMMIT');
 
-      logger.info(`Commande annulée: ${id}`);
+      logger.info(`Commande annulée: ${id} - Stock restauré pour ${linesResult.rows.length} produits`);
       return result.rows[0] ? this._mapOrder(result.rows[0]) : null;
 
     } catch (error) {
@@ -463,21 +470,28 @@ class OrderRepository {
 
   /**
    * Mappe une commande (row SQL → objet JS)
+   * 
+   * ✅ CORRECTION: ajout de 'client' en plus de 'utilisateur' pour compatibilité frontend
    */
   _mapOrder(row) {
     if (!row) return null;
+
+    // Objet utilisateur/client (même données, 2 noms pour compatibilité)
+    const userInfo = row.utilisateur_nom ? {
+      nom: row.utilisateur_nom,
+      prenom: row.utilisateur_prenom,
+      email: row.utilisateur_email,
+      telephone: row.utilisateur_telephone,
+      typeClient: row.utilisateur_type
+    } : null;
 
     return {
       id: row.id,
       numeroCommande: row.numero_commande,
       utilisateurId: row.utilisateur_id,
-      utilisateur: row.utilisateur_nom ? {
-        nom: row.utilisateur_nom,
-        prenom: row.utilisateur_prenom,
-        email: row.utilisateur_email,
-        telephone: row.utilisateur_telephone,
-        typeClient: row.utilisateur_type
-      } : null,
+      // ✅ CORRECTION: Les 2 noms pour compatibilité frontend
+      utilisateur: userInfo,
+      client: userInfo,  // ← AJOUT pour le frontend AdminOrdersList.jsx
       statut: row.statut,
       dateCommande: row.date_commande,
       totalHt: parseFloat(row.total_ht) || 0,
@@ -501,6 +515,8 @@ class OrderRepository {
 
   /**
    * Mappe une ligne de commande
+   * 
+   * ✅ CORRECTION: ajout de 'nom' dans l'objet 'produit'
    */
   _mapOrderLine(row) {
     if (!row) return null;
@@ -510,10 +526,13 @@ class OrderRepository {
       commandeId: row.commande_id,
       produitId: row.produit_id,
       nomProduit: row.nom_produit,
-      produit: row.produit_reference ? {
+      // ✅ CORRECTION: produit avec nom pour le frontend
+      produit: {
+        id: row.produit_id,
+        nom: row.produit_nom || row.nom_produit || 'Produit',  // ← AJOUT du nom
         reference: row.produit_reference,
         imageUrl: row.produit_image
-      } : null,
+      },
       quantite: parseInt(row.quantite),
       prixUnitaireHt: parseFloat(row.prix_unitaire_ht),
       tauxTva: parseFloat(row.taux_tva),

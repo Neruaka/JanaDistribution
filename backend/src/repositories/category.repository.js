@@ -1,6 +1,6 @@
 /**
- * Repository Catégories
- * @description Accès aux données catégories PostgreSQL
+ * Repository CatÃ©gories
+ * @description AccÃ¨s aux donnÃ©es catÃ©gories PostgreSQL
  */
 
 const { query } = require('../config/database');
@@ -8,7 +8,7 @@ const logger = require('../config/logger');
 
 class CategoryRepository {
   /**
-   * Récupère toutes les catégories
+   * RÃ©cupÃ¨re toutes les catÃ©gories
    */
   async findAll(options = {}) {
     const { estActif = true, includeProductCount = false } = options;
@@ -42,7 +42,7 @@ class CategoryRepository {
   }
 
   /**
-   * Récupère une catégorie par ID
+   * RÃ©cupÃ¨re une catÃ©gorie par ID
    */
   async findById(id) {
     const sql = `
@@ -58,7 +58,7 @@ class CategoryRepository {
   }
 
   /**
-   * Récupère une catégorie par slug
+   * RÃ©cupÃ¨re une catÃ©gorie par slug
    */
   async findBySlug(slug) {
     const sql = `
@@ -74,10 +74,19 @@ class CategoryRepository {
   }
 
   /**
-   * Crée une nouvelle catégorie
+   * Récupère une catégorie par nom (pour import)
+   */
+  async findByName(nom) {
+    const sql = `SELECT * FROM categorie WHERE LOWER(nom) = LOWER($1) AND est_actif = true`;
+    const result = await query(sql, [nom]);
+    return result.rows[0] ? this.mapCategory(result.rows[0]) : null;
+  }
+
+  /**
+   * CrÃ©e une nouvelle catÃ©gorie
    */
   async create(data) {
-    // Récupérer le prochain ordre
+    // RÃ©cupÃ©rer le prochain ordre
     const orderResult = await query('SELECT COALESCE(MAX(ordre), 0) + 1 as next_order FROM categorie');
     const nextOrder = orderResult.rows[0].next_order;
 
@@ -98,12 +107,12 @@ class CategoryRepository {
     ];
 
     const result = await query(sql, params);
-    logger.info(`Catégorie créée: ${result.rows[0].nom}`);
+    logger.info(`CatÃ©gorie crÃ©Ã©e: ${result.rows[0].nom}`);
     return this.mapCategory(result.rows[0]);
   }
 
   /**
-   * Met à jour une catégorie
+   * Met Ã  jour une catÃ©gorie
    */
   async update(id, data) {
     const fields = [];
@@ -141,12 +150,12 @@ class CategoryRepository {
     `;
 
     const result = await query(sql, params);
-    logger.info(`Catégorie mise à jour: ${id}`);
+    logger.info(`CatÃ©gorie mise Ã  jour: ${id}`);
     return result.rows[0] ? this.mapCategory(result.rows[0]) : null;
   }
 
   /**
-   * Supprime une catégorie (soft delete)
+   * Supprime une catÃ©gorie (soft delete)
    */
   async delete(id) {
     const sql = `
@@ -157,12 +166,12 @@ class CategoryRepository {
     `;
     
     const result = await query(sql, [id]);
-    logger.info(`Catégorie désactivée: ${id}`);
+    logger.info(`CatÃ©gorie dÃ©sactivÃ©e: ${id}`);
     return result.rows[0] ? this.mapCategory(result.rows[0]) : null;
   }
 
   /**
-   * Vérifie si une catégorie a des produits
+   * VÃ©rifie si une catÃ©gorie a des produits
    */
   async hasProducts(id) {
     const sql = `SELECT COUNT(*) as count FROM produit WHERE categorie_id = $1 AND est_actif = true`;
@@ -171,7 +180,7 @@ class CategoryRepository {
   }
 
   /**
-   * Vérifie si un slug existe
+   * VÃ©rifie si un slug existe
    */
   async slugExists(slug, excludeId = null) {
     let sql = `SELECT id FROM categorie WHERE slug = $1`;
@@ -187,7 +196,7 @@ class CategoryRepository {
   }
 
   /**
-   * Réorganise l'ordre des catégories
+   * RÃ©organise l'ordre des catÃ©gories
    */
   async reorder(orderedIds) {
     const client = await require('../config/database').getClient();
@@ -203,7 +212,7 @@ class CategoryRepository {
       }
       
       await client.query('COMMIT');
-      logger.info('Ordre des catégories mis à jour');
+      logger.info('Ordre des catÃ©gories mis Ã  jour');
       return true;
     } catch (error) {
       await client.query('ROLLBACK');
@@ -211,6 +220,23 @@ class CategoryRepository {
     } finally {
       client.release();
     }
+  }
+
+  /**
+   * Active/dÃ©sactive une catÃ©gorie
+   */
+  async toggleActive(id) {
+    const sql = `
+      UPDATE categorie 
+      SET est_actif = NOT est_actif
+      WHERE id = $1
+      RETURNING *
+    `;
+    
+    const result = await query(sql, [id]);
+    const action = result.rows[0].est_actif ? 'activÃ©e' : 'dÃ©sactivÃ©e';
+    logger.info(`CatÃ©gorie ${action}: ${id}`);
+    return result.rows[0] ? this.mapCategory(result.rows[0]) : null;
   }
 
   /**
@@ -229,6 +255,7 @@ class CategoryRepository {
       ordre: row.ordre,
       estActif: row.est_actif,
       productCount: row.product_count ? parseInt(row.product_count) : undefined,
+      nbProduits: row.product_count ? parseInt(row.product_count) : 0,
       createdAt: row.date_creation
     };
   }

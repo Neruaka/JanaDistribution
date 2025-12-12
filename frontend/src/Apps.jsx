@@ -29,13 +29,10 @@ import OrderHistoryPage from './pages/OrderHistoryPage';
 import OrderDetailPage from './pages/OrderDetailPage';
 
 // Pages Admin
-import AdminLayout from './components/admin/AdminLayout';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import AdminProductsList from './pages/admin/AdminProductsList';
-import AdminProductForm from './pages/admin/AdminProductForm';
-import AdminCategoriesList from './pages/admin/AdminCategoriesList';
-import AdminClientsList from './pages/admin/AdminClientsList';
-import AdminOrdersList from './pages/admin/AdminOrdersList';
+// import AdminLayout from './components/admin/AdminLayout';
+// import AdminDashboard from './pages/admin/AdminDashboard';
+// import AdminProductsList from './pages/admin/AdminProductsList';
+// import AdminProductForm from './pages/admin/AdminProductForm';
 
 // Page Mon Compte (temporaire)
 const MonComptePage = () => {
@@ -67,13 +64,34 @@ const PromotionsPage = () => {
   );
 };
 
-// Page Admin Paramètres (temporaire)
-const AdminSettingsPage = () => (
-  <div>
-    <h1 className="text-2xl font-bold mb-4">Paramètres</h1>
-    <p className="text-gray-500">Paramètres à implémenter...</p>
-  </div>
-);
+// Pages Admin temporaires
+// const AdminCategoriesPage = () => (
+//   <div>
+//     <h1 className="text-2xl font-bold mb-4">Catégories</h1>
+//     <p className="text-gray-500">Gestion des catégories à implémenter...</p>
+//   </div>
+// );
+
+// const AdminOrdersPage = () => (
+//   <div>
+//     <h1 className="text-2xl font-bold mb-4">Commandes</h1>
+//     <p className="text-gray-500">Gestion des commandes à implémenter...</p>
+//   </div>
+// );
+
+// const AdminClientsPage = () => (
+//   <div>
+//     <h1 className="text-2xl font-bold mb-4">Clients</h1>
+//     <p className="text-gray-500">Gestion des clients à implémenter...</p>
+//   </div>
+// );
+
+// const AdminSettingsPage = () => (
+//   <div>
+//     <h1 className="text-2xl font-bold mb-4">Paramètres</h1>
+//     <p className="text-gray-500">Paramètres à implémenter...</p>
+//   </div>
+// );
 
 // Page 404
 const NotFoundPage = () => {
@@ -186,29 +204,29 @@ function App() {
         {/* ==================== */}
         <Route path="/admin" element={
           <PrivateRoute adminOnly>
-            <AdminLayout />
+            {/* <AdminLayout /> */}
           </PrivateRoute>
         }>
           {/* Dashboard */}
-          <Route index element={<AdminDashboard />} />
+          {/* <Route index element={<AdminDashboard />} /> */}
           
           {/* Produits */}
-          <Route path="produits" element={<AdminProductsList />} />
-          <Route path="produits/nouveau" element={<AdminProductForm />} />
-          <Route path="produits/:id" element={<AdminProductForm />} />
-          <Route path="produits/:id/modifier" element={<AdminProductForm />} />
+          {/* <Route path="produits" element={<AdminProductsList />} /> */}
+          {/* <Route path="produits/nouveau" element={<AdminProductForm />} /> */}
+          {/* <Route path="produits/:id" element={<AdminProductForm />} /> */}
+          {/* <Route path="produits/:id/modifier" element={<AdminProductForm />} /> */}
           
           {/* Catégories */}
-          <Route path="categories" element={<AdminCategoriesList />} />
+          {/* <Route path="categories" element={<AdminCategoriesPage />} /> */}
           
           {/* Commandes */}
-          <Route path="commandes" element={<AdminOrdersList />} />
+          {/* <Route path="commandes" element={<AdminOrdersPage />} /> */}
           
           {/* Clients */}
-          <Route path="clients" element={<AdminClientsList />} />
+          {/* <Route path="clients" element={<AdminClientsPage />} /> */}
           
           {/* Paramètres */}
-          <Route path="parametres" element={<AdminSettingsPage />} />
+          {/* <Route path="parametres" element={<AdminSettingsPage />} /> */}
         </Route>
         
         {/* ==================== */}

@@ -90,6 +90,19 @@ router.put('/:id',
 );
 
 /**
+ * @route   PATCH /api/categories/:id/toggle-active
+ * @desc    Activer/désactiver une catégorie
+ * @access  Admin
+ */
+router.patch('/:id/toggle-active',
+  authenticate,
+  isAdmin,
+  categoryValidators.idParam,
+  validate,
+  categoryController.toggleActive
+);
+
+/**
  * @route   DELETE /api/categories/:id
  * @desc    Supprimer une catégorie
  * @access  Admin

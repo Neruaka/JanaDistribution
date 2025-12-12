@@ -80,7 +80,11 @@ const productValidators = {
 
     body('estActif')
       .optional()
-      .isBoolean().withMessage('estActif doit être un booléen')
+      .isBoolean().withMessage('estActif doit être un booléen'),
+
+    body('estMisEnAvant')
+      .optional()
+      .isBoolean().withMessage('estMisEnAvant doit être un booléen')
   ],
 
   /**
@@ -89,6 +93,12 @@ const productValidators = {
   update: [
     param('id')
       .isUUID().withMessage('ID de produit invalide'),
+
+    // ✅ AJOUTÉ : reference modifiable
+    body('reference')
+      .optional()
+      .trim()
+      .isLength({ min: 3, max: 50 }).withMessage('La référence doit contenir entre 3 et 50 caractères'),
 
     body('nom')
       .optional()
@@ -150,7 +160,12 @@ const productValidators = {
 
     body('estActif')
       .optional()
-      .isBoolean().withMessage('estActif doit être un booléen')
+      .isBoolean().withMessage('estActif doit être un booléen'),
+
+    // ✅ AJOUTÉ : estMisEnAvant modifiable
+    body('estMisEnAvant')
+      .optional()
+      .isBoolean().withMessage('estMisEnAvant doit être un booléen')
   ],
 
   /**
@@ -214,6 +229,10 @@ const productValidators = {
     query('enStock')
       .optional()
       .isIn(['true', 'false']).withMessage('enStock doit être true ou false'),
+
+    query('estActif')
+      .optional()
+      .isIn(['true', 'false', 'all']).withMessage('estActif doit être true, false ou all'),
 
     query('orderBy')
       .optional()
