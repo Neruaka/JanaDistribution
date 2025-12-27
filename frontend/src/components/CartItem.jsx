@@ -1,9 +1,12 @@
 /**
- * CartItem Component
+ * CartItem Component - VERSION CORRIGÉE
  * Affiche une ligne de produit dans le panier
+ * 
+ * ✅ CORRECTION: Ajout React.forwardRef pour éviter le warning
+ * "Function components cannot be given refs"
  */
 
-import { useState } from 'react';
+import React, { useState, forwardRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -16,7 +19,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 
-export default function CartItem({ item, compact = false }) {
+const CartItem = forwardRef(function CartItem({ item, compact = false }, ref) {
   const { updateQuantity, removeItem } = useCart();
   const [isUpdating, setIsUpdating] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
@@ -59,6 +62,7 @@ export default function CartItem({ item, compact = false }) {
   if (compact) {
     return (
       <motion.div
+        ref={ref}
         layout
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -164,6 +168,7 @@ export default function CartItem({ item, compact = false }) {
   // Version complète pour la page panier
   return (
     <motion.div
+      ref={ref}
       layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -303,4 +308,6 @@ export default function CartItem({ item, compact = false }) {
       </div>
     </motion.div>
   );
-}
+});
+
+export default CartItem;

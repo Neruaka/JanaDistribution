@@ -1,6 +1,7 @@
 /**
  * Admin Categories List
  * @description Page de gestion des catégories côté admin
+ * ✅ FIX: Menu contextuel en position fixed (hors du conteneur scrollable)
  */
 
 import { useState, useEffect } from 'react';
@@ -50,6 +51,7 @@ const AdminCategoriesList = () => {
 
   // Dropdown menu
   const [openMenu, setOpenMenu] = useState(null);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 }); // ✅ Position du menu
 
   // Chargement des catégories
   const loadCategories = async () => {
@@ -78,6 +80,20 @@ const AdminCategoriesList = () => {
     const matchActive = showInactive ? true : cat.estActif;
     return matchSearch && matchActive;
   });
+
+  // ✅ Ouvrir le menu avec calcul de position
+  const handleOpenMenu = (e, categoryId) => {
+    if (openMenu === categoryId) {
+      setOpenMenu(null);
+    } else {
+      const rect = e.currentTarget.getBoundingClientRect();
+      setMenuPosition({
+        top: rect.bottom + 4,
+        right: window.innerWidth - rect.right
+      });
+      setOpenMenu(categoryId);
+    }
+  };
 
   // Ouvrir modal création
   const handleCreate = () => {
@@ -318,58 +334,13 @@ const AdminCategoriesList = () => {
                     title={category.couleur}
                   />
 
-                  {/* Actions */}
-                  <div className="relative">
-                    <button
-                      onClick={() => setOpenMenu(openMenu === category.id ? null : category.id)}
-                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                    >
-                      <MoreVertical className="w-5 h-5 text-gray-400" />
-                    </button>
-
-                    <AnimatePresence>
-                      {openMenu === category.id && (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
-                          className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-10"
-                        >
-                          <button
-                            onClick={() => handleEdit(category)}
-                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                          >
-                            <Edit className="w-4 h-4" />
-                            Modifier
-                          </button>
-                          <button
-                            onClick={() => handleToggleActive(category)}
-                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                          >
-                            {category.estActif ? (
-                              <>
-                                <EyeOff className="w-4 h-4" />
-                                Désactiver
-                              </>
-                            ) : (
-                              <>
-                                <Eye className="w-4 h-4" />
-                                Activer
-                              </>
-                            )}
-                          </button>
-                          <hr className="my-1" />
-                          <button
-                            onClick={() => handleDeleteClick(category)}
-                            className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            Supprimer
-                          </button>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
+                  {/* Actions - ✅ Bouton menu avec calcul de position */}
+                  <button
+                    onClick={(e) => handleOpenMenu(e, category.id)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <MoreVertical className="w-5 h-5 text-gray-400" />
+                  </button>
                 </div>
               </motion.div>
             ))}
@@ -610,13 +581,71 @@ const AdminCategoriesList = () => {
         )}
       </AnimatePresence>
 
-      {/* Click outside pour fermer le menu */}
-      {openMenu && (
-        <div
-          className="fixed inset-0 z-0"
-          onClick={() => setOpenMenu(null)}
-        />
-      )}
+      {/* ✅ Menu contextuel - EN DEHORS de la liste (position fixed) */}
+      <AnimatePresence>
+        {openMenu && (
+          <>
+            {/* Overlay pour fermer */}
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setOpenMenu(null)}
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              style={{
+                position: 'fixed',
+                top: menuPosition.top,
+                right: menuPosition.right,
+              }}
+              className="w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50"
+            >
+              {(() => {
+                const category = categories.find(c => c.id === openMenu);
+                if (!category) return null;
+                
+                return (
+                  <>
+                    <button
+                      onClick={() => handleEdit(category)}
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                    >
+                      <Edit className="w-4 h-4" />
+                      Modifier
+                    </button>
+                    <button
+                      onClick={() => handleToggleActive(category)}
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                    >
+                      {category.estActif ? (
+                        <>
+                          <EyeOff className="w-4 h-4" />
+                          Désactiver
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="w-4 h-4" />
+                          Activer
+                        </>
+                      )}
+                    </button>
+                    <hr className="my-1" />
+                    <button
+                      onClick={() => handleDeleteClick(category)}
+                      className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Supprimer
+                    </button>
+                  </>
+                );
+              })()}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

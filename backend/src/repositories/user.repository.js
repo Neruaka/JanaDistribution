@@ -366,6 +366,54 @@ class UserRepository {
       }
     };
   }
+  /**
+ * Anonymise un utilisateur (soft delete RGPD)
+ * Garde les commandes mais supprime les données personnelles
+ * @param {string} id - UUID de l'utilisateur
+ */
+async anonymize(id) {
+  const sql = `
+    UPDATE utilisateur 
+    SET 
+      email = CONCAT('deleted_', id, '@anonymized.local'),
+      nom = 'Utilisateur',
+      prenom = 'Supprimé',
+      telephone = NULL,
+      mot_de_passe_hash = 'ACCOUNT_DELETED',
+      siret = NULL,
+      raison_sociale = NULL,
+      numero_tva = NULL,
+      reset_token = NULL,
+      reset_token_expiry = NULL,
+      est_actif = false,
+      accepte_newsletter = false,
+      date_modification = CURRENT_TIMESTAMP
+    WHERE id = $1
+  `;
+  await query(sql, [id]);
+  logger.info(`Utilisateur anonymisé: ${id}`);
+}
+
+/**
+ * Supprime définitivement un utilisateur (hard delete)
+ * ATTENTION: Cela peut casser les références FK dans les commandes
+ * @param {string} id - UUID de l'utilisateur
+ */
+async delete(id) {
+  // D'abord, mettre à NULL les références dans les commandes
+  await query(`UPDATE commande SET utilisateur_id = NULL WHERE utilisateur_id = $1`, [id]);
+  
+  // Supprimer le panier
+  await query(`DELETE FROM panier WHERE utilisateur_id = $1`, [id]);
+  
+  // Supprimer les lignes de panier orphelines
+  await query(`DELETE FROM ligne_panier WHERE panier_id NOT IN (SELECT id FROM panier)`);
+  
+  // Supprimer l'utilisateur
+  const sql = `DELETE FROM utilisateur WHERE id = $1`;
+  await query(sql, [id]);
+  logger.info(`Utilisateur supprimé définitivement: ${id}`);
+} 
 
   /**
    * Formate un utilisateur depuis la BDD

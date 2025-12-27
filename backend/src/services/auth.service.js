@@ -192,6 +192,34 @@ class AuthService {
       logger.error('Erreur envoi email changement mdp:', err.message);
     });
   }
+  /**
+ * Supprime le compte utilisateur (RGPD - droit à l'effacement)
+ * @param {string} userId - ID de l'utilisateur
+ */
+async deleteAccount(userId) {
+  const user = await userRepository.findById(userId);
+  
+  if (!user) {
+    const error = new Error('Utilisateur non trouvé');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  // Vérifier que ce n'est pas un admin (protection)
+  if (user.role === 'ADMIN') {
+    const error = new Error('Les comptes administrateurs ne peuvent pas être supprimés via cette méthode');
+    error.statusCode = 403;
+    throw error;
+  }
+
+  // Option 1: Soft delete (anonymisation) - RECOMMANDÉ pour garder l'historique des commandes
+  await userRepository.anonymize(userId);
+  
+  // Option 2: Hard delete (suppression totale) - Décommenter si besoin
+  // await userRepository.delete(userId);
+
+  logger.info(`Compte supprimé (RGPD): ${user.email}`);
+}
 
   // ==========================================
   // ✅ NOUVELLES MÉTHODES : MOT DE PASSE OUBLIÉ

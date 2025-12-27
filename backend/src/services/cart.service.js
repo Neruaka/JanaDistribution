@@ -1,13 +1,16 @@
 /**
- * Cart Service
- * @description Logique métier pour la gestion du panier
+ * Cart Service - VERSION CORRIGÉE
+ * @description Service métier pour le panier
  * 
- * IMPORTANT - Conventions de nommage:
- * - product.repository retourne des propriétés en FRANÇAIS (camelCase):
- *   estActif, stockQuantite, nom, prix, prixPromo
- * 
- * - cart.repository._mapCartItem retourne des propriétés en ANGLAIS:
- *   product.isActive, product.stock, product.name, etc.
+ * ✅ CORRECTION: Utilise les méthodes EXISTANTES du cart.repository.js:
+ * - getOrCreateCart(userId)
+ * - addItem(cartId, productId, quantity, unitPrice)
+ * - updateItemQuantity(itemId, quantity)
+ * - removeItem(itemId)
+ * - clearCart(cartId)
+ * - getItemCount(userId)
+ * - isItemOwnedByUser(itemId, userId)
+ * - getItemById(itemId)
  */
 
 const cartRepository = require('../repositories/cart.repository');
@@ -15,65 +18,82 @@ const productRepository = require('../repositories/product.repository');
 const logger = require('../config/logger');
 const { ApiError } = require('../middlewares/errorHandler');
 
+// Import settings service si disponible
+let settingsService;
+try {
+  settingsService = require('./settings.service');
+} catch (e) {
+  settingsService = null;
+}
+
 class CartService {
   
   /**
-   * Récupérer le panier de l'utilisateur
+   * Récupère le panier complet d'un utilisateur
    * @param {string} userId - UUID de l'utilisateur
-   * @returns {Object} Le panier avec items et résumé
+   * @returns {Object} Panier avec items, summary et warnings
    */
   async getCart(userId) {
+    // getOrCreateCart retourne déjà le panier avec items et summary
     const cart = await cartRepository.getOrCreateCart(userId);
     
-    // vérifier si des produits sont devenus indisponibles
-    // NOTE: cart.repository retourne isActive/stock (anglais)
+    // Vérifier les problèmes de stock
     const warnings = [];
     
-    for (const item of cart.items) {
-      if (!item.product.isActive) {
-        warnings.push({
-          type: 'PRODUCT_INACTIVE',
-          itemId: item.id,
-          productName: item.product.name,
-          message: `"${item.product.name}" n'est plus disponible`
-        });
-      } else if (item.product.stock < item.quantity) {
-        warnings.push({
-          type: 'INSUFFICIENT_STOCK',
-          itemId: item.id,
-          productName: item.product.name,
-          availableStock: item.product.stock,
-          requestedQuantity: item.quantity,
-          message: `Stock insuffisant pour "${item.product.name}" (${item.product.stock} disponible)`
-        });
+    if (cart.items && cart.items.length > 0) {
+      for (const item of cart.items) {
+        // Vérifier si le produit est toujours actif
+        if (!item.product.isActive) {
+          warnings.push({
+            type: 'PRODUCT_INACTIVE',
+            itemId: item.id,
+            productName: item.product.name,
+            message: `"${item.product.name}" n'est plus disponible`
+          });
+        }
+        // Vérifier le stock
+        else if (item.product.stock < item.quantity) {
+          warnings.push({
+            type: 'INSUFFICIENT_STOCK',
+            itemId: item.id,
+            productName: item.product.name,
+            available: item.product.stock,
+            requested: item.quantity,
+            message: `Stock insuffisant pour "${item.product.name}" (${item.product.stock} disponible)`
+          });
+        }
       }
     }
     
     return {
-      ...cart,
+      id: cart.id,
+      items: cart.items || [],
+      summary: cart.summary || {
+        itemCount: 0,
+        totalQuantity: 0,
+        subtotalHT: 0,
+        totalTVA: 0,
+        totalTTC: 0,
+        economies: 0
+      },
       warnings: warnings.length > 0 ? warnings : null
     };
   }
   
   /**
-   * Ajouter un produit au panier
+   * Ajoute un produit au panier
    * @param {string} userId - UUID de l'utilisateur
    * @param {string} productId - UUID du produit
    * @param {number} quantity - Quantité à ajouter
-   * @returns {Object} L'item ajouté et le panier mis à jour
+   * @returns {Object} Résultat avec item ajouté et panier mis à jour
    */
   async addItem(userId, productId, quantity = 1) {
-    // validation de la quantité
-    if (!Number.isInteger(quantity) || quantity < 1) {
-      throw ApiError.badRequest('La quantité doit être un entier positif');
+    // Valider la quantité
+    if (quantity < 1) {
+      throw ApiError.badRequest('La quantité doit être au moins de 1');
     }
     
-    if (quantity > 9999) {
-      throw ApiError.badRequest('La quantité maximale est de 9999');
-    }
-    
-    // vérifier que le produit existe et est actif
-    // NOTE: product.repository retourne estActif (français)
+    // Récupérer le produit
     const product = await productRepository.findById(productId);
     
     if (!product) {
@@ -84,218 +104,206 @@ class CartService {
       throw ApiError.badRequest('Ce produit n\'est plus disponible');
     }
     
-    // récupérer ou créer le panier
-    const cart = await cartRepository.getOrCreateCart(userId);
-    
-    // vérifier le stock disponible (en tenant compte de ce qui est déjà dans le panier)
-    const existingItem = cart.items.find(item => item.productId === productId);
-    const currentQuantityInCart = existingItem ? existingItem.quantity : 0;
-    const totalRequestedQuantity = currentQuantityInCart + quantity;
-    
-    // NOTE: product.repository retourne stockQuantite (français)
-    if (totalRequestedQuantity > product.stockQuantite) {
-      const availableToAdd = product.stockQuantite - currentQuantityInCart;
-      
-      if (availableToAdd <= 0) {
-        throw ApiError.badRequest(
-          `Stock insuffisant. Vous avez déjà ${currentQuantityInCart} "${product.nom}" dans votre panier (stock: ${product.stockQuantite})`
-        );
+    // Vérifier le stock selon les settings
+    let autoriserSansStock = false;
+    try {
+      if (settingsService) {
+        autoriserSansStock = await settingsService.get('commande_autoriser_sans_stock') || false;
       }
-      
-      throw ApiError.badRequest(
-        `Stock insuffisant. Vous pouvez ajouter ${availableToAdd} "${product.nom}" maximum (stock: ${product.stockQuantite}, dans panier: ${currentQuantityInCart})`
-      );
+    } catch (e) {
+      // Settings pas disponibles, on utilise la valeur par défaut
     }
     
-    // déterminer le prix à utiliser (promo si disponible)
-    // NOTE: product.repository retourne prixPromo et prix (français)
-    const priceToUse = product.prixPromo || product.prix;
+    if (!autoriserSansStock && product.stockQuantite <= 0) {
+      throw ApiError.badRequest('Ce produit est en rupture de stock');
+    }
     
-    // ajouter l'item
-    const item = await cartRepository.addItem(cart.id, productId, quantity, priceToUse);
+    if (!autoriserSansStock && product.stockQuantite < quantity) {
+      throw ApiError.badRequest(`Stock insuffisant. Disponible: ${product.stockQuantite}`);
+    }
     
-    logger.info(`Produit ajouté au panier`, { 
-      userId, 
-      productId, 
-      quantity, 
-      productName: product.nom 
-    });
+    // Récupérer ou créer le panier
+    const cart = await cartRepository.getOrCreateCart(userId);
     
-    // récupérer le panier mis à jour
-    const updatedCart = await cartRepository.getOrCreateCart(userId);
+    // Vérifier si le produit est déjà dans le panier
+    const existingItem = cart.items?.find(item => item.productId === productId);
+    
+    let item;
+    const unitPrice = product.prixPromo || product.prix;
+    
+    if (existingItem) {
+      // Mettre à jour la quantité
+      const newQuantity = existingItem.quantity + quantity;
+      
+      if (!autoriserSansStock && newQuantity > product.stockQuantite) {
+        throw ApiError.badRequest(`Stock insuffisant. Maximum: ${product.stockQuantite}`);
+      }
+      
+      item = await cartRepository.updateItemQuantity(existingItem.id, newQuantity);
+    } else {
+      // Ajouter le nouvel item
+      item = await cartRepository.addItem(cart.id, productId, quantity, unitPrice);
+    }
+    
+    // Récupérer le panier mis à jour
+    const updatedCart = await this.getCart(userId);
+    
+    logger.info(`Produit ajouté au panier`, { userId, productId, quantity });
     
     return {
       item,
       cart: updatedCart,
       message: existingItem 
-        ? `Quantité de "${product.nom}" mise à jour` 
-        : `"${product.nom}" ajouté au panier`
+        ? `Quantité mise à jour (${existingItem.quantity + quantity})`
+        : `${product.nom} ajouté au panier`
     };
   }
   
   /**
-   * Modifier la quantité d'un item
+   * Modifie la quantité d'un item
    * @param {string} userId - UUID de l'utilisateur
    * @param {string} itemId - UUID de l'item
    * @param {number} quantity - Nouvelle quantité
-   * @returns {Object} L'item mis à jour et le panier
+   * @returns {Object} Résultat avec item et panier mis à jour
    */
   async updateItemQuantity(userId, itemId, quantity) {
-    // validation de la quantité
-    if (!Number.isInteger(quantity) || quantity < 1) {
-      throw ApiError.badRequest('La quantité doit être un entier positif');
-    }
-    
-    if (quantity > 9999) {
-      throw ApiError.badRequest('La quantité maximale est de 9999');
-    }
-    
-    // vérifier que l'item appartient à l'utilisateur
+    // Vérifier que l'item appartient à l'utilisateur
     const isOwned = await cartRepository.isItemOwnedByUser(itemId, userId);
     
     if (!isOwned) {
-      throw ApiError.notFound('Item non trouvé dans votre panier');
+      throw ApiError.forbidden('Cet item ne vous appartient pas');
     }
     
-    // récupérer l'item actuel pour avoir le produit
-    // NOTE: cart.repository retourne product.stock et product.isActive (anglais)
-    const currentItem = await cartRepository.getItemById(itemId);
+    if (quantity < 1) {
+      throw ApiError.badRequest('La quantité doit être au moins de 1');
+    }
     
-    if (!currentItem) {
+    // Récupérer l'item pour vérifier le stock
+    const existingItem = await cartRepository.getItemById(itemId);
+    
+    if (!existingItem) {
       throw ApiError.notFound('Item non trouvé');
     }
     
-    // vérifier le stock
-    if (quantity > currentItem.product.stock) {
-      throw ApiError.badRequest(
-        `Stock insuffisant pour "${currentItem.product.name}" (${currentItem.product.stock} disponible)`
-      );
+    // Vérifier le stock
+    let autoriserSansStock = false;
+    try {
+      if (settingsService) {
+        autoriserSansStock = await settingsService.get('commande_autoriser_sans_stock') || false;
+      }
+    } catch (e) {
+      // Settings pas disponibles
     }
     
-    // vérifier que le produit est toujours actif
-    if (!currentItem.product.isActive) {
-      throw ApiError.badRequest(
-        `"${currentItem.product.name}" n'est plus disponible. Veuillez le retirer de votre panier.`
-      );
+    if (!autoriserSansStock && existingItem.product && quantity > existingItem.product.stock) {
+      throw ApiError.badRequest(`Stock insuffisant. Maximum: ${existingItem.product.stock}`);
     }
     
-    // mettre à jour la quantité
-    const updatedItem = await cartRepository.updateItemQuantity(itemId, quantity);
+    // Mettre à jour
+    const item = await cartRepository.updateItemQuantity(itemId, quantity);
     
-    logger.info(`Quantité mise à jour dans le panier`, { 
-      userId, 
-      itemId, 
-      oldQuantity: currentItem.quantity,
-      newQuantity: quantity 
-    });
-    
-    // récupérer le panier mis à jour
-    const cart = await cartRepository.getOrCreateCart(userId);
+    // Récupérer le panier mis à jour
+    const updatedCart = await this.getCart(userId);
     
     return {
-      item: updatedItem,
-      cart,
-      message: `Quantité mise à jour`
+      item,
+      cart: updatedCart,
+      message: 'Quantité mise à jour'
     };
   }
   
   /**
-   * Supprimer un item du panier
+   * Supprime un item du panier
    * @param {string} userId - UUID de l'utilisateur
    * @param {string} itemId - UUID de l'item
-   * @returns {Object} Le panier mis à jour
+   * @returns {Object} Résultat avec panier mis à jour
    */
   async removeItem(userId, itemId) {
-    // vérifier que l'item appartient à l'utilisateur
+    // Vérifier que l'item appartient à l'utilisateur
     const isOwned = await cartRepository.isItemOwnedByUser(itemId, userId);
     
     if (!isOwned) {
-      throw ApiError.notFound('Item non trouvé dans votre panier');
+      throw ApiError.forbidden('Cet item ne vous appartient pas');
     }
     
-    // récupérer le nom du produit avant suppression (pour le message)
-    // NOTE: cart.repository retourne product.name (anglais)
-    const item = await cartRepository.getItemById(itemId);
-    const productName = item?.product?.name || 'Produit';
-    
-    // supprimer l'item
+    // Supprimer l'item
     await cartRepository.removeItem(itemId);
     
-    logger.info(`Item supprimé du panier`, { userId, itemId, productName });
+    // Récupérer le panier mis à jour
+    const updatedCart = await this.getCart(userId);
     
-    // récupérer le panier mis à jour
-    const cart = await cartRepository.getOrCreateCart(userId);
+    logger.info(`Item supprimé du panier`, { userId, itemId });
     
     return {
-      cart,
-      message: `"${productName}" retiré du panier`
+      cart: updatedCart,
+      message: 'Produit retiré du panier'
     };
   }
   
   /**
-   * Vider tout le panier
+   * Vide complètement le panier
    * @param {string} userId - UUID de l'utilisateur
-   * @returns {Object} Le panier vide
+   * @returns {Object} Résultat avec panier vide
    */
   async clearCart(userId) {
+    // Récupérer le panier pour avoir l'ID
     const cart = await cartRepository.getOrCreateCart(userId);
     
-    if (cart.items.length === 0) {
-      throw ApiError.badRequest('Le panier est déjà vide');
-    }
-    
-    const itemCount = cart.items.length;
-    
+    // Vider le panier
     await cartRepository.clearCart(cart.id);
     
-    logger.info(`Panier vidé`, { userId, itemsRemoved: itemCount });
-    
-    // récupérer le panier vide
-    const clearedCart = await cartRepository.getOrCreateCart(userId);
+    logger.info(`Panier vidé`, { userId });
     
     return {
-      cart: clearedCart,
+      cart: {
+        id: cart.id,
+        items: [],
+        summary: {
+          itemCount: 0,
+          totalQuantity: 0,
+          subtotalHT: 0,
+          totalTVA: 0,
+          totalTTC: 0,
+          economies: 0
+        },
+        warnings: null
+      },
       message: 'Panier vidé'
     };
   }
   
   /**
-   * Obtenir le nombre d'items (pour le badge)
+   * Récupère le nombre d'items dans le panier
    * @param {string} userId - UUID de l'utilisateur
-   * @returns {Object} Le compteur
+   * @returns {Object} Compteur
    */
   async getItemCount(userId) {
     const count = await cartRepository.getItemCount(userId);
-    
-    return {
-      count,
-      displayCount: count > 99 ? '99+' : count.toString()
-    };
+    return { count };
   }
   
   /**
-   * Valider le panier avant commande
-   * Vérifie que tous les produits sont disponibles et en stock suffisant
+   * Valide le panier avant commande
    * @param {string} userId - UUID de l'utilisateur
-   * @returns {Object} Résultat de la validation
+   * @returns {Object} Résultat de validation
    */
   async validateCart(userId) {
-    const cart = await cartRepository.getOrCreateCart(userId);
-    
-    if (cart.items.length === 0) {
-      return {
-        isValid: false,
-        errors: [{ type: 'EMPTY_CART', message: 'Le panier est vide' }]
-      };
-    }
+    const cart = await this.getCart(userId);
     
     const errors = [];
-    const itemsToRemove = [];
-    const itemsToUpdate = [];
+    const warnings = [];
     
-    // NOTE: cart.repository retourne product.isActive et product.stock (anglais)
+    // Vérifier que le panier n'est pas vide
+    if (!cart.items || cart.items.length === 0) {
+      errors.push({
+        type: 'EMPTY_CART',
+        message: 'Votre panier est vide'
+      });
+      return { isValid: false, errors, warnings };
+    }
+    
+    // Vérifier chaque produit
     for (const item of cart.items) {
-      // produit inactif
       if (!item.product.isActive) {
         errors.push({
           type: 'PRODUCT_INACTIVE',
@@ -303,12 +311,7 @@ class CartService {
           productName: item.product.name,
           message: `"${item.product.name}" n'est plus disponible`
         });
-        itemsToRemove.push(item.id);
-        continue;
-      }
-      
-      // stock insuffisant
-      if (item.product.stock < item.quantity) {
+      } else if (item.product.stock < item.quantity) {
         if (item.product.stock === 0) {
           errors.push({
             type: 'OUT_OF_STOCK',
@@ -316,90 +319,100 @@ class CartService {
             productName: item.product.name,
             message: `"${item.product.name}" est en rupture de stock`
           });
-          itemsToRemove.push(item.id);
         } else {
-          errors.push({
+          warnings.push({
             type: 'INSUFFICIENT_STOCK',
             itemId: item.id,
             productName: item.product.name,
-            availableStock: item.product.stock,
-            requestedQuantity: item.quantity,
-            message: `Stock insuffisant pour "${item.product.name}" (${item.product.stock} disponible, ${item.quantity} demandé)`
-          });
-          itemsToUpdate.push({
-            id: item.id,
-            newQuantity: item.product.stock
+            available: item.product.stock,
+            requested: item.quantity,
+            message: `Stock limité pour "${item.product.name}" (${item.product.stock} disponible)`
           });
         }
       }
     }
     
+    // Vérifier le montant minimum
+    let montantMinCommande = 0;
+    try {
+      if (settingsService) {
+        montantMinCommande = await settingsService.get('commande_montant_min') || 0;
+      }
+    } catch (e) {
+      // Settings pas disponibles
+    }
+    
+    if (montantMinCommande > 0 && cart.summary.totalTTC < montantMinCommande) {
+      errors.push({
+        type: 'MIN_AMOUNT',
+        currentAmount: cart.summary.totalTTC,
+        requiredAmount: montantMinCommande,
+        message: `Le montant minimum de commande est de ${montantMinCommande.toFixed(2)}€ TTC`
+      });
+    }
+    
     return {
       isValid: errors.length === 0,
-      errors: errors.length > 0 ? errors : null,
-      cart,
-      suggestions: {
-        itemsToRemove: itemsToRemove.length > 0 ? itemsToRemove : null,
-        itemsToUpdate: itemsToUpdate.length > 0 ? itemsToUpdate : null
-      }
+      errors,
+      warnings,
+      cart
     };
   }
   
   /**
-   * Appliquer les suggestions de validation (supprimer/ajuster items problématiques)
+   * Applique les corrections suggérées (supprime items indisponibles, ajuste quantités)
    * @param {string} userId - UUID de l'utilisateur
-   * @returns {Object} Le panier nettoyé
+   * @returns {Object} Résultat avec modifications appliquées
    */
   async applyValidationSuggestions(userId) {
-    const validation = await this.validateCart(userId);
-    
-    if (validation.isValid) {
-      return {
-        cart: validation.cart,
-        changes: [],
-        message: 'Aucune modification nécessaire'
-      };
-    }
-    
+    const cart = await this.getCart(userId);
     const changes = [];
     
-    // supprimer les items à retirer
-    if (validation.suggestions.itemsToRemove) {
-      for (const itemId of validation.suggestions.itemsToRemove) {
-        const item = validation.cart.items.find(i => i.id === itemId);
-        await cartRepository.removeItem(itemId);
+    if (!cart.items || cart.items.length === 0) {
+      return { cart, changes, message: 'Aucune modification nécessaire' };
+    }
+    
+    for (const item of cart.items) {
+      // Supprimer les produits inactifs
+      if (!item.product.isActive) {
+        await cartRepository.removeItem(item.id);
         changes.push({
           type: 'REMOVED',
-          productName: item?.product?.name,
-          reason: 'Produit indisponible ou en rupture de stock'
+          productName: item.product.name,
+          reason: 'Produit indisponible'
         });
+      }
+      // Ajuster les quantités si stock insuffisant
+      else if (item.product.stock < item.quantity) {
+        if (item.product.stock === 0) {
+          await cartRepository.removeItem(item.id);
+          changes.push({
+            type: 'REMOVED',
+            productName: item.product.name,
+            reason: 'Rupture de stock'
+          });
+        } else {
+          await cartRepository.updateItemQuantity(item.id, item.product.stock);
+          changes.push({
+            type: 'QUANTITY_ADJUSTED',
+            productName: item.product.name,
+            oldQuantity: item.quantity,
+            newQuantity: item.product.stock,
+            reason: 'Stock limité'
+          });
+        }
       }
     }
     
-    // ajuster les quantités
-    if (validation.suggestions.itemsToUpdate) {
-      for (const update of validation.suggestions.itemsToUpdate) {
-        const item = validation.cart.items.find(i => i.id === update.id);
-        await cartRepository.updateItemQuantity(update.id, update.newQuantity);
-        changes.push({
-          type: 'QUANTITY_ADJUSTED',
-          productName: item?.product?.name,
-          oldQuantity: item?.quantity,
-          newQuantity: update.newQuantity,
-          reason: 'Ajusté au stock disponible'
-        });
-      }
-    }
-    
-    logger.info(`Corrections appliquées au panier`, { userId, changes });
-    
-    // récupérer le panier mis à jour
-    const updatedCart = await cartRepository.getOrCreateCart(userId);
+    // Récupérer le panier mis à jour
+    const updatedCart = await this.getCart(userId);
     
     return {
       cart: updatedCart,
       changes,
-      message: `${changes.length} modification(s) appliquée(s)`
+      message: changes.length > 0 
+        ? `${changes.length} modification(s) appliquée(s)`
+        : 'Aucune modification nécessaire'
     };
   }
 }

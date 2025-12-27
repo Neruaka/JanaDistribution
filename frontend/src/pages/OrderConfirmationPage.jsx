@@ -1,7 +1,10 @@
 /**
- * Page Confirmation Commande
+ * Page Confirmation Commande - VERSION CORRIGÉE
  * @description Affiche la confirmation après une commande réussie
- * Récapitule les informations et indique les prochaines étapes
+ * 
+ * ✅ CORRECTIONS:
+ * - Utilise useSettings pour les infos de contact dynamiques
+ * - Affiche les délais de livraison depuis settings
  */
 
 import { useState, useEffect } from 'react';
@@ -29,6 +32,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useSettings } from '../contexts/SettingsContext'; // ✅ AJOUT
 import { getOrderById, getStatutInfo, MODES_PAIEMENT } from '../services/orderService';
 import toast from 'react-hot-toast';
 
@@ -52,6 +56,9 @@ const OrderConfirmationPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // ✅ AJOUT: Récupérer les settings pour infos contact
+  const { site, livraison, loading: settingsLoading } = useSettings();
 
   // États
   const [order, setOrder] = useState(location.state?.order || null);
@@ -130,7 +137,7 @@ const OrderConfirmationPage = () => {
   // RENDER LOADING
   // ==========================================
 
-  if (loading) {
+  if (loading || settingsLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -284,7 +291,7 @@ const OrderConfirmationPage = () => {
                 </div>
               </div>
 
-              {/* Étape 3 */}
+              {/* Étape 3 - ✅ Délais dynamiques */}
               <div className="flex gap-4">
                 <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
                   <Truck className="w-4 h-4 text-purple-600" />
@@ -292,7 +299,7 @@ const OrderConfirmationPage = () => {
                 <div>
                   <p className="font-medium text-gray-800">Livraison</p>
                   <p className="text-sm text-gray-500">
-                    Votre commande sera livrée à l'adresse indiquée
+                    Votre commande sera livrée sous {livraison?.delaiMin || 2}-{livraison?.delaiMax || 5} jours ouvrés
                   </p>
                 </div>
               </div>
@@ -409,7 +416,12 @@ const OrderConfirmationPage = () => {
                 <Truck className="w-4 h-4" />
                 Livraison
               </span>
-              <span>{formatPrice(order?.fraisLivraison || 0)}</span>
+              <span>
+                {(order?.fraisLivraison || 0) === 0 
+                  ? <span className="text-green-600 font-medium">Offerte</span>
+                  : formatPrice(order?.fraisLivraison || 0)
+                }
+              </span>
             </div>
             <div className="flex justify-between text-xl font-bold text-gray-800 pt-2 border-t border-gray-200">
               <span>Total TTC</span>
@@ -448,7 +460,7 @@ const OrderConfirmationPage = () => {
           </Link>
         </motion.div>
 
-        {/* Note contact */}
+        {/* ✅ CORRECTION: Note contact dynamique depuis settings */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -457,12 +469,18 @@ const OrderConfirmationPage = () => {
         >
           <p>
             Une question ? Contactez-nous au{' '}
-            <a href="tel:+33123456789" className="text-green-600 hover:underline font-medium">
-              01 23 45 67 89
+            <a 
+              href={`tel:${site?.telephone?.replace(/\s/g, '') || '+33123456789'}`} 
+              className="text-green-600 hover:underline font-medium"
+            >
+              {site?.telephone || '01 23 45 67 89'}
             </a>
             {' '}ou par email à{' '}
-            <a href="mailto:contact@jana-distribution.fr" className="text-green-600 hover:underline font-medium">
-              contact@jana-distribution.fr
+            <a 
+              href={`mailto:${site?.email || 'contact@jana-distribution.fr'}`} 
+              className="text-green-600 hover:underline font-medium"
+            >
+              {site?.email || 'contact@jana-distribution.fr'}
             </a>
           </p>
         </motion.div>

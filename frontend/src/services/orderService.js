@@ -1,6 +1,10 @@
 /**
- * Service Commandes
+ * Service Commandes - VERSION CORRIGÉE
  * @description Gestion des appels API pour les commandes
+ * 
+ * ✅ CORRECTIONS:
+ * - Suppression de FRAIS_LIVRAISON hardcodé
+ * - createOrder() utilise les frais passés en paramètre (calculés par useSettings)
  */
 
 import api from './api';
@@ -9,7 +13,7 @@ import api from './api';
 // CONSTANTES
 // ==========================================
 
-const FRAIS_LIVRAISON = 15.00; // Forfait fixe
+// ❌ SUPPRIMÉ: const FRAIS_LIVRAISON = 15.00; // Plus de forfait fixe !
 
 export const MODES_PAIEMENT = [
   { id: 'ESPECES', label: 'Espèces', description: 'Paiement en espèces à la livraison' },
@@ -32,11 +36,6 @@ export const STATUTS_COMMANDE = {
 // ==========================================
 
 /**
- * Retourne les frais de livraison (forfait fixe)
- */
-export const getFraisLivraison = () => FRAIS_LIVRAISON;
-
-/**
  * Retourne les infos d'un statut
  */
 export const getStatutInfo = (statut) => {
@@ -57,7 +56,10 @@ export const canCancelOrder = (statut) => {
 /**
  * Créer une commande depuis le panier
  * @param {Object} orderData - Données de la commande
+ * @param {number} orderData.fraisLivraison - Frais de livraison calculés (depuis useSettings)
  * @returns {Promise<Object>} Commande créée
+ * 
+ * ✅ CORRECTION: Utilise orderData.fraisLivraison au lieu d'une constante
  */
 export const createOrder = async (orderData) => {
   const response = await api.post('/orders', {
@@ -72,7 +74,8 @@ export const createOrder = async (orderData) => {
       telephone: orderData.telephone
     },
     modePaiement: orderData.modePaiement,
-    fraisLivraison: FRAIS_LIVRAISON,
+    // ✅ CORRECTION: Utilise les frais passés par CheckoutPage (calculés via useSettings)
+    fraisLivraison: orderData.fraisLivraison ?? 0,
     instructionsLivraison: orderData.instructions || null
   });
   return response.data;
@@ -187,12 +190,10 @@ export const getOrderStats = async (dateDebut = null, dateFin = null) => {
 
 export default {
   // Constantes
-  FRAIS_LIVRAISON,
   MODES_PAIEMENT,
   STATUTS_COMMANDE,
   
   // Utilitaires
-  getFraisLivraison,
   getStatutInfo,
   canCancelOrder,
   

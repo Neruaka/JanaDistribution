@@ -1,6 +1,9 @@
 /**
- * Application principale
+ * Application principale - AVEC SETTINGS
  * @description Point d'entrée de l'application React
+ * @location frontend/src/App.jsx
+ * 
+ * ✅ AJOUT: SettingsProvider pour les paramètres globaux
  */
 
 import { Routes, Route } from 'react-router-dom';
@@ -10,6 +13,7 @@ import { AnimatePresence } from 'framer-motion';
 // Context
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
+import { SettingsProvider } from './contexts/SettingsContext'; // ✅ NOUVEAU
 
 // Components
 import Navbar from './components/Navbar';
@@ -30,6 +34,10 @@ import OrderDetailPage from './pages/OrderDetailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 
+// Pages client complètes
+import MonComptePage from './pages/MonComptePage';
+import PromotionsPage from './pages/PromotionsPage';
+
 // Pages Admin
 import AdminLayout from './components/admin/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -38,18 +46,10 @@ import AdminProductForm from './pages/admin/AdminProductForm';
 import AdminCategoriesList from './pages/admin/AdminCategoriesList';
 import AdminClientsList from './pages/admin/AdminClientsList';
 import AdminOrdersList from './pages/admin/AdminOrdersList';
+import AdminSettingsPage from './pages/admin/AdminSettingsPage';
+import AdminProfilePage from './pages/admin/AdminProfilePage';
 
-// Page Mon Compte (temporaire)
-const MonComptePage = () => {
-  return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-4">👤 Mon compte</h1>
-      <p className="text-gray-600">Page à implémenter...</p>
-    </div>
-  );
-};
-
-// Page Catégories (liste des catégories)
+// Page Catégories (liste des catégories côté client)
 const CategoriesPage = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -58,24 +58,6 @@ const CategoriesPage = () => {
     </div>
   );
 };
-
-// Page Promotions
-const PromotionsPage = () => {
-  return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-4">🏷️ Promotions</h1>
-      <p className="text-gray-600">Page promotions à implémenter...</p>
-    </div>
-  );
-};
-
-// Page Admin Paramètres (temporaire)
-const AdminSettingsPage = () => (
-  <div>
-    <h1 className="text-2xl font-bold mb-4">Paramètres</h1>
-    <p className="text-gray-500">Paramètres à implémenter...</p>
-  </div>
-);
 
 // Page 404
 const NotFoundPage = () => {
@@ -94,134 +76,140 @@ const NotFoundPage = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        {/* Notifications toast */}
-        <Toaster 
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: '#333',
-              color: '#fff',
-            },
-            success: {
-              iconTheme: {
-                primary: '#4CAF50',
-                secondary: '#fff',
+    // ✅ SettingsProvider englobe tout pour que les settings soient disponibles partout
+    <SettingsProvider>
+      <AuthProvider>
+        <CartProvider>
+          {/* Notifications toast */}
+          <Toaster 
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: '#333',
+                color: '#fff',
               },
-            },
-            error: {
-              iconTheme: {
-                primary: '#f44336',
-                secondary: '#fff',
+              success: {
+                iconTheme: {
+                  primary: '#4CAF50',
+                  secondary: '#fff',
+                },
               },
-            },
-          }}
-        />
-        
-        {/* Drawer panier (sidebar) */}
-        <AnimatePresence>
-          <CartDrawer />
-        </AnimatePresence>
-        
-        {/* Routes */}
-        <Routes>
-          {/* ==================== */}
-          {/* Pages publiques avec Navbar */}
-          {/* ==================== */}
-          <Route path="/" element={<><Navbar /><HomePage /></>} />
-          <Route path="/catalogue" element={<><Navbar /><CataloguePage /></>} />
-          <Route path="/produit/:slug" element={<><Navbar /><ProductDetailPage /></>} />
-          <Route path="/categories" element={<><Navbar /><CategoriesPage /></>} />
-          <Route path="/promotions" element={<><Navbar /><PromotionsPage /></>} />
-          <Route path="/panier" element={<><Navbar /><CartPage /></>} />
+              error: {
+                iconTheme: {
+                  primary: '#f44336',
+                  secondary: '#fff',
+                },
+              },
+            }}
+          />
           
-          {/* ==================== */}
-          {/* Pages auth (sans Navbar) */}
-          {/* ==================== */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/mot-de-passe-oublie" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          {/* Drawer panier (sidebar) */}
+          <AnimatePresence>
+            <CartDrawer />
+          </AnimatePresence>
           
-          {/* ==================== */}
-          {/* Checkout (protégé) */}
-          {/* ==================== */}
-          <Route path="/checkout" element={
-            <PrivateRoute>
-              <Navbar />
-              <CheckoutPage />
-            </PrivateRoute>
-          } />
+          {/* Routes */}
+          <Routes>
+            {/* ==================== */}
+            {/* Pages publiques avec Navbar */}
+            {/* ==================== */}
+            <Route path="/" element={<><Navbar /><HomePage /></>} />
+            <Route path="/catalogue" element={<><Navbar /><CataloguePage /></>} />
+            <Route path="/produit/:slug" element={<><Navbar /><ProductDetailPage /></>} />
+            <Route path="/categories" element={<><Navbar /><CategoriesPage /></>} />
+            <Route path="/promotions" element={<><Navbar /><PromotionsPage /></>} />
+            <Route path="/panier" element={<><Navbar /><CartPage /></>} />
+            
+            {/* ==================== */}
+            {/* Pages auth (sans Navbar) */}
+            {/* ==================== */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/mot-de-passe-oublie" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            
+            {/* ==================== */}
+            {/* Checkout (protégé) */}
+            {/* ==================== */}
+            <Route path="/checkout" element={
+              <PrivateRoute>
+                <Navbar />
+                <CheckoutPage />
+              </PrivateRoute>
+            } />
+            
+            {/* Confirmation commande */}
+            <Route path="/commande/confirmation/:orderId" element={
+              <PrivateRoute>
+                <Navbar />
+                <OrderConfirmationPage />
+              </PrivateRoute>
+            } />
           
-          {/* Confirmation commande */}
-          <Route path="/commande/confirmation/:orderId" element={
-            <PrivateRoute>
-              <Navbar />
-              <OrderConfirmationPage />
-            </PrivateRoute>
-          } />
-        
-        {/* ==================== */}
-        {/* Pages protégées client */}
-        {/* ==================== */}
-        <Route path="/mon-compte" element={
-          <PrivateRoute>
-            <Navbar />
-            <MonComptePage />
-          </PrivateRoute>
-        } />
-        <Route path="/mes-commandes" element={
-          <PrivateRoute>
-            <Navbar />
-            <OrderHistoryPage />
-          </PrivateRoute>
-        } />
-        <Route path="/mes-commandes/:orderId" element={
-          <PrivateRoute>
-            <Navbar />
-            <OrderDetailPage />
-          </PrivateRoute>
-        } />
-        
-        {/* ==================== */}
-        {/* Pages Admin avec AdminLayout */}
-        {/* ==================== */}
-        <Route path="/admin" element={
-          <PrivateRoute adminOnly>
-            <AdminLayout />
-          </PrivateRoute>
-        }>
-          {/* Dashboard */}
-          <Route index element={<AdminDashboard />} />
-          
-          {/* Produits */}
-          <Route path="produits" element={<AdminProductsList />} />
-          <Route path="produits/nouveau" element={<AdminProductForm />} />
-          <Route path="produits/:id" element={<AdminProductForm />} />
-          <Route path="produits/:id/modifier" element={<AdminProductForm />} />
-          
-          {/* Catégories */}
-          <Route path="categories" element={<AdminCategoriesList />} />
-          
-          {/* Commandes */}
-          <Route path="commandes" element={<AdminOrdersList />} />
-          
-          {/* Clients */}
-          <Route path="clients" element={<AdminClientsList />} />
-          
-          {/* Paramètres */}
-          <Route path="parametres" element={<AdminSettingsPage />} />
-        </Route>
-        
-        {/* ==================== */}
-        {/* 404 */}
-        {/* ==================== */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-      </CartProvider>
-    </AuthProvider>
+            {/* ==================== */}
+            {/* Pages protégées client */}
+            {/* ==================== */}
+            <Route path="/mon-compte" element={
+              <PrivateRoute>
+                <Navbar />
+                <MonComptePage />
+              </PrivateRoute>
+            } />
+            <Route path="/mes-commandes" element={
+              <PrivateRoute>
+                <Navbar />
+                <OrderHistoryPage />
+              </PrivateRoute>
+            } />
+            <Route path="/mes-commandes/:orderId" element={
+              <PrivateRoute>
+                <Navbar />
+                <OrderDetailPage />
+              </PrivateRoute>
+            } />
+            
+            {/* ==================== */}
+            {/* Pages Admin avec AdminLayout */}
+            {/* ==================== */}
+            <Route path="/admin" element={
+              <PrivateRoute adminOnly>
+                <AdminLayout />
+              </PrivateRoute>
+            }>
+              {/* Dashboard */}
+              <Route index element={<AdminDashboard />} />
+              
+              {/* Produits */}
+              <Route path="produits" element={<AdminProductsList />} />
+              <Route path="produits/nouveau" element={<AdminProductForm />} />
+              <Route path="produits/:id" element={<AdminProductForm />} />
+              <Route path="produits/:id/modifier" element={<AdminProductForm />} />
+              
+              {/* Catégories */}
+              <Route path="categories" element={<AdminCategoriesList />} />
+              
+              {/* Commandes */}
+              <Route path="commandes" element={<AdminOrdersList />} />
+              
+              {/* Clients */}
+              <Route path="clients" element={<AdminClientsList />} />
+              
+              {/* Paramètres */}
+              <Route path="parametres" element={<AdminSettingsPage />} />
+              
+              {/* Profil admin */}
+              <Route path="profil" element={<AdminProfilePage />} />
+            </Route>
+            
+            {/* ==================== */}
+            {/* 404 */}
+            {/* ==================== */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </CartProvider>
+      </AuthProvider>
+    </SettingsProvider>
   );
 }
 

@@ -1,7 +1,9 @@
 /**
- * Page d'accueil - Version modernisée avec animations
+ * Page d'accueil - Version avec Footer Dynamique
  * @description Landing page avec catégories et produits vedettes
- * Animations: Framer Motion + Tailwind CSS
+ * @location frontend/src/pages/HomePage.jsx
+ * 
+ * ✅ MODIF: Utilise le composant Footer avec settings dynamiques
  */
 
 import { useState, useEffect } from 'react';
@@ -17,13 +19,13 @@ import {
   ArrowRight,
   Sparkles,
   Building2,
-  MapPin,
-  Phone,
-  Mail,
   Loader2
 } from 'lucide-react';
 import productService from '../services/productService';
 import toast from 'react-hot-toast';
+
+// ✅ Import du Footer dynamique
+import Footer from '../components/Footer';
 
 // Animation variants
 const fadeInUp = {
@@ -263,7 +265,7 @@ const HomePage = () => {
               whileTap={{ scale: 0.98 }}
             >
               <Link
-                to={`/categorie/${cat.slug}`}
+                to={`/catalogue?categorie=${cat.slug}`}
                 className={`block ${cat.bgLight} p-6 rounded-2xl text-center transition-all duration-300 hover:shadow-lg border border-transparent hover:border-gray-200`}
               >
                 <span className="text-5xl block mb-3">{cat.icone}</span>
@@ -536,67 +538,8 @@ const HomePage = () => {
         </motion.section>
       )}
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400">
-        <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center gap-2 text-white text-lg font-bold mb-4">
-                <span className="text-2xl">🥬</span>
-                Jana Distribution
-              </div>
-              <p className="text-sm leading-relaxed">
-                Votre partenaire alimentaire depuis 2020. 
-                Produits frais et de qualité pour tous.
-              </p>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Navigation</h4>
-              <ul className="space-y-3 text-sm">
-                <li><Link to="/catalogue" className="hover:text-white transition-colors">Catalogue</Link></li>
-                <li><Link to="/categories" className="hover:text-white transition-colors">Catégories</Link></li>
-                <li><Link to="/promotions" className="hover:text-white transition-colors">Promotions</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Mon compte</h4>
-              <ul className="space-y-3 text-sm">
-                <li><Link to="/login" className="hover:text-white transition-colors">Connexion</Link></li>
-                <li><Link to="/register" className="hover:text-white transition-colors">Inscription</Link></li>
-                <li><Link to="/mes-commandes" className="hover:text-white transition-colors">Mes commandes</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-4">Contact</h4>
-              <ul className="space-y-3 text-sm">
-                <li className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4" />
-                  123 Rue du Commerce, 75001 Paris
-                </li>
-                <li className="flex items-center gap-2">
-                  <Phone className="w-4 h-4" />
-                  01 23 45 67 89
-                </li>
-                <li className="flex items-center gap-2">
-                  <Mail className="w-4 h-4" />
-                  contact@jana-distribution.fr
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-10 pt-8">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
-              <p>© 2024 Jana Distribution - SIREN 798 787 784 00012</p>
-              <div className="flex gap-6">
-                <a href="#" className="hover:text-white transition-colors">CGU</a>
-                <a href="#" className="hover:text-white transition-colors">Confidentialité</a>
-                <a href="#" className="hover:text-white transition-colors">Mentions légales</a>
-                <a href="#" className="hover:text-white transition-colors">Accessibilité</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
+      {/* ✅ Footer dynamique */}
+      <Footer />
     </div>
   );
 };

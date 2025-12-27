@@ -1,6 +1,8 @@
 /**
- * Service Produits (Backend)
- * @description Logique mÃ©tier pour les produits
+ * Service Produits (Backend) - VERSION CORRIGÉE
+ * @description Logique métier pour les produits
+ * 
+ * ✅ CORRECTION: Ajout des options enPromotion, hasPromo, estMisEnAvant
  */
 
 const productRepository = require('../repositories/product.repository');
@@ -9,18 +11,23 @@ const logger = require('../config/logger');
 
 class ProductService {
   /**
-   * RÃ©cupÃ¨re la liste des produits avec filtres et pagination
+   * Récupère la liste des produits avec filtres et pagination
+   * 
+   * ✅ CORRECTION: Ajout de enPromotion, hasPromo, estMisEnAvant
    */
   async getProducts(options = {}) {
     return productRepository.findAll({
       page: options.page || 1,
       limit: options.limit || 12,
       categorieId: options.categorieId,
-      search: options.search,
+      search: options.search || options.q, // Support des 2 noms
       minPrice: options.minPrice,
       maxPrice: options.maxPrice,
       enStock: options.enStock,
       estActif: options.estActif,  // null = tous, true = actifs, false = inactifs
+      enPromotion: options.enPromotion,     // ✅ NOUVEAU
+      hasPromo: options.hasPromo,           // ✅ NOUVEAU (alias)
+      estMisEnAvant: options.estMisEnAvant, // ✅ NOUVEAU
       labels: options.labels || [],
       orderBy: options.orderBy || 'createdAt',
       orderDir: options.orderDir || 'DESC'
@@ -28,7 +35,7 @@ class ProductService {
   }
 
   /**
-   * RÃ©cupÃ¨re un produit par ID
+   * Récupère un produit par ID
    */
   async getProductById(id) {
     const product = await productRepository.findById(id);
@@ -36,7 +43,7 @@ class ProductService {
   }
 
   /**
-   * RÃ©cupÃ¨re un produit par slug
+   * Récupère un produit par slug
    */
   async getProductBySlug(slug) {
     const product = await productRepository.findBySlug(slug);
@@ -44,131 +51,137 @@ class ProductService {
   }
 
   /**
-   * RÃ©cupÃ¨re les produits en promotion
+   * Récupère les produits en promotion
    */
-  async getPromos() {
-    return productRepository.findPromos();
+  async getPromos(limit = 100) {
+    return productRepository.findPromos(limit);
   }
 
   /**
-   * RÃ©cupÃ¨re les nouveaux produits
+   * Récupère les nouveaux produits
    */
   async getNewProducts(days = 30, limit = 10) {
     return productRepository.findNew(days, limit);
   }
 
   /**
-   * RÃ©cupÃ¨re les produits mis en avant
+   * Récupère les produits mis en avant
    */
   async getFeaturedProducts(limit = 8) {
-    return productRepository.findFeatured(limit);
+    // Utiliser findAll avec le filtre estMisEnAvant
+    const result = await productRepository.findAll({
+      estMisEnAvant: true,
+      estActif: true,
+      limit
+    });
+    return result.products;
   }
 
   /**
-   * RÃ©cupÃ¨re les produits en stock faible
+   * Récupère les produits en stock faible
    */
   async getLowStockProducts() {
     return productRepository.findLowStock();
   }
 
   /**
-   * CrÃ©e un nouveau produit
+   * Crée un nouveau produit
    */
   async createProduct(data) {
-    // VÃ©rifier que la catÃ©gorie existe
+    // Vérifier que la catégorie existe
     if (data.categorieId) {
       const category = await categoryRepository.findById(data.categorieId);
       if (!category) {
-        throw new Error('CatÃ©gorie non trouvÃ©e');
+        throw new Error('Catégorie non trouvée');
       }
     }
 
-    // VÃ©rifier l'unicitÃ© de la rÃ©fÃ©rence
+    // Vérifier l'unicité de la référence
     const existingRef = await productRepository.findByReference(data.reference);
     if (existingRef) {
-      throw new Error('Cette rÃ©fÃ©rence existe dÃ©jÃ ');
+      throw new Error('Cette référence existe déjà');
     }
 
-    // GÃ©nÃ©rer le slug si non fourni
+    // Générer le slug si non fourni
     if (!data.slug) {
       data.slug = this.generateSlug(data.nom);
     }
 
-    // CrÃ©er le produit
+    // Créer le produit
     const product = await productRepository.create(data);
 
-    logger.info(`Produit crÃ©Ã©: ${product.nom} (${product.reference})`);
+    logger.info(`Produit créé: ${product.nom} (${product.reference})`);
     return product;
   }
 
   /**
-   * Met Ã  jour un produit
+   * Met à jour un produit
    */
   async updateProduct(id, data) {
-    // VÃ©rifier que le produit existe
+    // Vérifier que le produit existe
     const existingProduct = await productRepository.findById(id);
     if (!existingProduct) {
       return null;
     }
 
-    // VÃ©rifier la catÃ©gorie si fournie
+    // Vérifier la catégorie si fournie
     if (data.categorieId) {
       const category = await categoryRepository.findById(data.categorieId);
       if (!category) {
-        throw new Error('CatÃ©gorie non trouvÃ©e');
+        throw new Error('Catégorie non trouvée');
       }
     }
 
-    // VÃ©rifier l'unicitÃ© de la rÃ©fÃ©rence si modifiÃ©e
+    // Vérifier l'unicité de la référence si modifiée
     if (data.reference && data.reference !== existingProduct.reference) {
       const existingRef = await productRepository.referenceExists(data.reference, id);
       if (existingRef) {
-        throw new Error('Cette rÃ©fÃ©rence existe dÃ©jÃ ');
+        throw new Error('Cette référence existe déjà');
       }
     }
 
-    // GÃ©nÃ©rer le slug si le nom change et pas de nouveau slug fourni
+    // Générer le slug si le nom change et pas de nouveau slug fourni
     if (data.nom && !data.slug) {
       data.slug = this.generateSlug(data.nom);
     }
 
-    // Mettre Ã  jour
+    // Mettre à jour
     const product = await productRepository.update(id, data);
 
-    logger.info(`Produit mis Ã  jour: ${product.nom} (${product.id})`);
+    logger.info(`Produit mis à jour: ${product.nom} (${product.id})`);
     return product;
   }
 
   /**
-   * Soft delete - dÃ©sactive un produit
+   * Soft delete - désactive un produit
    */
   async deleteProduct(id) {
     const product = await productRepository.delete(id);
     if (product) {
-      logger.info(`Produit dÃ©sactivÃ©: ${id}`);
+      logger.info(`Produit désactivé: ${id}`);
     }
     return product;
   }
 
   /**
-   * Hard delete - supprime dÃ©finitivement
+   * Hard delete - supprime définitivement
    */
   async hardDeleteProduct(id) {
     const deleted = await productRepository.hardDelete(id);
     if (deleted) {
-      logger.warn(`Produit supprimÃ© dÃ©finitivement: ${id}`);
+      logger.warn(`Produit supprimé définitivement: ${id}`);
     }
     return deleted;
   }
 
   /**
-   * Met Ã  jour le stock d'un produit
+   * Met à jour le stock d'un produit
    */
   async updateStock(id, quantite, operation = 'set') {
     const product = await productRepository.updateStock(id, quantite, operation);
     
     if (product) {
-      // VÃ©rifier si stock faible
+      // Vérifier si stock faible
       if (product.stockQuantite <= product.stockMinAlerte) {
         logger.warn(`Stock faible pour ${product.nom}: ${product.stockQuantite}/${product.stockMinAlerte}`);
       }
@@ -178,130 +191,24 @@ class ProductService {
   }
 
   /**
-   * GÃ©nÃ¨re un slug Ã  partir d'un nom
+   * Génère un slug à partir d'un nom
    */
   generateSlug(name) {
     return name
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '') // Supprime les accents
-      .replace(/[^a-z0-9\s-]/g, '') // Supprime les caractÃ¨res spÃ©ciaux
+      .replace(/[^a-z0-9\s-]/g, '') // Supprime les caractères spéciaux
       .replace(/\s+/g, '-') // Remplace les espaces par des tirets
       .replace(/-+/g, '-') // Supprime les tirets multiples
-      .replace(/^-|-$/g, ''); // Supprime les tirets en dÃ©but/fin
+      .replace(/^-|-$/g, ''); // Supprime les tirets en début/fin
   }
 
   /**
-   * Compte les produits par catÃ©gorie
+   * Compte les produits par catégorie
    */
   async countByCategory() {
     return productRepository.countByCategory();
-  }
-
-  /**
-   * Suppression multiple de produits (soft delete)
-   * @param {Array} ids - Liste des UUIDs à supprimer
-   */
-  async deleteMultiple(ids) {
-    const results = {
-      success: [],
-      errors: []
-    };
-
-    for (const id of ids) {
-      try {
-        const product = await productRepository.delete(id);
-        if (product) {
-          results.success.push(id);
-          logger.info(`Produit désactivé: ${id}`);
-        } else {
-          results.errors.push({ id, reason: 'Non trouvé' });
-        }
-      } catch (error) {
-        results.errors.push({ id, reason: error.message });
-      }
-    }
-
-    return results;
-  }
-
-  /**
-   * Récupère tous les produits pour export (sans pagination)
-   */
-  async getAllForExport() {
-    return productRepository.findAllForExport();
-  }
-
-  /**
-   * Import de produits depuis des données
-   * @param {Array} products - Liste des produits à importer
-   * @param {string} defaultCategoryId - ID de la catégorie par défaut (TBD)
-   */
-  async importProducts(products, defaultCategoryId) {
-    const results = {
-      created: [],
-      errors: []
-    };
-
-    for (const productData of products) {
-      try {
-        // Chercher la catégorie par nom
-        let categoryId = defaultCategoryId;
-        if (productData.categorie) {
-          const category = await categoryRepository.findByName(productData.categorie);
-          if (category) {
-            categoryId = category.id;
-          }
-        }
-
-        // Préparer les données du produit
-        const data = {
-          reference: productData.reference,
-          nom: productData.nom,
-          slug: this.generateSlug(productData.nom),
-          description: productData.description || '',
-          prix: parseFloat(productData.prix) || 0,
-          uniteMesure: productData.uniteMesure || 'kg',
-          origine: productData.origine || '',
-          categorieId: categoryId,
-          stockQuantite: 0,
-          stockMinAlerte: 10,
-          tauxTva: 5.50,
-          estActif: true,
-          estMisEnAvant: false,
-          labels: []
-        };
-
-        // Vérifier si la référence existe déjà
-        const existing = await productRepository.findByReference(data.reference);
-        if (existing) {
-          results.errors.push({ 
-            reference: data.reference, 
-            nom: data.nom,
-            reason: 'Référence déjà existante' 
-          });
-          continue;
-        }
-
-        // Créer le produit
-        const product = await productRepository.create(data);
-        results.created.push({
-          id: product.id,
-          reference: product.reference,
-          nom: product.nom
-        });
-
-        logger.info(`Produit importé: ${product.nom} (${product.reference})`);
-      } catch (error) {
-        results.errors.push({
-          reference: productData.reference,
-          nom: productData.nom,
-          reason: error.message
-        });
-      }
-    }
-
-    return results;
   }
 }
 

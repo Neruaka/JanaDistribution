@@ -1,6 +1,7 @@
 /**
  * Admin Clients List
  * @description Page de gestion des clients côté admin
+ * ✅ FIX: Menu contextuel en position fixed (hors du conteneur scrollable)
  */
 
 import { useState, useEffect } from 'react';
@@ -56,6 +57,7 @@ const AdminClientsList = () => {
 
   // Modals
   const [openMenu, setOpenMenu] = useState(null);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 }); // ✅ Position du menu
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [clientToDelete, setClientToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -122,6 +124,20 @@ const AdminClientsList = () => {
       month: '2-digit',
       year: 'numeric'
     });
+  };
+
+  // ✅ Ouvrir le menu avec calcul de position
+  const handleOpenMenu = (e, clientId) => {
+    if (openMenu === clientId) {
+      setOpenMenu(null);
+    } else {
+      const rect = e.currentTarget.getBoundingClientRect();
+      setMenuPosition({
+        top: rect.bottom + 4,
+        right: window.innerWidth - rect.right
+      });
+      setOpenMenu(clientId);
+    }
   };
 
   // Toggle statut client
@@ -431,49 +447,13 @@ const AdminClientsList = () => {
                         )}
                       </td>
                       <td className="py-3 px-4 text-right">
-                        <div className="relative">
-                          <button
-                            onClick={() => setOpenMenu(openMenu === client.id ? null : client.id)}
-                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                          >
-                            <MoreVertical className="w-5 h-5 text-gray-400" />
-                          </button>
-
-                          <AnimatePresence>
-                            {openMenu === client.id && (
-                              <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-10"
-                              >
-                                <button
-                                  onClick={() => handleViewDetail(client)}
-                                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                >
-                                  <Eye className="w-4 h-4" /> Voir le profil
-                                </button>
-                                <button
-                                  onClick={() => handleToggleStatus(client)}
-                                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                >
-                                  {client.estActif ? (
-                                    <><Ban className="w-4 h-4" /> Bloquer</>
-                                  ) : (
-                                    <><CheckCircle className="w-4 h-4" /> Activer</>
-                                  )}
-                                </button>
-                                <hr className="my-1" />
-                                <button
-                                  onClick={() => handleDeleteClick(client)}
-                                  className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                                >
-                                  <Trash2 className="w-4 h-4" /> Supprimer
-                                </button>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
+                        {/* ✅ Bouton menu avec calcul de position */}
+                        <button
+                          onClick={(e) => handleOpenMenu(e, client.id)}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                          <MoreVertical className="w-5 h-5 text-gray-400" />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -845,13 +825,63 @@ const AdminClientsList = () => {
         )}
       </AnimatePresence>
 
-      {/* Click outside pour fermer les menus */}
-      {openMenu && (
-        <div
-          className="fixed inset-0 z-0"
-          onClick={() => setOpenMenu(null)}
-        />
-      )}
+      {/* ✅ Menu contextuel - EN DEHORS de la table (position fixed) */}
+      <AnimatePresence>
+        {openMenu && (
+          <>
+            {/* Overlay pour fermer */}
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setOpenMenu(null)}
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              style={{
+                position: 'fixed',
+                top: menuPosition.top,
+                right: menuPosition.right,
+              }}
+              className="w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50"
+            >
+              {(() => {
+                const client = clients.find(c => c.id === openMenu);
+                if (!client) return null;
+                
+                return (
+                  <>
+                    <button
+                      onClick={() => handleViewDetail(client)}
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                    >
+                      <Eye className="w-4 h-4" /> Voir le profil
+                    </button>
+                    <button
+                      onClick={() => handleToggleStatus(client)}
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                    >
+                      {client.estActif ? (
+                        <><Ban className="w-4 h-4" /> Bloquer</>
+                      ) : (
+                        <><CheckCircle className="w-4 h-4" /> Activer</>
+                      )}
+                    </button>
+                    <hr className="my-1" />
+                    <button
+                      onClick={() => handleDeleteClick(client)}
+                      className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                    >
+                      <Trash2 className="w-4 h-4" /> Supprimer
+                    </button>
+                  </>
+                );
+              })()}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

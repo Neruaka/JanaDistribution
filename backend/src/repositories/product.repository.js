@@ -1,10 +1,10 @@
 /**
- * Repository Produits
- * @description AccÃ¨s aux donnÃ©es produits PostgreSQL
+ * Repository Produits - VERSION CORRIGÉE
+ * @description Accès aux données produits PostgreSQL
  * 
- * âœ… CORRECTION MINIMALE:
- * - Ligne 30: Ajout condition estActif !== 'all' pour afficher tous les produits en admin
- * - Ligne 32: Conversion string 'true'/'false' en boolean
+ * ✅ CORRECTIONS:
+ * - Ajout filtre enPromotion/hasPromo dans findAll()
+ * - Ajout filtre estMisEnAvant dans findAll()
  */
 
 const { query, getClient } = require('../config/database');
@@ -12,7 +12,9 @@ const logger = require('../config/logger');
 
 class ProductRepository {
   /**
-   * RÃ©cupÃ¨re tous les produits avec filtres et pagination
+   * Récupère tous les produits avec filtres et pagination
+   * 
+   * ✅ AJOUT: enPromotion, hasPromo, estMisEnAvant
    */
   async findAll(options = {}) {
     const {
@@ -24,6 +26,9 @@ class ProductRepository {
       maxPrice,
       enStock = null,
       estActif = true,
+      enPromotion = null,     // ✅ NOUVEAU
+      hasPromo = null,        // ✅ NOUVEAU (alias)
+      estMisEnAvant = null,   // ✅ NOUVEAU
       orderBy = 'createdAt',
       orderDir = 'DESC',
       labels = []
@@ -33,21 +38,22 @@ class ProductRepository {
     const params = [];
     let paramIndex = 1;
 
-    // Construction de la requÃªte dynamique
+    // Construction de la requête dynamique
     let whereClause = 'WHERE 1=1';
     
-    // âœ… CORRECTION: Si estActif = 'all' ou null, on n'ajoute pas de filtre (on voit tous les produits)
+    // Filtre estActif
     if (estActif !== null && estActif !== 'all') {
       whereClause += ` AND p.est_actif = $${paramIndex++}`;
-      // âœ… CORRECTION: Convertir string en boolean si nÃ©cessaire
       params.push(estActif === true || estActif === 'true');
     }
 
+    // Filtre catégorie
     if (categorieId) {
       whereClause += ` AND p.categorie_id = $${paramIndex++}`;
       params.push(categorieId);
     }
 
+    // Recherche texte
     if (search) {
       whereClause += ` AND (
         p.nom ILIKE $${paramIndex} 
@@ -58,40 +64,64 @@ class ProductRepository {
       paramIndex++;
     }
 
-    if (minPrice !== undefined) {
+    // Filtre prix min
+    if (minPrice !== undefined && minPrice !== null) {
       whereClause += ` AND p.prix >= $${paramIndex++}`;
-      params.push(minPrice);
+      params.push(parseFloat(minPrice));
     }
 
-    if (maxPrice !== undefined) {
+    // Filtre prix max
+    if (maxPrice !== undefined && maxPrice !== null) {
       whereClause += ` AND p.prix <= $${paramIndex++}`;
-      params.push(maxPrice);
+      params.push(parseFloat(maxPrice));
     }
 
-    if (enStock !== null) {
-      if (enStock) {
+    // Filtre stock
+    if (enStock !== null && enStock !== undefined) {
+      const inStock = enStock === true || enStock === 'true';
+      if (inStock) {
         whereClause += ` AND p.stock_quantite > 0`;
       } else {
         whereClause += ` AND p.stock_quantite = 0`;
       }
     }
 
+    // ✅ NOUVEAU: Filtre promotions (enPromotion ou hasPromo)
+    const promoFilter = enPromotion ?? hasPromo;
+    if (promoFilter !== null && promoFilter !== undefined) {
+      const hasPromotion = promoFilter === true || promoFilter === 'true';
+      if (hasPromotion) {
+        whereClause += ` AND p.prix_promo IS NOT NULL AND p.prix_promo < p.prix`;
+      } else {
+        whereClause += ` AND (p.prix_promo IS NULL OR p.prix_promo >= p.prix)`;
+      }
+    }
+
+    // ✅ NOUVEAU: Filtre mis en avant
+    if (estMisEnAvant !== null && estMisEnAvant !== undefined) {
+      const isFeatured = estMisEnAvant === true || estMisEnAvant === 'true';
+      whereClause += ` AND p.est_mis_en_avant = ${isFeatured}`;
+    }
+
+    // Filtre labels
     if (labels && labels.length > 0) {
+      const labelsArray = Array.isArray(labels) ? labels : labels.split(',');
       whereClause += ` AND p.labels && $${paramIndex++}`;
-      params.push(labels);
+      params.push(labelsArray);
     }
 
     // Mapping des colonnes pour l'ORDER BY
     const orderByMap = {
       'createdAt': 'p.date_creation',
       'prix': 'p.prix',
+      'prixPromo': 'p.prix_promo',
       'nom': 'p.nom',
       'stock': 'p.stock_quantite'
     };
     const orderColumn = orderByMap[orderBy] || 'p.date_creation';
     const direction = orderDir.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
-    // RequÃªte principale
+    // Requête principale
     const sql = `
       SELECT 
         p.id,
@@ -124,7 +154,7 @@ class ProductRepository {
     
     params.push(limit, offset);
 
-    // RequÃªte de comptage
+    // Requête de comptage
     const countSql = `
       SELECT COUNT(*) as total
       FROM produit p
@@ -153,7 +183,7 @@ class ProductRepository {
   }
 
   /**
-   * RÃ©cupÃ¨re un produit par ID
+   * Récupère un produit par ID
    */
   async findById(id) {
     const sql = `
@@ -172,7 +202,7 @@ class ProductRepository {
   }
 
   /**
-   * RÃ©cupÃ¨re un produit par slug
+   * Récupère un produit par slug
    */
   async findBySlug(slug) {
     const sql = `
@@ -191,7 +221,7 @@ class ProductRepository {
   }
 
   /**
-   * RÃ©cupÃ¨re un produit par rÃ©fÃ©rence
+   * Récupère un produit par référence
    */
   async findByReference(reference) {
     const sql = `SELECT * FROM produit WHERE reference = $1`;
@@ -200,47 +230,16 @@ class ProductRepository {
   }
 
   /**
-   * Récupère TOUS les produits pour export (sans pagination)
-   */
-  async findAllForExport() {
-    const sql = `
-      SELECT 
-        p.reference,
-        p.nom,
-        c.nom as categorie_nom,
-        p.origine,
-        p.prix,
-        p.description,
-        p.unite_mesure
-      FROM produit p
-      LEFT JOIN categorie c ON p.categorie_id = c.id
-      WHERE p.est_actif = true
-      ORDER BY c.nom, p.nom
-    `;
-    
-    const result = await query(sql);
-    return result.rows.map(row => ({
-      reference: row.reference,
-      nom: row.nom,
-      categorie: row.categorie_nom || '',
-      origine: row.origine || '',
-      prix: parseFloat(row.prix),
-      description: row.description || '',
-      uniteMesure: row.unite_mesure
-    }));
-  }
-
-  /**
-   * CrÃ©e un nouveau produit
+   * Crée un nouveau produit
    */
   async create(data) {
     const sql = `
       INSERT INTO produit (
         reference, nom, slug, description, prix, prix_promo,
         taux_tva, unite_mesure, stock_quantite, stock_min_alerte,
-        image_url, labels, origine, categorie_id, est_actif
+        image_url, labels, origine, categorie_id, est_actif, est_mis_en_avant
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
       )
       RETURNING *
     `;
@@ -260,25 +259,26 @@ class ProductRepository {
       data.labels || [],
       data.origine || null,
       data.categorieId,
-      data.estActif !== false
+      data.estActif !== false,
+      data.estMisEnAvant || false
     ];
 
     const result = await query(sql, params);
-    logger.info(`Produit crÃ©Ã©: ${result.rows[0].nom} (${result.rows[0].reference})`);
+    logger.info(`Produit créé: ${result.rows[0].nom} (${result.rows[0].reference})`);
     return this.mapProduct(result.rows[0]);
   }
 
   /**
-   * Met Ã  jour un produit
+   * Met à jour un produit
    */
   async update(id, data) {
     const fields = [];
     const params = [];
     let paramIndex = 1;
 
-    // Construction dynamique des champs Ã  mettre Ã  jour
+    // Construction dynamique des champs à mettre à jour
     const fieldMapping = {
-      reference: 'reference',  // âœ… AJOUTÃ‰: permet de modifier la rÃ©fÃ©rence
+      reference: 'reference',
       nom: 'nom',
       slug: 'slug',
       description: 'description',
@@ -292,7 +292,8 @@ class ProductRepository {
       labels: 'labels',
       origine: 'origine',
       categorieId: 'categorie_id',
-      estActif: 'est_actif'
+      estActif: 'est_actif',
+      estMisEnAvant: 'est_mis_en_avant'
     };
 
     for (const [key, column] of Object.entries(fieldMapping)) {
@@ -317,7 +318,7 @@ class ProductRepository {
     `;
 
     const result = await query(sql, params);
-    logger.info(`Produit mis Ã  jour: ${id}`);
+    logger.info(`Produit mis à jour: ${id}`);
     return result.rows[0] ? this.mapProduct(result.rows[0]) : null;
   }
 
@@ -333,22 +334,22 @@ class ProductRepository {
     `;
     
     const result = await query(sql, [id]);
-    logger.info(`Produit dÃ©sactivÃ©: ${id}`);
+    logger.info(`Produit désactivé: ${id}`);
     return result.rows[0] ? this.mapProduct(result.rows[0]) : null;
   }
 
   /**
-   * Supprime dÃ©finitivement un produit (hard delete)
+   * Supprime définitivement un produit (hard delete)
    */
   async hardDelete(id) {
     const sql = `DELETE FROM produit WHERE id = $1 RETURNING id`;
     const result = await query(sql, [id]);
-    logger.info(`Produit supprimÃ© dÃ©finitivement: ${id}`);
+    logger.info(`Produit supprimé définitivement: ${id}`);
     return result.rowCount > 0;
   }
 
   /**
-   * Met Ã  jour le stock d'un produit
+   * Met à jour le stock d'un produit
    */
   async updateStock(id, quantite, operation = 'set') {
     let sql;
@@ -381,7 +382,7 @@ class ProductRepository {
   }
 
   /**
-   * RÃ©cupÃ¨re les produits avec stock faible
+   * Récupère les produits avec stock faible
    */
   async findLowStock() {
     const sql = `
@@ -398,25 +399,26 @@ class ProductRepository {
   }
 
   /**
-   * RÃ©cupÃ¨re les produits en promotion
+   * Récupère les produits en promotion
    */
-  async findPromos() {
+  async findPromos(limit = 100) {
     const sql = `
-      SELECT p.*, c.nom as categorie_nom
+      SELECT p.*, c.nom as categorie_nom, c.slug as categorie_slug
       FROM produit p
       LEFT JOIN categorie c ON p.categorie_id = c.id
       WHERE p.est_actif = true 
         AND p.prix_promo IS NOT NULL 
         AND p.prix_promo < p.prix
       ORDER BY (p.prix - p.prix_promo) / p.prix DESC
+      LIMIT $1
     `;
     
-    const result = await query(sql);
+    const result = await query(sql, [limit]);
     return result.rows.map(this.mapProduct);
   }
 
   /**
-   * RÃ©cupÃ¨re les nouveautÃ©s (produits ajoutÃ©s rÃ©cemment)
+   * Récupère les nouveautés (produits ajoutés récemment)
    */
   async findNew(days = 30, limit = 10) {
     const sql = `
@@ -434,7 +436,7 @@ class ProductRepository {
   }
 
   /**
-   * VÃ©rifie si une rÃ©fÃ©rence existe
+   * Vérifie si une référence existe
    */
   async referenceExists(reference, excludeId = null) {
     let sql = `SELECT id FROM produit WHERE reference = $1`;
@@ -450,7 +452,7 @@ class ProductRepository {
   }
 
   /**
-   * VÃ©rifie si un slug existe
+   * Vérifie si un slug existe
    */
   async slugExists(slug, excludeId = null) {
     let sql = `SELECT id FROM produit WHERE slug = $1`;
@@ -478,9 +480,11 @@ class ProductRepository {
       slug: row.slug,
       description: row.description,
       prix: parseFloat(row.prix),
+      prixHt: parseFloat(row.prix), // Alias pour compatibilité frontend
       prixPromo: row.prix_promo ? parseFloat(row.prix_promo) : null,
       tauxTva: parseFloat(row.taux_tva),
       uniteMesure: row.unite_mesure,
+      stock: parseInt(row.stock_quantite),  // Alias court
       stockQuantite: parseInt(row.stock_quantite),
       stockMinAlerte: parseInt(row.stock_min_alerte),
       imageUrl: row.image_url,

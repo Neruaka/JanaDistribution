@@ -23,8 +23,9 @@ const productRoutes = require('./routes/product.routes');
 const cartRoutes = require('./routes/cart.routes');
 const orderRoutes = require('./routes/order.routes');
 const adminOrderRoutes = require('./routes/admin.order.routes');
-const adminStatsRoutes = require('./routes/admin.stats.routes');       // ✅ AJOUTÉ
-const adminClientsRoutes = require('./routes/admin.clients.routes');   // ✅ AJOUTÉ
+const adminStatsRoutes = require('./routes/admin.stats.routes');       
+const adminClientsRoutes = require('./routes/admin.clients.routes');  
+const settingsRoutes = require('./routes/settings.routes');
 
 // Import des middlewares
 const errorHandler = require('./middlewares/errorHandler');
@@ -103,8 +104,9 @@ app.use('/api/orders', orderRoutes);
 
 // Routes API Admin
 app.use('/api/admin/orders', adminOrderRoutes);
-app.use('/api/admin/stats', adminStatsRoutes);       // ✅ AJOUTÉ
-app.use('/api/admin/clients', adminClientsRoutes);   // ✅ AJOUTÉ
+app.use('/api/admin/stats', adminStatsRoutes);       
+app.use('/api/admin/clients', adminClientsRoutes);   
+app.use('/api/settings', settingsRoutes);
 
 // ==========================================
 // GESTION DES ERREURS

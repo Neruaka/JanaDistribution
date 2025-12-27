@@ -95,4 +95,12 @@ router.put('/password', authenticate, changePasswordValidation, authController.c
  */
 router.post('/refresh', authenticate, authController.refreshToken);
 
+
+/** * DELETE /api/auth/account
+ * @description Supprime définitivement le compte utilisateur
+ * @access Private
+ */
+router.delete('/account', authenticate, authController.deleteAccount);
+
+
 module.exports = router;

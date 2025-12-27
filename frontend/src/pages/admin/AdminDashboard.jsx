@@ -1,6 +1,7 @@
 /**
  * Dashboard Admin
  * @description Page d'accueil de l'administration avec stats temps réel
+ * ✅ FIX: Lien "Voir →" redirige vers /admin/commandes?orderId=xxx pour ouvrir le modal
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -557,7 +558,11 @@ const AdminDashboard = () => {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-gray-800">{formatMoney(order.totalTtc)}</p>
-                      <Link to={`/admin/commandes/${order.id}`} className="text-sm text-green-600 hover:text-green-700">
+                      {/* ✅ FIX: Lien avec paramètre orderId pour ouvrir le modal */}
+                      <Link 
+                        to={`/admin/commandes?orderId=${order.id}`} 
+                        className="text-sm text-green-600 hover:text-green-700"
+                      >
                         Voir →
                       </Link>
                     </div>

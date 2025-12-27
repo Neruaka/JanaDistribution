@@ -235,6 +235,22 @@ class AuthController {
       next(error);
     }
   }
+  /**
+ * DELETE /api/auth/account
+ * Supprime le compte de l'utilisateur (RGPD)
+ */
+async deleteAccount(req, res, next) {
+  try {
+    await authService.deleteAccount(req.user.id);
+
+    res.json({
+      success: true,
+      message: 'Compte supprimé avec succès'
+    });
+  } catch (error) {
+    next(error);
+  }
+}
 }
 
 module.exports = new AuthController();

@@ -1,6 +1,10 @@
 /**
- * Page Panier
+ * Page Panier - VERSION CORRIGÉE
  * @description Affichage et gestion du panier d'achat
+ * 
+ * ✅ CORRECTIONS:
+ * - Utilise useSettings pour le seuil franco de port
+ * - Affiche les frais de livraison dynamiques
  */
 
 import { useState, useEffect } from 'react';
@@ -24,6 +28,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useSettings } from '../contexts/SettingsContext'; // ✅ AJOUT
 import CartItem from '../components/CartItem';
 
 const CartPage = () => {
@@ -41,12 +46,27 @@ const CartPage = () => {
     fetchCart
   } = useCart();
 
+  // ✅ AJOUT: Récupérer les settings pour frais de livraison dynamiques
+  const { 
+    getFraisLivraison, 
+    seuilFrancoPort, 
+    fraisLivraisonStandard,
+    livraison,
+    loading: settingsLoading 
+  } = useSettings();
+
   const [promoCode, setPromoCode] = useState('');
   const [promoError, setPromoError] = useState('');
   const [promoApplied, setPromoApplied] = useState(null);
   const [isValidating, setIsValidating] = useState(false);
   const [validation, setValidation] = useState(null);
   const [isApplyingFixes, setIsApplyingFixes] = useState(false);
+
+  // ✅ AJOUT: Calcul des frais de livraison dynamiques
+  const totalTTC = summary?.totalTTC || 0;
+  const fraisLivraison = getFraisLivraison(totalTTC);
+  const francoAtteint = fraisLivraison === 0;
+  const resteAvantFranco = francoAtteint ? 0 : seuilFrancoPort - totalTTC;
 
   // Rediriger si non connecté
   useEffect(() => {
@@ -116,7 +136,7 @@ const CartPage = () => {
   };
 
   // Loading state
-  if (isLoading) {
+  if (isLoading || settingsLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -185,6 +205,25 @@ const CartPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Liste des produits */}
           <div className="lg:col-span-2 space-y-4">
+            {/* ✅ AJOUT: Bandeau franco de port dynamique */}
+            {!francoAtteint && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-4 bg-green-50 border border-green-200 rounded-xl"
+              >
+                <div className="flex items-center gap-2 text-green-800">
+                  <Truck className="w-5 h-5" />
+                  <span className="font-medium">
+                    Plus que {formatPrice(resteAvantFranco)} pour la livraison gratuite !
+                  </span>
+                </div>
+                <p className="text-sm text-green-600 mt-1">
+                  Livraison offerte à partir de {formatPrice(seuilFrancoPort)} d'achat
+                </p>
+              </motion.div>
+            )}
+
             {/* Warnings globaux */}
             {warnings && warnings.length > 0 && (
               <motion.div
@@ -319,7 +358,7 @@ const CartPage = () => {
                 </div>
 
                 <div className="flex justify-between text-gray-600">
-                  <span>TVA (20%)</span>
+                  <span>TVA</span>
                   <span>{formatPrice(summary?.totalTVA)}</span>
                 </div>
 
@@ -331,10 +370,17 @@ const CartPage = () => {
                   </div>
                 )}
 
+                {/* ✅ CORRECTION: Frais de livraison dynamiques depuis settings */}
                 <div className="flex justify-between text-gray-600">
-                  <span>Livraison</span>
-                  <span className="text-green-600">
-                    {(summary?.totalTTC || 0) >= 100 || (promoApplied?.type === 'shipping') ? 'Offerte' : 'À calculer'}
+                  <span className="flex items-center gap-1">
+                    <Truck className="w-4 h-4" />
+                    Livraison
+                  </span>
+                  <span className={francoAtteint || promoApplied?.type === 'shipping' ? 'text-green-600 font-medium' : ''}>
+                    {francoAtteint || promoApplied?.type === 'shipping' 
+                      ? 'Offerte' 
+                      : formatPrice(fraisLivraisonStandard)
+                    }
                   </span>
                 </div>
 
@@ -343,9 +389,18 @@ const CartPage = () => {
                     <span className="text-lg font-semibold text-gray-800">Total TTC</span>
                     <span className="text-2xl font-bold text-green-600">
                       {formatPrice(
-                        promoApplied?.type === 'percent'
-                          ? (summary?.totalTTC || 0) * (1 - promoApplied.value / 100)
-                          : summary?.totalTTC
+                        (() => {
+                          let total = summary?.totalTTC || 0;
+                          // Ajouter frais livraison si pas franco et pas promo shipping
+                          if (!francoAtteint && promoApplied?.type !== 'shipping') {
+                            total += fraisLivraisonStandard;
+                          }
+                          // Appliquer réduction promo %
+                          if (promoApplied?.type === 'percent') {
+                            total = total * (1 - promoApplied.value / 100);
+                          }
+                          return total;
+                        })()
                       )}
                     </span>
                   </div>
@@ -385,13 +440,13 @@ const CartPage = () => {
                 </motion.div>
               )}
 
-              {/* Infos supplémentaires */}
+              {/* ✅ CORRECTION: Infos dynamiques depuis settings */}
               <div className="mt-6 space-y-3">
                 <div className="flex items-center gap-3 text-sm text-gray-600">
                   <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
                     <Truck className="w-4 h-4 text-green-600" />
                   </div>
-                  <span>Livraison offerte dès 100€</span>
+                  <span>Livraison offerte dès {formatPrice(seuilFrancoPort)}</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-gray-600">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -403,7 +458,9 @@ const CartPage = () => {
                   <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
                     <Clock className="w-4 h-4 text-purple-600" />
                   </div>
-                  <span>Livraison sous 24-48h</span>
+                  <span>
+                    Livraison sous {livraison?.delaiMin || 2}-{livraison?.delaiMax || 5} jours
+                  </span>
                 </div>
               </div>
             </div>

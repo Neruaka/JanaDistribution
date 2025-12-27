@@ -1,6 +1,8 @@
 /**
  * Admin Orders List
  * @description Page de gestion des commandes côté admin
+ * ✅ FIX: Menu contextuel en position fixed (hors du conteneur scrollable)
+ * ✅ FIX: Ouverture automatique du modal via URL param ?orderId=xxx
  */
 
 import { useState, useEffect } from 'react';
@@ -68,6 +70,7 @@ const AdminOrdersList = () => {
 
   // Modals
   const [openMenu, setOpenMenu] = useState(null);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 }); // ✅ Position du menu
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -96,9 +99,12 @@ const AdminOrdersList = () => {
         total: response.pagination?.total || 0,
         totalPages: response.pagination?.totalPages || 0
       }));
+      
+      return response.data || [];
     } catch (error) {
       console.error('Erreur chargement commandes:', error);
       toast.error('Erreur lors du chargement des commandes');
+      return [];
     } finally {
       setLoading(false);
     }
@@ -113,6 +119,18 @@ const AdminOrdersList = () => {
       console.error('Erreur stats:', error);
     }
   };
+
+  // ✅ Effet pour ouvrir automatiquement le modal si orderId dans l'URL
+  useEffect(() => {
+    const orderId = searchParams.get('orderId');
+    if (orderId) {
+      // Ouvrir le modal avec cette commande
+      handleViewDetailById(orderId);
+      // Nettoyer l'URL
+      searchParams.delete('orderId');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     loadOrders(1);
@@ -169,6 +187,22 @@ const AdminOrdersList = () => {
         {config.label}
       </span>
     );
+  };
+
+  // ✅ Voir détail commande par ID (pour ouverture depuis URL)
+  const handleViewDetailById = async (orderId) => {
+    try {
+      setLoadingDetail(true);
+      setShowDetailModal(true);
+      const detail = await adminService.getOrderById(orderId);
+      setSelectedOrder(detail);
+    } catch (error) {
+      console.error('Erreur chargement détail:', error);
+      toast.error('Erreur lors du chargement de la commande');
+      setShowDetailModal(false);
+    } finally {
+      setLoadingDetail(false);
+    }
   };
 
   // Voir détail commande
@@ -240,6 +274,20 @@ const AdminOrdersList = () => {
   const goToPage = (page) => {
     if (page >= 1 && page <= pagination.totalPages) {
       loadOrders(page);
+    }
+  };
+
+  // ✅ Ouvrir le menu avec calcul de position
+  const handleOpenMenu = (e, orderId) => {
+    if (openMenu === orderId) {
+      setOpenMenu(null);
+    } else {
+      const rect = e.currentTarget.getBoundingClientRect();
+      setMenuPosition({
+        top: rect.bottom + 4,
+        right: window.innerWidth - rect.right
+      });
+      setOpenMenu(orderId);
     }
   };
 
@@ -443,7 +491,7 @@ const AdminOrdersList = () => {
                         <StatusBadge statut={order.statut} />
                       </td>
                       <td className="py-3 px-4 text-right">
-                        <div className="relative flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-2">
                           {/* Bouton action rapide */}
                           {STATUTS[order.statut]?.next && (
                             <button
@@ -456,64 +504,13 @@ const AdminOrdersList = () => {
                             </button>
                           )}
                           
+                          {/* ✅ Bouton menu avec calcul de position */}
                           <button
-                            onClick={() => setOpenMenu(openMenu === order.id ? null : order.id)}
+                            onClick={(e) => handleOpenMenu(e, order.id)}
                             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                           >
                             <MoreVertical className="w-5 h-5 text-gray-400" />
                           </button>
-
-                          <AnimatePresence>
-                            {openMenu === order.id && (
-                              <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                className="absolute right-0 top-full mt-1 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-10"
-                              >
-                                <button
-                                  onClick={() => handleViewDetail(order)}
-                                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                >
-                                  <Eye className="w-4 h-4" /> Voir le détail
-                                </button>
-                                
-                                {/* Changement de statut */}
-                                {order.statut !== 'ANNULEE' && order.statut !== 'LIVREE' && (
-                                  <>
-                                    <hr className="my-1" />
-                                    <p className="px-4 py-1 text-xs text-gray-400 uppercase">Changer le statut</p>
-                                    {Object.entries(STATUTS).map(([key, config]) => {
-                                      if (key === order.statut || key === 'ANNULEE') return null;
-                                      const Icon = config.icon;
-                                      return (
-                                        <button
-                                          key={key}
-                                          onClick={() => handleChangeStatus(order, key)}
-                                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                        >
-                                          <Icon className="w-4 h-4" /> {config.label}
-                                        </button>
-                                      );
-                                    })}
-                                  </>
-                                )}
-                                
-                                {/* Annuler */}
-                                {order.statut !== 'ANNULEE' && order.statut !== 'LIVREE' && (
-                                  <>
-                                    <hr className="my-1" />
-                                    <button
-                                      onClick={() => handleCancel(order)}
-                                      className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                                    >
-                                      <XCircle className="w-4 h-4" /> Annuler la commande
-                                    </button>
-                                  </>
-                                )}
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
                         </div>
                       </td>
                     </tr>
@@ -687,14 +684,14 @@ const AdminOrdersList = () => {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-gray-800 truncate">
-                              {ligne.produit?.nom || 'Produit'}
+                              {ligne.produit?.nom || ligne.nomProduit || 'Produit'}
                             </p>
                             <p className="text-sm text-gray-500">
                               {formatMoney(ligne.prixUnitaireHt)} × {ligne.quantite}
                             </p>
                           </div>
                           <p className="font-semibold text-gray-800">
-                            {formatMoney(ligne.totalTtc)}
+                            {formatMoney(ligne.totalTtc || (ligne.prixUnitaireHt * ligne.quantite * 1.055))}
                           </p>
                         </div>
                       ))}
@@ -714,7 +711,7 @@ const AdminOrdersList = () => {
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Livraison</span>
-                        <span className="text-gray-800">{formatMoney(selectedOrder.fraisLivraison || 15)}</span>
+                        <span className="text-gray-800">{formatMoney(selectedOrder.fraisLivraison || 0)}</span>
                       </div>
                       <hr className="border-green-200" />
                       <div className="flex justify-between text-lg font-bold">
@@ -756,13 +753,80 @@ const AdminOrdersList = () => {
         )}
       </AnimatePresence>
 
-      {/* Click outside pour fermer les menus */}
-      {openMenu && (
-        <div
-          className="fixed inset-0 z-0"
-          onClick={() => setOpenMenu(null)}
-        />
-      )}
+      {/* ✅ Menu contextuel - EN DEHORS de la table (position fixed) */}
+      <AnimatePresence>
+        {openMenu && (
+          <>
+            {/* Overlay pour fermer */}
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setOpenMenu(null)}
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              style={{
+                position: 'fixed',
+                top: menuPosition.top,
+                right: menuPosition.right,
+              }}
+              className="w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50"
+            >
+              {(() => {
+                const order = orders.find(o => o.id === openMenu);
+                if (!order) return null;
+                
+                return (
+                  <>
+                    <button
+                      onClick={() => handleViewDetail(order)}
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                    >
+                      <Eye className="w-4 h-4" /> Voir le détail
+                    </button>
+                    
+                    {/* Changement de statut */}
+                    {order.statut !== 'ANNULEE' && order.statut !== 'LIVREE' && (
+                      <>
+                        <hr className="my-1" />
+                        <p className="px-4 py-1 text-xs text-gray-400 uppercase">Changer le statut</p>
+                        {Object.entries(STATUTS).map(([key, config]) => {
+                          if (key === order.statut || key === 'ANNULEE') return null;
+                          const Icon = config.icon;
+                          return (
+                            <button
+                              key={key}
+                              onClick={() => handleChangeStatus(order, key)}
+                              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                            >
+                              <Icon className="w-4 h-4" /> {config.label}
+                            </button>
+                          );
+                        })}
+                      </>
+                    )}
+                    
+                    {/* Annuler */}
+                    {order.statut !== 'ANNULEE' && order.statut !== 'LIVREE' && (
+                      <>
+                        <hr className="my-1" />
+                        <button
+                          onClick={() => handleCancel(order)}
+                          className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                        >
+                          <XCircle className="w-4 h-4" /> Annuler la commande
+                        </button>
+                      </>
+                    )}
+                  </>
+                );
+              })()}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

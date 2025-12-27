@@ -1,6 +1,8 @@
 /**
- * Validator Produits
+ * Validator Produits - VERSION CORRIGÉE
  * @description Validation des données produits avec express-validator
+ * 
+ * ✅ CORRECTION: Ajout de 'enPromotion' dans listQuery
  */
 
 const { body, param, query } = require('express-validator');
@@ -94,7 +96,6 @@ const productValidators = {
     param('id')
       .isUUID().withMessage('ID de produit invalide'),
 
-    // ✅ AJOUTÉ : reference modifiable
     body('reference')
       .optional()
       .trim()
@@ -162,7 +163,6 @@ const productValidators = {
       .optional()
       .isBoolean().withMessage('estActif doit être un booléen'),
 
-    // ✅ AJOUTÉ : estMisEnAvant modifiable
     body('estMisEnAvant')
       .optional()
       .isBoolean().withMessage('estMisEnAvant doit être un booléen')
@@ -204,6 +204,7 @@ const productValidators = {
 
   /**
    * Validation des query params de liste
+   * ✅ CORRECTION: Ajout de 'enPromotion' et 'hasPromo'
    */
   listQuery: [
     query('page')
@@ -212,7 +213,7 @@ const productValidators = {
 
     query('limit')
       .optional()
-      .isInt({ min: 1, max: 50 }).withMessage('Limit doit être entre 1 et 50'),
+      .isInt({ min: 1, max: 100 }).withMessage('Limit doit être entre 1 et 100'), // ✅ Augmenté à 100
 
     query('categorieId')
       .optional()
@@ -230,17 +231,48 @@ const productValidators = {
       .optional()
       .isIn(['true', 'false']).withMessage('enStock doit être true ou false'),
 
+    // ✅ AJOUT: Filtre promotions
+    query('enPromotion')
+      .optional()
+      .isIn(['true', 'false']).withMessage('enPromotion doit être true ou false'),
+
+    // ✅ AJOUT: Alias pour enPromotion
+    query('hasPromo')
+      .optional()
+      .isIn(['true', 'false']).withMessage('hasPromo doit être true ou false'),
+
     query('estActif')
       .optional()
       .isIn(['true', 'false', 'all']).withMessage('estActif doit être true, false ou all'),
 
+    // ✅ AJOUT: Filtre mis en avant
+    query('estMisEnAvant')
+      .optional()
+      .isIn(['true', 'false']).withMessage('estMisEnAvant doit être true ou false'),
+
     query('orderBy')
       .optional()
-      .isIn(['createdAt', 'prix', 'nom', 'stock']).withMessage('Tri invalide'),
+      .isIn(['createdAt', 'prix', 'nom', 'stock', 'prixPromo']).withMessage('Tri invalide'),
 
     query('orderDir')
       .optional()
-      .isIn(['ASC', 'DESC', 'asc', 'desc']).withMessage('Direction de tri invalide')
+      .isIn(['ASC', 'DESC', 'asc', 'desc']).withMessage('Direction de tri invalide'),
+
+    // ✅ AJOUT: Recherche texte
+    query('search')
+      .optional()
+      .trim()
+      .isLength({ max: 100 }).withMessage('Recherche trop longue (max 100 caractères)'),
+
+    query('q')
+      .optional()
+      .trim()
+      .isLength({ max: 100 }).withMessage('Recherche trop longue (max 100 caractères)'),
+
+    // ✅ AJOUT: Labels
+    query('labels')
+      .optional()
+      .trim()
   ]
 };
 
