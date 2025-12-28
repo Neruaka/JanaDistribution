@@ -11,7 +11,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Info, FileText, Loader2, AlertCircle } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
-import { createOrder, MODES_PAIEMENT } from '../services/orderService';
+import { createOrder, MODES_PAIEMENT, getFraisLivraison } from '../services/orderService';
 import toast from 'react-hot-toast';
 
 // Composants checkout
@@ -28,7 +28,7 @@ import {
 // CONSTANTES
 // ==========================================
 
-const FRAIS_LIVRAISON = 15.00; // Frais de livraison forfaitaires
+const FRAIS_LIVRAISON = getFraisLivraison(); // Récupéré depuis orderService
 
 // ==========================================
 // COMPOSANT PRINCIPAL

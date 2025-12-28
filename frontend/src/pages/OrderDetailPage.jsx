@@ -184,6 +184,20 @@ const OrderDetailPage = () => {
     return currentIndex === stepIndex;
   };
 
+  // Vérifier si l'adresse de facturation est différente de la livraison
+  const isFacturationDifferent = () => {
+    if (!order?.adresseFacturation || !order?.adresseLivraison) return false;
+    
+    const livraison = order.adresseLivraison;
+    const facturation = order.adresseFacturation;
+    
+    return (
+      livraison.adresse !== facturation.adresse ||
+      livraison.codePostal !== facturation.codePostal ||
+      livraison.ville !== facturation.ville
+    );
+  };
+
   // ==========================================
   // RENDER LOADING
   // ==========================================
@@ -230,6 +244,7 @@ const OrderDetailPage = () => {
   const PaiementIcon = PAIEMENT_ICONS[order.modePaiement] || CreditCard;
   const statutInfo = getStatutInfo(order.statut);
   const canCancel = canCancelOrder(order.statut);
+  const showFacturation = isFacturationDifferent();
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -364,7 +379,8 @@ const OrderDetailPage = () => {
           </motion.div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Adresses - Grid 2 colonnes ou 1 si facturation identique */}
+        <div className={`grid grid-cols-1 ${showFacturation ? 'lg:grid-cols-2' : ''} gap-6`}>
           
           {/* Adresse de livraison */}
           <motion.div
@@ -374,7 +390,7 @@ const OrderDetailPage = () => {
             className="bg-white rounded-2xl shadow-sm p-6"
           >
             <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-gray-400" />
+              <Truck className="w-5 h-5 text-gray-400" />
               Adresse de livraison
             </h2>
 
@@ -411,72 +427,116 @@ const OrderDetailPage = () => {
                 </p>
               </div>
             )}
-          </motion.div>
 
-          {/* Informations de paiement */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="bg-white rounded-2xl shadow-sm p-6"
-          >
-            <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-gray-400" />
-              Informations
-            </h2>
-
-            <div className="space-y-4">
-              {/* Mode de paiement */}
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                <span className="text-gray-600">Mode de paiement</span>
-                <span className="font-medium text-gray-800 flex items-center gap-2">
-                  <PaiementIcon className="w-4 h-4" />
-                  {modePaiement?.label || order.modePaiement}
-                </span>
-              </div>
-
-              {/* Email client */}
-              {user?.email && (
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                  <span className="text-gray-600">Devis envoyé à</span>
-                  <span className="font-medium text-gray-800 flex items-center gap-2">
-                    <Mail className="w-4 h-4" />
-                    {user.email}
-                  </span>
-                </div>
-              )}
-
-              {/* Date modification */}
-              {order.dateModification && order.dateModification !== order.dateCommande && (
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                  <span className="text-gray-600">Dernière mise à jour</span>
-                  <span className="text-gray-800">{formatDateTime(order.dateModification)}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Bouton annulation */}
-            {canCancel && (
-              <div className="mt-6 pt-4 border-t border-gray-100">
-                <button
-                  onClick={handleCancelOrder}
-                  disabled={cancelling}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-red-200 text-red-600 rounded-xl hover:bg-red-50 transition-colors disabled:opacity-50"
-                >
-                  {cancelling ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <XCircle className="w-4 h-4" />
-                  )}
-                  {cancelling ? 'Annulation...' : 'Annuler cette commande'}
-                </button>
-                <p className="text-xs text-gray-500 text-center mt-2">
-                  Vous pouvez annuler tant que la commande n'est pas confirmée
+            {/* Info si facturation identique */}
+            {!showFacturation && order.adresseFacturation && (
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <p className="text-sm text-gray-500 flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  Adresse de facturation identique
                 </p>
               </div>
             )}
           </motion.div>
+
+          {/* Adresse de facturation (si différente) */}
+          {showFacturation && order.adresseFacturation && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              className="bg-white rounded-2xl shadow-sm p-6"
+            >
+              <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-gray-400" />
+                Adresse de facturation
+              </h2>
+
+              <div className="bg-gray-50 rounded-xl p-4">
+                <p className="font-medium text-gray-800 flex items-center gap-2">
+                  <User className="w-4 h-4 text-gray-400" />
+                  {order.adresseFacturation.prenom || order.adresseLivraison.prenom} {order.adresseFacturation.nom || order.adresseLivraison.nom}
+                </p>
+                {(order.adresseFacturation.entreprise || order.adresseLivraison.entreprise) && (
+                  <p className="text-gray-600 mt-1">
+                    {order.adresseFacturation.entreprise || order.adresseLivraison.entreprise}
+                  </p>
+                )}
+                <p className="text-gray-600 mt-2">{order.adresseFacturation.adresse}</p>
+                {order.adresseFacturation.complement && (
+                  <p className="text-gray-600">{order.adresseFacturation.complement}</p>
+                )}
+                <p className="text-gray-600">
+                  {order.adresseFacturation.codePostal} {order.adresseFacturation.ville}
+                </p>
+              </div>
+            </motion.div>
+          )}
         </div>
+
+        {/* Informations de paiement */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-white rounded-2xl shadow-sm p-6 mt-6"
+        >
+          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <CreditCard className="w-5 h-5 text-gray-400" />
+            Informations
+          </h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Mode de paiement */}
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+              <span className="text-gray-600">Mode de paiement</span>
+              <span className="font-medium text-gray-800 flex items-center gap-2">
+                <PaiementIcon className="w-4 h-4" />
+                {modePaiement?.label || order.modePaiement}
+              </span>
+            </div>
+
+            {/* Email client */}
+            {user?.email && (
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                <span className="text-gray-600">Devis envoyé à</span>
+                <span className="font-medium text-gray-800 flex items-center gap-2">
+                  <Mail className="w-4 h-4" />
+                  <span className="truncate max-w-32">{user.email}</span>
+                </span>
+              </div>
+            )}
+
+            {/* Date modification */}
+            {order.dateModification && order.dateModification !== order.dateCommande && (
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                <span className="text-gray-600">Dernière MAJ</span>
+                <span className="text-gray-800">{formatDateTime(order.dateModification)}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Bouton annulation */}
+          {canCancel && (
+            <div className="mt-6 pt-4 border-t border-gray-100">
+              <button
+                onClick={handleCancelOrder}
+                disabled={cancelling}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 border-2 border-red-200 text-red-600 rounded-xl hover:bg-red-50 transition-colors disabled:opacity-50"
+              >
+                {cancelling ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <XCircle className="w-4 h-4" />
+                )}
+                {cancelling ? 'Annulation...' : 'Annuler cette commande'}
+              </button>
+              <p className="text-xs text-gray-500 mt-2">
+                Vous pouvez annuler tant que la commande n'est pas confirmée
+              </p>
+            </div>
+          )}
+        </motion.div>
 
         {/* Détail des produits */}
         <motion.div

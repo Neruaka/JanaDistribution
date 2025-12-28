@@ -1,14 +1,15 @@
 /**
  * Composant Navbar
- * @description Barre de navigation avec état connecté/déconnecté
+ * @description Barre de navigation avec recherche intelligente
  */
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
+import SearchBar from './SearchBar';
 import toast from 'react-hot-toast';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Menu, X } from 'lucide-react';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -38,34 +39,27 @@ const Navbar = () => {
           {/* Logo et navigation principale */}
           <div className="flex items-center">
             {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2">
+            <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
               <span className="text-2xl">🥬</span>
               <span className="font-bold text-xl text-green-600 hidden sm:block">
                 Jana Distribution
               </span>
             </Link>
 
-            {/* Navigation desktop */}
-            <div className="hidden md:flex ml-10 space-x-8">
+            {/* Lien Catalogue - Desktop */}
+            <div className="hidden md:flex ml-8">
               <Link 
                 to="/catalogue" 
                 className="text-gray-700 hover:text-green-600 px-3 py-2 text-sm font-medium transition-colors"
               >
                 Catalogue
               </Link>
-              <Link 
-                to="/categories" 
-                className="text-gray-700 hover:text-green-600 px-3 py-2 text-sm font-medium transition-colors"
-              >
-                Catégories
-              </Link>
-              <Link 
-                to="/promotions" 
-                className="text-gray-700 hover:text-green-600 px-3 py-2 text-sm font-medium transition-colors"
-              >
-                Promotions
-              </Link>
             </div>
+          </div>
+
+          {/* Barre de recherche - Desktop */}
+          <div className="hidden md:flex flex-1 items-center justify-center px-8 max-w-xl">
+            <SearchBar className="w-full" />
           </div>
 
           {/* Actions utilisateur */}
@@ -174,7 +168,7 @@ const Navbar = () => {
               </div>
             ) : (
               // Utilisateur non connecté
-              <div className="flex items-center space-x-2">
+              <div className="hidden sm:flex items-center space-x-2">
                 <Link
                   to="/login"
                   className="text-gray-700 hover:text-green-600 px-3 py-2 text-sm font-medium"
@@ -195,62 +189,91 @@ const Navbar = () => {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="md:hidden p-2 text-gray-700"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                {isMobileMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
+              {isMobileMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
             </button>
           </div>
         </div>
 
         {/* Menu mobile */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t py-4 space-y-2">
-            <Link 
-              to="/catalogue" 
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              📦 Catalogue
-            </Link>
-            <Link 
-              to="/categories" 
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              📂 Catégories
-            </Link>
-            <Link 
-              to="/promotions" 
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              🏷️ Promotions
-            </Link>
+          <div className="md:hidden border-t py-4 space-y-4">
+            {/* Barre de recherche mobile */}
+            <div className="px-2">
+              <SearchBar className="w-full" />
+            </div>
             
-            {/* Liens utilisateur connecté - mobile */}
-            {isAuthenticated && (
-              <>
-                <div className="border-t my-2"></div>
-                <Link 
-                  to="/mes-commandes" 
-                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  📋 Mes commandes
-                </Link>
-                <Link 
-                  to="/panier" 
-                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  🛒 Mon panier {itemCount > 0 && `(${itemCount})`}
-                </Link>
-              </>
-            )}
+            <div className="space-y-2">
+              <Link 
+                to="/catalogue" 
+                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                📦 Catalogue
+              </Link>
+              
+              {/* Liens utilisateur connecté - mobile */}
+              {isAuthenticated && (
+                <>
+                  <div className="border-t my-2"></div>
+                  <Link 
+                    to="/mon-compte" 
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    👤 Mon compte
+                  </Link>
+                  <Link 
+                    to="/mes-commandes" 
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    📋 Mes commandes
+                  </Link>
+                  <Link 
+                    to="/panier" 
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    🛒 Mon panier {itemCount > 0 && `(${itemCount})`}
+                  </Link>
+                  
+                  {isAdmin && (
+                    <Link 
+                      to="/admin" 
+                      className="block px-4 py-2 text-purple-700 hover:bg-purple-50 rounded-md"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      ⚙️ Administration
+                    </Link>
+                  )}
+                </>
+              )}
+              
+              {/* Connexion/Inscription mobile */}
+              {!isAuthenticated && (
+                <>
+                  <div className="border-t my-2"></div>
+                  <Link 
+                    to="/login" 
+                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    🔐 Connexion
+                  </Link>
+                  <Link 
+                    to="/register" 
+                    className="block px-4 py-2 text-green-600 hover:bg-green-50 rounded-md font-medium"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    ✨ Inscription
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
         )}
       </div>

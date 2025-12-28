@@ -3,7 +3,8 @@
  * @description Point d'entrée de l'application React
  * @location frontend/src/App.jsx
  * 
- * ✅ AJOUT: SettingsProvider pour les paramètres globaux
+ * ✅ MODIF: Suppression des pages Promotions et Catégories
+ * ✅ AJOUT: Recherche intelligente dans la Navbar
  */
 
 import { Routes, Route } from 'react-router-dom';
@@ -13,7 +14,7 @@ import { AnimatePresence } from 'framer-motion';
 // Context
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
-import { SettingsProvider } from './contexts/SettingsContext'; // ✅ NOUVEAU
+import { SettingsProvider } from './contexts/SettingsContext';
 
 // Components
 import Navbar from './components/Navbar';
@@ -34,9 +35,8 @@ import OrderDetailPage from './pages/OrderDetailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 
-// Pages client complètes
+// Pages client
 import MonComptePage from './pages/MonComptePage';
-import PromotionsPage from './pages/PromotionsPage';
 
 // Pages Admin
 import AdminLayout from './components/admin/AdminLayout';
@@ -48,16 +48,6 @@ import AdminClientsList from './pages/admin/AdminClientsList';
 import AdminOrdersList from './pages/admin/AdminOrdersList';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 import AdminProfilePage from './pages/admin/AdminProfilePage';
-
-// Page Catégories (liste des catégories côté client)
-const CategoriesPage = () => {
-  return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-4">📂 Catégories</h1>
-      <p className="text-gray-600">Page catégories à implémenter...</p>
-    </div>
-  );
-};
 
 // Page 404
 const NotFoundPage = () => {
@@ -76,7 +66,6 @@ const NotFoundPage = () => {
 
 function App() {
   return (
-    // ✅ SettingsProvider englobe tout pour que les settings soient disponibles partout
     <SettingsProvider>
       <AuthProvider>
         <CartProvider>
@@ -117,8 +106,6 @@ function App() {
             <Route path="/" element={<><Navbar /><HomePage /></>} />
             <Route path="/catalogue" element={<><Navbar /><CataloguePage /></>} />
             <Route path="/produit/:slug" element={<><Navbar /><ProductDetailPage /></>} />
-            <Route path="/categories" element={<><Navbar /><CategoriesPage /></>} />
-            <Route path="/promotions" element={<><Navbar /><PromotionsPage /></>} />
             <Route path="/panier" element={<><Navbar /><CartPage /></>} />
             
             {/* ==================== */}
