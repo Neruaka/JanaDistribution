@@ -1,8 +1,8 @@
 /**
- * Page Checkout - Version B2B Devis (Refactorisé)
+ * Page Checkout - Version B2B Devis
  * @description Processus de commande simplifié en une page
- * Le client passe commande et reçoit un devis par email
- * Paiement effectué en physique (pas de paiement en ligne)
+ * 
+ * ✅ CORRECTION: Utilise useSettings pour les frais de livraison dynamiques
  */
 
 import { useState, useEffect } from 'react';
@@ -11,7 +11,8 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Info, FileText, Loader2, AlertCircle } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
-import { createOrder, MODES_PAIEMENT, getFraisLivraison } from '../services/orderService';
+import { useSettings } from '../contexts/SettingsContext'; // ✅ AJOUT
+import { createOrder, MODES_PAIEMENT } from '../services/orderService';
 import toast from 'react-hot-toast';
 
 // Composants checkout
@@ -23,12 +24,6 @@ import {
   Instructions,
   Recapitulatif
 } from '../components/checkout';
-
-// ==========================================
-// CONSTANTES
-// ==========================================
-
-const FRAIS_LIVRAISON = getFraisLivraison(); // Récupéré depuis orderService
 
 // ==========================================
 // COMPOSANT PRINCIPAL
@@ -47,6 +42,12 @@ const CheckoutPage = () => {
     isEmpty,
     resetCartLocal
   } = useCart();
+
+  // ✅ AJOUT: Récupérer les settings pour les frais de livraison
+  const { getFraisLivraison, seuilFrancoPort, loading: settingsLoading } = useSettings();
+
+  // ✅ Frais de livraison dynamiques depuis settings (avec calcul franco de port)
+  const fraisLivraison = getFraisLivraison(totalTTC);
 
   // États
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -109,10 +110,10 @@ const CheckoutPage = () => {
   }, [user, navigate]);
 
   // ==========================================
-  // CALCULS
+  // CALCULS - ✅ Utilise fraisLivraison dynamiques
   // ==========================================
 
-  const totalCommande = totalTTC + FRAIS_LIVRAISON;
+  const totalCommande = totalTTC + fraisLivraison;
 
   // ==========================================
   // FORMATAGE
@@ -177,7 +178,7 @@ const CheckoutPage = () => {
   };
 
   // ==========================================
-  // SOUMISSION
+  // SOUMISSION - ✅ Passe fraisLivraison à createOrder
   // ==========================================
 
   const handleSubmit = async (e) => {
@@ -195,7 +196,8 @@ const CheckoutPage = () => {
     setIsSubmitting(true);
 
     try {
-      const result = await createOrder(formData);
+      // ✅ Passer les frais de livraison dynamiques à createOrder
+      const result = await createOrder(formData, fraisLivraison);
 
       if (result.success) {
         resetCartLocal();
@@ -220,11 +222,22 @@ const CheckoutPage = () => {
   };
 
   // ==========================================
-  // RENDER
+  // RENDER - Attendre les settings
   // ==========================================
 
   if (!user || isEmpty) {
     return null;
+  }
+
+  if (settingsLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-green-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Chargement...</p>
+        </div>
+      </div>
+    );
   }
 
   // Adresse livraison pour le composant facturation
@@ -386,7 +399,7 @@ const CheckoutPage = () => {
               totalTVA={totalTVA}
               totalTTC={totalTTC}
               savings={savings}
-              fraisLivraison={FRAIS_LIVRAISON}
+              fraisLivraison={fraisLivraison}
               totalCommande={totalCommande}
               formData={formData}
               errors={errors}

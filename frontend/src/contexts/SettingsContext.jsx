@@ -1,12 +1,10 @@
 /**
- * Settings Context - VERSION COMPLÈTE
+ * Settings Context - VERSION CORRIGÉE
  * @description Contexte React pour les paramètres globaux du site
  * 
- * ✅ Features:
- * - Chargement automatique au démarrage
- * - Cache localStorage (5 min)
- * - Valeurs par défaut robustes
- * - Helpers pour calculs (frais livraison, etc.)
+ * ✅ CORRECTION: Mapping correct des noms de propriétés entre API et frontend
+ * - L'API utilise: fraisLivraisonStandard, seuilFrancoPort, delaiLivraisonMin/Max
+ * - Le frontend utilise: fraisStandard, seuilFranco, delaiMin/Max
  */
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
@@ -84,12 +82,43 @@ export const SettingsProvider = ({ children }) => {
       if (response.data.success && response.data.data) {
         const newSettings = response.data.data;
         
+        // ✅ CORRECTION: Mapper les noms de l'API vers les noms internes
+        // L'API peut retourner soit les noms "admin" soit les noms "frontend"
+        const livraisonData = newSettings.livraison || newSettings.delivery || {};
+        const siteData = newSettings.site || newSettings.general || {};
+        const commandeData = newSettings.commande || newSettings.orders || {};
+        
+        const mappedLivraison = {
+          fraisStandard: livraisonData.fraisLivraisonStandard ?? livraisonData.fraisStandard ?? DEFAULT_SETTINGS.livraison.fraisStandard,
+          seuilFranco: livraisonData.seuilFrancoPort ?? livraisonData.seuilFranco ?? DEFAULT_SETTINGS.livraison.seuilFranco,
+          delaiMin: livraisonData.delaiLivraisonMin ?? livraisonData.delaiMin ?? DEFAULT_SETTINGS.livraison.delaiMin,
+          delaiMax: livraisonData.delaiLivraisonMax ?? livraisonData.delaiMax ?? DEFAULT_SETTINGS.livraison.delaiMax
+        };
+
+        const mappedSite = {
+          nom: siteData.nomSite ?? siteData.nom ?? DEFAULT_SETTINGS.site.nom,
+          description: siteData.description ?? DEFAULT_SETTINGS.site.description,
+          email: siteData.email ?? DEFAULT_SETTINGS.site.email,
+          telephone: siteData.telephone ?? DEFAULT_SETTINGS.site.telephone,
+          adresse: siteData.adresse ?? DEFAULT_SETTINGS.site.adresse,
+          codePostal: siteData.codePostal ?? DEFAULT_SETTINGS.site.codePostal,
+          ville: siteData.ville ?? DEFAULT_SETTINGS.site.ville,
+          siret: siteData.siret ?? DEFAULT_SETTINGS.site.siret
+        };
+
+        const mappedCommande = {
+          montantMin: commandeData.montantMinCommande ?? commandeData.montantMin ?? DEFAULT_SETTINGS.commande.montantMin,
+          produitsParPage: commandeData.nombreProduitsParPage ?? commandeData.produitsParPage ?? DEFAULT_SETTINGS.commande.produitsParPage
+        };
+
         // Fusionner avec les valeurs par défaut
         const mergedSettings = {
-          site: { ...DEFAULT_SETTINGS.site, ...newSettings.site },
-          livraison: { ...DEFAULT_SETTINGS.livraison, ...newSettings.livraison },
-          commande: { ...DEFAULT_SETTINGS.commande, ...newSettings.commande }
+          site: mappedSite,
+          livraison: mappedLivraison,
+          commande: mappedCommande
         };
+
+        console.log('✅ Settings chargés:', mergedSettings); // Debug
 
         setSettings(mergedSettings);
         
@@ -144,6 +173,9 @@ export const SettingsProvider = ({ children }) => {
    * Force le rechargement des settings
    */
   const refreshSettings = useCallback(() => {
+    // Invalider le cache
+    localStorage.removeItem('app_settings');
+    localStorage.removeItem('app_settings_timestamp');
     setLoading(true);
     loadSettings(true);
   }, [loadSettings]);

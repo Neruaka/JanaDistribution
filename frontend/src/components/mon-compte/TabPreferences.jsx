@@ -1,6 +1,8 @@
 /**
  * Composant TabPreferences
  * Préférences de notifications et données RGPD
+ * 
+ * ✅ Sauvegarde notificationsCommandes via API (pas localStorage)
  */
 
 import { useState, useEffect } from 'react';
@@ -22,26 +24,31 @@ const TabPreferences = ({
   const [saving, setSaving] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
-  // Charger les préférences
+  // Charger les préférences depuis l'utilisateur
   useEffect(() => {
     if (user) {
       setPreferences({
         accepteNewsletter: user.accepteNewsletter || false,
+        // ✅ Par défaut true si non défini (rétrocompatibilité)
         notificationsCommandes: user.notificationsCommandes !== false
       });
     }
   }, [user]);
 
-  // Sauvegarder les préférences
+  // Sauvegarder les préférences via API
   const handleSave = async () => {
     try {
       setSaving(true);
+      
+      // ✅ Envoyer les deux préférences à l'API
       await updateProfile({
         accepteNewsletter: preferences.accepteNewsletter,
         notificationsCommandes: preferences.notificationsCommandes
       });
+      
       toast.success('Préférences mises à jour !');
     } catch (error) {
+      console.error('Erreur sauvegarde préférences:', error);
       toast.error('Erreur lors de la mise à jour des préférences');
     } finally {
       setSaving(false);
@@ -76,7 +83,8 @@ const TabPreferences = ({
           siret: profileRes.data.data.siret,
           numeroTva: profileRes.data.data.numeroTva,
           dateCreation: profileRes.data.data.dateCreation,
-          accepteNewsletter: profileRes.data.data.accepteNewsletter
+          accepteNewsletter: profileRes.data.data.accepteNewsletter,
+          notificationsCommandes: profileRes.data.data.notificationsCommandes
         },
         adresses: adresses,
         orders: ordersRes.data.data || [],
@@ -139,7 +147,7 @@ const TabPreferences = ({
             </div>
           </label>
 
-          {/* Notifications commandes */}
+          {/* ✅ Notifications commandes - sauvegardé en BDD */}
           <label className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
             <input
               type="checkbox"

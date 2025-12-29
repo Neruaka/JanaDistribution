@@ -1,15 +1,19 @@
 /**
  * Order Service
- * @description Logique mÃ©tier pour la gestion des commandes
+ * @description Logique métier pour la gestion des commandes
+ * 
+ * ✅ AJOUT: Notifications email automatiques lors des changements de statut
  */
 
 const orderRepository = require('../repositories/order.repository');
 const cartRepository = require('../repositories/cart.repository');
+const userRepository = require('../repositories/user.repository');
 const productRepository = require('../repositories/product.repository');
+const emailService = require('./email.service');
 const logger = require('../config/logger');
 const { ApiError } = require('../middlewares/errorHandler');
 
-// Statuts valides et transitions autorisÃ©es
+// Statuts valides et transitions autorisées
 const STATUT_TRANSITIONS = {
   'EN_ATTENTE': ['CONFIRMEE', 'ANNULEE'],
   'CONFIRMEE': ['EN_PREPARATION', 'ANNULEE'],
@@ -19,16 +23,19 @@ const STATUT_TRANSITIONS = {
   'ANNULEE': []
 };
 
+// Statuts qui déclenchent une notification email
+const NOTIFIABLE_STATUSES = ['CONFIRMEE', 'EN_PREPARATION', 'EXPEDIEE', 'LIVREE', 'ANNULEE'];
+
 class OrderService {
   
   /**
-   * CrÃ©er une commande Ã  partir du panier
+   * Créer une commande à partir du panier
    * @param {string} userId - UUID de l'utilisateur
-   * @param {Object} data - DonnÃ©es de la commande (adresses, paiement, etc.)
-   * @returns {Object} La commande crÃ©Ã©e
+   * @param {Object} data - Données de la commande (adresses, paiement, etc.)
+   * @returns {Object} La commande créée
    */
   async createFromCart(userId, data) {
-    // RÃ©cupÃ©rer le panier
+    // Récupérer le panier
     const cart = await cartRepository.getOrCreateCart(userId);
     
     if (!cart.items || cart.items.length === 0) {
@@ -40,7 +47,7 @@ class OrderService {
     const lignes = [];
     
     for (const item of cart.items) {
-      // VÃ©rifier que le produit est toujours actif
+      // Vérifier que le produit est toujours actif
       if (!item.product.isActive) {
         validationErrors.push({
           type: 'PRODUCT_INACTIVE',
@@ -50,7 +57,7 @@ class OrderService {
         continue;
       }
       
-      // VÃ©rifier le stock
+      // Vérifier le stock
       if (item.product.stock < item.quantity) {
         validationErrors.push({
           type: 'INSUFFICIENT_STOCK',
@@ -62,7 +69,7 @@ class OrderService {
         continue;
       }
       
-      // PrÃ©parer la ligne de commande
+      // Préparer la ligne de commande
       lignes.push({
         produitId: item.productId,
         nomProduit: item.product.name,
@@ -72,7 +79,7 @@ class OrderService {
       });
     }
     
-    // Si des erreurs de validation, on arrÃªte
+    // Si des erreurs de validation, on arrête
     if (validationErrors.length > 0) {
       throw ApiError.badRequest('Certains produits ne sont pas disponibles', {
         errors: validationErrors
@@ -97,7 +104,7 @@ class OrderService {
     const totalTva = cart.summary.totalTVA;
     const totalTtc = cart.summary.totalTTC + fraisLivraison;
     
-    // CrÃ©er la commande
+    // Créer la commande
     const orderData = {
       utilisateurId: userId,
       adresseLivraison: data.adresseLivraison,
@@ -113,24 +120,27 @@ class OrderService {
     
     const order = await orderRepository.create(orderData);
     
-    // Vider le panier aprÃ¨s crÃ©ation de la commande
+    // Vider le panier après création de la commande
     await cartRepository.clearCart(cart.id);
     
-    logger.info(`Commande crÃ©Ã©e depuis panier`, {
+    logger.info(`Commande créée depuis panier`, {
       userId,
       orderId: order.id,
       numeroCommande: order.numeroCommande,
       totalTtc
     });
+
+    // ✅ Envoyer email de confirmation de commande
+    await this._sendOrderNotification(userId, order, null, 'EN_ATTENTE');
     
     return {
       order,
-      message: `Commande ${order.numeroCommande} crÃ©Ã©e avec succÃ¨s`
+      message: `Commande ${order.numeroCommande} créée avec succès`
     };
   }
   
   /**
-   * RÃ©cupÃ©rer les commandes de l'utilisateur
+   * Récupérer les commandes de l'utilisateur
    * @param {string} userId - UUID de l'utilisateur
    * @param {Object} options - Options de pagination/filtres
    * @returns {Object} Liste des commandes avec pagination
@@ -150,74 +160,74 @@ class OrderService {
   }
   
   /**
-   * RÃ©cupÃ©rer une commande par ID
+   * Récupérer une commande par ID
    * @param {string} orderId - UUID de la commande
-   * @param {string} userId - UUID de l'utilisateur (pour vÃ©rification)
+   * @param {string} userId - UUID de l'utilisateur (pour vérification)
    * @returns {Object} La commande
    */
   async getOrderById(orderId, userId = null) {
     const order = await orderRepository.findById(orderId);
     
     if (!order) {
-      throw ApiError.notFound('Commande non trouvÃ©e');
+      throw ApiError.notFound('Commande non trouvée');
     }
     
-    // Si userId fourni, vÃ©rifier que la commande appartient Ã  l'utilisateur
+    // Si userId fourni, vérifier que la commande appartient à l'utilisateur
     if (userId && order.utilisateurId !== userId) {
-      throw ApiError.forbidden('Vous n\'avez pas accÃ¨s Ã  cette commande');
+      throw ApiError.forbidden('Vous n\'avez pas accès à cette commande');
     }
     
     return order;
   }
   
   /**
-   * RÃ©cupÃ©rer une commande par numÃ©ro
-   * @param {string} numero - NumÃ©ro de la commande (ex: CMD-20251205-0001)
-   * @param {string} userId - UUID de l'utilisateur (pour vÃ©rification)
+   * Récupérer une commande par numéro
+   * @param {string} numero - Numéro de la commande (ex: CMD-20251205-0001)
+   * @param {string} userId - UUID de l'utilisateur (pour vérification)
    * @returns {Object} La commande
    */
   async getOrderByNumero(numero, userId = null) {
     const order = await orderRepository.findByNumero(numero);
     
     if (!order) {
-      throw ApiError.notFound('Commande non trouvÃ©e');
+      throw ApiError.notFound('Commande non trouvée');
     }
     
-    // Si userId fourni, vÃ©rifier que la commande appartient Ã  l'utilisateur
+    // Si userId fourni, vérifier que la commande appartient à l'utilisateur
     if (userId && order.utilisateurId !== userId) {
-      throw ApiError.forbidden('Vous n\'avez pas accÃ¨s Ã  cette commande');
+      throw ApiError.forbidden('Vous n\'avez pas accès à cette commande');
     }
     
     return order;
   }
   
   /**
-   * Mettre Ã  jour le statut d'une commande (admin)
+   * Mettre à jour le statut d'une commande (admin)
    * @param {string} orderId - UUID de la commande
    * @param {string} newStatut - Nouveau statut
    * @param {string} instructionsLivraison - Instructions optionnelles
-   * @returns {Object} La commande mise Ã  jour
-   * 
-   * âœ… CORRECTION: Si statut = ANNULEE, on appelle cancelOrder() pour restaurer le stock
+   * @returns {Object} La commande mise à jour
    */
   async updateStatus(orderId, newStatut, instructionsLivraison = null) {
     const order = await orderRepository.findById(orderId);
     
     if (!order) {
-      throw ApiError.notFound('Commande non trouvÃ©e');
+      throw ApiError.notFound('Commande non trouvée');
     }
     
-    // VÃ©rifier que la transition est valide
+    const oldStatut = order.statut;
+    
+    // Vérifier que la transition est valide
     const allowedTransitions = STATUT_TRANSITIONS[order.statut];
     
     if (!allowedTransitions || !allowedTransitions.includes(newStatut)) {
       throw ApiError.badRequest(
-        `Transition de statut invalide: ${order.statut} â†’ ${newStatut}. ` +
-        `Transitions autorisÃ©es: ${allowedTransitions?.join(', ') || 'aucune'}`
+        `Transition de statut invalide: ${order.statut} → ${newStatut}. ` +
+        `Transitions autorisées: ${allowedTransitions?.join(', ') || 'aucune'}`
       );
     }
     
-    // âœ… CORRECTION: Si annulation, utiliser cancelOrder() qui restaure le stock
+    // Si annulation, utiliser cancelOrder() qui restaure le stock
     if (newStatut === 'ANNULEE') {
       logger.info(`Annulation via updateStatus, redirection vers cancelOrder`, { orderId });
       return this.cancelOrder(orderId, null, true); // isAdmin = true
@@ -225,36 +235,41 @@ class OrderService {
     
     const updatedOrder = await orderRepository.updateStatus(orderId, newStatut, instructionsLivraison);
     
-    logger.info(`Statut commande mis Ã  jour`, {
+    logger.info(`Statut commande mis à jour`, {
       orderId,
-      oldStatut: order.statut,
+      oldStatut,
       newStatut,
       numeroCommande: order.numeroCommande
     });
+
+    // ✅ Envoyer notification email
+    await this._sendOrderNotification(order.utilisateurId, updatedOrder, oldStatut, newStatut);
     
     return {
       order: updatedOrder,
-      message: `Commande ${order.numeroCommande} mise Ã  jour: ${newStatut}`
+      message: `Commande ${order.numeroCommande} mise à jour: ${newStatut}`
     };
   }
   
   /**
    * Annuler une commande
    * @param {string} orderId - UUID de la commande
-   * @param {string} userId - UUID de l'utilisateur (pour vÃ©rification client)
+   * @param {string} userId - UUID de l'utilisateur (pour vérification client)
    * @param {boolean} isAdmin - Si l'appelant est admin
-   * @returns {Object} La commande annulÃ©e
+   * @returns {Object} La commande annulée
    */
   async cancelOrder(orderId, userId = null, isAdmin = false) {
     const order = await orderRepository.findById(orderId);
     
     if (!order) {
-      throw ApiError.notFound('Commande non trouvÃ©e');
+      throw ApiError.notFound('Commande non trouvée');
     }
     
-    // VÃ©rifier les permissions
+    const oldStatut = order.statut;
+    
+    // Vérifier les permissions
     if (!isAdmin && userId && order.utilisateurId !== userId) {
-      throw ApiError.forbidden('Vous n\'avez pas accÃ¨s Ã  cette commande');
+      throw ApiError.forbidden('Vous n\'avez pas accès à cette commande');
     }
     
     // Un client ne peut annuler que les commandes EN_ATTENTE
@@ -265,31 +280,34 @@ class OrderService {
       );
     }
     
-    // VÃ©rifier que la commande peut Ãªtre annulÃ©e (admin peut annuler EN_ATTENTE et CONFIRMEE)
+    // Vérifier que la commande peut être annulée (admin peut annuler EN_ATTENTE et CONFIRMEE)
     if (!['EN_ATTENTE', 'CONFIRMEE'].includes(order.statut)) {
       throw ApiError.badRequest(
         `Impossible d'annuler une commande ${order.statut.toLowerCase().replace('_', ' ')}`
       );
     }
     
-    // âœ… cancel() dans le repository restaure le stock
+    // cancel() dans le repository restaure le stock
     const cancelledOrder = await orderRepository.cancel(orderId);
     
-    logger.info(`Commande annulÃ©e`, {
+    logger.info(`Commande annulée`, {
       orderId,
       numeroCommande: order.numeroCommande,
       byAdmin: isAdmin,
       userId
     });
+
+    // ✅ Envoyer notification email d'annulation
+    await this._sendOrderNotification(order.utilisateurId, cancelledOrder, oldStatut, 'ANNULEE');
     
     return {
       order: cancelledOrder,
-      message: `Commande ${order.numeroCommande} annulÃ©e. Le stock a Ã©tÃ© restaurÃ©.`
+      message: `Commande ${order.numeroCommande} annulée. Le stock a été restauré.`
     };
   }
   
   /**
-   * RÃ©cupÃ©rer toutes les commandes (admin)
+   * Récupérer toutes les commandes (admin)
    * @param {Object} options - Options de pagination/filtres
    * @returns {Object} Liste des commandes avec pagination
    */
@@ -316,8 +334,8 @@ class OrderService {
   }
   
   /**
-   * RÃ©cupÃ©rer les statistiques des commandes (admin)
-   * @param {Date} dateDebut - Date de dÃ©but (optionnel)
+   * Récupérer les statistiques des commandes (admin)
+   * @param {Date} dateDebut - Date de début (optionnel)
    * @param {Date} dateFin - Date de fin (optionnel)
    * @returns {Object} Statistiques
    */
@@ -326,18 +344,18 @@ class OrderService {
   }
   
   /**
-   * Obtenir le libellÃ© d'un statut
+   * Obtenir le libellé d'un statut
    * @param {string} statut - Code du statut
-   * @returns {string} LibellÃ© franÃ§ais
+   * @returns {string} Libellé français
    */
   getStatutLabel(statut) {
     const labels = {
       'EN_ATTENTE': 'En attente',
-      'CONFIRMEE': 'ConfirmÃ©e',
-      'EN_PREPARATION': 'En prÃ©paration',
-      'EXPEDIEE': 'ExpÃ©diÃ©e',
-      'LIVREE': 'LivrÃ©e',
-      'ANNULEE': 'AnnulÃ©e'
+      'CONFIRMEE': 'Confirmée',
+      'EN_PREPARATION': 'En préparation',
+      'EXPEDIEE': 'Expédiée',
+      'LIVREE': 'Livrée',
+      'ANNULEE': 'Annulée'
     };
     return labels[statut] || statut;
   }
@@ -349,6 +367,51 @@ class OrderService {
    */
   getPossibleTransitions(statut) {
     return STATUT_TRANSITIONS[statut] || [];
+  }
+
+  // ==========================================
+  // ✅ NOTIFICATIONS EMAIL
+  // ==========================================
+
+  /**
+   * Envoie une notification email pour un changement de statut
+   * @private
+   * @param {string} userId - ID de l'utilisateur
+   * @param {Object} order - La commande
+   * @param {string} oldStatus - Ancien statut (null si nouvelle commande)
+   * @param {string} newStatus - Nouveau statut
+   */
+  async _sendOrderNotification(userId, order, oldStatus, newStatus) {
+    try {
+      // Récupérer l'utilisateur
+      const user = await userRepository.findById(userId);
+      
+      if (!user) {
+        logger.warn(`Utilisateur non trouvé pour notification: ${userId}`);
+        return;
+      }
+
+      // ✅ Vérifier si l'utilisateur a activé les notifications
+      // Par défaut true si la propriété n'existe pas (rétrocompatibilité)
+      if (user.notificationsCommandes === false) {
+        logger.info(`Notifications commandes désactivées pour ${user.email}`);
+        return;
+      }
+
+      // Envoyer l'email via le service existant
+      if (NOTIFIABLE_STATUSES.includes(newStatus) || newStatus === 'EN_ATTENTE') {
+        await emailService.sendOrderStatusEmail(order, oldStatus, newStatus, user);
+        logger.info(`📧 Email statut "${newStatus}" envoyé pour commande ${order.numeroCommande} à ${user.email}`);
+      }
+    } catch (error) {
+      // Ne pas bloquer la commande si l'email échoue
+      logger.error(`Erreur envoi notification email:`, {
+        error: error.message,
+        orderId: order.id,
+        userId,
+        newStatus
+      });
+    }
   }
 }
 

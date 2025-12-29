@@ -1,6 +1,10 @@
 /**
  * Composant AdresseLivraison
  * Section 2 du checkout - Adresse de livraison avec sélection d'adresses enregistrées
+ * 
+ * ✅ FIX: Correction bug sélection multiple sur première ligne
+ *    - Utilisation de l'INDEX au lieu de l'ID pour la sélection
+ *    - Séparation du bouton "Nouvelle adresse" de la map
  */
 
 import { useState, useEffect } from 'react';
@@ -15,7 +19,7 @@ const AdresseLivraison = ({
   stepNumber = 2 
 }) => {
   const [savedAddresses, setSavedAddresses] = useState([]);
-  const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(-1); // ✅ Utiliser l'index au lieu de l'ID
   const [useNewAddress, setUseNewAddress] = useState(false);
 
   // Charger les adresses enregistrées depuis localStorage
@@ -27,13 +31,13 @@ const AdresseLivraison = ({
           const addresses = JSON.parse(storedAddresses);
           setSavedAddresses(addresses);
           
-          // Sélectionner l'adresse par défaut
-          const defaultAddress = addresses.find(a => a.estDefaut);
-          if (defaultAddress) {
-            setSelectedAddressId(defaultAddress.id);
-            applyAddress(defaultAddress);
+          // Trouver l'index de l'adresse par défaut
+          const defaultIndex = addresses.findIndex(a => a.estDefaut);
+          if (defaultIndex !== -1) {
+            setSelectedIndex(defaultIndex);
+            applyAddress(addresses[defaultIndex]);
           } else if (addresses.length > 0) {
-            setSelectedAddressId(addresses[0].id);
+            setSelectedIndex(0);
             applyAddress(addresses[0]);
           } else {
             setUseNewAddress(true);
@@ -56,9 +60,12 @@ const AdresseLivraison = ({
     onChange('ville', address.ville || '');
   };
 
-  // Sélectionner une adresse enregistrée
-  const handleSelectAddress = (address) => {
-    setSelectedAddressId(address.id);
+  // ✅ Sélectionner une adresse par son INDEX (plus fiable que l'ID)
+  const handleSelectAddress = (index) => {
+    const address = savedAddresses[index];
+    if (!address) return;
+    
+    setSelectedIndex(index);
     setUseNewAddress(false);
     applyAddress(address);
   };
@@ -66,11 +73,16 @@ const AdresseLivraison = ({
   // Utiliser une nouvelle adresse
   const handleUseNewAddress = () => {
     setUseNewAddress(true);
-    setSelectedAddressId(null);
+    setSelectedIndex(-1);
     onChange('adresse', '');
     onChange('complement', '');
     onChange('codePostal', '');
     onChange('ville', '');
+  };
+
+  // ✅ Vérifier si une adresse est sélectionnée (par index strict)
+  const isSelected = (index) => {
+    return selectedIndex === index && !useNewAddress;
   };
 
   return (
@@ -95,67 +107,65 @@ const AdresseLivraison = ({
             Choisir une adresse enregistrée
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* Liste des adresses + bouton nouvelle adresse */}
-            {[
-              ...savedAddresses.map((address) => (
-                <button
-                  key={address.id}
-                  type="button"
-                  onClick={() => handleSelectAddress(address)}
-                  className={`relative p-4 rounded-xl border-2 text-left transition-all ${
-                    selectedAddressId === address.id && !useNewAddress
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  {selectedAddressId === address.id && !useNewAddress && (
-                    <div className="absolute top-2 right-2">
-                      <Check className="w-5 h-5 text-green-600" />
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2 mb-2">
-                    {address.nom?.toLowerCase().includes('bureau') || 
-                     address.nom?.toLowerCase().includes('travail') ? (
-                      <Briefcase className="w-4 h-4 text-gray-500" />
-                    ) : (
-                      <Home className="w-4 h-4 text-gray-500" />
-                    )}
-                    <span className="font-medium text-gray-800">{address.nom}</span>
-                    {address.estDefaut && (
-                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
-                        Par défaut
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-600 line-clamp-2">
-                    {address.adresse}
-                    {address.complement && `, ${address.complement}`}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {address.codePostal} {address.ville}
-                  </p>
-                </button>
-              )),
-              // Bouton nouvelle adresse
+            {/* ✅ Liste des adresses avec INDEX comme clé et comparaison */}
+            {savedAddresses.map((address, index) => (
               <button
-                key="new-address"
+                key={`saved-address-${index}`}
                 type="button"
-                onClick={handleUseNewAddress}
-                className={`p-4 rounded-xl border-2 border-dashed text-left transition-all ${
-                  useNewAddress
+                onClick={() => handleSelectAddress(index)}
+                className={`relative p-4 rounded-xl border-2 text-left transition-all ${
+                  isSelected(index)
                     ? 'border-green-500 bg-green-50'
-                    : 'border-gray-300 hover:border-gray-400'
+                    : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <Plus className="w-5 h-5 text-gray-500" />
-                  <span className="font-medium text-gray-700">Nouvelle adresse</span>
+                {isSelected(index) && (
+                  <div className="absolute top-2 right-2">
+                    <Check className="w-5 h-5 text-green-600" />
+                  </div>
+                )}
+                <div className="flex items-center gap-2 mb-2">
+                  {address.nom?.toLowerCase().includes('bureau') || 
+                   address.nom?.toLowerCase().includes('travail') ? (
+                    <Briefcase className="w-4 h-4 text-gray-500" />
+                  ) : (
+                    <Home className="w-4 h-4 text-gray-500" />
+                  )}
+                  <span className="font-medium text-gray-800">{address.nom}</span>
+                  {address.estDefaut && (
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                      Par défaut
+                    </span>
+                  )}
                 </div>
-                <p className="text-sm text-gray-500 mt-1">
-                  Saisir une adresse différente
+                <p className="text-sm text-gray-600 line-clamp-2">
+                  {address.adresse}
+                  {address.complement && `, ${address.complement}`}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {address.codePostal} {address.ville}
                 </p>
               </button>
-            ]}
+            ))}
+            
+            {/* ✅ Bouton nouvelle adresse (HORS de la map pour éviter les conflits) */}
+            <button
+              type="button"
+              onClick={handleUseNewAddress}
+              className={`p-4 rounded-xl border-2 border-dashed text-left transition-all ${
+                useNewAddress
+                  ? 'border-green-500 bg-green-50'
+                  : 'border-gray-300 hover:border-gray-400'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Plus className="w-5 h-5 text-gray-500" />
+                <span className="font-medium text-gray-700">Nouvelle adresse</span>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">
+                Saisir une adresse différente
+              </p>
+            </button>
           </div>
         </div>
       )}
@@ -255,7 +265,7 @@ const AdresseLivraison = ({
       )}
 
       {/* Affichage de l'adresse sélectionnée (mode lecture) */}
-      {!useNewAddress && selectedAddressId && savedAddresses.length > 0 && (
+      {!useNewAddress && selectedIndex >= 0 && savedAddresses.length > 0 && (
         <div className="mt-4 p-4 bg-gray-50 rounded-xl">
           <p className="text-sm text-gray-700">
             <strong>Adresse sélectionnée :</strong><br />

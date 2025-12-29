@@ -1,19 +1,15 @@
 /**
- * Service Commandes - VERSION CORRIGÉE
+ * Service Commandes
  * @description Gestion des appels API pour les commandes
- * 
- * ✅ CORRECTIONS:
- * - Suppression de FRAIS_LIVRAISON hardcodé
- * - createOrder() utilise les frais passés en paramètre (calculés par useSettings)
  */
 
 import api from './api';
 
 // ==========================================
-// CONSTANTES
+// CONSTANTES (fallback si settings non disponibles)
 // ==========================================
 
-// ❌ SUPPRIMÉ: const FRAIS_LIVRAISON = 15.00; // Plus de forfait fixe !
+const DEFAULT_FRAIS_LIVRAISON = 15.00; // Fallback uniquement
 
 export const MODES_PAIEMENT = [
   { id: 'ESPECES', label: 'Espèces', description: 'Paiement en espèces à la livraison' },
@@ -36,6 +32,12 @@ export const STATUTS_COMMANDE = {
 // ==========================================
 
 /**
+ * Retourne les frais de livraison par défaut (fallback)
+ * Note: Préférer utiliser useSettings().livraison.frais dans les composants
+ */
+export const getFraisLivraison = () => DEFAULT_FRAIS_LIVRAISON;
+
+/**
  * Retourne les infos d'un statut
  */
 export const getStatutInfo = (statut) => {
@@ -56,26 +58,49 @@ export const canCancelOrder = (statut) => {
 /**
  * Créer une commande depuis le panier
  * @param {Object} orderData - Données de la commande
- * @param {number} orderData.fraisLivraison - Frais de livraison calculés (depuis useSettings)
+ * @param {number} fraisLivraison - Frais de livraison (depuis settings)
  * @returns {Promise<Object>} Commande créée
- * 
- * ✅ CORRECTION: Utilise orderData.fraisLivraison au lieu d'une constante
  */
-export const createOrder = async (orderData) => {
-  const response = await api.post('/orders', {
-    adresseLivraison: {
+export const createOrder = async (orderData, fraisLivraison = DEFAULT_FRAIS_LIVRAISON) => {
+  // Construire l'adresse de livraison
+  const adresseLivraison = {
+    nom: orderData.nom,
+    prenom: orderData.prenom,
+    entreprise: orderData.entreprise || null,
+    adresse: orderData.adresse,
+    complement: orderData.complement || null,
+    codePostal: orderData.codePostal,
+    ville: orderData.ville,
+    telephone: orderData.telephone
+  };
+
+  // ✅ Construire l'adresse de facturation
+  // Si adresseFacturation est renseignée, utiliser les champs de facturation
+  // Sinon, utiliser l'adresse de livraison
+  let adresseFacturation = null;
+  
+  if (orderData.adresseFacturation && orderData.codePostalFacturation && orderData.villeFacturation) {
+    // Adresse de facturation différente
+    adresseFacturation = {
       nom: orderData.nom,
       prenom: orderData.prenom,
       entreprise: orderData.entreprise || null,
-      adresse: orderData.adresse,
-      complement: orderData.complement || null,
-      codePostal: orderData.codePostal,
-      ville: orderData.ville,
+      adresse: orderData.adresseFacturation,
+      complement: orderData.complementFacturation || null,
+      codePostal: orderData.codePostalFacturation,
+      ville: orderData.villeFacturation,
       telephone: orderData.telephone
-    },
+    };
+  } else {
+    // Même adresse que la livraison
+    adresseFacturation = { ...adresseLivraison };
+  }
+
+  const response = await api.post('/orders', {
+    adresseLivraison,
+    adresseFacturation,
     modePaiement: orderData.modePaiement,
-    // ✅ CORRECTION: Utilise les frais passés par CheckoutPage (calculés via useSettings)
-    fraisLivraison: orderData.fraisLivraison ?? 0,
+    fraisLivraison, // ✅ Utilise le paramètre au lieu de la constante
     instructionsLivraison: orderData.instructions || null
   });
   return response.data;
@@ -190,10 +215,12 @@ export const getOrderStats = async (dateDebut = null, dateFin = null) => {
 
 export default {
   // Constantes
+  DEFAULT_FRAIS_LIVRAISON,
   MODES_PAIEMENT,
   STATUTS_COMMANDE,
   
   // Utilitaires
+  getFraisLivraison,
   getStatutInfo,
   canCancelOrder,
   
