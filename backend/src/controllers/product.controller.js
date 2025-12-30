@@ -1,19 +1,18 @@
 /**
- * Controller Produits - CORRIGÃ‰
- * @description Gestion des requÃªtes HTTP pour les produits
+ * Controller Produits - AVEC UPLOAD IMAGE
+ * @description Gestion des requêtes HTTP pour les produits
  * 
- * âœ… CORRECTIONS:
- * - Ajout paramÃ¨tre estActif dans getAll (all = tous, true = actifs, false = inactifs)
+ * ✅ AJOUT: uploadImage, deleteImage
  */
 
 const productService = require('../services/product.service');
 const logger = require('../config/logger');
+const { deleteImage, getFilenameFromUrl, isLocalImage } = require('../middlewares/upload.middleware');
 
 class ProductController {
   /**
    * GET /api/products
    * Liste des produits avec filtres et pagination
-   * âœ… CORRIGÃ‰ : Ajout paramÃ¨tre estActif
    */
   async getAll(req, res, next) {
     try {
@@ -25,7 +24,10 @@ class ProductController {
         minPrice,
         maxPrice,
         enStock,
-        estActif,  // âœ… AJOUTÃ‰ : 'all' = tous, 'true' = actifs, 'false' = inactifs
+        estActif,
+        enPromotion,
+        hasPromo,
+        estMisEnAvant,
         orderBy,
         orderDir,
         labels
@@ -33,17 +35,16 @@ class ProductController {
 
       const options = {
         page: parseInt(page),
-        limit: Math.min(parseInt(limit), 50), // Max 50 par page
+        limit: Math.min(parseInt(limit), 100),
         categorieId,
         search,
         minPrice: minPrice ? parseFloat(minPrice) : undefined,
         maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
         enStock: enStock === 'true' ? true : enStock === 'false' ? false : null,
-        // âœ… AJOUTÃ‰ : gestion du filtre actif/inactif
-        // 'all' ou non dÃ©fini cÃ´tÃ© admin = null (tous)
-        // 'true' = seulement actifs (dÃ©faut pour clients)
-        // 'false' = seulement inactifs
         estActif: estActif === 'all' ? null : estActif === 'false' ? false : estActif === 'true' ? true : true,
+        enPromotion: enPromotion === 'true' ? true : enPromotion === 'false' ? false : null,
+        hasPromo: hasPromo === 'true' ? true : hasPromo === 'false' ? false : null,
+        estMisEnAvant: estMisEnAvant === 'true' ? true : estMisEnAvant === 'false' ? false : null,
         orderBy,
         orderDir,
         labels: labels ? labels.split(',') : []
@@ -63,7 +64,7 @@ class ProductController {
 
   /**
    * GET /api/products/:id
-   * DÃ©tail d'un produit par ID
+   * Détail d'un produit par ID
    */
   async getById(req, res, next) {
     try {
@@ -72,7 +73,7 @@ class ProductController {
       if (!product) {
         return res.status(404).json({
           success: false,
-          message: 'Produit non trouvÃ©'
+          message: 'Produit non trouvé'
         });
       }
 
@@ -87,7 +88,7 @@ class ProductController {
 
   /**
    * GET /api/products/slug/:slug
-   * DÃ©tail d'un produit par slug
+   * Détail d'un produit par slug
    */
   async getBySlug(req, res, next) {
     try {
@@ -96,7 +97,7 @@ class ProductController {
       if (!product) {
         return res.status(404).json({
           success: false,
-          message: 'Produit non trouvÃ©'
+          message: 'Produit non trouvé'
         });
       }
 
@@ -120,7 +121,7 @@ class ProductController {
       if (!q || q.trim().length < 2) {
         return res.status(400).json({
           success: false,
-          message: 'Le terme de recherche doit contenir au moins 2 caractÃ¨res'
+          message: 'Le terme de recherche doit contenir au moins 2 caractères'
         });
       }
 
@@ -128,7 +129,7 @@ class ProductController {
         page: parseInt(page),
         limit: Math.min(parseInt(limit), 50),
         search: q.trim(),
-        estActif: true  // Recherche publique = que les actifs
+        estActif: true
       });
 
       res.json({
@@ -215,23 +216,97 @@ class ProductController {
     }
   }
 
+  // ==========================================
+  // ✅ NOUVELLE MÉTHODE: Upload d'image
+  // ==========================================
+
+  /**
+   * POST /api/products/upload-image
+   * Upload d'une image produit
+   */
+  async uploadImage(req, res, next) {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: 'Aucun fichier fourni'
+        });
+      }
+
+      // Construire l'URL de l'image
+      const imageUrl = `/uploads/products/${req.file.filename}`;
+
+      logger.info(`Image uploadée par ${req.user?.email}: ${req.file.filename}`);
+
+      res.json({
+        success: true,
+        message: 'Image uploadée avec succès',
+        data: {
+          imageUrl,
+          filename: req.file.filename,
+          originalName: req.file.originalname,
+          size: req.file.size,
+          mimetype: req.file.mimetype
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * DELETE /api/products/delete-image/:filename
+   * Supprime une image uploadée
+   */
+  async deleteImage(req, res, next) {
+    try {
+      const { filename } = req.params;
+
+      if (!filename) {
+        return res.status(400).json({
+          success: false,
+          message: 'Nom de fichier requis'
+        });
+      }
+
+      // Sécurité : vérifier que le filename ne contient pas de path traversal
+      if (filename.includes('..') || filename.includes('/')) {
+        return res.status(400).json({
+          success: false,
+          message: 'Nom de fichier invalide'
+        });
+      }
+
+      deleteImage(filename);
+
+      logger.info(`Image supprimée par ${req.user?.email}: ${filename}`);
+
+      res.json({
+        success: true,
+        message: 'Image supprimée avec succès'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   /**
    * POST /api/products
-   * CrÃ©ation d'un produit (admin)
+   * Création d'un produit (admin)
    */
   async create(req, res, next) {
     try {
       const product = await productService.createProduct(req.body);
 
-      logger.info(`Produit crÃ©Ã© par ${req.user?.email}: ${product.nom}`);
+      logger.info(`Produit créé par ${req.user?.email}: ${product.nom}`);
 
       res.status(201).json({
         success: true,
-        message: 'Produit crÃ©Ã© avec succÃ¨s',
+        message: 'Produit créé avec succès',
         data: product
       });
     } catch (error) {
-      if (error.message.includes('existe dÃ©jÃ ')) {
+      if (error.message.includes('existe déjà')) {
         return res.status(409).json({
           success: false,
           message: error.message
@@ -243,28 +318,41 @@ class ProductController {
 
   /**
    * PUT /api/products/:id
-   * Mise Ã  jour d'un produit (admin)
+   * Mise à jour d'un produit (admin)
+   * ✅ AJOUT: Suppression de l'ancienne image locale si changement
    */
   async update(req, res, next) {
     try {
-      const product = await productService.updateProduct(req.params.id, req.body);
-
-      if (!product) {
+      // Récupérer le produit existant pour vérifier l'ancienne image
+      const existingProduct = await productService.getProductById(req.params.id);
+      
+      if (!existingProduct) {
         return res.status(404).json({
           success: false,
-          message: 'Produit non trouvÃ©'
+          message: 'Produit non trouvé'
         });
       }
 
-      logger.info(`Produit mis Ã  jour par ${req.user?.email}: ${product.nom}`);
+      // Si l'image change et que l'ancienne était locale, la supprimer
+      if (req.body.imageUrl !== existingProduct.imageUrl && isLocalImage(existingProduct.imageUrl)) {
+        const oldFilename = getFilenameFromUrl(existingProduct.imageUrl);
+        if (oldFilename) {
+          deleteImage(oldFilename);
+          logger.info(`Ancienne image supprimée: ${oldFilename}`);
+        }
+      }
+
+      const product = await productService.updateProduct(req.params.id, req.body);
+
+      logger.info(`Produit mis à jour par ${req.user?.email}: ${product.nom}`);
 
       res.json({
         success: true,
-        message: 'Produit mis Ã  jour avec succÃ¨s',
+        message: 'Produit mis à jour avec succès',
         data: product
       });
     } catch (error) {
-      if (error.message.includes('existe dÃ©jÃ ')) {
+      if (error.message.includes('existe déjà')) {
         return res.status(409).json({
           success: false,
           message: error.message
@@ -276,7 +364,7 @@ class ProductController {
 
   /**
    * DELETE /api/products/:id
-   * Soft delete - dÃ©sactive un produit (admin)
+   * Soft delete - désactive un produit (admin)
    */
   async delete(req, res, next) {
     try {
@@ -285,15 +373,15 @@ class ProductController {
       if (!product) {
         return res.status(404).json({
           success: false,
-          message: 'Produit non trouvÃ©'
+          message: 'Produit non trouvé'
         });
       }
 
-      logger.info(`Produit dÃ©sactivÃ© par ${req.user?.email}: ${req.params.id}`);
+      logger.info(`Produit désactivé par ${req.user?.email}: ${req.params.id}`);
 
       res.json({
         success: true,
-        message: 'Produit dÃ©sactivÃ© avec succÃ¨s',
+        message: 'Produit désactivé avec succès',
         data: product
       });
     } catch (error) {
@@ -303,24 +391,36 @@ class ProductController {
 
   /**
    * DELETE /api/products/:id/hard
-   * Hard delete - suppression dÃ©finitive (admin)
+   * Hard delete - suppression définitive (admin)
+   * ✅ AJOUT: Suppression de l'image locale associée
    */
   async hardDelete(req, res, next) {
     try {
-      const deleted = await productService.hardDeleteProduct(req.params.id);
-
-      if (!deleted) {
+      // Récupérer le produit pour supprimer l'image associée
+      const product = await productService.getProductById(req.params.id);
+      
+      if (!product) {
         return res.status(404).json({
           success: false,
-          message: 'Produit non trouvÃ©'
+          message: 'Produit non trouvé'
         });
       }
 
-      logger.warn(`Produit supprimÃ© dÃ©finitivement par ${req.user?.email}: ${req.params.id}`);
+      // Supprimer l'image locale si elle existe
+      if (isLocalImage(product.imageUrl)) {
+        const filename = getFilenameFromUrl(product.imageUrl);
+        if (filename) {
+          deleteImage(filename);
+        }
+      }
+
+      const deleted = await productService.hardDeleteProduct(req.params.id);
+
+      logger.warn(`Produit supprimé définitivement par ${req.user?.email}: ${req.params.id}`);
 
       res.json({
         success: true,
-        message: 'Produit supprimÃ© dÃ©finitivement'
+        message: 'Produit supprimé définitivement'
       });
     } catch (error) {
       next(error);
@@ -329,7 +429,7 @@ class ProductController {
 
   /**
    * PATCH /api/products/:id/stock
-   * Mise Ã  jour du stock (admin)
+   * Mise à jour du stock (admin)
    */
   async updateStock(req, res, next) {
     try {
@@ -343,15 +443,15 @@ class ProductController {
       if (!product) {
         return res.status(404).json({
           success: false,
-          message: 'Produit non trouvÃ©'
+          message: 'Produit non trouvé'
         });
       }
 
-      logger.info(`Stock mis Ã  jour par ${req.user?.email}: ${product.nom} (${operation} ${quantite})`);
+      logger.info(`Stock mis à jour par ${req.user?.email}: ${product.nom} (${operation} ${quantite})`);
 
       res.json({
         success: true,
-        message: 'Stock mis Ã  jour avec succÃ¨s',
+        message: 'Stock mis à jour avec succès',
         data: product
       });
     } catch (error) {
@@ -390,7 +490,7 @@ class ProductController {
 
   /**
    * GET /api/products/export
-   * Export des produits en JSON (pour conversion Excel côté client)
+   * Export des produits en JSON
    */
   async exportProducts(req, res, next) {
     try {

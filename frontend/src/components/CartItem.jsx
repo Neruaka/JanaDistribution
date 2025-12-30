@@ -1,9 +1,11 @@
 /**
  * CartItem Component - VERSION CORRIGÉE
  * Affiche une ligne de produit dans le panier
+ * @location frontend/src/components/CartItem.jsx
  * 
- * ✅ CORRECTION: Ajout React.forwardRef pour éviter le warning
- * "Function components cannot be given refs"
+ * ✅ CORRECTIONS:
+ * - Ajout React.forwardRef pour éviter le warning
+ * - Utilise getImageUrl pour les images locales
  */
 
 import React, { useState, forwardRef } from 'react';
@@ -18,6 +20,7 @@ import {
   Tag
 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
+import { getImageUrl } from '../utils/imageUtils'; // ✅ AJOUT
 
 const CartItem = forwardRef(function CartItem({ item, compact = false }, ref) {
   const { updateQuantity, removeItem } = useCart();
@@ -32,6 +35,9 @@ const CartItem = forwardRef(function CartItem({ item, compact = false }, ref) {
     isOnSale,
     product
   } = item;
+
+  // ✅ CORRECTION: Construire l'URL complète de l'image
+  const fullImageUrl = getImageUrl(product.image);
 
   // Vérifier les problèmes de stock
   const hasStockIssue = product.stock < quantity;
@@ -73,13 +79,13 @@ const CartItem = forwardRef(function CartItem({ item, compact = false }, ref) {
             : 'bg-gray-50'
         }`}
       >
-        {/* Image */}
+        {/* Image - ✅ CORRECTION */}
         <Link 
           to={`/produit/${product.slug}`}
           className="flex-shrink-0"
         >
           <img
-            src={product.image || '/placeholder-product.jpg'}
+            src={fullImageUrl || '/placeholder-product.jpg'}
             alt={product.name}
             className="w-16 h-16 object-cover rounded-md"
           />
@@ -179,13 +185,13 @@ const CartItem = forwardRef(function CartItem({ item, compact = false }, ref) {
           : 'bg-white border-gray-200'
       }`}
     >
-      {/* Image */}
+      {/* Image - ✅ CORRECTION */}
       <Link 
         to={`/produit/${product.slug}`}
         className="flex-shrink-0"
       >
         <img
-          src={product.image || '/placeholder-product.jpg'}
+          src={fullImageUrl || '/placeholder-product.jpg'}
           alt={product.name}
           className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-lg"
         />

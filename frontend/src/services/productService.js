@@ -1,208 +1,204 @@
 /**
- * Service Produits
+ * Product Service - Frontend
  * @description Appels API pour les produits
+ * 
+ * ✅ AJOUT: uploadImage, deleteImage
  */
 
 import api from './api';
 
 const productService = {
+  // ==========================================
+  // LECTURE
+  // ==========================================
+
   /**
-   * RÃ©cupÃ¨re la liste des produits avec filtres et pagination
-   * @param {Object} params - ParamÃ¨tres de filtrage
-   * @returns {Promise} Liste des produits + pagination
+   * Récupérer tous les produits avec filtres
    */
-  getAll: async (params = {}) => {
-    const {
-      page = 1,
-      limit = 12,
-      categorieId,
-      search,
-      minPrice,
-      maxPrice,
-      enStock,
-      estActif,
-      orderBy = 'createdAt',
-      orderDir = 'DESC',
-      labels
-    } = params;
-
-    // Construction des query params
+  async getAll(params = {}) {
     const queryParams = new URLSearchParams();
-    queryParams.append('page', page);
-    queryParams.append('limit', limit);
     
-    if (categorieId) queryParams.append('categorieId', categorieId);
-    if (search) queryParams.append('search', search);
-    if (minPrice) queryParams.append('minPrice', minPrice);
-    if (maxPrice) queryParams.append('maxPrice', maxPrice);
-    if (enStock !== undefined) queryParams.append('enStock', enStock);
-    if (estActif !== undefined) queryParams.append('estActif', estActif);
-    if (orderBy) queryParams.append('orderBy', orderBy);
-    if (orderDir) queryParams.append('orderDir', orderDir);
-    if (labels) queryParams.append('labels', labels);
+    if (params.page) queryParams.append('page', params.page);
+    if (params.limit) queryParams.append('limit', params.limit);
+    if (params.categorieId) queryParams.append('categorieId', params.categorieId);
+    if (params.search) queryParams.append('search', params.search);
+    if (params.minPrice) queryParams.append('minPrice', params.minPrice);
+    if (params.maxPrice) queryParams.append('maxPrice', params.maxPrice);
+    if (params.enStock !== undefined) queryParams.append('enStock', params.enStock);
+    if (params.estActif !== undefined) queryParams.append('estActif', params.estActif);
+    if (params.enPromotion !== undefined) queryParams.append('enPromotion', params.enPromotion);
+    if (params.estMisEnAvant !== undefined) queryParams.append('estMisEnAvant', params.estMisEnAvant);
+    if (params.orderBy) queryParams.append('orderBy', params.orderBy);
+    if (params.orderDir) queryParams.append('orderDir', params.orderDir);
+    if (params.labels) queryParams.append('labels', params.labels);
 
-    const response = await api.get(`/products?${queryParams.toString()}`);
+    const response = await api.get(`/products?${queryParams}`);
     return response.data;
   },
 
   /**
-   * RÃ©cupÃ¨re un produit par son ID
-   * @param {string} id - UUID du produit
-   * @returns {Promise} DÃ©tail du produit
+   * Récupérer un produit par ID
    */
-  getById: async (id) => {
+  async getById(id) {
     const response = await api.get(`/products/${id}`);
     return response.data;
   },
 
   /**
-   * RÃ©cupÃ¨re un produit par son slug
-   * @param {string} slug - Slug URL du produit
-   * @returns {Promise} DÃ©tail du produit
+   * Récupérer un produit par slug
    */
-  getBySlug: async (slug) => {
+  async getBySlug(slug) {
     const response = await api.get(`/products/slug/${slug}`);
     return response.data;
   },
 
   /**
-   * Recherche de produits
-   * @param {string} query - Terme de recherche
-   * @param {number} limit - Nombre de rÃ©sultats
-   * @returns {Promise} Produits correspondants
+   * Rechercher des produits
    */
-  search: async (query, limit = 10) => {
-    const response = await api.get(`/products/search?q=${encodeURIComponent(query)}&limit=${limit}`);
+  async search(query, params = {}) {
+    const queryParams = new URLSearchParams();
+    queryParams.append('q', query);
+    if (params.page) queryParams.append('page', params.page);
+    if (params.limit) queryParams.append('limit', params.limit);
+
+    const response = await api.get(`/products/search?${queryParams}`);
     return response.data;
   },
 
   /**
-   * RÃ©cupÃ¨re les produits en promotion
-   * @param {number} limit - Nombre de rÃ©sultats
-   * @returns {Promise} Produits en promo
+   * Récupérer les promos
    */
-  getPromos: async (limit = 12) => {
-    const response = await api.get(`/products/promos?limit=${limit}`);
+  async getPromos() {
+    const response = await api.get('/products/promos');
     return response.data;
   },
 
   /**
-   * RÃ©cupÃ¨re les nouveaux produits
-   * @param {number} days - Nombre de jours (dÃ©faut: 30)
-   * @param {number} limit - Nombre de rÃ©sultats
-   * @returns {Promise} Nouveaux produits
+   * Récupérer les nouveautés
    */
-  getNew: async (days = 30, limit = 12) => {
+  async getNew(days = 30, limit = 10) {
     const response = await api.get(`/products/new?days=${days}&limit=${limit}`);
     return response.data;
   },
 
   /**
-   * RÃ©cupÃ¨re les produits d'une catÃ©gorie
-   * @param {string} categorieId - UUID de la catÃ©gorie
-   * @param {Object} params - ParamÃ¨tres supplÃ©mentaires
-   * @returns {Promise} Produits de la catÃ©gorie
+   * Récupérer les produits mis en avant
    */
-  getByCategory: async (categorieId, params = {}) => {
-    return productService.getAll({ ...params, categorieId });
+  async getFeatured(limit = 8) {
+    const response = await api.get(`/products/featured?limit=${limit}`);
+    return response.data;
   },
 
   // ==========================================
-  // âœ… MÃ‰THODES ADMIN (CRUD) - AJOUTÃ‰ES !
+  // ADMIN - CRUD
   // ==========================================
 
   /**
-   * CrÃ©e un nouveau produit
-   * @param {Object} data - DonnÃ©es du produit
-   * @returns {Promise} Produit crÃ©Ã©
+   * Créer un produit
    */
-  create: async (data) => {
+  async create(data) {
     const response = await api.post('/products', data);
     return response.data;
   },
 
   /**
-   * Met Ã  jour un produit
-   * @param {string} id - UUID du produit
-   * @param {Object} data - DonnÃ©es Ã  mettre Ã  jour
-   * @returns {Promise} Produit mis Ã  jour
+   * Modifier un produit
    */
-  update: async (id, data) => {
+  async update(id, data) {
     const response = await api.put(`/products/${id}`, data);
     return response.data;
   },
 
   /**
-   * Supprime un produit (soft delete - dÃ©sactivation)
-   * @param {string} id - UUID du produit
-   * @returns {Promise} Confirmation
+   * Supprimer un produit (soft delete)
    */
-  delete: async (id) => {
+  async delete(id) {
     const response = await api.delete(`/products/${id}`);
     return response.data;
   },
 
   /**
-   * Supprime dÃ©finitivement un produit
-   * @param {string} id - UUID du produit
-   * @returns {Promise} Confirmation
+   * Supprimer définitivement un produit
    */
-  hardDelete: async (id) => {
+  async hardDelete(id) {
     const response = await api.delete(`/products/${id}/hard`);
     return response.data;
   },
 
   /**
-   * Met Ã  jour le stock d'un produit
-   * @param {string} id - UUID du produit
-   * @param {number} quantite - QuantitÃ©
-   * @param {string} operation - 'set', 'add', ou 'subtract'
-   * @returns {Promise} Stock mis Ã  jour
+   * Mettre à jour le stock
    */
-  updateStock: async (id, quantite, operation = 'set') => {
-    const response = await api.patch(`/products/${id}/stock`, { 
-      quantite, 
-      operation 
+  async updateStock(id, quantite, operation = 'set') {
+    const response = await api.patch(`/products/${id}/stock`, { quantite, operation });
+    return response.data;
+  },
+
+  /**
+   * Suppression multiple
+   */
+  async bulkDelete(ids) {
+    const response = await api.delete('/products/admin/bulk', { data: { ids } });
+    return response.data;
+  },
+
+  // ==========================================
+  // ✅ NOUVEAU: UPLOAD D'IMAGE
+  // ==========================================
+
+  /**
+   * Upload une image produit
+   * @param {File} file - Fichier image
+   * @returns {Promise<{success, data: {imageUrl, filename}}>}
+   */
+  async uploadImage(file) {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await api.post('/products/upload-image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
     });
     return response.data;
   },
 
   /**
-   * RÃ©cupÃ¨re les produits avec stock faible (admin)
-   * @returns {Promise} Produits en alerte stock
+   * Supprimer une image uploadée
+   * @param {string} filename - Nom du fichier
    */
-  getLowStock: async () => {
-    const response = await api.get('/products/admin/low-stock');
+  async deleteImage(filename) {
+    const response = await api.delete(`/products/delete-image/${filename}`);
     return response.data;
   },
 
-  /**
-   * Suppression multiple de produits
-   * @param {Array} ids - Liste des UUIDs à supprimer
-   * @returns {Promise} Résultats de suppression
-   */
-  bulkDelete: async (ids) => {
-    const response = await api.delete('/products/admin/bulk', { data: { ids } });
-    return response.data;
-  },
+  // ==========================================
+  // ADMIN - EXPORT/IMPORT
+  // ==========================================
 
   /**
-   * Export de tous les produits
-   * @returns {Promise} Liste des produits pour export
+   * Exporter tous les produits
    */
-  exportAll: async () => {
+  async exportAll() {
     const response = await api.get('/products/admin/export');
     return response.data;
   },
 
   /**
-   * Import de produits
-   * @param {Array} products - Liste des produits à importer
-   * @param {string} defaultCategoryId - ID de la catégorie par défaut
-   * @returns {Promise} Résultats d'import
+   * Importer des produits
    */
-  importProducts: async (products, defaultCategoryId) => {
-    const response = await api.post('/products/admin/import', { products, defaultCategoryId });
+  async importProducts(products, defaultCategoryId) {
+    const response = await api.post('/products/admin/import', { 
+      products, 
+      defaultCategoryId 
+    });
+    return response.data;
+  },
+
+  /**
+   * Récupérer les produits en stock faible
+   */
+  async getLowStock() {
+    const response = await api.get('/products/admin/low-stock');
     return response.data;
   }
 };

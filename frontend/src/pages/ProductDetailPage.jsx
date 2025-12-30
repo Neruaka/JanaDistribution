@@ -1,6 +1,9 @@
 /**
- * Page Détail Produit
+ * Page Détail Produit - VERSION CORRIGÉE
  * @description Affiche les détails complets d'un produit
+ * @location frontend/src/pages/ProductDetailPage.jsx
+ * 
+ * ✅ CORRECTION: Utilise getImageUrl pour les images locales
  */
 
 import { useState, useEffect } from 'react';
@@ -27,6 +30,9 @@ import productService from '../services/productService';
 
 // Context
 import { useCart } from '../contexts/CartContext';
+
+// ✅ AJOUT: Import du helper
+import { getImageUrl } from '../utils/imageUtils';
 
 const ProductDetailPage = () => {
   const { slug } = useParams();
@@ -179,6 +185,9 @@ const ProductDetailPage = () => {
   const inStock = product.stockQuantite > 0;
   const lowStock = product.stockQuantite > 0 && product.stockQuantite <= 10;
 
+  // ✅ CORRECTION: Construire l'URL complète de l'image
+  const fullImageUrl = getImageUrl(product.imageUrl);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Breadcrumb */}
@@ -222,9 +231,10 @@ const ProductDetailPage = () => {
           >
             {/* Main Image */}
             <div className="relative aspect-square bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 mb-4">
-              {product.imageUrl ? (
+              {/* ✅ CORRECTION: Utilise fullImageUrl */}
+              {fullImageUrl ? (
                 <img
-                  src={product.imageUrl}
+                  src={fullImageUrl}
                   alt={product.nom}
                   className="w-full h-full object-cover"
                 />

@@ -1,9 +1,11 @@
 /**
- * Page d'accueil - Version avec Footer Dynamique
+ * Page d'accueil - VERSION CORRIGÉE
  * @description Landing page avec catégories et produits vedettes
  * @location frontend/src/pages/HomePage.jsx
  * 
- * ✅ MODIF: Utilise le composant Footer avec settings dynamiques
+ * ✅ CORRECTIONS:
+ * - Utilise getImageUrl pour les images des produits vedettes
+ * - Utilise le composant Footer avec settings dynamiques
  */
 
 import { useState, useEffect } from 'react';
@@ -24,7 +26,10 @@ import {
 import productService from '../services/productService';
 import toast from 'react-hot-toast';
 
-// ✅ Import du Footer dynamique
+// ✅ Import du helper pour les images
+import { getImageUrl } from '../utils/imageUtils';
+
+// Import du Footer dynamique
 import Footer from '../components/Footer';
 
 // Animation variants
@@ -323,6 +328,9 @@ const HomePage = () => {
                 const discount = hasPromo ? Math.round((1 - produit.prixPromo / produit.prix) * 100) : 0;
                 const inStock = produit.stockQuantite > 0;
                 
+                // ✅ CORRECTION: Utilise getImageUrl
+                const fullImageUrl = getImageUrl(produit.imageUrl);
+                
                 return (
                   <motion.div 
                     key={produit.id}
@@ -333,9 +341,10 @@ const HomePage = () => {
                     {/* Image avec lien */}
                     <Link to={`/produit/${produit.slug}`}>
                       <div className="h-44 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center relative overflow-hidden">
-                        {produit.imageUrl ? (
+                        {/* ✅ CORRECTION: Utilise fullImageUrl */}
+                        {fullImageUrl ? (
                           <img 
-                            src={produit.imageUrl} 
+                            src={fullImageUrl} 
                             alt={produit.nom} 
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                           />
@@ -538,7 +547,7 @@ const HomePage = () => {
         </motion.section>
       )}
 
-      {/* ✅ Footer dynamique */}
+      {/* Footer dynamique */}
       <Footer />
     </div>
   );

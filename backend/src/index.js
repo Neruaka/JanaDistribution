@@ -26,10 +26,22 @@ const adminOrderRoutes = require('./routes/admin.order.routes');
 const adminStatsRoutes = require('./routes/admin.stats.routes');       
 const adminClientsRoutes = require('./routes/admin.clients.routes');  
 const settingsRoutes = require('./routes/settings.routes');
+const path = require('path');
+const fs = require('fs');
 
 // Import des middlewares
 const errorHandler = require('./middlewares/errorHandler');
 const notFoundHandler = require('./middlewares/notFoundHandler');
+
+// ==========================================
+// Gestion des uploads de fichiers (création du dossier si nécessaire)
+// ==========================================
+
+// Créer le dossier uploads s'il n'existe pas
+const uploadsDir = path.join(__dirname, '../uploads/products');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // ==========================================
 // INITIALISATION EXPRESS
@@ -83,6 +95,14 @@ app.use((req, res, next) => {
 // ==========================================
 // ROUTES
 // ==========================================
+
+// Fichiers statiques pour les uploads
+// Fichiers statiques pour les uploads - AVEC HEADERS CORS
+app.use('/uploads', (req, res, next) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  next();
+}, express.static(path.join(__dirname, '../uploads')));
 
 // Health check
 app.get('/api/health', (req, res) => {

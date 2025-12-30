@@ -1,6 +1,6 @@
 /**
- * Routes Produits
- * @description CRUD complet pour les produits
+ * Routes Produits - AVEC UPLOAD IMAGE
+ * @description CRUD complet pour les produits + upload d'images
  */
 
 const express = require('express');
@@ -10,6 +10,7 @@ const productController = require('../controllers/product.controller');
 const productValidators = require('../validators/product.validator');
 const validate = require('../middlewares/validate.middleware');
 const { authenticate, isAdmin, optionalAuth } = require('../middlewares/auth.middleware');
+const { productImageUpload } = require('../middlewares/upload.middleware');
 
 // ==========================================
 // ROUTES PUBLIQUES (ou auth optionnelle)
@@ -55,7 +56,7 @@ router.get('/new',
 
 /**
  * @route   GET /api/products/slug/:slug
- * @desc    DÃ©tail d'un produit par slug
+ * @desc    Détail d'un produit par slug
  * @access  Public
  */
 router.get('/slug/:slug',
@@ -66,7 +67,7 @@ router.get('/slug/:slug',
 
 /**
  * @route   GET /api/products/:id
- * @desc    DÃ©tail d'un produit par ID
+ * @desc    Détail d'un produit par ID
  * @access  Public
  */
 router.get('/:id',
@@ -76,7 +77,7 @@ router.get('/:id',
 );
 
 // ==========================================
-// ROUTES ADMIN (authentification + rÃ´le admin)
+// ROUTES ADMIN (authentification + rôle admin)
 // ==========================================
 
 /**
@@ -113,7 +114,7 @@ router.delete('/admin/bulk',
 );
 
 /**
- * @route   GET /api/products/low-stock
+ * @route   GET /api/products/admin/low-stock
  * @desc    Liste des produits avec stock faible
  * @access  Admin
  */
@@ -123,9 +124,38 @@ router.get('/admin/low-stock',
   productController.getLowStock
 );
 
+// ==========================================
+// ✅ NOUVELLE ROUTE: Upload d'image produit
+// ==========================================
+
+/**
+ * @route   POST /api/products/upload-image
+ * @desc    Upload d'une image produit
+ * @access  Admin
+ * @body    FormData avec champ "image"
+ * @returns { success, imageUrl, filename }
+ */
+router.post('/upload-image',
+  authenticate,
+  isAdmin,
+  productImageUpload.single('image'),
+  productController.uploadImage
+);
+
+/**
+ * @route   DELETE /api/products/delete-image/:filename
+ * @desc    Supprimer une image uploadée
+ * @access  Admin
+ */
+router.delete('/delete-image/:filename',
+  authenticate,
+  isAdmin,
+  productController.deleteImage
+);
+
 /**
  * @route   POST /api/products
- * @desc    CrÃ©er un nouveau produit
+ * @desc    Créer un nouveau produit
  * @access  Admin
  */
 router.post('/',
@@ -138,7 +168,7 @@ router.post('/',
 
 /**
  * @route   PUT /api/products/:id
- * @desc    Mettre Ã  jour un produit
+ * @desc    Mettre à jour un produit
  * @access  Admin
  */
 router.put('/:id',
@@ -151,7 +181,7 @@ router.put('/:id',
 
 /**
  * @route   PATCH /api/products/:id/stock
- * @desc    Mettre Ã  jour le stock d'un produit
+ * @desc    Mettre à jour le stock d'un produit
  * @access  Admin
  */
 router.patch('/:id/stock',
@@ -164,7 +194,7 @@ router.patch('/:id/stock',
 
 /**
  * @route   DELETE /api/products/:id
- * @desc    DÃ©sactiver un produit (soft delete)
+ * @desc    Désactiver un produit (soft delete)
  * @access  Admin
  */
 router.delete('/:id',
@@ -177,7 +207,7 @@ router.delete('/:id',
 
 /**
  * @route   DELETE /api/products/:id/hard
- * @desc    Supprimer dÃ©finitivement un produit
+ * @desc    Supprimer définitivement un produit
  * @access  Admin
  */
 router.delete('/:id/hard',

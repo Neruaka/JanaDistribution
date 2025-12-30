@@ -1,6 +1,8 @@
 /**
- * Formulaire Produit Admin
+ * Formulaire Produit Admin - AVEC UPLOAD IMAGE
  * @description Création et édition de produits
+ * 
+ * ✅ AJOUT: Composant ImageUploader avec deux options (upload local / URL externe)
  */
 
 import { useState, useEffect } from 'react';
@@ -13,14 +15,13 @@ import {
   Image as ImageIcon,
   AlertCircle,
   Check,
-  X,
-  Plus,
-  Trash2,
-  Eye
+  Eye,
+  Loader2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import productService from '../../services/productService';
 import categoryService from '../../services/categoryService';
+import ImageUploader from '../../components/admin/ImageUploader';
 
 const AdminProductForm = () => {
   const { id } = useParams();
@@ -160,6 +161,11 @@ const AdminProductForm = () => {
     }
   };
 
+  // ✅ Handler pour l'image (URL ou upload)
+  const handleImageChange = (imageUrl) => {
+    setFormData(prev => ({ ...prev, imageUrl }));
+  };
+
   const handleLabelToggle = (label) => {
     setFormData(prev => {
       const labels = prev.labels.includes(label)
@@ -199,7 +205,7 @@ const AdminProductForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Soumission - ✅ CORRIGÉ : Appel API activé
+  // Soumission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -230,7 +236,6 @@ const AdminProductForm = () => {
         estMisEnAvant: formData.estMisEnAvant
       };
 
-      // ✅ APPEL API CORRIGÉ (était commenté avant !)
       let response;
       if (isEdit) {
         response = await productService.update(id, data);
@@ -257,7 +262,7 @@ const AdminProductForm = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full"></div>
+        <Loader2 className="w-8 h-8 text-green-600 animate-spin" />
       </div>
     );
   }
@@ -299,7 +304,7 @@ const AdminProductForm = () => {
             className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50"
           >
             {saving ? (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <Save className="w-4 h-4" />
             )}
@@ -450,22 +455,26 @@ const AdminProductForm = () => {
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
-
-            {/* Image URL */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                URL de l'image
-              </label>
-              <input
-                type="url"
-                name="imageUrl"
-                value={formData.imageUrl}
-                onChange={handleChange}
-                placeholder="https://..."
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-            </div>
           </div>
+        </motion.div>
+
+        {/* ✅ NOUVELLE SECTION: Image du produit */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
+        >
+          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <ImageIcon className="w-5 h-5 text-gray-400" />
+            Image du produit
+          </h2>
+
+          <ImageUploader
+            value={formData.imageUrl}
+            onChange={handleImageChange}
+            onError={(msg) => toast.error(msg)}
+          />
         </motion.div>
 
         {/* Prix et Stock */}
@@ -690,7 +699,7 @@ const AdminProductForm = () => {
             className="px-6 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50"
           >
             {saving ? (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <Save className="w-4 h-4" />
             )}

@@ -1,12 +1,12 @@
 /**
  * Liste des Produits Admin - VERSION CORRIGÉE
  * @description Tableau de gestion des produits avec export/import Excel
+ * @location frontend/src/pages/admin/AdminProductsList.jsx
  * 
  * ✅ CORRECTIONS:
- * - Bouton supprimer unitaire fonctionne
- * - Bouton supprimer multiple fonctionne
- * - Export Excel fonctionne
- * - Import Excel fonctionne
+ * - Utilise getImageUrl pour les images locales
+ * - Export/Import Excel fonctionnels
+ * - Suppression unitaire et multiple
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -34,6 +34,7 @@ import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 import productService from '../../services/productService';
 import categoryService from '../../services/categoryService';
+import { getImageUrl } from '../../utils/imageUtils'; // ✅ AJOUT
 
 const AdminProductsList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -164,7 +165,7 @@ const AdminProductsList = () => {
     });
   };
 
-  // ✅ CORRIGÉ: Suppression unitaire
+  // Suppression unitaire
   const handleDeleteProduct = async (id) => {
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
       return;
@@ -187,7 +188,7 @@ const AdminProductsList = () => {
     }
   };
 
-  // ✅ NOUVEAU: Suppression multiple
+  // Suppression multiple
   const handleBulkDelete = async () => {
     if (selectedProducts.length === 0) {
       toast.error('Sélectionnez au moins un produit');
@@ -220,7 +221,7 @@ const AdminProductsList = () => {
     }
   };
 
-  // ✅ NOUVEAU: Export Excel
+  // Export Excel
   const handleExport = async () => {
     setExporting(true);
     try {
@@ -228,7 +229,6 @@ const AdminProductsList = () => {
       if (response.success) {
         const data = response.data;
         
-        // Préparer les données pour Excel
         const excelData = data.map(p => ({
           'Référence': p.reference,
           'Nom': p.nom,
@@ -239,24 +239,21 @@ const AdminProductsList = () => {
           'Unité de mesure': p.uniteMesure
         }));
 
-        // Créer le workbook
         const ws = XLSX.utils.json_to_sheet(excelData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Produits');
 
-        // Ajuster la largeur des colonnes
         const colWidths = [
-          { wch: 15 }, // Référence
-          { wch: 40 }, // Nom
-          { wch: 20 }, // Catégorie
-          { wch: 15 }, // Origine
-          { wch: 10 }, // Prix
-          { wch: 50 }, // Description
-          { wch: 15 }  // Unité
+          { wch: 15 },
+          { wch: 40 },
+          { wch: 20 },
+          { wch: 15 },
+          { wch: 10 },
+          { wch: 50 },
+          { wch: 15 }
         ];
         ws['!cols'] = colWidths;
 
-        // Télécharger le fichier
         const fileName = `produits_jana_${new Date().toISOString().split('T')[0]}.xlsx`;
         XLSX.writeFile(wb, fileName);
         
@@ -270,14 +267,13 @@ const AdminProductsList = () => {
     }
   };
 
-  // ✅ NOUVEAU: Import Excel
+  // Import Excel
   const handleImport = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     setImporting(true);
     try {
-      // Lire le fichier Excel
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data);
       const sheetName = workbook.SheetNames[0];
@@ -289,14 +285,12 @@ const AdminProductsList = () => {
         return;
       }
 
-      // Trouver la catégorie TBD
       const tbdCategory = categories.find(c => c.nom.toUpperCase() === 'TBD');
       if (!tbdCategory) {
         toast.error('Catégorie "TBD" non trouvée. Créez-la d\'abord.');
         return;
       }
 
-      // Mapper les données Excel vers le format attendu
       const products = jsonData.map(row => ({
         reference: row['Référence'] || row['reference'] || row['Reference'] || '',
         nom: row['Nom'] || row['nom'] || row['Name'] || '',
@@ -305,14 +299,13 @@ const AdminProductsList = () => {
         prix: parseFloat(row['Prix'] || row['prix'] || row['Price'] || 0),
         description: row['Description'] || row['description'] || '',
         uniteMesure: row['Unité de mesure'] || row['unite_mesure'] || row['uniteMesure'] || row['Unit'] || 'kg'
-      })).filter(p => p.reference && p.nom); // Filtrer les lignes vides
+      })).filter(p => p.reference && p.nom);
 
       if (products.length === 0) {
         toast.error('Aucun produit valide trouvé (référence et nom requis)');
         return;
       }
 
-      // Envoyer au backend
       const response = await productService.importProducts(products, tbdCategory.id);
       
       if (response.success) {
@@ -330,7 +323,6 @@ const AdminProductsList = () => {
       toast.error('Erreur lors de l\'import du fichier');
     } finally {
       setImporting(false);
-      // Reset input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -380,7 +372,6 @@ const AdminProductsList = () => {
           <p className="text-gray-500">Gérez votre catalogue de produits</p>
         </div>
         <div className="flex gap-3">
-          {/* Input caché pour import */}
           <input
             type="file"
             ref={fileInputRef}
@@ -389,7 +380,6 @@ const AdminProductsList = () => {
             className="hidden"
           />
           
-          {/* Bouton Import */}
           <button 
             onClick={() => fileInputRef.current?.click()}
             disabled={importing}
@@ -399,7 +389,6 @@ const AdminProductsList = () => {
             {importing ? 'Import...' : 'Importer'}
           </button>
           
-          {/* Bouton Export */}
           <button 
             onClick={handleExport}
             disabled={exporting}
@@ -422,7 +411,6 @@ const AdminProductsList = () => {
       {/* Filters */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
         <div className="flex flex-col lg:flex-row gap-4">
-          {/* Search */}
           <form onSubmit={handleSearch} className="flex-1">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -436,7 +424,6 @@ const AdminProductsList = () => {
             </div>
           </form>
 
-          {/* Category filter */}
           <select
             value={selectedCategory}
             onChange={(e) => handleCategoryChange(e.target.value)}
@@ -450,7 +437,6 @@ const AdminProductsList = () => {
             ))}
           </select>
 
-          {/* Stock filter */}
           <select
             value={stockFilter}
             onChange={(e) => setStockFilter(e.target.value)}
@@ -462,7 +448,6 @@ const AdminProductsList = () => {
           </select>
         </div>
 
-        {/* Active filters summary */}
         {(search || selectedCategory || stockFilter) && (
           <div className="mt-4 flex items-center gap-2 flex-wrap">
             <span className="text-sm text-gray-500">Filtres actifs:</span>
@@ -599,8 +584,13 @@ const AdminProductsList = () => {
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                          {/* ✅ CORRECTION: Utilise getImageUrl */}
                           {product.imageUrl ? (
-                            <img src={product.imageUrl} alt={product.nom} className="w-full h-full object-cover" />
+                            <img 
+                              src={getImageUrl(product.imageUrl)} 
+                              alt={product.nom} 
+                              className="w-full h-full object-cover" 
+                            />
                           ) : (
                             <Package className="w-6 h-6 text-gray-400" />
                           )}

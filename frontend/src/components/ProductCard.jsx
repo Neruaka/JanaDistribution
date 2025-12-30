@@ -1,11 +1,15 @@
 /**
- * Composant ProductCard
+ * Composant ProductCard - VERSION CORRIGÉE
  * @description Carte produit pour affichage en grille
+ * @location frontend/src/components/ProductCard.jsx
+ * 
+ * ✅ CORRECTION: Utilise getImageUrl pour les images locales
  */
 
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ShoppingCart, Eye, Heart, Tag } from 'lucide-react';
+import { getImageUrl } from '../utils/imageUtils'; // ✅ AJOUT
 
 const ProductCard = ({ product, onAddToCart }) => {
   const {
@@ -21,6 +25,9 @@ const ProductCard = ({ product, onAddToCart }) => {
     labels = [],
     categorie
   } = product;
+
+  // ✅ CORRECTION: Construire l'URL complète de l'image
+  const fullImageUrl = getImageUrl(imageUrl);
 
   // Calcul du pourcentage de réduction
   const discount = prixPromo ? Math.round((1 - prixPromo / prix) * 100) : 0;
@@ -65,9 +72,10 @@ const ProductCard = ({ product, onAddToCart }) => {
       {/* Image Container */}
       <div className="relative aspect-square overflow-hidden bg-gray-50">
         <Link to={`/produit/${slug}`}>
-          {imageUrl ? (
+          {/* ✅ CORRECTION: Utilise fullImageUrl */}
+          {fullImageUrl ? (
             <img
-              src={imageUrl}
+              src={fullImageUrl}
               alt={nom}
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
             />

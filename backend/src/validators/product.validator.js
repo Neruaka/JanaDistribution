@@ -1,11 +1,32 @@
 /**
- * Validator Produits - VERSION CORRIGÉE
+ * Validator Produits - AVEC SUPPORT UPLOAD LOCAL
  * @description Validation des données produits avec express-validator
  * 
- * ✅ CORRECTION: Ajout de 'enPromotion' dans listQuery
+ * ✅ CORRECTION: imageUrl accepte maintenant les URLs locales (/uploads/...)
  */
 
 const { body, param, query } = require('express-validator');
+
+/**
+ * Validateur personnalisé pour les URLs d'images
+ * Accepte: URLs HTTP/HTTPS ou chemins locaux /uploads/...
+ */
+const isValidImageUrl = (value) => {
+  if (!value) return true; // nullable
+  
+  // Accepter les URLs locales
+  if (value.startsWith('/uploads/')) {
+    return true;
+  }
+  
+  // Accepter les URLs HTTP/HTTPS
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
 
 const productValidators = {
   /**
@@ -57,10 +78,11 @@ const productValidators = {
       .optional()
       .isInt({ min: 0 }).withMessage('Le stock minimum doit être un nombre entier positif'),
 
+    // ✅ CORRIGÉ: Accepte URLs locales ET URLs HTTP
     body('imageUrl')
       .optional({ nullable: true })
       .trim()
-      .isURL().withMessage('L\'URL de l\'image n\'est pas valide'),
+      .custom(isValidImageUrl).withMessage('URL d\'image invalide (doit être une URL http/https ou un chemin /uploads/...)'),
 
     body('labels')
       .optional()
@@ -141,10 +163,11 @@ const productValidators = {
       .optional()
       .isInt({ min: 0 }).withMessage('Le stock minimum doit être un nombre entier positif'),
 
+    // ✅ CORRIGÉ: Accepte URLs locales ET URLs HTTP
     body('imageUrl')
       .optional({ nullable: true })
       .trim()
-      .isURL().withMessage('L\'URL de l\'image n\'est pas valide'),
+      .custom(isValidImageUrl).withMessage('URL d\'image invalide'),
 
     body('labels')
       .optional()
@@ -204,7 +227,6 @@ const productValidators = {
 
   /**
    * Validation des query params de liste
-   * ✅ CORRECTION: Ajout de 'enPromotion' et 'hasPromo'
    */
   listQuery: [
     query('page')
@@ -213,7 +235,7 @@ const productValidators = {
 
     query('limit')
       .optional()
-      .isInt({ min: 1, max: 100 }).withMessage('Limit doit être entre 1 et 100'), // ✅ Augmenté à 100
+      .isInt({ min: 1, max: 100 }).withMessage('Limit doit être entre 1 et 100'),
 
     query('categorieId')
       .optional()
@@ -231,12 +253,10 @@ const productValidators = {
       .optional()
       .isIn(['true', 'false']).withMessage('enStock doit être true ou false'),
 
-    // ✅ AJOUT: Filtre promotions
     query('enPromotion')
       .optional()
       .isIn(['true', 'false']).withMessage('enPromotion doit être true ou false'),
 
-    // ✅ AJOUT: Alias pour enPromotion
     query('hasPromo')
       .optional()
       .isIn(['true', 'false']).withMessage('hasPromo doit être true ou false'),
@@ -245,7 +265,6 @@ const productValidators = {
       .optional()
       .isIn(['true', 'false', 'all']).withMessage('estActif doit être true, false ou all'),
 
-    // ✅ AJOUT: Filtre mis en avant
     query('estMisEnAvant')
       .optional()
       .isIn(['true', 'false']).withMessage('estMisEnAvant doit être true ou false'),
@@ -258,7 +277,6 @@ const productValidators = {
       .optional()
       .isIn(['ASC', 'DESC', 'asc', 'desc']).withMessage('Direction de tri invalide'),
 
-    // ✅ AJOUT: Recherche texte
     query('search')
       .optional()
       .trim()
@@ -269,7 +287,6 @@ const productValidators = {
       .trim()
       .isLength({ max: 100 }).withMessage('Recherche trop longue (max 100 caractères)'),
 
-    // ✅ AJOUT: Labels
     query('labels')
       .optional()
       .trim()
