@@ -1,13 +1,16 @@
 /**
- * Controller Produits - AVEC UPLOAD IMAGE
+ * Controller Produits - VERSION COMPLÈTE
  * @description Gestion des requêtes HTTP pour les produits
+ * @location backend/src/controllers/product.controller.js
  * 
- * ✅ AJOUT: uploadImage, deleteImage
+ * ✅ AJOUTS:
+ * - exportAll : Export de tous les produits
+ * - importProducts : Import depuis Excel
+ * - bulkDelete : Suppression multiple
  */
 
 const productService = require('../services/product.service');
 const logger = require('../config/logger');
-const { deleteImage, getFilenameFromUrl, isLocalImage } = require('../middlewares/upload.middleware');
 
 class ProductController {
   /**
@@ -25,9 +28,6 @@ class ProductController {
         maxPrice,
         enStock,
         estActif,
-        enPromotion,
-        hasPromo,
-        estMisEnAvant,
         orderBy,
         orderDir,
         labels
@@ -35,16 +35,13 @@ class ProductController {
 
       const options = {
         page: parseInt(page),
-        limit: Math.min(parseInt(limit), 100),
+        limit: Math.min(parseInt(limit), 50),
         categorieId,
         search,
         minPrice: minPrice ? parseFloat(minPrice) : undefined,
         maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
         enStock: enStock === 'true' ? true : enStock === 'false' ? false : null,
         estActif: estActif === 'all' ? null : estActif === 'false' ? false : estActif === 'true' ? true : true,
-        enPromotion: enPromotion === 'true' ? true : enPromotion === 'false' ? false : null,
-        hasPromo: hasPromo === 'true' ? true : hasPromo === 'false' ? false : null,
-        estMisEnAvant: estMisEnAvant === 'true' ? true : estMisEnAvant === 'false' ? false : null,
         orderBy,
         orderDir,
         labels: labels ? labels.split(',') : []
@@ -216,38 +213,17 @@ class ProductController {
     }
   }
 
-  // ==========================================
-  // ✅ NOUVELLE MÉTHODE: Upload d'image
-  // ==========================================
-
   /**
-   * POST /api/products/upload-image
-   * Upload d'une image produit
+   * GET /api/products/admin/export
+   * ✅ NOUVEAU: Export de tous les produits pour Excel
    */
-  async uploadImage(req, res, next) {
+  async exportAll(req, res, next) {
     try {
-      if (!req.file) {
-        return res.status(400).json({
-          success: false,
-          message: 'Aucun fichier fourni'
-        });
-      }
-
-      // Construire l'URL de l'image
-      const imageUrl = `/uploads/products/${req.file.filename}`;
-
-      logger.info(`Image uploadée par ${req.user?.email}: ${req.file.filename}`);
+      const products = await productService.getAllForExport();
 
       res.json({
         success: true,
-        message: 'Image uploadée avec succès',
-        data: {
-          imageUrl,
-          filename: req.file.filename,
-          originalName: req.file.originalname,
-          size: req.file.size,
-          mimetype: req.file.mimetype
-        }
+        data: products
       });
     } catch (error) {
       next(error);
@@ -255,35 +231,64 @@ class ProductController {
   }
 
   /**
-   * DELETE /api/products/delete-image/:filename
-   * Supprime une image uploadée
+   * POST /api/products/admin/import
+   * ✅ NOUVEAU: Import de produits depuis Excel
    */
-  async deleteImage(req, res, next) {
+  async importProducts(req, res, next) {
     try {
-      const { filename } = req.params;
+      const { products, defaultCategoryId } = req.body;
 
-      if (!filename) {
+      if (!products || !Array.isArray(products) || products.length === 0) {
         return res.status(400).json({
           success: false,
-          message: 'Nom de fichier requis'
+          message: 'Aucun produit à importer'
         });
       }
 
-      // Sécurité : vérifier que le filename ne contient pas de path traversal
-      if (filename.includes('..') || filename.includes('/')) {
+      if (!defaultCategoryId) {
         return res.status(400).json({
           success: false,
-          message: 'Nom de fichier invalide'
+          message: 'Catégorie par défaut requise'
         });
       }
 
-      deleteImage(filename);
+      const result = await productService.importProducts(products, defaultCategoryId);
 
-      logger.info(`Image supprimée par ${req.user?.email}: ${filename}`);
+      logger.info(`Import de ${result.created.length} produits par ${req.user?.email}`);
 
       res.json({
         success: true,
-        message: 'Image supprimée avec succès'
+        message: `${result.created.length} produit(s) importé(s)`,
+        data: result
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * POST /api/products/admin/bulk-delete
+   * ✅ NOUVEAU: Suppression multiple de produits
+   */
+  async bulkDelete(req, res, next) {
+    try {
+      const { ids } = req.body;
+
+      if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Aucun produit à supprimer'
+        });
+      }
+
+      const result = await productService.bulkDelete(ids);
+
+      logger.info(`Suppression en masse de ${result.success.length} produits par ${req.user?.email}`);
+
+      res.json({
+        success: true,
+        message: `${result.success.length} produit(s) supprimé(s)`,
+        data: result
       });
     } catch (error) {
       next(error);
@@ -319,30 +324,17 @@ class ProductController {
   /**
    * PUT /api/products/:id
    * Mise à jour d'un produit (admin)
-   * ✅ AJOUT: Suppression de l'ancienne image locale si changement
    */
   async update(req, res, next) {
     try {
-      // Récupérer le produit existant pour vérifier l'ancienne image
-      const existingProduct = await productService.getProductById(req.params.id);
-      
-      if (!existingProduct) {
+      const product = await productService.updateProduct(req.params.id, req.body);
+
+      if (!product) {
         return res.status(404).json({
           success: false,
           message: 'Produit non trouvé'
         });
       }
-
-      // Si l'image change et que l'ancienne était locale, la supprimer
-      if (req.body.imageUrl !== existingProduct.imageUrl && isLocalImage(existingProduct.imageUrl)) {
-        const oldFilename = getFilenameFromUrl(existingProduct.imageUrl);
-        if (oldFilename) {
-          deleteImage(oldFilename);
-          logger.info(`Ancienne image supprimée: ${oldFilename}`);
-        }
-      }
-
-      const product = await productService.updateProduct(req.params.id, req.body);
 
       logger.info(`Produit mis à jour par ${req.user?.email}: ${product.nom}`);
 
@@ -392,29 +384,17 @@ class ProductController {
   /**
    * DELETE /api/products/:id/hard
    * Hard delete - suppression définitive (admin)
-   * ✅ AJOUT: Suppression de l'image locale associée
    */
   async hardDelete(req, res, next) {
     try {
-      // Récupérer le produit pour supprimer l'image associée
-      const product = await productService.getProductById(req.params.id);
-      
-      if (!product) {
+      const deleted = await productService.hardDeleteProduct(req.params.id);
+
+      if (!deleted) {
         return res.status(404).json({
           success: false,
           message: 'Produit non trouvé'
         });
       }
-
-      // Supprimer l'image locale si elle existe
-      if (isLocalImage(product.imageUrl)) {
-        const filename = getFilenameFromUrl(product.imageUrl);
-        if (filename) {
-          deleteImage(filename);
-        }
-      }
-
-      const deleted = await productService.hardDeleteProduct(req.params.id);
 
       logger.warn(`Produit supprimé définitivement par ${req.user?.email}: ${req.params.id}`);
 
@@ -453,90 +433,6 @@ class ProductController {
         success: true,
         message: 'Stock mis à jour avec succès',
         data: product
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  /**
-   * DELETE /api/products/bulk
-   * Suppression multiple de produits (admin)
-   */
-  async bulkDelete(req, res, next) {
-    try {
-      const { ids } = req.body;
-
-      if (!ids || !Array.isArray(ids) || ids.length === 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'Liste des IDs requise'
-        });
-      }
-
-      const results = await productService.deleteMultiple(ids);
-
-      logger.info(`Suppression multiple par ${req.user?.email}: ${results.success.length} produits désactivés`);
-
-      res.json({
-        success: true,
-        message: `${results.success.length} produit(s) supprimé(s)`,
-        data: results
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  /**
-   * GET /api/products/export
-   * Export des produits en JSON
-   */
-  async exportProducts(req, res, next) {
-    try {
-      const products = await productService.getAllForExport();
-
-      logger.info(`Export produits par ${req.user?.email}: ${products.length} produits`);
-
-      res.json({
-        success: true,
-        data: products
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  /**
-   * POST /api/products/import
-   * Import de produits depuis JSON
-   */
-  async importProducts(req, res, next) {
-    try {
-      const { products, defaultCategoryId } = req.body;
-
-      if (!products || !Array.isArray(products) || products.length === 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'Liste des produits requise'
-        });
-      }
-
-      if (!defaultCategoryId) {
-        return res.status(400).json({
-          success: false,
-          message: 'ID de catégorie par défaut requis (TBD)'
-        });
-      }
-
-      const results = await productService.importProducts(products, defaultCategoryId);
-
-      logger.info(`Import produits par ${req.user?.email}: ${results.created.length} créés, ${results.errors.length} erreurs`);
-
-      res.json({
-        success: true,
-        message: `${results.created.length} produit(s) importé(s)`,
-        data: results
       });
     } catch (error) {
       next(error);

@@ -1,6 +1,7 @@
 /**
- * Routes Produits - AVEC UPLOAD IMAGE
- * @description CRUD complet pour les produits + upload d'images
+ * Routes Produits - VERSION COMPLÈTE
+ * @description CRUD + Export/Import/Bulk operations
+ * @location backend/src/routes/product.routes.js
  */
 
 const express = require('express');
@@ -10,10 +11,9 @@ const productController = require('../controllers/product.controller');
 const productValidators = require('../validators/product.validator');
 const validate = require('../middlewares/validate.middleware');
 const { authenticate, isAdmin, optionalAuth } = require('../middlewares/auth.middleware');
-const { productImageUpload } = require('../middlewares/upload.middleware');
 
 // ==========================================
-// ROUTES PUBLIQUES (ou auth optionnelle)
+// ROUTES PUBLIQUES
 // ==========================================
 
 /**
@@ -65,53 +65,9 @@ router.get('/slug/:slug',
   productController.getBySlug
 );
 
-/**
- * @route   GET /api/products/:id
- * @desc    Détail d'un produit par ID
- * @access  Public
- */
-router.get('/:id',
-  productValidators.idParam,
-  validate,
-  productController.getById
-);
-
 // ==========================================
-// ROUTES ADMIN (authentification + rôle admin)
+// ROUTES ADMIN - DOIVENT ÊTRE AVANT /:id
 // ==========================================
-
-/**
- * @route   GET /api/products/admin/export
- * @desc    Export de tous les produits
- * @access  Admin
- */
-router.get('/admin/export',
-  authenticate,
-  isAdmin,
-  productController.exportProducts
-);
-
-/**
- * @route   POST /api/products/admin/import
- * @desc    Import de produits depuis Excel/JSON
- * @access  Admin
- */
-router.post('/admin/import',
-  authenticate,
-  isAdmin,
-  productController.importProducts
-);
-
-/**
- * @route   DELETE /api/products/admin/bulk
- * @desc    Suppression multiple de produits
- * @access  Admin
- */
-router.delete('/admin/bulk',
-  authenticate,
-  isAdmin,
-  productController.bulkDelete
-);
 
 /**
  * @route   GET /api/products/admin/low-stock
@@ -124,33 +80,52 @@ router.get('/admin/low-stock',
   productController.getLowStock
 );
 
-// ==========================================
-// ✅ NOUVELLE ROUTE: Upload d'image produit
-// ==========================================
-
 /**
- * @route   POST /api/products/upload-image
- * @desc    Upload d'une image produit
+ * @route   GET /api/products/admin/export
+ * @desc    Export de tous les produits pour Excel
  * @access  Admin
- * @body    FormData avec champ "image"
- * @returns { success, imageUrl, filename }
  */
-router.post('/upload-image',
+router.get('/admin/export',
   authenticate,
   isAdmin,
-  productImageUpload.single('image'),
-  productController.uploadImage
+  productController.exportAll
 );
 
 /**
- * @route   DELETE /api/products/delete-image/:filename
- * @desc    Supprimer une image uploadée
+ * @route   POST /api/products/admin/import
+ * @desc    Import de produits depuis Excel
  * @access  Admin
  */
-router.delete('/delete-image/:filename',
+router.post('/admin/import',
   authenticate,
   isAdmin,
-  productController.deleteImage
+  productController.importProducts
+);
+
+/**
+ * @route   POST /api/products/admin/bulk-delete
+ * @desc    Suppression multiple de produits
+ * @access  Admin
+ */
+router.post('/admin/bulk-delete',
+  authenticate,
+  isAdmin,
+  productController.bulkDelete
+);
+
+// ==========================================
+// ROUTE PARAMÉTRIQUE - DOIT ÊTRE EN DERNIER
+// ==========================================
+
+/**
+ * @route   GET /api/products/:id
+ * @desc    Détail d'un produit par ID
+ * @access  Public
+ */
+router.get('/:id',
+  productValidators.idParam,
+  validate,
+  productController.getById
 );
 
 /**

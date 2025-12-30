@@ -1,6 +1,9 @@
 /**
- * Admin Service
+ * Admin Service - VERSION CORRIGÉE
  * @description Appels API pour l'administration
+ * @location frontend/src/services/adminService.js
+ * 
+ * ✅ FIX: Ajout du paramètre search dans getOrders()
  */
 
 import api from './api';
@@ -171,12 +174,14 @@ const adminService = {
   /**
    * Récupérer toutes les commandes
    * @param {Object} params - Paramètres de recherche
+   * ✅ FIX: Ajout du paramètre search
    */
   async getOrders(params = {}) {
     const queryParams = new URLSearchParams();
     
     if (params.page) queryParams.append('page', params.page);
     if (params.limit) queryParams.append('limit', params.limit);
+    if (params.search) queryParams.append('search', params.search); // ✅ AJOUTÉ
     if (params.statut) queryParams.append('statut', params.statut);
     if (params.dateDebut) queryParams.append('dateDebut', params.dateDebut);
     if (params.dateFin) queryParams.append('dateFin', params.dateFin);

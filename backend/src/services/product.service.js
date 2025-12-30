@@ -1,8 +1,12 @@
 /**
- * Service Produits (Backend) - VERSION CORRIGÉE
+ * Service Produits (Backend) - VERSION COMPLÈTE
  * @description Logique métier pour les produits
+ * @location backend/src/services/product.service.js
  * 
- * ✅ CORRECTION: Ajout des options enPromotion, hasPromo, estMisEnAvant
+ * ✅ AJOUTS:
+ * - getAllForExport : Export de tous les produits
+ * - importProducts : Import depuis Excel
+ * - bulkDelete : Suppression multiple
  */
 
 const productRepository = require('../repositories/product.repository');
@@ -12,22 +16,17 @@ const logger = require('../config/logger');
 class ProductService {
   /**
    * Récupère la liste des produits avec filtres et pagination
-   * 
-   * ✅ CORRECTION: Ajout de enPromotion, hasPromo, estMisEnAvant
    */
   async getProducts(options = {}) {
     return productRepository.findAll({
       page: options.page || 1,
       limit: options.limit || 12,
       categorieId: options.categorieId,
-      search: options.search || options.q, // Support des 2 noms
+      search: options.search,
       minPrice: options.minPrice,
       maxPrice: options.maxPrice,
       enStock: options.enStock,
-      estActif: options.estActif,  // null = tous, true = actifs, false = inactifs
-      enPromotion: options.enPromotion,     // ✅ NOUVEAU
-      hasPromo: options.hasPromo,           // ✅ NOUVEAU (alias)
-      estMisEnAvant: options.estMisEnAvant, // ✅ NOUVEAU
+      estActif: options.estActif,
       labels: options.labels || [],
       orderBy: options.orderBy || 'createdAt',
       orderDir: options.orderDir || 'DESC'
@@ -53,8 +52,8 @@ class ProductService {
   /**
    * Récupère les produits en promotion
    */
-  async getPromos(limit = 100) {
-    return productRepository.findPromos(limit);
+  async getPromos() {
+    return productRepository.findPromos();
   }
 
   /**
@@ -68,13 +67,7 @@ class ProductService {
    * Récupère les produits mis en avant
    */
   async getFeaturedProducts(limit = 8) {
-    // Utiliser findAll avec le filtre estMisEnAvant
-    const result = await productRepository.findAll({
-      estMisEnAvant: true,
-      estActif: true,
-      limit
-    });
-    return result.products;
+    return productRepository.findFeatured(limit);
   }
 
   /**
@@ -82,6 +75,131 @@ class ProductService {
    */
   async getLowStockProducts() {
     return productRepository.findLowStock();
+  }
+
+  /**
+   * ✅ NOUVEAU: Récupère TOUS les produits pour export Excel
+   * Sans pagination, avec catégorie
+   */
+  async getAllForExport() {
+    const result = await productRepository.findAll({
+      page: 1,
+      limit: 10000, // Grosse limite pour tout récupérer
+      estActif: null // Tous les produits (actifs et inactifs)
+    });
+
+    // Transformer les données pour l'export
+    return result.products.map(p => ({
+      reference: p.reference,
+      nom: p.nom,
+      categorie: p.categorie?.nom || '',
+      origine: p.origine || '',
+      prix: p.prix,
+      prixPromo: p.prixPromo || '',
+      description: p.description || '',
+      uniteMesure: p.uniteMesure || 'kg',
+      stockQuantite: p.stockQuantite,
+      estActif: p.estActif ? 'Oui' : 'Non'
+    }));
+  }
+
+  /**
+   * ✅ NOUVEAU: Import de produits depuis Excel
+   * @param {Array} products - Liste des produits à importer
+   * @param {string} defaultCategoryId - ID de la catégorie par défaut
+   */
+  async importProducts(products, defaultCategoryId) {
+    const results = {
+      created: [],
+      updated: [],
+      errors: []
+    };
+
+    // Charger toutes les catégories une fois
+    const categoriesResult = await categoryRepository.findAll({ includeInactive: true });
+    const categories = categoriesResult || [];
+    const categoryMap = new Map();
+    categories.forEach(cat => {
+      categoryMap.set(cat.nom.toLowerCase(), cat.id);
+    });
+
+    for (const product of products) {
+      try {
+        // Déterminer la catégorie
+        let categorieId = defaultCategoryId;
+        if (product.categorie) {
+          const foundCatId = categoryMap.get(product.categorie.toLowerCase());
+          if (foundCatId) {
+            categorieId = foundCatId;
+          }
+        }
+
+        // Vérifier si le produit existe déjà (par référence)
+        const existing = await productRepository.findByReference(product.reference);
+
+        const productData = {
+          reference: product.reference,
+          nom: product.nom,
+          description: product.description || '',
+          prix: parseFloat(product.prix) || 0,
+          categorieId,
+          origine: product.origine || '',
+          uniteMesure: product.uniteMesure || 'kg',
+          stockQuantite: parseInt(product.stockQuantite) || 100,
+          stockMinAlerte: 10,
+          estActif: true,
+          slug: this.generateSlug(product.nom)
+        };
+
+        if (existing) {
+          // Mettre à jour
+          const updated = await productRepository.update(existing.id, productData);
+          results.updated.push(updated);
+        } else {
+          // Créer
+          const created = await productRepository.create(productData);
+          results.created.push(created);
+        }
+      } catch (error) {
+        logger.error(`Erreur import produit ${product.reference}: ${error.message}`);
+        results.errors.push({
+          reference: product.reference,
+          nom: product.nom,
+          error: error.message
+        });
+      }
+    }
+
+    logger.info(`Import terminé: ${results.created.length} créés, ${results.updated.length} mis à jour, ${results.errors.length} erreurs`);
+    return results;
+  }
+
+  /**
+   * ✅ NOUVEAU: Suppression multiple de produits
+   * @param {Array} ids - Liste des IDs à supprimer
+   */
+  async bulkDelete(ids) {
+    const results = {
+      success: [],
+      errors: []
+    };
+
+    for (const id of ids) {
+      try {
+        const product = await productRepository.delete(id);
+        if (product) {
+          results.success.push({ id, nom: product.nom });
+        } else {
+          results.errors.push({ id, error: 'Produit non trouvé' });
+        }
+      } catch (error) {
+        logger.error(`Erreur suppression produit ${id}: ${error.message}`);
+        results.errors.push({ id, error: error.message });
+      }
+    }
+
+    logger.info(`Suppression en masse: ${results.success.length} supprimés, ${results.errors.length} erreurs`);
+    return results;
   }
 
   /**
