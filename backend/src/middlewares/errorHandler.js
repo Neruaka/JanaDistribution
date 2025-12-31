@@ -82,23 +82,23 @@ const errorHandler = (err, req, res, next) => {
   // Erreurs PostgreSQL spécifiques
   if (err.code) {
     switch (err.code) {
-      case '23505': // Violation de contrainte unique
-        return res.status(409).json({
-          success: false,
-          message: 'Cette ressource existe déjà',
-          details: err.detail
-        });
-      case '23503': // Violation de clé étrangère
-        return res.status(400).json({
-          success: false,
-          message: 'Référence invalide',
-          details: err.detail
-        });
-      case '22P02': // Format UUID invalide
-        return res.status(400).json({
-          success: false,
-          message: 'Format d\'identifiant invalide'
-        });
+    case '23505': // Violation de contrainte unique
+      return res.status(409).json({
+        success: false,
+        message: 'Cette ressource existe déjà',
+        details: err.detail
+     });
+    case '23503': // Violation de clé étrangère
+      return res.status(400).json({
+        success: false,
+        message: 'Référence invalide',
+        details: err.detail
+      });
+    case '22P02': // Format UUID invalide
+      return res.status(400).json({
+        success: false,
+        message: 'Format d\'identifiant invalide'
+      });
     }
   }
 

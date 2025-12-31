@@ -13,13 +13,13 @@ const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT) || 5432,
   database: process.env.DB_NAME || 'jana_distribution',
-  user: process.env.DB_USER || 'jana_user',
-  password: process.env.DB_PASSWORD || 'jana_secret_2024',
+  user: process.env.DB_USER || 'postgres',
+  password: process.env.DB_PASSWORD || 'postgres',
   
   // Configuration du pool
   max: 20,                    // Nombre max de connexions
   idleTimeoutMillis: 30000,   // Fermer les connexions inactives après 30s
-  connectionTimeoutMillis: 2000, // Timeout de connexion
+  connectionTimeoutMillis: 2000 // Timeout de connexion
 });
 
 // ==========================================

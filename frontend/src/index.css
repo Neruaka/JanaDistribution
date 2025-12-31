@@ -1,4 +1,12 @@
 /* ==========================================
+   TAILWIND CSS - OBLIGATOIRE
+   Ces 3 lignes chargent Tailwind CSS
+   ========================================== */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================
    STYLES DE BASE - JANA DISTRIBUTION
    ========================================== */
 

@@ -54,8 +54,8 @@ api.interceptors.response.use(
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           // Rediriger vers login si pas déjà dessus
-          if (window.location.pathname !== '/connexion') {
-            window.location.href = '/connexion';
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
           }
           break;
         case 403:
