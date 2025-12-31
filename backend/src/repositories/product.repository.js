@@ -80,9 +80,9 @@ class ProductRepository {
     if (enStock !== null && enStock !== undefined) {
       const inStock = enStock === true || enStock === 'true';
       if (inStock) {
-        whereClause += ` AND p.stock_quantite > 0`;
+        whereClause +=  ' AND p.stock_quantite > 0';
       } else {
-        whereClause += ` AND p.stock_quantite = 0`;
+        whereClause += ' AND p.stock_quantite = 0';
       }
     }
 
@@ -91,9 +91,9 @@ class ProductRepository {
     if (promoFilter !== null && promoFilter !== undefined) {
       const hasPromotion = promoFilter === true || promoFilter === 'true';
       if (hasPromotion) {
-        whereClause += ` AND p.prix_promo IS NOT NULL AND p.prix_promo < p.prix`;
+        whereClause += ' AND p.prix_promo IS NOT NULL AND p.prix_promo < p.prix';
       } else {
-        whereClause += ` AND (p.prix_promo IS NULL OR p.prix_promo >= p.prix)`;
+        whereClause += ' AND (p.prix_promo IS NULL OR p.prix_promo >= p.prix)';
       }
     }
 
@@ -224,7 +224,7 @@ class ProductRepository {
    * Récupère un produit par référence
    */
   async findByReference(reference) {
-    const sql = `SELECT * FROM produit WHERE reference = $1`;
+    const sql = 'SELECT * FROM produit WHERE reference = $1';
     const result = await query(sql, [reference]);
     return result.rows[0] ? this.mapProduct(result.rows[0]) : null;
   }
@@ -307,7 +307,7 @@ class ProductRepository {
       return this.findById(id);
     }
 
-    fields.push(`date_modification = NOW()`);
+    fields.push('date_modification = NOW()');
     params.push(id);
 
     const sql = `
@@ -342,7 +342,7 @@ class ProductRepository {
    * Supprime définitivement un produit (hard delete)
    */
   async hardDelete(id) {
-    const sql = `DELETE FROM produit WHERE id = $1 RETURNING id`;
+    const sql = 'DELETE FROM produit WHERE id = $1 RETURNING id';
     const result = await query(sql, [id]);
     logger.info(`Produit supprimé définitivement: ${id}`);
     return result.rowCount > 0;
@@ -439,11 +439,11 @@ class ProductRepository {
    * Vérifie si une référence existe
    */
   async referenceExists(reference, excludeId = null) {
-    let sql = `SELECT id FROM produit WHERE reference = $1`;
+    let sql = 'SELECT id FROM produit WHERE reference = $1';
     const params = [reference];
     
     if (excludeId) {
-      sql += ` AND id != $2`;
+      sql += ' AND id != $2';
       params.push(excludeId);
     }
     
@@ -455,11 +455,11 @@ class ProductRepository {
    * Vérifie si un slug existe
    */
   async slugExists(slug, excludeId = null) {
-    let sql = `SELECT id FROM produit WHERE slug = $1`;
+    let sql = 'SELECT id FROM produit WHERE slug = $1';
     const params = [slug];
     
     if (excludeId) {
-      sql += ` AND id != $2`;
+      sql += ' AND id != $2';
       params.push(excludeId);
     }
     

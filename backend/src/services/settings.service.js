@@ -272,26 +272,24 @@ class SettingsService {
   _validateSettings(categorie, settings) {
     // Validation basique - peut être étendue
     switch (categorie) {
-      case 'delivery':
-        if (settings.livraison_frais_standard < 0) {
-          throw new Error('Les frais de livraison ne peuvent pas être négatifs');
-        }
-        if (settings.livraison_seuil_franco < 0) {
-          throw new Error('Le seuil franco ne peut pas être négatif');
-        }
-        break;
-
-      case 'orders':
-        if (settings.commande_montant_min < 0) {
-          throw new Error('Le montant minimum ne peut pas être négatif');
-        }
-        break;
-
-      case 'emails':
-        if (settings.email_expediteur && !this._isValidEmail(settings.email_expediteur)) {
-          throw new Error('Email expéditeur invalide');
-        }
-        break;
+    case 'delivery':
+      if (settings.livraison_frais_standard < 0) {
+        throw new Error('Les frais de livraison ne peuvent pas être négatifs');
+      }
+      if (settings.livraison_seuil_franco < 0) {
+        throw new Error('Le seuil franco ne peut pas être négatif');
+      }
+      break;
+    case 'orders':
+      if (settings.commande_montant_min < 0) {
+        throw new Error('Le montant minimum ne peut pas être négatif');
+      }
+      break;
+    case 'emails':
+      if (settings.email_expediteur && !this._isValidEmail(settings.email_expediteur)) {
+        throw new Error('Email expéditeur invalide');
+      }
+      break;
     }
   }
 

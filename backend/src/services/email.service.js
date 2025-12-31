@@ -221,11 +221,11 @@ class EmailService {
               <strong>Date</strong>
             </td>
             <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb; text-align: right;">
-              ${new Date(order.createdAt || order.dateCreation).toLocaleDateString('fr-FR', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-              })}
+    ${new Date(order.createdAt || order.dateCreation).toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })}
             </td>
           </tr>
           <tr>
@@ -328,12 +328,12 @@ class EmailService {
       
       <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
         Votre mot de passe a été modifié avec succès le ${new Date().toLocaleDateString('fr-FR', {
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        })}.
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })}.
       </p>
       
       <!-- Warning -->

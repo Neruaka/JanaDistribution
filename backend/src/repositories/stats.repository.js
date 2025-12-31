@@ -116,17 +116,17 @@ class StatsRepository {
       // Format de date selon groupBy
       let dateFormat;
       switch (groupBy) {
-        case 'week':
-          dateFormat = "TO_CHAR(DATE_TRUNC('week', c.date_commande), 'IYYY-IW')";
-          break;
-        case 'month':
-          dateFormat = "TO_CHAR(c.date_commande, 'YYYY-MM')";
-          break;
-        case 'day':
-        default:
-          dateFormat = "TO_CHAR(c.date_commande, 'YYYY-MM-DD')";
-          break;
-      }
+      case 'week':
+        dateFormat = "TO_CHAR(DATE_TRUNC('week', c.date_commande), 'IYYY-IW')";
+        break;
+      case 'month':
+        dateFormat = "TO_CHAR(c.date_commande, 'YYYY-MM')";
+        break;
+      case 'day':
+      default:
+        dateFormat = "TO_CHAR(c.date_commande, 'YYYY-MM-DD')";
+        break;
+    }
 
       const sql = `
         SELECT 

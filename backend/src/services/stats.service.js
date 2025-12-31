@@ -247,22 +247,22 @@ class StatsService {
     let dateDebut;
 
     switch (periode) {
-      case '7j':
-        dateDebut = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-        break;
-      case '30j':
-        dateDebut = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
-        break;
-      case '90j':
-        dateDebut = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString();
-        break;
-      case '1an':
-        dateDebut = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000).toISOString();
-        break;
-      case 'tout':
-      default:
-        dateDebut = null;
-        break;
+    case '7j':
+      dateDebut = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      break;
+    case '30j':
+      dateDebut = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      break;
+    case '90j':
+      dateDebut = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString();
+      break;
+    case '1an':
+      dateDebut = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000).toISOString();
+      break;
+    case 'tout':
+    default:
+      dateDebut = null;
+      break;
     }
 
     return { dateDebut, dateFin: periode === 'tout' ? null : dateFin };

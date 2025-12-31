@@ -194,7 +194,7 @@ class OrderRepository {
    * Récupère une commande par numéro
    */
   async findByNumero(numero) {
-    const sql = `SELECT id FROM commande WHERE numero_commande = $1`;
+    const sql = 'SELECT id FROM commande WHERE numero_commande = $1';
     const result = await query(sql, [numero]);
     
     if (!result.rows[0]) return null;
@@ -402,7 +402,7 @@ class OrderRepository {
 
       // Mettre à jour le statut
       const result = await client.query(
-        `UPDATE commande SET statut = 'ANNULEE', date_modification = NOW() WHERE id = $1 RETURNING *`,
+        'UPDATE commande SET statut = \'ANNULEE\', date_modification = NOW() WHERE id = $1 RETURNING *',
         [id]
       );
 
@@ -502,8 +502,8 @@ class OrderRepository {
         : row.adresse_livraison,
       adresseFacturation: row.adresse_facturation 
         ? (typeof row.adresse_facturation === 'string' 
-            ? JSON.parse(row.adresse_facturation) 
-            : row.adresse_facturation)
+          ? JSON.parse(row.adresse_facturation) 
+          : row.adresse_facturation)
         : null,
       modePaiement: row.mode_paiement,
       fraisLivraison: parseFloat(row.frais_livraison) || 0,

@@ -350,7 +350,7 @@ router.patch('/:id',
       }
 
       // Ajouter date_modification
-      fields.push(`date_modification = NOW()`);
+      fields.push('date_modification = NOW()');
       values.push(id);
 
       const sql = `
@@ -452,7 +452,7 @@ router.delete('/:id',
 
       // Vérifier que le client existe
       const checkResult = await client.query(
-        `SELECT id, email FROM utilisateur WHERE id = $1 AND role = 'CLIENT'`,
+       'SELECT id, email FROM utilisateur WHERE id = $1 AND role = \'CLIENT\'',
         [id]
       );
 
@@ -543,7 +543,7 @@ router.get('/:id/orders',
         LIMIT $2 OFFSET $3
       `;
 
-      const countSql = `SELECT COUNT(*) as total FROM commande WHERE utilisateur_id = $1`;
+      const countSql = 'SELECT COUNT(*) as total FROM commande WHERE utilisateur_id = $1';
 
       const [dataResult, countResult] = await Promise.all([
         dbQuery(sql, [id, parseInt(limit), offset]),

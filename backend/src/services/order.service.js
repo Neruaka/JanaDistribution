@@ -8,7 +8,7 @@
 const orderRepository = require('../repositories/order.repository');
 const cartRepository = require('../repositories/cart.repository');
 const userRepository = require('../repositories/user.repository');
-const productRepository = require('../repositories/product.repository');
+// const productRepository = require('../repositories/product.repository');
 const emailService = require('./email.service');
 const logger = require('../config/logger');
 const { ApiError } = require('../middlewares/errorHandler');
@@ -123,7 +123,7 @@ class OrderService {
     // Vider le panier après création de la commande
     await cartRepository.clearCart(cart.id);
     
-    logger.info(`Commande créée depuis panier`, {
+    logger.info('Commande créée depuis panier', {
       userId,
       orderId: order.id,
       numeroCommande: order.numeroCommande,
@@ -229,13 +229,13 @@ class OrderService {
     
     // Si annulation, utiliser cancelOrder() qui restaure le stock
     if (newStatut === 'ANNULEE') {
-      logger.info(`Annulation via updateStatus, redirection vers cancelOrder`, { orderId });
+      logger.info('Annulation via updateStatus, redirection vers cancelOrder', { orderId });
       return this.cancelOrder(orderId, null, true); // isAdmin = true
     }
     
     const updatedOrder = await orderRepository.updateStatus(orderId, newStatut, instructionsLivraison);
     
-    logger.info(`Statut commande mis à jour`, {
+    logger.info('Statut commande mis à jour', {
       orderId,
       oldStatut,
       newStatut,
@@ -290,7 +290,7 @@ class OrderService {
     // cancel() dans le repository restaure le stock
     const cancelledOrder = await orderRepository.cancel(orderId);
     
-    logger.info(`Commande annulée`, {
+    logger.info('Commande annulée', {
       orderId,
       numeroCommande: order.numeroCommande,
       byAdmin: isAdmin,
@@ -405,7 +405,7 @@ class OrderService {
       }
     } catch (error) {
       // Ne pas bloquer la commande si l'email échoue
-      logger.error(`Erreur envoi notification email:`, {
+      logger.error('Erreur envoi notification email:', {
         error: error.message,
         orderId: order.id,
         userId,

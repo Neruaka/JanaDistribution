@@ -148,7 +148,7 @@ class CartService {
     // Récupérer le panier mis à jour
     const updatedCart = await this.getCart(userId);
     
-    logger.info(`Produit ajouté au panier`, { userId, productId, quantity });
+    logger.info('Produit ajouté au panier', { userId, productId, quantity });
     
     return {
       item,
@@ -232,7 +232,7 @@ class CartService {
     // Récupérer le panier mis à jour
     const updatedCart = await this.getCart(userId);
     
-    logger.info(`Item supprimé du panier`, { userId, itemId });
+    logger.info('Item supprimé du panier', { userId, itemId });
     
     return {
       cart: updatedCart,
@@ -252,7 +252,7 @@ class CartService {
     // Vider le panier
     await cartRepository.clearCart(cart.id);
     
-    logger.info(`Panier vidé`, { userId });
+    logger.info('Panier vidé', { userId });
     
     return {
       cart: {

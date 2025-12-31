@@ -181,18 +181,18 @@ class SettingsRepository {
     }
 
     switch (type) {
-      case 'number':
-        return parseFloat(valeur);
-      case 'boolean':
-        return valeur === 'true' || valeur === true;
-      case 'json':
-        try {
-          return JSON.parse(valeur);
-        } catch {
-          return valeur;
-        }
-      default:
+    case 'number':
+      return parseFloat(valeur);
+    case 'boolean':
+      return valeur === 'true' || valeur === true;
+    case 'json':
+      try {
+        return JSON.parse(valeur);
+      } catch {
         return valeur;
+      }
+    default:
+      return valeur;
     }
   }
 }

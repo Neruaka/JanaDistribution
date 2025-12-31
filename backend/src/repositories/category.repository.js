@@ -77,7 +77,7 @@ class CategoryRepository {
    * Récupère une catégorie par nom (pour import)
    */
   async findByName(nom) {
-    const sql = `SELECT * FROM categorie WHERE LOWER(nom) = LOWER($1) AND est_actif = true`;
+    const sql = 'SELECT * FROM categorie WHERE LOWER(nom) = LOWER($1) AND est_actif = true';
     const result = await query(sql, [nom]);
     return result.rows[0] ? this.mapCategory(result.rows[0]) : null;
   }
@@ -112,7 +112,7 @@ class CategoryRepository {
   }
 
   /**
-   * Met Ã  jour une catÃ©gorie
+   * Met à jour une catégorie
    */
   async update(id, data) {
     const fields = [];
@@ -150,12 +150,12 @@ class CategoryRepository {
     `;
 
     const result = await query(sql, params);
-    logger.info(`CatÃ©gorie mise Ã  jour: ${id}`);
+    logger.info(`Catégorie mise à jour: ${id}`);
     return result.rows[0] ? this.mapCategory(result.rows[0]) : null;
   }
 
   /**
-   * Supprime une catÃ©gorie (soft delete)
+   * Supprime une catégorie (soft delete)
    */
   async delete(id) {
     const sql = `
@@ -174,7 +174,7 @@ class CategoryRepository {
    * VÃ©rifie si une catÃ©gorie a des produits
    */
   async hasProducts(id) {
-    const sql = `SELECT COUNT(*) as count FROM produit WHERE categorie_id = $1 AND est_actif = true`;
+    const sql = 'SELECT COUNT(*) as count FROM produit WHERE categorie_id = $1 AND est_actif = true';
     const result = await query(sql, [id]);
     return parseInt(result.rows[0].count) > 0;
   }
@@ -183,11 +183,11 @@ class CategoryRepository {
    * VÃ©rifie si un slug existe
    */
   async slugExists(slug, excludeId = null) {
-    let sql = `SELECT id FROM categorie WHERE slug = $1`;
+    let sql = 'SELECT id FROM categorie WHERE slug = $1';
     const params = [slug];
     
     if (excludeId) {
-      sql += ` AND id != $2`;
+      sql += ' AND id != $2';
       params.push(excludeId);
     }
     

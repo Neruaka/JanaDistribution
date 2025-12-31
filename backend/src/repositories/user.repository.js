@@ -116,7 +116,7 @@ class UserRepository {
    * @returns {Promise<boolean>} true si l'email existe
    */
   async emailExists(email) {
-    const sql = `SELECT 1 FROM utilisateur WHERE email = $1`;
+    const sql = 'ELECT 1 FROM utilisateur WHERE email = $1';
     const result = await query(sql, [email.toLowerCase()]);
     return result.rows.length > 0;
   }
@@ -405,16 +405,16 @@ class UserRepository {
    */
   async delete(id) {
     // D'abord, mettre à NULL les références dans les commandes
-    await query(`UPDATE commande SET utilisateur_id = NULL WHERE utilisateur_id = $1`, [id]);
+    await query('UPDATE commande SET utilisateur_id = NULL WHERE utilisateur_id = $1', [id]);
     
     // Supprimer le panier
-    await query(`DELETE FROM panier WHERE utilisateur_id = $1`, [id]);
+    await query('DELETE FROM panier WHERE utilisateur_id = $1', [id]);
     
     // Supprimer les lignes de panier orphelines
-    await query(`DELETE FROM ligne_panier WHERE panier_id NOT IN (SELECT id FROM panier)`);
+    await query('DELETE FROM ligne_panier WHERE panier_id NOT IN (SELECT id FROM panier)');
     
     // Supprimer l'utilisateur
-    const sql = `DELETE FROM utilisateur WHERE id = $1`;
+    const sql = 'DELETE FROM utilisateur WHERE id = $1';
     await query(sql, [id]);
     logger.info(`Utilisateur supprimé définitivement: ${id}`);
   }

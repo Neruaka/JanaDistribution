@@ -132,7 +132,7 @@ class CartRepository {
       
       // mettre à jour la date de modification du panier
       await client.query(
-        `UPDATE panier SET date_modification = NOW() WHERE id = $1`,
+        'UPDATE panier SET date_modification = NOW() WHERE id = $1',
         [cartId]
       );
       
@@ -198,7 +198,7 @@ class CartRepository {
       
       // récupérer l'item pour avoir le panier_id
       const itemResult = await client.query(
-        `SELECT panier_id FROM ligne_panier WHERE id = $1`,
+        'SELECT panier_id FROM ligne_panier WHERE id = $1',
         [itemId]
       );
       
@@ -209,13 +209,13 @@ class CartRepository {
       
       // mettre à jour la quantité
       await client.query(
-        `UPDATE ligne_panier SET quantite = $1 WHERE id = $2`,
+        'UPDATE ligne_panier SET quantite = $1 WHERE id = $2',
         [quantity, itemId]
       );
       
       // mettre à jour la date de modification du panier
       await client.query(
-        `UPDATE panier SET date_modification = NOW() WHERE id = $1`,
+        'UPDATE panier SET date_modification = NOW() WHERE id = $1',
         [itemResult.rows[0].panier_id]
       );
       
@@ -244,7 +244,7 @@ class CartRepository {
       
       // récupérer le panier_id avant suppression
       const itemResult = await client.query(
-        `SELECT panier_id FROM ligne_panier WHERE id = $1`,
+        'SELECT panier_id FROM ligne_panier WHERE id = $1',
         [itemId]
       );
       
@@ -255,13 +255,13 @@ class CartRepository {
       
       // supprimer l'item
       await client.query(
-        `DELETE FROM ligne_panier WHERE id = $1`,
+        'DELETE FROM ligne_panier WHERE id = $1',
         [itemId]
       );
       
       // mettre à jour la date de modification du panier
       await client.query(
-        `UPDATE panier SET date_modification = NOW() WHERE id = $1`,
+        'UPDATE panier SET date_modification = NOW() WHERE id = $1',
         [itemResult.rows[0].panier_id]
       );
       
@@ -290,13 +290,13 @@ class CartRepository {
       
       // supprimer tous les items
       await client.query(
-        `DELETE FROM ligne_panier WHERE panier_id = $1`,
+        'DELETE FROM ligne_panier WHERE panier_id = $1',
         [cartId]
       );
       
       // mettre à jour la date de modification
       await client.query(
-        `UPDATE panier SET date_modification = NOW() WHERE id = $1`,
+        'UPDATE panier SET date_modification = NOW() WHERE id = $1',
         [cartId]
       );
       

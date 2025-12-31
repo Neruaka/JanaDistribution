@@ -19,7 +19,7 @@ const pool = new Pool({
   // Configuration du pool
   max: 20,                    // Nombre max de connexions
   idleTimeoutMillis: 30000,   // Fermer les connexions inactives après 30s
-  connectionTimeoutMillis: 2000, // Timeout de connexion
+  connectionTimeoutMillis: 2000 // Timeout de connexion
 });
 
 // ==========================================
@@ -108,4 +108,3 @@ module.exports = {
   getClient,
   connectDB
 };
- 
