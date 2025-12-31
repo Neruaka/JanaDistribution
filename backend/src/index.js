@@ -22,10 +22,26 @@ const categoryRoutes = require('./routes/category.routes');
 const productRoutes = require('./routes/product.routes');
 const cartRoutes = require('./routes/cart.routes');
 const orderRoutes = require('./routes/order.routes');
+const adminOrderRoutes = require('./routes/admin.order.routes');
+const adminStatsRoutes = require('./routes/admin.stats.routes');       
+const adminClientsRoutes = require('./routes/admin.clients.routes');  
+const settingsRoutes = require('./routes/settings.routes');
+const path = require('path');
+const fs = require('fs');
 
 // Import des middlewares
 const errorHandler = require('./middlewares/errorHandler');
 const notFoundHandler = require('./middlewares/notFoundHandler');
+
+// ==========================================
+// Gestion des uploads de fichiers (création du dossier si nécessaire)
+// ==========================================
+
+// Créer le dossier uploads s'il n'existe pas
+const uploadsDir = path.join(__dirname, '../uploads/products');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // ==========================================
 // INITIALISATION EXPRESS
@@ -48,16 +64,18 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Rate limiting
+// Rate limiting - AJUSTÉ pour le développement
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 1 * 60 * 1000, // 1 minute
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 500, // 500 requêtes par minute
   message: {
     success: false,
     message: 'Trop de requêtes, veuillez réessayer plus tard.'
   },
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+  // Désactiver le rate limiting en développement
+  skip: (req) => process.env.NODE_ENV === 'development'
 });
 app.use('/api/', limiter);
 
@@ -78,6 +96,14 @@ app.use((req, res, next) => {
 // ROUTES
 // ==========================================
 
+// Fichiers statiques pour les uploads
+// Fichiers statiques pour les uploads - AVEC HEADERS CORS
+app.use('/uploads', (req, res, next) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  next();
+}, express.static(path.join(__dirname, '../uploads')));
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({
@@ -88,13 +114,19 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Routes API
+// Routes API publiques
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
+
+// Routes API Admin
+app.use('/api/admin/orders', adminOrderRoutes);
+app.use('/api/admin/stats', adminStatsRoutes);       
+app.use('/api/admin/clients', adminClientsRoutes);   
+app.use('/api/settings', settingsRoutes);
 
 // ==========================================
 // GESTION DES ERREURS
@@ -111,14 +143,22 @@ const startServer = async () => {
     await connectDB();
     logger.info('✅ Connexion PostgreSQL établie');
 
-    // Connexion à Redis
-    await connectRedis();
-    logger.info('✅ Connexion Redis établie');
+    // Connexion à Redis (optionnel)
+    try {
+      await connectRedis();
+      logger.info('✅ Connexion Redis établie');
+    } catch (redisError) {
+      logger.warn('⚠️ Redis non disponible, fonctionnement sans cache');
+    }
 
     // Démarrage du serveur
     app.listen(PORT, () => {
       logger.info(`🚀 Serveur démarré sur http://localhost:${PORT}`);
       logger.info(`📚 Environment: ${process.env.NODE_ENV}`);
+      logger.info('📊 Routes disponibles:');
+      logger.info('   - /api/admin/stats/* (dashboard)');
+      logger.info('   - /api/admin/clients/* (gestion clients)');
+      logger.info('   - /api/admin/orders/* (gestion commandes)');
     });
   } catch (error) {
     logger.error('❌ Erreur au démarrage du serveur:', error);

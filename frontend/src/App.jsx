@@ -1,183 +1,203 @@
-import { Routes, Route } from 'react-router-dom'
-import { Toaster } from 'react-hot-toast'
+/**
+ * Application principale - AVEC SETTINGS
+ * @description Point d'entrée de l'application React
+ * @location frontend/src/App.jsx
+ * 
+ * ✅ MODIF: Suppression des pages Promotions et Catégories
+ * ✅ AJOUT: Recherche intelligente dans la Navbar
+ */
 
-// Pages (à créer)
-// import Home from './pages/Home'
-// import Catalog from './pages/Catalog'
-// import ProductDetail from './pages/ProductDetail'
-// import Cart from './pages/Cart'
-// import Login from './pages/Login'
-// import Register from './pages/Register'
+import { Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import { AnimatePresence } from 'framer-motion';
+
+// Context
+import { AuthProvider } from './contexts/AuthContext';
+import { CartProvider } from './contexts/CartContext';
+import { SettingsProvider } from './contexts/SettingsContext';
+
+// Components
+import Navbar from './components/Navbar';
+import PrivateRoute from './components/PrivateRoute';
+import CartDrawer from './components/CartDrawer';
+
+// Pages publiques
+import HomePage from './pages/HomePage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import CataloguePage from './pages/CataloguePage';
+import ProductDetailPage from './pages/ProductDetailPage';
+import CartPage from './pages/CartPage';
+import CheckoutPage from './pages/CheckoutPage';
+import OrderConfirmationPage from './pages/OrderConfirmationPage';
+import OrderHistoryPage from './pages/OrderHistoryPage';
+import OrderDetailPage from './pages/OrderDetailPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
+
+// Pages client
+import MonComptePage from './pages/MonComptePage';
+
+// Pages Admin
+import AdminLayout from './components/admin/AdminLayout';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminProductsList from './pages/admin/AdminProductsList';
+import AdminProductForm from './pages/admin/AdminProductForm';
+import AdminCategoriesList from './pages/admin/AdminCategoriesList';
+import AdminClientsList from './pages/admin/AdminClientsList';
+import AdminOrdersList from './pages/admin/AdminOrdersList';
+import AdminSettingsPage from './pages/admin/AdminSettingsPage';
+import AdminProfilePage from './pages/admin/AdminProfilePage';
+
+// Page 404
+const NotFoundPage = () => {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="text-center">
+        <h1 className="text-6xl font-bold text-gray-300">404</h1>
+        <p className="text-xl text-gray-600 mt-4">Page non trouvée</p>
+        <a href="/" className="text-green-600 hover:underline mt-4 inline-block">
+          Retour à l'accueil
+        </a>
+      </div>
+    </div>
+  );
+};
 
 function App() {
   return (
-    <>
-      {/* Notifications toast */}
-      <Toaster 
-        position="top-right"
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: '#333',
-            color: '#fff',
-          },
-          success: {
-            style: {
-              background: '#4CAF50',
-            },
-          },
-          error: {
-            style: {
-              background: '#F44336',
-            },
-          },
-        }}
-      />
-
-      {/* Routes de l'application */}
-      <Routes>
-        {/* Page d'accueil temporaire */}
-        <Route path="/" element={<HomePage />} />
-        
-        {/* TODO: Ajouter les routes au fur et à mesure
-        <Route path="/catalogue" element={<Catalog />} />
-        <Route path="/produit/:slug" element={<ProductDetail />} />
-        <Route path="/panier" element={<Cart />} />
-        <Route path="/connexion" element={<Login />} />
-        <Route path="/inscription" element={<Register />} />
-        */}
-        
-        {/* Route 404 */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </>
-  )
-}
-
-// Page d'accueil temporaire
-function HomePage() {
-  return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
-    }}>
-      <div style={{
-        textAlign: 'center',
-        padding: '2rem',
-        background: 'white',
-        borderRadius: '16px',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.1)',
-        maxWidth: '600px'
-      }}>
-        <h1 style={{ 
-          color: '#2E7D32', 
-          fontSize: '2.5rem',
-          marginBottom: '0.5rem'
-        }}>
-          🥬 Jana Distribution
-        </h1>
-        <p style={{ 
-          color: '#666', 
-          fontSize: '1.2rem',
-          marginBottom: '2rem'
-        }}>
-          Commerce de gros alimentaire B2B/B2C
-        </p>
-        
-        <div style={{
-          background: '#F5F5F5',
-          padding: '1.5rem',
-          borderRadius: '8px',
-          marginBottom: '1.5rem'
-        }}>
-          <h2 style={{ color: '#333', fontSize: '1.2rem', marginBottom: '1rem' }}>
-            ✅ Setup Jour 3 Complété !
-          </h2>
-          <ul style={{ 
-            textAlign: 'left', 
-            color: '#555',
-            lineHeight: '1.8'
-          }}>
-            <li>✅ Structure du projet créée</li>
-            <li>✅ Backend Express configuré</li>
-            <li>✅ Frontend Vite + React prêt</li>
-            <li>✅ Docker Compose (PostgreSQL + Redis)</li>
-            <li>⏳ Prochaine étape : Authentification (Jour 4-5)</li>
-          </ul>
-        </div>
-
-        <div style={{
-          display: 'flex',
-          gap: '1rem',
-          justifyContent: 'center',
-          flexWrap: 'wrap'
-        }}>
-          <a 
-            href="http://localhost:3000/api/health"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              background: '#4CAF50',
-              color: 'white',
-              padding: '0.75rem 1.5rem',
-              borderRadius: '8px',
-              textDecoration: 'none',
-              fontWeight: 'bold'
+    <SettingsProvider>
+      <AuthProvider>
+        <CartProvider>
+          {/* Notifications toast */}
+          <Toaster 
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: '#333',
+                color: '#fff',
+              },
+              success: {
+                iconTheme: {
+                  primary: '#4CAF50',
+                  secondary: '#fff',
+                },
+              },
+              error: {
+                iconTheme: {
+                  primary: '#f44336',
+                  secondary: '#fff',
+                },
+              },
             }}
-          >
-            🔗 Tester l'API
-          </a>
-          <a 
-            href="http://localhost:8080"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              background: '#2196F3',
-              color: 'white',
-              padding: '0.75rem 1.5rem',
-              borderRadius: '8px',
-              textDecoration: 'none',
-              fontWeight: 'bold'
-            }}
-          >
-            🗄️ Adminer (DB)
-          </a>
-        </div>
-      </div>
-    </div>
-  )
+          />
+          
+          {/* Drawer panier (sidebar) */}
+          <AnimatePresence>
+            <CartDrawer />
+          </AnimatePresence>
+          
+          {/* Routes */}
+          <Routes>
+            {/* ==================== */}
+            {/* Pages publiques avec Navbar */}
+            {/* ==================== */}
+            <Route path="/" element={<><Navbar /><HomePage /></>} />
+            <Route path="/catalogue" element={<><Navbar /><CataloguePage /></>} />
+            <Route path="/produit/:slug" element={<><Navbar /><ProductDetailPage /></>} />
+            <Route path="/panier" element={<><Navbar /><CartPage /></>} />
+            
+            {/* ==================== */}
+            {/* Pages auth (sans Navbar) */}
+            {/* ==================== */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/mot-de-passe-oublie" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            
+            {/* ==================== */}
+            {/* Checkout (protégé) */}
+            {/* ==================== */}
+            <Route path="/checkout" element={
+              <PrivateRoute>
+                <Navbar />
+                <CheckoutPage />
+              </PrivateRoute>
+            } />
+            
+            {/* Confirmation commande */}
+            <Route path="/commande/confirmation/:orderId" element={
+              <PrivateRoute>
+                <Navbar />
+                <OrderConfirmationPage />
+              </PrivateRoute>
+            } />
+          
+            {/* ==================== */}
+            {/* Pages protégées client */}
+            {/* ==================== */}
+            <Route path="/mon-compte" element={
+              <PrivateRoute>
+                <Navbar />
+                <MonComptePage />
+              </PrivateRoute>
+            } />
+            <Route path="/mes-commandes" element={
+              <PrivateRoute>
+                <Navbar />
+                <OrderHistoryPage />
+              </PrivateRoute>
+            } />
+            <Route path="/mes-commandes/:orderId" element={
+              <PrivateRoute>
+                <Navbar />
+                <OrderDetailPage />
+              </PrivateRoute>
+            } />
+            
+            {/* ==================== */}
+            {/* Pages Admin avec AdminLayout */}
+            {/* ==================== */}
+            <Route path="/admin" element={
+              <PrivateRoute adminOnly>
+                <AdminLayout />
+              </PrivateRoute>
+            }>
+              {/* Dashboard */}
+              <Route index element={<AdminDashboard />} />
+              
+              {/* Produits */}
+              <Route path="produits" element={<AdminProductsList />} />
+              <Route path="produits/nouveau" element={<AdminProductForm />} />
+              <Route path="produits/:id" element={<AdminProductForm />} />
+              <Route path="produits/:id/modifier" element={<AdminProductForm />} />
+              
+              {/* Catégories */}
+              <Route path="categories" element={<AdminCategoriesList />} />
+              
+              {/* Commandes */}
+              <Route path="commandes" element={<AdminOrdersList />} />
+              
+              {/* Clients */}
+              <Route path="clients" element={<AdminClientsList />} />
+              
+              {/* Paramètres */}
+              <Route path="parametres" element={<AdminSettingsPage />} />
+              
+              {/* Profil admin */}
+              <Route path="profil" element={<AdminProfilePage />} />
+            </Route>
+            
+            {/* ==================== */}
+            {/* 404 */}
+            {/* ==================== */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </CartProvider>
+      </AuthProvider>
+    </SettingsProvider>
+  );
 }
 
-// Page 404
-function NotFound() {
-  return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
-    }}>
-      <h1 style={{ fontSize: '4rem', color: '#F44336' }}>404</h1>
-      <p style={{ color: '#666' }}>Page non trouvée</p>
-      <a 
-        href="/"
-        style={{
-          marginTop: '1rem',
-          color: '#4CAF50',
-          textDecoration: 'none'
-        }}
-      >
-        ← Retour à l'accueil
-      </a>
-    </div>
-  )
-}
-
-export default App
+export default App;

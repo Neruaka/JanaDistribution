@@ -1,23 +1,89 @@
 /**
- * Routes commandes
- * @description Gestion des commandes
+ * Order Routes
+ * @description Routes pour la gestion des commandes
  */
 
 const express = require('express');
 const router = express.Router();
 
-// TODO: Jour 11 - Implémenter les routes commandes
-// GET /api/orders - Liste des commandes de l'utilisateur
-// GET /api/orders/:id - Détail d'une commande
-// POST /api/orders - Créer une commande (depuis le panier)
-// PUT /api/orders/:id/status - Modifier le statut (admin)
-// GET /api/orders/admin - Liste toutes les commandes (admin)
+const orderController = require('../controllers/order.controller');
+const { authenticate } = require('../middlewares/auth.middleware');
+const validate = require('../middlewares/validate.middleware');
+const {
+  createOrderValidation,
+  updateStatusValidation,
+  orderIdValidation,
+  orderNumeroValidation,
+  listOrdersValidation
+} = require('../validators/order.validator');
 
-router.get('/', (req, res) => {
-  res.status(501).json({
-    success: false,
-    message: 'Routes commandes à implémenter (jour 11)'
-  });
-});
+// ==========================================
+// ROUTES CLIENT (authentification requise)
+// ==========================================
+
+/**
+ * @route   POST /api/orders
+ * @desc    Créer une commande depuis le panier
+ * @access  Private (Client)
+ */
+router.post(
+  '/',
+  authenticate,
+  createOrderValidation,
+  validate,
+  orderController.createOrder
+);
+
+/**
+ * @route   GET /api/orders
+ * @desc    Récupérer mes commandes
+ * @access  Private (Client)
+ */
+router.get(
+  '/',
+  authenticate,
+  listOrdersValidation,
+  validate,
+  orderController.getUserOrders
+);
+
+/**
+ * @route   GET /api/orders/numero/:numero
+ * @desc    Récupérer une commande par numéro
+ * @access  Private (Client/Admin)
+ */
+router.get(
+  '/numero/:numero',
+  authenticate,
+  orderNumeroValidation,
+  validate,
+  orderController.getOrderByNumero
+);
+
+/**
+ * @route   GET /api/orders/:id
+ * @desc    Récupérer une commande par ID
+ * @access  Private (Client/Admin)
+ */
+router.get(
+  '/:id',
+  authenticate,
+  orderIdValidation,
+  validate,
+  orderController.getOrderById
+);
+
+/**
+ * @route   POST /api/orders/:id/cancel
+ * @desc    Annuler une commande
+ * @access  Private (Client/Admin)
+ */
+router.post(
+  '/:id/cancel',
+  authenticate,
+  orderIdValidation,
+  validate,
+  orderController.cancelOrder
+);
 
 module.exports = router;

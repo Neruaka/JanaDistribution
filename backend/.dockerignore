@@ -1,0 +1,42 @@
+# Dépendances - TRÈS IMPORTANT
+node_modules
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Environnement
+.env
+.env.local
+.env.*.local
+
+# Tests
+tests/
+coverage/
+jest.config.js
+*.test.js
+*.spec.js
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Documentation
+README.md
+docs/

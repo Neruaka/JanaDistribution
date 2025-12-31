@@ -1,0 +1,1579 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="137" failures="82" errors="0" time="2.405">
+  <testsuite name="Product Routes - Integration Tests" errors="0" failures="31" skipped="0" timestamp="2025-12-31T02:28:45" time="1.257" tests="31">
+    <testcase classname="Product Routes - Integration Tests GET /api/products devrait retourner la liste des produits (200)" name="Product Routes - Integration Tests GET /api/products devrait retourner la liste des produits (200)" time="0.001">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests GET /api/products devrait supporter la pagination" name="Product Routes - Integration Tests GET /api/products devrait supporter la pagination" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests GET /api/products devrait filtrer par catégorie" name="Product Routes - Integration Tests GET /api/products devrait filtrer par catégorie" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests GET /api/products devrait filtrer par recherche textuelle" name="Product Routes - Integration Tests GET /api/products devrait filtrer par recherche textuelle" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests GET /api/products devrait filtrer par prix min/max" name="Product Routes - Integration Tests GET /api/products devrait filtrer par prix min/max" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests GET /api/products devrait filtrer par disponibilité en stock" name="Product Routes - Integration Tests GET /api/products devrait filtrer par disponibilité en stock" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests GET /api/products devrait supporter le tri" name="Product Routes - Integration Tests GET /api/products devrait supporter le tri" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests GET /api/products/:id devrait retourner un produit par ID (200)" name="Product Routes - Integration Tests GET /api/products/:id devrait retourner un produit par ID (200)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests GET /api/products/:id devrait retourner 404 si le produit n&apos;existe pas" name="Product Routes - Integration Tests GET /api/products/:id devrait retourner 404 si le produit n&apos;existe pas" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests GET /api/products/:id devrait valider le format UUID" name="Product Routes - Integration Tests GET /api/products/:id devrait valider le format UUID" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests GET /api/products/slug/:slug devrait retourner un produit par slug (200)" name="Product Routes - Integration Tests GET /api/products/slug/:slug devrait retourner un produit par slug (200)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests GET /api/products/slug/:slug devrait retourner 404 si le slug n&apos;existe pas" name="Product Routes - Integration Tests GET /api/products/slug/:slug devrait retourner 404 si le slug n&apos;existe pas" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests GET /api/products/promos devrait retourner les produits en promotion (200)" name="Product Routes - Integration Tests GET /api/products/promos devrait retourner les produits en promotion (200)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests GET /api/products/featured devrait retourner les produits mis en avant (200)" name="Product Routes - Integration Tests GET /api/products/featured devrait retourner les produits mis en avant (200)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests GET /api/products/featured devrait supporter le paramètre limit" name="Product Routes - Integration Tests GET /api/products/featured devrait supporter le paramètre limit" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests POST /api/products devrait créer un produit en tant qu&apos;admin (201)" name="Product Routes - Integration Tests POST /api/products devrait créer un produit en tant qu&apos;admin (201)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests POST /api/products devrait rejeter sans authentification (401)" name="Product Routes - Integration Tests POST /api/products devrait rejeter sans authentification (401)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests POST /api/products devrait rejeter si non admin (403)" name="Product Routes - Integration Tests POST /api/products devrait rejeter si non admin (403)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests POST /api/products devrait valider les données requises (400)" name="Product Routes - Integration Tests POST /api/products devrait valider les données requises (400)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests POST /api/products devrait rejeter un prix négatif (400)" name="Product Routes - Integration Tests POST /api/products devrait rejeter un prix négatif (400)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests PUT /api/products/:id devrait mettre à jour un produit en tant qu&apos;admin (200)" name="Product Routes - Integration Tests PUT /api/products/:id devrait mettre à jour un produit en tant qu&apos;admin (200)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests PUT /api/products/:id devrait retourner 404 si le produit n&apos;existe pas" name="Product Routes - Integration Tests PUT /api/products/:id devrait retourner 404 si le produit n&apos;existe pas" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests PUT /api/products/:id devrait rejeter sans droits admin (403)" name="Product Routes - Integration Tests PUT /api/products/:id devrait rejeter sans droits admin (403)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests DELETE /api/products/:id devrait désactiver un produit en tant qu&apos;admin (200)" name="Product Routes - Integration Tests DELETE /api/products/:id devrait désactiver un produit en tant qu&apos;admin (200)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests DELETE /api/products/:id devrait retourner 404 si le produit n&apos;existe pas" name="Product Routes - Integration Tests DELETE /api/products/:id devrait retourner 404 si le produit n&apos;existe pas" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests DELETE /api/products/:id devrait rejeter sans droits admin (403)" name="Product Routes - Integration Tests DELETE /api/products/:id devrait rejeter sans droits admin (403)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests PATCH /api/products/:id/stock devrait mettre à jour le stock (200)" name="Product Routes - Integration Tests PATCH /api/products/:id/stock devrait mettre à jour le stock (200)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests PATCH /api/products/:id/stock devrait supporter les opérations add/subtract" name="Product Routes - Integration Tests PATCH /api/products/:id/stock devrait supporter les opérations add/subtract" time="0.001">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests PATCH /api/products/:id/stock devrait rejeter une quantité négative avec set (400)" name="Product Routes - Integration Tests PATCH /api/products/:id/stock devrait rejeter une quantité négative avec set (400)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests Gestion des erreurs devrait gérer les erreurs serveur (500)" name="Product Routes - Integration Tests Gestion des erreurs devrait gérer les erreurs serveur (500)" time="0.001">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Product Routes - Integration Tests Gestion des erreurs devrait gérer les références en doublon (409)" name="Product Routes - Integration Tests Gestion des erreurs devrait gérer les références en doublon (409)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:31:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\product.routes.test.js:39:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="ProductService" errors="0" failures="1" skipped="0" timestamp="2025-12-31T02:28:47" time="0.12" tests="33">
+    <testcase classname="ProductService getProducts() devrait retourner la liste des produits avec pagination" name="ProductService getProducts() devrait retourner la liste des produits avec pagination" time="0.002">
+    </testcase>
+    <testcase classname="ProductService getProducts() devrait utiliser les valeurs par défaut si non spécifiées" name="ProductService getProducts() devrait utiliser les valeurs par défaut si non spécifiées" time="0.001">
+    </testcase>
+    <testcase classname="ProductService getProducts() devrait filtrer par catégorie" name="ProductService getProducts() devrait filtrer par catégorie" time="0.001">
+    </testcase>
+    <testcase classname="ProductService getProducts() devrait filtrer par prix min/max" name="ProductService getProducts() devrait filtrer par prix min/max" time="0.001">
+    </testcase>
+    <testcase classname="ProductService getProducts() devrait filtrer par recherche textuelle" name="ProductService getProducts() devrait filtrer par recherche textuelle" time="0.001">
+    </testcase>
+    <testcase classname="ProductService getProducts() devrait filtrer par disponibilité en stock" name="ProductService getProducts() devrait filtrer par disponibilité en stock" time="0.001">
+    </testcase>
+    <testcase classname="ProductService getProductById() devrait retourner un produit par son ID" name="ProductService getProductById() devrait retourner un produit par son ID" time="0.004">
+    </testcase>
+    <testcase classname="ProductService getProductById() devrait retourner null si le produit n&apos;existe pas" name="ProductService getProductById() devrait retourner null si le produit n&apos;existe pas" time="0.001">
+    </testcase>
+    <testcase classname="ProductService getProductBySlug() devrait retourner un produit par son slug" name="ProductService getProductBySlug() devrait retourner un produit par son slug" time="0.001">
+    </testcase>
+    <testcase classname="ProductService getProductBySlug() devrait retourner null si le slug n&apos;existe pas" name="ProductService getProductBySlug() devrait retourner null si le slug n&apos;existe pas" time="0.001">
+    </testcase>
+    <testcase classname="ProductService getPromos() devrait retourner les produits en promotion" name="ProductService getPromos() devrait retourner les produits en promotion" time="0.001">
+    </testcase>
+    <testcase classname="ProductService getNewProducts() devrait retourner les nouveaux produits" name="ProductService getNewProducts() devrait retourner les nouveaux produits" time="0.001">
+    </testcase>
+    <testcase classname="ProductService getNewProducts() devrait utiliser les valeurs par défaut" name="ProductService getNewProducts() devrait utiliser les valeurs par défaut" time="0.001">
+    </testcase>
+    <testcase classname="ProductService getFeaturedProducts() devrait retourner les produits mis en avant" name="ProductService getFeaturedProducts() devrait retourner les produits mis en avant" time="0.002">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;mockResolvedValue&apos;)
+    at Object.mockResolvedValue (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\product.service.test.js:274:38)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="ProductService createProduct() devrait créer un produit avec succès" name="ProductService createProduct() devrait créer un produit avec succès" time="0.001">
+    </testcase>
+    <testcase classname="ProductService createProduct() devrait rejeter si la catégorie n&apos;existe pas" name="ProductService createProduct() devrait rejeter si la catégorie n&apos;existe pas" time="0.004">
+    </testcase>
+    <testcase classname="ProductService createProduct() devrait rejeter si la référence existe déjà" name="ProductService createProduct() devrait rejeter si la référence existe déjà" time="0.001">
+    </testcase>
+    <testcase classname="ProductService createProduct() devrait générer automatiquement le slug si non fourni" name="ProductService createProduct() devrait générer automatiquement le slug si non fourni" time="0.001">
+    </testcase>
+    <testcase classname="ProductService updateProduct() devrait mettre à jour un produit avec succès" name="ProductService updateProduct() devrait mettre à jour un produit avec succès" time="0.003">
+    </testcase>
+    <testcase classname="ProductService updateProduct() devrait retourner null si le produit n&apos;existe pas" name="ProductService updateProduct() devrait retourner null si le produit n&apos;existe pas" time="0.001">
+    </testcase>
+    <testcase classname="ProductService updateProduct() devrait vérifier la catégorie si elle est modifiée" name="ProductService updateProduct() devrait vérifier la catégorie si elle est modifiée" time="0.001">
+    </testcase>
+    <testcase classname="ProductService updateProduct() devrait vérifier l&apos;unicité de la référence si modifiée" name="ProductService updateProduct() devrait vérifier l&apos;unicité de la référence si modifiée" time="0.001">
+    </testcase>
+    <testcase classname="ProductService updateProduct() devrait régénérer le slug si le nom change" name="ProductService updateProduct() devrait régénérer le slug si le nom change" time="0">
+    </testcase>
+    <testcase classname="ProductService deleteProduct() devrait désactiver (soft delete) un produit" name="ProductService deleteProduct() devrait désactiver (soft delete) un produit" time="0.001">
+    </testcase>
+    <testcase classname="ProductService deleteProduct() devrait retourner null si le produit n&apos;existe pas" name="ProductService deleteProduct() devrait retourner null si le produit n&apos;existe pas" time="0.001">
+    </testcase>
+    <testcase classname="ProductService updateStock() devrait mettre à jour le stock avec l&apos;opération set" name="ProductService updateStock() devrait mettre à jour le stock avec l&apos;opération set" time="0.001">
+    </testcase>
+    <testcase classname="ProductService updateStock() devrait détecter un stock faible" name="ProductService updateStock() devrait détecter un stock faible" time="0.001">
+    </testcase>
+    <testcase classname="ProductService generateSlug() devrait convertir en minuscules" name="ProductService generateSlug() devrait convertir en minuscules" time="0.001">
+    </testcase>
+    <testcase classname="ProductService generateSlug() devrait remplacer les espaces par des tirets" name="ProductService generateSlug() devrait remplacer les espaces par des tirets" time="0.001">
+    </testcase>
+    <testcase classname="ProductService generateSlug() devrait supprimer les accents" name="ProductService generateSlug() devrait supprimer les accents" time="0.001">
+    </testcase>
+    <testcase classname="ProductService generateSlug() devrait supprimer les caractères spéciaux" name="ProductService generateSlug() devrait supprimer les caractères spéciaux" time="0">
+    </testcase>
+    <testcase classname="ProductService generateSlug() devrait supprimer les tirets multiples" name="ProductService generateSlug() devrait supprimer les tirets multiples" time="0">
+    </testcase>
+    <testcase classname="ProductService generateSlug() devrait supprimer les tirets en début et fin" name="ProductService generateSlug() devrait supprimer les tirets en début et fin" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="CartService" errors="0" failures="26" skipped="0" timestamp="2025-12-31T02:28:47" time="0.279" tests="27">
+    <testcase classname="CartService getCart() devrait retourner le panier d&apos;un utilisateur connecté" name="CartService getCart() devrait retourner le panier d&apos;un utilisateur connecté" time="0.001">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;mockResolvedValue&apos;)
+    at Object.mockResolvedValue (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:58:35)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService getCart() devrait retourner le panier par session pour un visiteur" name="CartService getCart() devrait retourner le panier par session pour un visiteur" time="0.001">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;mockResolvedValue&apos;)
+    at Object.mockResolvedValue (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:72:38)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService getCart() devrait créer un nouveau panier si aucun n&apos;existe" name="CartService getCart() devrait créer un nouveau panier si aucun n&apos;existe" time="0.004">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;mockResolvedValue&apos;)
+    at Object.mockResolvedValue (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:84:35)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService getCart() devrait calculer les totaux du panier" name="CartService getCart() devrait calculer les totaux du panier" time="0.001">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;mockResolvedValue&apos;)
+    at Object.mockResolvedValue (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:108:35)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService addItem() devrait ajouter un produit au panier" name="CartService addItem() devrait ajouter un produit au panier" time="0.001">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;mockResolvedValue&apos;)
+    at Object.mockResolvedValue (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:126:35)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService addItem() devrait rejeter si le produit n&apos;existe pas" name="CartService addItem() devrait rejeter si le produit n&apos;existe pas" time="0.006">
+    </testcase>
+    <testcase classname="CartService addItem() devrait rejeter si le produit est inactif" name="CartService addItem() devrait rejeter si le produit est inactif" time="0.003">
+      <failure>Error: expect(received).rejects.toThrow(expected)
+
+Expected substring: &quot;Produit non disponible&quot;
+Received message:   &quot;Ce produit n&apos;est plus disponible&quot;
+
+      20 |
+      21 |   static badRequest(message, details = null) {
+    &gt; 22 |     return new ApiError(400, message, details);
+         |            ^
+      23 |   }
+      24 |
+      25 |   static unauthorized(message = &apos;Non autorisé&apos;) {
+
+      at Function.badRequest (src/middlewares/errorHandler.js:22:12)
+      at CartService.badRequest [as addItem] (src/services/cart.service.js:104:22)
+      at Object.&lt;anonymous&gt; (tests/unit/cart.service.test.js:165:7)
+    at Object.toThrow (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\expect\build\index.js:218:22)
+    at Object.toThrow (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:167:10)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService addItem() devrait rejeter si le stock est insuffisant" name="CartService addItem() devrait rejeter si le stock est insuffisant" time="0.001">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;mockResolvedValue&apos;)
+    at Object.mockResolvedValue (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:174:35)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService addItem() devrait rejeter si la quantité est invalide" name="CartService addItem() devrait rejeter si la quantité est invalide" time="0.003">
+      <failure>Error: expect(received).rejects.toThrow(expected)
+
+Expected substring: &quot;Quantité invalide&quot;
+Received message:   &quot;Cannot read properties of undefined (reading &apos;items&apos;)&quot;
+
+      127 |     
+      128 |     // Vérifier si le produit est déjà dans le panier
+    &gt; 129 |     const existingItem = cart.items?.find(item =&gt; item.productId === productId);
+          |                               ^
+      130 |     
+      131 |     let item;
+      132 |     const unitPrice = product.prixPromo || product.prix;
+
+      at CartService.items [as addItem] (src/services/cart.service.js:129:31)
+      at Object.&lt;anonymous&gt; (tests/unit/cart.service.test.js:187:7)
+    at Object.toThrow (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\expect\build\index.js:218:22)
+    at Object.toThrow (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:189:10)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService addItem() devrait créer le panier s&apos;il n&apos;existe pas" name="CartService addItem() devrait créer le panier s&apos;il n&apos;existe pas" time="0">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;mockResolvedValue&apos;)
+    at Object.mockResolvedValue (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:199:35)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService updateItemQuantity() devrait mettre à jour la quantité d&apos;un item" name="CartService updateItemQuantity() devrait mettre à jour la quantité d&apos;un item" time="0.001">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;mockResolvedValue&apos;)
+    at Object.mockResolvedValue (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:227:35)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService updateItemQuantity() devrait rejeter si l&apos;item n&apos;existe pas" name="CartService updateItemQuantity() devrait rejeter si l&apos;item n&apos;existe pas" time="0.001">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;mockResolvedValue&apos;)
+    at Object.mockResolvedValue (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:249:35)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService updateItemQuantity() devrait rejeter si le stock est insuffisant" name="CartService updateItemQuantity() devrait rejeter si le stock est insuffisant" time="0">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;mockResolvedValue&apos;)
+    at Object.mockResolvedValue (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:261:35)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService updateItemQuantity() devrait supprimer l&apos;item si quantité = 0" name="CartService updateItemQuantity() devrait supprimer l&apos;item si quantité = 0" time="0">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;mockResolvedValue&apos;)
+    at Object.mockResolvedValue (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:277:35)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService removeItem() devrait supprimer un item du panier" name="CartService removeItem() devrait supprimer un item du panier" time="0">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;mockResolvedValue&apos;)
+    at Object.mockResolvedValue (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:300:35)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService removeItem() devrait rejeter si l&apos;item n&apos;existe pas" name="CartService removeItem() devrait rejeter si l&apos;item n&apos;existe pas" time="0.001">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;mockResolvedValue&apos;)
+    at Object.mockResolvedValue (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:317:35)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService removeItem() devrait rejeter si l&apos;item n&apos;appartient pas au panier" name="CartService removeItem() devrait rejeter si l&apos;item n&apos;appartient pas au panier" time="0.001">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;mockResolvedValue&apos;)
+    at Object.mockResolvedValue (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:328:35)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService clearCart() devrait vider le panier de l&apos;utilisateur" name="CartService clearCart() devrait vider le panier de l&apos;utilisateur" time="0">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;mockResolvedValue&apos;)
+    at Object.mockResolvedValue (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:347:35)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService clearCart() devrait retourner true si le panier n&apos;existe pas" name="CartService clearCart() devrait retourner true si le panier n&apos;existe pas" time="0.001">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;mockResolvedValue&apos;)
+    at Object.mockResolvedValue (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:360:35)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService mergeCarts() devrait fusionner le panier session dans le panier utilisateur" name="CartService mergeCarts() devrait fusionner le panier session dans le panier utilisateur" time="0.001">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;mockResolvedValue&apos;)
+    at Object.mockResolvedValue (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:390:38)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService mergeCarts() devrait ne rien faire si pas de panier session" name="CartService mergeCarts() devrait ne rien faire si pas de panier session" time="0.001">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;mockResolvedValue&apos;)
+    at Object.mockResolvedValue (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:407:38)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService calculateTotals() devrait calculer le total HT correctement" name="CartService calculateTotals() devrait calculer le total HT correctement" time="0.001">
+      <failure>TypeError: cartService.calculateTotals is not a function
+    at Object.calculateTotals (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:430:34)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService calculateTotals() devrait retourner 0 pour un panier vide" name="CartService calculateTotals() devrait retourner 0 pour un panier vide" time="0.001">
+      <failure>TypeError: cartService.calculateTotals is not a function
+    at Object.calculateTotals (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:439:34)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService calculateTotals() devrait calculer la TVA correctement" name="CartService calculateTotals() devrait calculer la TVA correctement" time="0.001">
+      <failure>TypeError: cartService.calculateTotals is not a function
+    at Object.calculateTotals (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:452:34)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService validateCart() devrait valider un panier avec des items disponibles" name="CartService validateCart() devrait valider un panier avec des items disponibles" time="0.001">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;mockResolvedValue&apos;)
+    at Object.mockResolvedValue (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:473:35)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService validateCart() devrait retourner une erreur si le panier est vide" name="CartService validateCart() devrait retourner une erreur si le panier est vide" time="0.001">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;mockResolvedValue&apos;)
+    at Object.mockResolvedValue (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:486:35)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="CartService validateCart() devrait détecter les produits en rupture de stock" name="CartService validateCart() devrait détecter les produits en rupture de stock" time="0.001">
+      <failure>TypeError: Cannot read properties of undefined (reading &apos;mockResolvedValue&apos;)
+    at Object.mockResolvedValue (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\unit\cart.service.test.js:508:35)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:316:40)
+    at _runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="AuthService" errors="0" failures="0" skipped="0" timestamp="2025-12-31T02:28:47" time="0.296" tests="22">
+    <testcase classname="AuthService register() devrait créer un utilisateur avec succès" name="AuthService register() devrait créer un utilisateur avec succès" time="0.002">
+    </testcase>
+    <testcase classname="AuthService register() devrait rejeter si l&apos;email existe déjà" name="AuthService register() devrait rejeter si l&apos;email existe déjà" time="0.012">
+    </testcase>
+    <testcase classname="AuthService register() devrait rejeter si CGU non acceptées" name="AuthService register() devrait rejeter si CGU non acceptées" time="0.001">
+    </testcase>
+    <testcase classname="AuthService register() devrait exiger le SIRET pour les professionnels" name="AuthService register() devrait exiger le SIRET pour les professionnels" time="0.002">
+    </testcase>
+    <testcase classname="AuthService register() devrait exiger un SIRET de 14 chiffres" name="AuthService register() devrait exiger un SIRET de 14 chiffres" time="0.001">
+    </testcase>
+    <testcase classname="AuthService register() devrait exiger la raison sociale pour les professionnels" name="AuthService register() devrait exiger la raison sociale pour les professionnels" time="0.002">
+    </testcase>
+    <testcase classname="AuthService register() devrait normaliser l&apos;email en minuscules" name="AuthService register() devrait normaliser l&apos;email en minuscules" time="0.002">
+    </testcase>
+    <testcase classname="AuthService login() devrait connecter un utilisateur avec des identifiants valides" name="AuthService login() devrait connecter un utilisateur avec des identifiants valides" time="0.003">
+    </testcase>
+    <testcase classname="AuthService login() devrait rejeter si l&apos;utilisateur n&apos;existe pas" name="AuthService login() devrait rejeter si l&apos;utilisateur n&apos;existe pas" time="0.002">
+    </testcase>
+    <testcase classname="AuthService login() devrait rejeter si le mot de passe est incorrect" name="AuthService login() devrait rejeter si le mot de passe est incorrect" time="0.001">
+    </testcase>
+    <testcase classname="AuthService login() devrait rejeter si le compte est désactivé" name="AuthService login() devrait rejeter si le compte est désactivé" time="0.002">
+    </testcase>
+    <testcase classname="AuthService login() devrait normaliser l&apos;email en minuscules lors de la connexion" name="AuthService login() devrait normaliser l&apos;email en minuscules lors de la connexion" time="0.001">
+    </testcase>
+    <testcase classname="AuthService getProfile() devrait retourner le profil de l&apos;utilisateur" name="AuthService getProfile() devrait retourner le profil de l&apos;utilisateur" time="0.001">
+    </testcase>
+    <testcase classname="AuthService getProfile() devrait rejeter si l&apos;utilisateur n&apos;existe pas" name="AuthService getProfile() devrait rejeter si l&apos;utilisateur n&apos;existe pas" time="0.001">
+    </testcase>
+    <testcase classname="AuthService getProfile() devrait rejeter si le compte est désactivé" name="AuthService getProfile() devrait rejeter si le compte est désactivé" time="0.002">
+    </testcase>
+    <testcase classname="AuthService generateToken() devrait générer un token JWT valide" name="AuthService generateToken() devrait générer un token JWT valide" time="0.001">
+    </testcase>
+    <testcase classname="AuthService verifyToken() devrait vérifier et décoder un token valide" name="AuthService verifyToken() devrait vérifier et décoder un token valide" time="0.001">
+    </testcase>
+    <testcase classname="AuthService verifyToken() devrait rejeter un token expiré" name="AuthService verifyToken() devrait rejeter un token expiré" time="0.002">
+    </testcase>
+    <testcase classname="AuthService verifyToken() devrait rejeter un token invalide" name="AuthService verifyToken() devrait rejeter un token invalide" time="0.002">
+    </testcase>
+    <testcase classname="AuthService sanitizeUser() devrait retirer le hash du mot de passe" name="AuthService sanitizeUser() devrait retirer le hash du mot de passe" time="0.001">
+    </testcase>
+    <testcase classname="AuthService changePassword() devrait changer le mot de passe avec l&apos;ancien valide" name="AuthService changePassword() devrait changer le mot de passe avec l&apos;ancien valide" time="0.014">
+    </testcase>
+    <testcase classname="AuthService changePassword() devrait rejeter si l&apos;ancien mot de passe est incorrect" name="AuthService changePassword() devrait rejeter si l&apos;ancien mot de passe est incorrect" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Auth Routes - Integration Tests" errors="0" failures="24" skipped="0" timestamp="2025-12-31T02:28:48" time="0.276" tests="24">
+    <testcase classname="Auth Routes - Integration Tests POST /api/auth/register devrait créer un nouvel utilisateur avec succès (201)" name="Auth Routes - Integration Tests POST /api/auth/register devrait créer un nouvel utilisateur avec succès (201)" time="0.001">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Auth Routes - Integration Tests POST /api/auth/register devrait rejeter une inscription sans email (400)" name="Auth Routes - Integration Tests POST /api/auth/register devrait rejeter une inscription sans email (400)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Auth Routes - Integration Tests POST /api/auth/register devrait rejeter un email invalide (400)" name="Auth Routes - Integration Tests POST /api/auth/register devrait rejeter un email invalide (400)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Auth Routes - Integration Tests POST /api/auth/register devrait rejeter un mot de passe trop court (400)" name="Auth Routes - Integration Tests POST /api/auth/register devrait rejeter un mot de passe trop court (400)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Auth Routes - Integration Tests POST /api/auth/register devrait rejeter sans acceptation des CGU (400)" name="Auth Routes - Integration Tests POST /api/auth/register devrait rejeter sans acceptation des CGU (400)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Auth Routes - Integration Tests POST /api/auth/register devrait rejeter si l&apos;email existe déjà (409)" name="Auth Routes - Integration Tests POST /api/auth/register devrait rejeter si l&apos;email existe déjà (409)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Auth Routes - Integration Tests POST /api/auth/register devrait valider le SIRET pour les professionnels (400)" name="Auth Routes - Integration Tests POST /api/auth/register devrait valider le SIRET pour les professionnels (400)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Auth Routes - Integration Tests POST /api/auth/login devrait connecter un utilisateur avec succès (200)" name="Auth Routes - Integration Tests POST /api/auth/login devrait connecter un utilisateur avec succès (200)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Auth Routes - Integration Tests POST /api/auth/login devrait rejeter sans email (400)" name="Auth Routes - Integration Tests POST /api/auth/login devrait rejeter sans email (400)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Auth Routes - Integration Tests POST /api/auth/login devrait rejeter sans mot de passe (400)" name="Auth Routes - Integration Tests POST /api/auth/login devrait rejeter sans mot de passe (400)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Auth Routes - Integration Tests POST /api/auth/login devrait rejeter des identifiants invalides (401)" name="Auth Routes - Integration Tests POST /api/auth/login devrait rejeter des identifiants invalides (401)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Auth Routes - Integration Tests POST /api/auth/login devrait rejeter un compte désactivé (403)" name="Auth Routes - Integration Tests POST /api/auth/login devrait rejeter un compte désactivé (403)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Auth Routes - Integration Tests GET /api/auth/me devrait retourner le profil avec un token valide (200)" name="Auth Routes - Integration Tests GET /api/auth/me devrait retourner le profil avec un token valide (200)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Auth Routes - Integration Tests GET /api/auth/me devrait rejeter sans token (401)" name="Auth Routes - Integration Tests GET /api/auth/me devrait rejeter sans token (401)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Auth Routes - Integration Tests GET /api/auth/me devrait rejeter avec un token invalide (401)" name="Auth Routes - Integration Tests GET /api/auth/me devrait rejeter avec un token invalide (401)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Auth Routes - Integration Tests GET /api/auth/me devrait rejeter avec un token expiré (401)" name="Auth Routes - Integration Tests GET /api/auth/me devrait rejeter avec un token expiré (401)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Auth Routes - Integration Tests PUT /api/auth/profile devrait mettre à jour le profil (200)" name="Auth Routes - Integration Tests PUT /api/auth/profile devrait mettre à jour le profil (200)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Auth Routes - Integration Tests PUT /api/auth/profile devrait rejeter sans authentification (401)" name="Auth Routes - Integration Tests PUT /api/auth/profile devrait rejeter sans authentification (401)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Auth Routes - Integration Tests POST /api/auth/change-password devrait changer le mot de passe (200)" name="Auth Routes - Integration Tests POST /api/auth/change-password devrait changer le mot de passe (200)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Auth Routes - Integration Tests POST /api/auth/change-password devrait rejeter si l&apos;ancien mot de passe est incorrect (400)" name="Auth Routes - Integration Tests POST /api/auth/change-password devrait rejeter si l&apos;ancien mot de passe est incorrect (400)" time="0.001">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Auth Routes - Integration Tests POST /api/auth/change-password devrait rejeter un nouveau mot de passe trop faible (400)" name="Auth Routes - Integration Tests POST /api/auth/change-password devrait rejeter un nouveau mot de passe trop faible (400)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Auth Routes - Integration Tests POST /api/auth/logout devrait déconnecter l&apos;utilisateur (200)" name="Auth Routes - Integration Tests POST /api/auth/logout devrait déconnecter l&apos;utilisateur (200)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Auth Routes - Integration Tests Sécurité devrait gérer les erreurs serveur gracieusement (500)" name="Auth Routes - Integration Tests Sécurité devrait gérer les erreurs serveur gracieusement (500)" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Auth Routes - Integration Tests Sécurité devrait accepter le Content-Type application/json" name="Auth Routes - Integration Tests Sécurité devrait accepter le Content-Type application/json" time="0">
+      <failure>TypeError: app.use() requires a middleware function
+    at Function.use (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\express\lib\application.js:217:11)
+    at use (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:30:7)
+    at Object.createTestApp (C:\Users\nerua\Documents\CDA\janadistribution\backend\tests\integration\auth.routes.test.js:38:11)
+    at Promise.then.completed (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusHook (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:281:40)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:95:7)
+    at _runTestsForDescribeBlock (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\nerua\Documents\CDA\janadistribution\backend\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+  </testsuite>
+</testsuites>
