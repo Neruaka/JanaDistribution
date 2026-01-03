@@ -1,110 +1,120 @@
 /**
- * Configuration de la connexion PostgreSQL
- * @description Pool de connexions avec pg
+ * Configuration Base de données PostgreSQL
+ * @description Compatible Railway (DATABASE_URL) et développement local
+ * 
+ * ✅ MODIFIÉ POUR MISE EN LIGNE RAILWAY
  */
 
 const { Pool } = require('pg');
 const logger = require('./logger');
 
-// ==========================================
-// CONFIGURATION DU POOL
-// ==========================================
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT) || 5432,
-  database: process.env.DB_NAME || 'jana_distribution',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
+let pool;
+
+// Détection automatique de l'environnement
+if (process.env.DATABASE_URL) {
+  // ==========================================
+  // PRODUCTION (Railway, Render, Heroku...)
+  // ==========================================
+  console.log('🌐 Mode Production détecté (DATABASE_URL)');
   
-  // Configuration du pool
-  max: 20,                    // Nombre max de connexions
-  idleTimeoutMillis: 30000,   // Fermer les connexions inactives après 30s
-  connectionTimeoutMillis: 2000 // Timeout de connexion
-});
-
-// ==========================================
-// ÉVÉNEMENTS DU POOL
-// ==========================================
-pool.on('connect', () => {
-  logger.debug('Nouvelle connexion au pool PostgreSQL');
-});
-
-pool.on('error', (err) => {
-  logger.error('Erreur inattendue du pool PostgreSQL:', err);
-});
-
-// ==========================================
-// FONCTIONS UTILITAIRES
-// ==========================================
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false // Requis pour Railway/Render
+    },
+    max: 20,                    // Connexions max dans le pool
+    idleTimeoutMillis: 30000,   // Fermer connexions inactives après 30s
+    connectionTimeoutMillis: 10000 // Timeout connexion 10s
+  });
+} else {
+  // ==========================================
+  // DÉVELOPPEMENT LOCAL
+  // ==========================================
+  console.log('🏠 Mode Développement détecté');
+  
+  pool = new Pool({
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT) || 5432,
+    database: process.env.DB_NAME || 'jana_distribution',
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || 'postgres',
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000
+  });
+}
 
 /**
- * Teste la connexion à la base de données
+ * Connexion à la base de données
  */
 const connectDB = async () => {
   try {
     const client = await pool.connect();
-    const result = await client.query('SELECT NOW()');
+    
+    // Test de connexion
+    const result = await client.query('SELECT NOW() as now');
+    logger.info(`✅ Connexion PostgreSQL établie - ${result.rows[0].now}`);
+    
     client.release();
-    logger.info(`PostgreSQL connecté: ${result.rows[0].now}`);
     return true;
   } catch (error) {
-    logger.error('Erreur de connexion PostgreSQL:', error.message);
+    logger.error('❌ Erreur connexion PostgreSQL:', error.message);
+    
+    // En production, on peut réessayer
+    if (process.env.NODE_ENV === 'production') {
+      logger.info('🔄 Nouvelle tentative dans 5 secondes...');
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      return connectDB();
+    }
+    
     throw error;
   }
 };
 
 /**
- * Exécute une requête SQL
- * @param {string} text - Requête SQL
- * @param {Array} params - Paramètres de la requête
- * @returns {Promise<Object>} Résultat de la requête
+ * Exécuter une requête SQL
  */
 const query = async (text, params) => {
   const start = Date.now();
   try {
     const result = await pool.query(text, params);
     const duration = Date.now() - start;
-    logger.debug(`Query executed in ${duration}ms`, { 
-      text: text.substring(0, 100),
-      rows: result.rowCount 
-    });
+    
+    // Log en développement uniquement
+    if (process.env.NODE_ENV === 'development') {
+      logger.debug(`Query executed in ${duration}ms`, { 
+        text: text.substring(0, 100),
+        rows: result.rowCount 
+      });
+    }
+    
     return result;
   } catch (error) {
-    logger.error('Erreur SQL:', { text: text.substring(0, 100), error: error.message });
+    logger.error('Query error:', { 
+      text: text.substring(0, 100), 
+      error: error.message 
+    });
     throw error;
   }
 };
 
 /**
- * Obtient un client pour une transaction
- * @returns {Promise<Object>} Client PostgreSQL
+ * Obtenir un client pour les transactions
  */
-const getClient = async () => {
-  const client = await pool.connect();
-  const originalQuery = client.query.bind(client);
-  const originalRelease = client.release.bind(client);
-  
-  // Timeout pour éviter les fuites de connexion
-  const timeout = setTimeout(() => {
-    logger.error('Client PostgreSQL non libéré après 5s!');
-    client.release();
-  }, 5000);
+const getClient = () => pool.connect();
 
-  client.query = (...args) => {
-    return originalQuery(...args);
-  };
-
-  client.release = () => {
-    clearTimeout(timeout);
-    return originalRelease();
-  };
-
-  return client;
+/**
+ * Fermer le pool (pour les tests)
+ */
+const closePool = async () => {
+  await pool.end();
+  logger.info('Pool PostgreSQL fermé');
 };
 
-module.exports = {
-  pool,
-  query,
+module.exports = { 
+  pool, 
+  connectDB, 
+  query, 
   getClient,
-  connectDB
+  closePool 
 };
