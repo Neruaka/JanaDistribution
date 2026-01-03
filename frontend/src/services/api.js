@@ -2,7 +2,7 @@
  * Configuration API Frontend
  * @description Compatible Railway (VITE_API_URL) et développement local
  * 
- * ✅ MODIFIÉ POUR MISE EN LIGNE RAILWAY
+ * ✅ COMPLET AVEC TOUTES LES FONCTIONS AUTH
  */
 
 import axios from 'axios';
@@ -10,8 +10,6 @@ import axios from 'axios';
 // ==========================================
 // URL DE L'API
 // ==========================================
-// En production: VITE_API_URL est défini dans les variables Railway
-// En développement: fallback sur localhost:3000
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 console.log('🌐 API URL:', API_URL);
@@ -21,28 +19,73 @@ console.log('🌐 API URL:', API_URL);
 // ==========================================
 const api = axios.create({
   baseURL: API_URL,
-  timeout: 15000, // 15 secondes
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json'
   }
 });
 
 // ==========================================
+// FONCTIONS AUTH HELPERS
+// ==========================================
+
+/**
+ * Stocke les données d'authentification
+ */
+export const setAuthData = (token, user) => {
+  if (token) {
+    localStorage.setItem('token', token);
+  }
+  if (user) {
+    localStorage.setItem('user', JSON.stringify(user));
+  }
+};
+
+/**
+ * Supprime les données d'authentification
+ */
+export const clearAuthData = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+};
+
+/**
+ * Récupère l'utilisateur stocké
+ */
+export const getStoredUser = () => {
+  try {
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user) : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Récupère le token stocké
+ */
+export const getStoredToken = () => {
+  return localStorage.getItem('token');
+};
+
+/**
+ * Vérifie si l'utilisateur est authentifié
+ */
+export const isAuthenticated = () => {
+  const token = getStoredToken();
+  const user = getStoredUser();
+  return !!(token && user);
+};
+
+// ==========================================
 // INTERCEPTEUR REQUEST
 // ==========================================
 api.interceptors.request.use(
   (config) => {
-    // Ajouter le token JWT si présent
-    const token = localStorage.getItem('token');
+    const token = getStoredToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
-    // Log en développement
-    if (import.meta.env.DEV) {
-      console.log(`📤 ${config.method?.toUpperCase()} ${config.url}`);
-    }
-    
     return config;
   },
   (error) => {
@@ -55,57 +98,20 @@ api.interceptors.request.use(
 // INTERCEPTEUR RESPONSE
 // ==========================================
 api.interceptors.response.use(
-  (response) => {
-    // Log en développement
-    if (import.meta.env.DEV) {
-      console.log(`📥 ${response.status} ${response.config.url}`);
-    }
-    return response;
-  },
+  (response) => response,
   (error) => {
-    // Gestion des erreurs
     if (error.response) {
-      const { status, data } = error.response;
+      const { status } = error.response;
       
-      switch (status) {
-        case 401:
-          // Token expiré ou invalide
-          console.warn('🔒 Session expirée');
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          
-          // Rediriger vers login sauf si déjà sur login
-          if (!window.location.pathname.includes('/connexion')) {
-            window.location.href = '/connexion';
-          }
-          break;
-          
-        case 403:
-          console.warn('🚫 Accès refusé:', data?.message);
-          break;
-          
-        case 404:
-          console.warn('❓ Ressource non trouvée');
-          break;
-          
-        case 429:
-          console.warn('⏳ Trop de requêtes, réessayez plus tard');
-          break;
-          
-        case 500:
-          console.error('💥 Erreur serveur:', data?.message);
-          break;
-          
-        default:
-          console.error(`❌ Erreur ${status}:`, data?.message);
+      if (status === 401) {
+        console.warn('🔒 Session expirée');
+        clearAuthData();
+        
+        if (!window.location.pathname.includes('/connexion')) {
+          window.location.href = '/connexion';
+        }
       }
-    } else if (error.request) {
-      // Pas de réponse du serveur
-      console.error('🌐 Erreur réseau - Serveur injoignable');
-    } else {
-      console.error('❌ Erreur:', error.message);
     }
-    
     return Promise.reject(error);
   }
 );
@@ -113,29 +119,19 @@ api.interceptors.response.use(
 export default api;
 
 // ==========================================
-// HELPERS POUR LES IMAGES
+// HELPER POUR LES IMAGES
 // ==========================================
-
-/**
- * Construit l'URL complète d'une image
- * @param {string} imagePath - Chemin de l'image (/uploads/... ou URL complète)
- * @returns {string} URL complète de l'image
- */
 export const getImageUrl = (imagePath) => {
   if (!imagePath) return '/placeholder-product.jpg';
   
-  // Si c'est déjà une URL complète (http/https)
   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
     return imagePath;
   }
   
-  // Si c'est un chemin local (/uploads/...)
   if (imagePath.startsWith('/uploads/')) {
-    // En production, utiliser l'URL du backend
     const backendUrl = API_URL.replace('/api', '');
     return `${backendUrl}${imagePath}`;
   }
   
-  // Fallback
   return imagePath;
 };
