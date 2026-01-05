@@ -74,9 +74,9 @@ redis_data/
 # ==========================================
 # FICHIERS TEST
 # ==========================================
-reports/
-screenshots/
-tests/
+# reports/
+# screenshots/
+# tests/
 # uploads/
 
 # ==========================================
