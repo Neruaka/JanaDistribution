@@ -217,6 +217,37 @@ const productService = {
   bulkDelete: async (ids) => {
     const response = await api.post('/products/admin/bulk-delete', { ids });
     return response.data;
+  },
+
+  // ==========================================
+  // ✅ MÉTHODES UPLOAD IMAGE
+  // ==========================================
+
+  /**
+   * Upload d'une image produit
+   * @param {File} file - Fichier image
+   * @returns {Promise} URL de l'image uploadée
+   */
+  uploadImage: async (file) => {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await api.post('/products/upload-image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  },
+
+  /**
+   * Supprime une image produit
+   * @param {string} filename - Nom du fichier
+   * @returns {Promise} Confirmation
+   */
+  deleteImage: async (filename) => {
+    const response = await api.delete(`/products/image/${filename}`);
+    return response.data;
   }
 };
 

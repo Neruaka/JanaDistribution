@@ -2,10 +2,10 @@
  * Page d'accueil - VERSION CORRIGÉE
  * @description Landing page avec catégories et produits vedettes
  * @location frontend/src/pages/HomePage.jsx
- * 
+ *
  * ✅ CORRECTIONS:
  * - Utilise getImageUrl pour les images des produits vedettes
- * - Utilise le composant Footer avec settings dynamiques
+ * - Footer géré par PublicLayout (pas de duplication)
  */
 
 import { useState, useEffect } from 'react';
@@ -29,8 +29,6 @@ import toast from 'react-hot-toast';
 // ✅ Import du helper pour les images
 import { getImageUrl } from '../utils/imageUtils';
 
-// Import du Footer dynamique
-import Footer from '../components/Footer';
 
 // Animation variants
 const fadeInUp = {
@@ -547,8 +545,6 @@ const HomePage = () => {
         </motion.section>
       )}
 
-      {/* Footer dynamique */}
-      <Footer />
     </div>
   );
 };
