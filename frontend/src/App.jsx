@@ -17,9 +17,9 @@ import { CartProvider } from './contexts/CartContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 
 // Components
-import Navbar from './components/Navbar';
 import PrivateRoute from './components/PrivateRoute';
 import CartDrawer from './components/CartDrawer';
+import PublicLayout from './components/PublicLayout';
 
 // Pages publiques
 import HomePage from './pages/HomePage';
@@ -52,7 +52,7 @@ import AdminProfilePage from './pages/admin/AdminProfilePage';
 // Page 404
 const NotFoundPage = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="flex-grow flex items-center justify-center bg-gray-100 py-20">
       <div className="text-center">
         <h1 className="text-6xl font-bold text-gray-300">404</h1>
         <p className="text-xl text-gray-600 mt-4">Page non trouvée</p>
@@ -101,58 +101,63 @@ function App() {
           {/* Routes */}
           <Routes>
             {/* ==================== */}
-            {/* Pages publiques avec Navbar */}
+            {/* Pages publiques avec Navbar + Footer */}
             {/* ==================== */}
-            <Route path="/" element={<><Navbar /><HomePage /></>} />
-            <Route path="/catalogue" element={<><Navbar /><CataloguePage /></>} />
-            <Route path="/produit/:slug" element={<><Navbar /><ProductDetailPage /></>} />
-            <Route path="/panier" element={<><Navbar /><CartPage /></>} />
-            
+            <Route path="/" element={<PublicLayout><HomePage /></PublicLayout>} />
+            <Route path="/catalogue" element={<PublicLayout><CataloguePage /></PublicLayout>} />
+            <Route path="/produit/:slug" element={<PublicLayout><ProductDetailPage /></PublicLayout>} />
+            <Route path="/panier" element={<PublicLayout><CartPage /></PublicLayout>} />
+
             {/* ==================== */}
-            {/* Pages auth (sans Navbar) */}
+            {/* Pages auth (sans Navbar/Footer) */}
             {/* ==================== */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/mot-de-passe-oublie" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
-            
+
             {/* ==================== */}
             {/* Checkout (protégé) */}
             {/* ==================== */}
             <Route path="/checkout" element={
               <PrivateRoute>
-                <Navbar />
-                <CheckoutPage />
+                <PublicLayout>
+                  <CheckoutPage />
+                </PublicLayout>
               </PrivateRoute>
             } />
-            
+
             {/* Confirmation commande */}
             <Route path="/commande/confirmation/:orderId" element={
               <PrivateRoute>
-                <Navbar />
-                <OrderConfirmationPage />
+                <PublicLayout>
+                  <OrderConfirmationPage />
+                </PublicLayout>
               </PrivateRoute>
             } />
-          
+
             {/* ==================== */}
             {/* Pages protégées client */}
             {/* ==================== */}
             <Route path="/mon-compte" element={
               <PrivateRoute>
-                <Navbar />
-                <MonComptePage />
+                <PublicLayout>
+                  <MonComptePage />
+                </PublicLayout>
               </PrivateRoute>
             } />
             <Route path="/mes-commandes" element={
               <PrivateRoute>
-                <Navbar />
-                <OrderHistoryPage />
+                <PublicLayout>
+                  <OrderHistoryPage />
+                </PublicLayout>
               </PrivateRoute>
             } />
             <Route path="/mes-commandes/:orderId" element={
               <PrivateRoute>
-                <Navbar />
-                <OrderDetailPage />
+                <PublicLayout>
+                  <OrderDetailPage />
+                </PublicLayout>
               </PrivateRoute>
             } />
             
@@ -192,7 +197,7 @@ function App() {
             {/* ==================== */}
             {/* 404 */}
             {/* ==================== */}
-            <Route path="*" element={<NotFoundPage />} />
+            <Route path="*" element={<PublicLayout><NotFoundPage /></PublicLayout>} />
           </Routes>
         </CartProvider>
       </AuthProvider>

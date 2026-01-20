@@ -37,8 +37,12 @@ import {
 } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import { useSettings } from '../../contexts/SettingsContext';
 
 const AdminSettingsPage = () => {
+  // Hook pour rafraîchir les settings globaux après sauvegarde
+  const { refreshSettings } = useSettings();
+
   // États
   const [activeSection, setActiveSection] = useState('general');
   const [loading, setLoading] = useState(true);
@@ -146,10 +150,10 @@ const AdminSettingsPage = () => {
         setSaved(true);
         setHasChanges(false);
         toast.success('Paramètres enregistrés avec succès !');
-        
-        // Invalider le cache des settings publics côté client
-        localStorage.removeItem('app_settings');
-        localStorage.removeItem('app_settings_timestamp');
+
+        // Rafraîchir les settings globaux (Context + localStorage)
+        // Cela met à jour le Footer et tous les composants qui utilisent useSettings()
+        refreshSettings();
 
         setTimeout(() => setSaved(false), 3000);
       }

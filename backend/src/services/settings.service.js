@@ -207,13 +207,14 @@ class SettingsService {
   /**
    * Transforme le format frontend vers le format BDD
    * @private
+   * Note: Frontend utilise general/delivery/orders, BDD utilise site/livraison/commande
    */
   _transformToDbFormat(frontendSettings) {
     const dbSettings = {};
 
-    // General
+    // General → site
     if (frontendSettings.general) {
-      dbSettings.general = {
+      dbSettings.site = {
         site_nom: frontendSettings.general.nomSite,
         site_description: frontendSettings.general.description,
         site_email: frontendSettings.general.email,
@@ -226,9 +227,9 @@ class SettingsService {
       };
     }
 
-    // Delivery
+    // Delivery → livraison
     if (frontendSettings.delivery) {
-      dbSettings.delivery = {
+      dbSettings.livraison = {
         livraison_frais_standard: frontendSettings.delivery.fraisLivraisonStandard,
         livraison_seuil_franco: frontendSettings.delivery.seuilFrancoPort,
         livraison_delai_min: frontendSettings.delivery.delaiLivraisonMin,
@@ -238,9 +239,9 @@ class SettingsService {
       };
     }
 
-    // Orders
+    // Orders → commande
     if (frontendSettings.orders) {
-      dbSettings.orders = {
+      dbSettings.commande = {
         commande_montant_min: frontendSettings.orders.montantMinCommande,
         commande_tva_defaut: frontendSettings.orders.tauxTvaDefaut,
         commande_stock_alerte: frontendSettings.orders.stockAlerteSeuil,
@@ -251,7 +252,7 @@ class SettingsService {
       };
     }
 
-    // Emails
+    // Emails reste emails
     if (frontendSettings.emails) {
       dbSettings.emails = {
         email_expediteur: frontendSettings.emails.expediteur,

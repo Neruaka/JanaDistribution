@@ -360,7 +360,7 @@ const OrderConfirmationPage = () => {
           className="flex flex-col sm:flex-row gap-4 justify-center"
         >
           <Link
-            to={`/commande/${orderId}`}
+            to={`/mes-commandes/${orderId}`}
             className="flex items-center justify-center gap-2 px-6 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
           >
             <FileText className="w-5 h-5" />

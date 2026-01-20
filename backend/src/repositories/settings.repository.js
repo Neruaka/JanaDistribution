@@ -80,28 +80,38 @@ class SettingsRepository {
   }
 
   /**
-   * Met à jour un paramètre
+   * Met à jour ou crée un paramètre (UPSERT)
    * @param {string} cle - Clé du paramètre
    * @param {any} valeur - Nouvelle valeur
+   * @param {string} categorie - Catégorie (pour insertion si clé n'existe pas)
    * @returns {Promise<boolean>} Succès
    */
-  async set(cle, valeur) {
+  async set(cle, valeur, categorie = 'general') {
     // Convertir la valeur en string pour stockage
-    const valeurStr = typeof valeur === 'object' 
-      ? JSON.stringify(valeur) 
+    const valeurStr = typeof valeur === 'object'
+      ? JSON.stringify(valeur)
       : String(valeur);
 
+    // Déterminer le type automatiquement
+    let type = 'string';
+    if (typeof valeur === 'number') type = 'number';
+    else if (typeof valeur === 'boolean') type = 'boolean';
+    else if (typeof valeur === 'object') type = 'json';
+
+    // UPSERT: INSERT ou UPDATE si existe déjà
     const sql = `
-      UPDATE configuration
-      SET valeur = $1, date_modification = CURRENT_TIMESTAMP
-      WHERE cle = $2
+      INSERT INTO configuration (cle, valeur, type, categorie, date_modification)
+      VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
+      ON CONFLICT (cle) DO UPDATE SET
+        valeur = EXCLUDED.valeur,
+        date_modification = CURRENT_TIMESTAMP
       RETURNING cle
     `;
 
-    const result = await query(sql, [valeurStr, cle]);
-    
+    const result = await query(sql, [cle, valeurStr, type, categorie]);
+
     if (result.rows.length > 0) {
-      logger.info(`Setting mis à jour: ${cle}`);
+      logger.debug(`Setting mis à jour: ${cle}`);
       return true;
     }
 
@@ -118,7 +128,8 @@ class SettingsRepository {
     let updated = 0;
 
     for (const [cle, valeur] of Object.entries(settings)) {
-      const success = await this.set(cle, valeur);
+      // Passer la catégorie pour que les nouvelles clés soient créées avec la bonne catégorie
+      const success = await this.set(cle, valeur, categorie);
       if (success) updated++;
     }
 

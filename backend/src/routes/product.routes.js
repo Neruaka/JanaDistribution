@@ -11,6 +11,7 @@ const productController = require('../controllers/product.controller');
 const productValidators = require('../validators/product.validator');
 const validate = require('../middlewares/validate.middleware');
 const { authenticate, isAdmin, optionalAuth } = require('../middlewares/auth.middleware');
+const { productImageUpload } = require('../middlewares/upload.middleware');
 
 // ==========================================
 // ROUTES PUBLIQUES
@@ -111,6 +112,29 @@ router.post('/admin/bulk-delete',
   authenticate,
   isAdmin,
   productController.bulkDelete
+);
+
+/**
+ * @route   POST /api/products/upload-image
+ * @desc    Upload d'une image produit
+ * @access  Admin
+ */
+router.post('/upload-image',
+  authenticate,
+  isAdmin,
+  productImageUpload.single('image'),
+  productController.uploadImage
+);
+
+/**
+ * @route   DELETE /api/products/image/:filename
+ * @desc    Supprime une image produit
+ * @access  Admin
+ */
+router.delete('/image/:filename',
+  authenticate,
+  isAdmin,
+  productController.deleteProductImage
 );
 
 // ==========================================

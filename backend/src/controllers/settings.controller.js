@@ -116,36 +116,37 @@ class SettingsController {
   /**
    * Formate les settings pour le frontend admin
    * @private
+   * Note: La BDD utilise les catégories: site, livraison, commande, emails
    */
   _formatForFrontend(settings) {
     return {
       general: {
-        nomSite: settings.general?.site_nom || 'Jana Distribution',
-        description: settings.general?.site_description || '',
-        email: settings.general?.site_email || '',
-        telephone: settings.general?.site_telephone || '',
-        adresse: settings.general?.site_adresse || '',
-        codePostal: settings.general?.site_code_postal || '',
-        ville: settings.general?.site_ville || '',
-        siret: settings.general?.site_siret || '',
-        tvaIntracommunautaire: settings.general?.site_tva_intra || ''
+        nomSite: settings.site?.site_nom || 'Jana Distribution',
+        description: settings.site?.site_description || '',
+        email: settings.site?.site_email || '',
+        telephone: settings.site?.site_telephone || '',
+        adresse: settings.site?.site_adresse || '',
+        codePostal: settings.site?.site_code_postal || '',
+        ville: settings.site?.site_ville || '',
+        siret: settings.site?.site_siret || '',
+        tvaIntracommunautaire: settings.site?.site_tva_intra || ''
       },
       delivery: {
-        fraisLivraisonStandard: settings.delivery?.livraison_frais_standard || 15,
-        seuilFrancoPort: settings.delivery?.livraison_seuil_franco || 150,
-        delaiLivraisonMin: settings.delivery?.livraison_delai_min || 2,
-        delaiLivraisonMax: settings.delivery?.livraison_delai_max || 5,
-        zonesLivraison: settings.delivery?.livraison_zones || 'France métropolitaine',
-        messageIndisponible: settings.delivery?.livraison_message_indisponible || ''
+        fraisLivraisonStandard: settings.livraison?.livraison_frais_standard || 15,
+        seuilFrancoPort: settings.livraison?.livraison_seuil_franco || 150,
+        delaiLivraisonMin: settings.livraison?.livraison_delai_min || 2,
+        delaiLivraisonMax: settings.livraison?.livraison_delai_max || 5,
+        zonesLivraison: settings.livraison?.livraison_zones || 'France métropolitaine',
+        messageIndisponible: settings.livraison?.livraison_message_indisponible || ''
       },
       orders: {
-        montantMinCommande: settings.orders?.commande_montant_min || 20,
-        tauxTvaDefaut: settings.orders?.commande_tva_defaut || 5.5,
-        stockAlerteSeuil: settings.orders?.commande_stock_alerte || 10,
-        nombreProduitsParPage: settings.orders?.commande_produits_par_page || 12,
-        autoriserCommandeSansStock: settings.orders?.commande_autoriser_sans_stock || false,
-        envoyerEmailConfirmation: settings.orders?.commande_email_confirmation !== false,
-        envoyerEmailExpedition: settings.orders?.commande_email_expedition !== false
+        montantMinCommande: settings.commande?.commande_montant_min || 20,
+        tauxTvaDefaut: settings.commande?.commande_tva_defaut || 5.5,
+        stockAlerteSeuil: settings.commande?.commande_stock_alerte || 10,
+        nombreProduitsParPage: settings.commande?.commande_produits_par_page || 12,
+        autoriserCommandeSansStock: settings.commande?.commande_autoriser_sans_stock || false,
+        envoyerEmailConfirmation: settings.commande?.commande_email_confirmation !== false,
+        envoyerEmailExpedition: settings.commande?.commande_email_expedition !== false
       },
       emails: {
         expediteur: settings.emails?.email_expediteur || '',

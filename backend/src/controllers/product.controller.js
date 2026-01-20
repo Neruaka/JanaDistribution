@@ -11,6 +11,7 @@
 
 const productService = require('../services/product.service');
 const logger = require('../config/logger');
+const { deleteImage } = require('../middlewares/upload.middleware');
 
 class ProductController {
   /**
@@ -433,6 +434,64 @@ class ProductController {
         success: true,
         message: 'Stock mis à jour avec succès',
         data: product
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * POST /api/products/upload-image
+   * Upload d'une image produit (admin)
+   */
+  async uploadImage(req, res, next) {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: 'Aucun fichier uploadé'
+        });
+      }
+
+      const imageUrl = `/uploads/products/${req.file.filename}`;
+
+      logger.info(`Image uploadée par ${req.user?.email}: ${req.file.filename}`);
+
+      res.json({
+        success: true,
+        message: 'Image uploadée avec succès',
+        data: {
+          imageUrl,
+          filename: req.file.filename
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * DELETE /api/products/image/:filename
+   * Supprime une image produit (admin)
+   */
+  async deleteProductImage(req, res, next) {
+    try {
+      const { filename } = req.params;
+
+      if (!filename) {
+        return res.status(400).json({
+          success: false,
+          message: 'Nom de fichier requis'
+        });
+      }
+
+      deleteImage(filename);
+
+      logger.info(`Image supprimée par ${req.user?.email}: ${filename}`);
+
+      res.json({
+        success: true,
+        message: 'Image supprimée avec succès'
       });
     } catch (error) {
       next(error);
