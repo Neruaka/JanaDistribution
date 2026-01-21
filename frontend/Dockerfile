@@ -2,6 +2,7 @@
 # DOCKERFILE - JANA DISTRIBUTION FRONTEND
 # =============================================
 # Multi-stage build avec Nginx pour servir les fichiers statiques
+# Compatible Railway (port dynamique)
 
 # =============================================
 # STAGE 1: Builder
@@ -20,7 +21,7 @@ RUN npm ci
 COPY . .
 
 # Arguments de build pour les variables d'environnement
-ARG VITE_API_URL=http://localhost:3000/api
+ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
 
 # Build de production
@@ -38,19 +39,26 @@ LABEL version="1.0.0"
 
 # Supprimer la configuration par défaut de Nginx
 RUN rm -rf /usr/share/nginx/html/*
+RUN rm /etc/nginx/conf.d/default.conf
 
 # Copier les fichiers buildés depuis le stage builder
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copier la configuration Nginx personnalisée
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copier le template de configuration Nginx
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 
-# Exposer le port 80
+# Railway injecte $PORT - Nginx utilisera envsubst automatiquement
+# L'image nginx:alpine exécute envsubst sur les fichiers .template au démarrage
+
+# Port par défaut (sera remplacé par $PORT de Railway)
+ENV PORT=80
+
+# Exposer le port (informatif)
 EXPOSE 80
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:80/ || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/ || exit 1
 
-# Commande de démarrage
+# Commande de démarrage (utilise le entrypoint par défaut de nginx:alpine)
 CMD ["nginx", "-g", "daemon off;"]
