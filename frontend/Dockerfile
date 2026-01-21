@@ -45,7 +45,7 @@ RUN rm /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Copier le template de configuration Nginx
-COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 
 # Railway injecte $PORT - Nginx utilisera envsubst automatiquement
 # L'image nginx:alpine exécute envsubst sur les fichiers .template au démarrage
