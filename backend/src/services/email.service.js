@@ -1,102 +1,72 @@
 /**
  * Email Service
- * @description Gestion des emails avec Nodemailer
- * 
- * Fonctionnalités :
+ * @description Gestion des emails avec Resend (HTTP API)
+ *
+ * Fonctionnalites :
  * - Notification changement statut commande
- * - Email mot de passe oublié
- * - Email de bienvenue (optionnel)
+ * - Email mot de passe oublie
+ * - Email de bienvenue
  */
 
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const logger = require('../config/logger');
 
 class EmailService {
   constructor() {
-    this.transporter = null;
+    this.resend = null;
     this.initialized = false;
+    this.fromEmail = null;
   }
 
   /**
-   * Initialise le transporteur Nodemailer
+   * Initialise le client Resend
    */
   init() {
     if (this.initialized) return;
 
-    const smtpUser = process.env.SMTP_USER;
-    const smtpPass = process.env.SMTP_PASS;
+    const apiKey = process.env.RESEND_API_KEY;
 
-    // Vérifier que les credentials sont configurés
-    if (!smtpUser || !smtpPass) {
-      logger.warn('⚠️ Configuration SMTP manquante - les emails ne seront pas envoyés');
+    if (!apiKey) {
+      logger.warn('⚠️ RESEND_API_KEY manquante - les emails ne seront pas envoyes');
       return;
     }
 
-    logger.info(`📧 Configuration SMTP: host=${process.env.SMTP_HOST || 'smtp.gmail.com'}, port=${process.env.SMTP_PORT || 587}, user=${smtpUser}`);
-
-    const config = {
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT) || 587,
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: {
-        user: smtpUser,
-        pass: smtpPass
-      },
-      tls: {
-        rejectUnauthorized: false
-      }
-    };
-
-    this.transporter = nodemailer.createTransport(config);
+    this.resend = new Resend(apiKey);
+    this.fromEmail = process.env.RESEND_FROM_EMAIL || 'Jana Distribution <onboarding@resend.dev>';
     this.initialized = true;
 
-    // Vérifier la connexion
-    this.transporter.verify()
-      .then(() => logger.info('✅ Service email connecté'))
-      .catch(err => {
-        logger.error(`❌ Erreur connexion SMTP: ${err.code || 'UNKNOWN'} - ${err.message}`);
-        logger.error(`❌ SMTP Details: ${JSON.stringify({ host: config.host, port: config.port, secure: config.secure, user: config.auth.user })}`);
-      });
+    logger.info(`📧 Service email Resend initialise (from: ${this.fromEmail})`);
   }
 
   /**
-   * Envoie un email
+   * Envoie un email via Resend
    * @param {Object} options - Options de l'email
    */
   async sendMail(options) {
-    if (!this.transporter) {
-      logger.warn('Email non envoyé - SMTP non configuré:', options.subject);
-      return { success: false, reason: 'SMTP non configuré' };
+    if (!this.resend) {
+      logger.warn(`Email non envoye - Resend non configure: ${options.subject}`);
+      return { success: false, reason: 'Resend non configure' };
     }
 
     try {
-      const mailOptions = {
-        from: `"${process.env.SMTP_FROM_NAME || 'Jana Distribution'}" <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER}>`,
+      const result = await this.resend.emails.send({
+        from: this.fromEmail,
         to: options.to,
         subject: options.subject,
-        html: options.html,
-        text: options.text || this.htmlToText(options.html)
-      };
+        html: options.html
+      });
 
-      const result = await this.transporter.sendMail(mailOptions);
-      logger.info(`📧 Email envoyé à ${options.to}: ${options.subject}`);
-      
-      return { success: true, messageId: result.messageId };
+      if (result.error) {
+        logger.error(`❌ Erreur envoi email: ${result.error.message}`);
+        return { success: false, error: result.error.message };
+      }
+
+      logger.info(`📧 Email envoye a ${options.to}: ${options.subject}`);
+      return { success: true, messageId: result.data?.id };
     } catch (error) {
-      logger.error('❌ Erreur envoi email:', error.message);
+      logger.error(`❌ Erreur envoi email: ${error.message}`);
       return { success: false, error: error.message };
     }
-  }
-
-  /**
-   * Convertit HTML en texte brut (basique)
-   */
-  htmlToText(html) {
-    return html
-      .replace(/<style[^>]*>.*<\/style>/gi, '')
-      .replace(/<[^>]+>/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
   }
 
   // ==========================================
@@ -124,29 +94,29 @@ class EmailService {
               <tr>
                 <td style="background-color: #22C55E; padding: 30px; text-align: center;">
                   <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">
-                    🥬 Jana Distribution
+                    Jana Distribution
                   </h1>
                   <p style="margin: 10px 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">
-                    Produits alimentaires de qualité
+                    Produits alimentaires de qualite
                   </p>
                 </td>
               </tr>
-              
+
               <!-- Content -->
               <tr>
                 <td style="padding: 40px 30px;">
                   ${content}
                 </td>
               </tr>
-              
+
               <!-- Footer -->
               <tr>
                 <td style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-top: 1px solid #e9ecef;">
                   <p style="margin: 0; color: #6c757d; font-size: 12px;">
-                    © ${new Date().getFullYear()} Jana Distribution - Tous droits réservés
+                    &copy; ${new Date().getFullYear()} Jana Distribution - Tous droits reserves
                   </p>
                   <p style="margin: 10px 0 0; color: #6c757d; font-size: 12px;">
-                    Cet email a été envoyé automatiquement, merci de ne pas y répondre.
+                    Cet email a ete envoye automatiquement, merci de ne pas y repondre.
                   </p>
                 </td>
               </tr>
@@ -169,11 +139,11 @@ class EmailService {
   getStatusLabel(statut) {
     const labels = {
       'EN_ATTENTE': { label: 'En attente de confirmation', color: '#f59e0b', icon: '⏳' },
-      'CONFIRMEE': { label: 'Confirmée', color: '#3b82f6', icon: '✅' },
-      'EN_PREPARATION': { label: 'En cours de préparation', color: '#8b5cf6', icon: '📦' },
-      'EXPEDIEE': { label: 'Expédiée', color: '#06b6d4', icon: '🚚' },
-      'LIVREE': { label: 'Livrée', color: '#22c55e', icon: '🎉' },
-      'ANNULEE': { label: 'Annulée', color: '#ef4444', icon: '❌' }
+      'CONFIRMEE': { label: 'Confirmee', color: '#3b82f6', icon: '✅' },
+      'EN_PREPARATION': { label: 'En cours de preparation', color: '#8b5cf6', icon: '📦' },
+      'EXPEDIEE': { label: 'Expediee', color: '#06b6d4', icon: '🚚' },
+      'LIVREE': { label: 'Livree', color: '#22c55e', icon: '🎉' },
+      'ANNULEE': { label: 'Annulee', color: '#ef4444', icon: '❌' }
     };
     return labels[statut] || { label: statut, color: '#6b7280', icon: '📋' };
   }
@@ -187,36 +157,36 @@ class EmailService {
    */
   async sendOrderStatusEmail(order, oldStatus, newStatus, user) {
     const statusInfo = this.getStatusLabel(newStatus);
-    
-    // Messages personnalisés selon le statut
+
+    // Messages personnalises selon le statut
     const messages = {
-      'CONFIRMEE': 'Bonne nouvelle ! Votre commande a été confirmée et sera bientôt préparée.',
-      'EN_PREPARATION': 'Notre équipe prépare actuellement votre commande avec soin.',
-      'EXPEDIEE': 'Votre commande est en route ! Elle arrivera bientôt chez vous.',
-      'LIVREE': 'Votre commande a été livrée. Nous espérons que vous êtes satisfait !',
-      'ANNULEE': 'Votre commande a été annulée. Si vous avez des questions, contactez-nous.'
+      'CONFIRMEE': 'Bonne nouvelle ! Votre commande a ete confirmee et sera bientot preparee.',
+      'EN_PREPARATION': 'Notre equipe prepare actuellement votre commande avec soin.',
+      'EXPEDIEE': 'Votre commande est en route ! Elle arrivera bientot chez vous.',
+      'LIVREE': 'Votre commande a ete livree. Nous esperons que vous etes satisfait !',
+      'ANNULEE': 'Votre commande a ete annulee. Si vous avez des questions, contactez-nous.'
     };
 
     const content = `
       <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px;">
         Bonjour ${user.prenom || user.nom} ! ${statusInfo.icon}
       </h2>
-      
+
       <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
-        ${messages[newStatus] || 'Le statut de votre commande a été mis à jour.'}
+        ${messages[newStatus] || 'Le statut de votre commande a ete mis a jour.'}
       </p>
-      
+
       <!-- Status Badge -->
       <div style="background-color: ${statusInfo.color}15; border-left: 4px solid ${statusInfo.color}; padding: 15px 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">
         <p style="margin: 0; color: ${statusInfo.color}; font-weight: 600; font-size: 18px;">
           ${statusInfo.icon} ${statusInfo.label}
         </p>
       </div>
-      
+
       <!-- Order Info -->
       <div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0;">
         <h3 style="margin: 0 0 15px; color: #374151; font-size: 16px; font-weight: 600;">
-          📋 Détails de la commande
+          Details de la commande
         </h3>
         <table width="100%" style="font-size: 14px; color: #4b5563;">
           <tr>
@@ -249,17 +219,17 @@ class EmailService {
           </tr>
         </table>
       </div>
-      
+
       <!-- CTA Button -->
       <div style="text-align: center; margin: 30px 0;">
-        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/mes-commandes/${order.id}" 
+        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/mes-commandes/${order.id}"
            style="display: inline-block; background-color: #22C55E; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px;">
           Voir ma commande
         </a>
       </div>
-      
+
       <p style="margin: 20px 0 0; color: #6b7280; font-size: 14px; text-align: center;">
-        Une question ? Contactez-nous à <a href="mailto:contact@jana-distribution.fr" style="color: #22c55e;">contact@jana-distribution.fr</a>
+        Une question ? Contactez-nous a <a href="mailto:contact@jana-distribution.fr" style="color: #22c55e;">contact@jana-distribution.fr</a>
       </p>
     `;
 
@@ -275,41 +245,41 @@ class EmailService {
   // ==========================================
 
   /**
-   * Envoie un email de réinitialisation de mot de passe
+   * Envoie un email de reinitialisation de mot de passe
    * @param {Object} user - L'utilisateur
-   * @param {string} resetToken - Token de réinitialisation
+   * @param {string} resetToken - Token de reinitialisation
    */
   async sendPasswordResetEmail(user, resetToken) {
     const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
-    
+
     const content = `
       <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px;">
-        Réinitialisation de votre mot de passe 🔐
+        Reinitialisation de votre mot de passe
       </h2>
-      
+
       <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
         Bonjour ${user.prenom || user.nom},
       </p>
-      
+
       <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
-        Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe :
+        Vous avez demande la reinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour creer un nouveau mot de passe :
       </p>
-      
+
       <!-- CTA Button -->
       <div style="text-align: center; margin: 30px 0;">
-        <a href="${resetUrl}" 
+        <a href="${resetUrl}"
            style="display: inline-block; background-color: #22C55E; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-          Réinitialiser mon mot de passe
+          Reinitialiser mon mot de passe
         </a>
       </div>
-      
+
       <!-- Warning -->
       <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">
         <p style="margin: 0; color: #92400e; font-size: 14px;">
-          ⚠️ Ce lien expire dans <strong>1 heure</strong>. Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.
+          Ce lien expire dans <strong>1 heure</strong>. Si vous n'avez pas demande cette reinitialisation, ignorez cet email.
         </p>
       </div>
-      
+
       <p style="margin: 20px 0 0; color: #6b7280; font-size: 14px;">
         Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br>
         <a href="${resetUrl}" style="color: #22c55e; word-break: break-all;">${resetUrl}</a>
@@ -318,27 +288,27 @@ class EmailService {
 
     return this.sendMail({
       to: user.email,
-      subject: '🔐 Réinitialisation de votre mot de passe - Jana Distribution',
+      subject: 'Reinitialisation de votre mot de passe - Jana Distribution',
       html: this.getBaseTemplate(content)
     });
   }
 
   /**
-   * Envoie un email de confirmation après changement de mot de passe
+   * Envoie un email de confirmation apres changement de mot de passe
    * @param {Object} user - L'utilisateur
    */
   async sendPasswordChangedEmail(user) {
     const content = `
       <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px;">
-        Mot de passe modifié ✅
+        Mot de passe modifie
       </h2>
-      
+
       <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
         Bonjour ${user.prenom || user.nom},
       </p>
-      
+
       <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
-        Votre mot de passe a été modifié avec succès le ${new Date().toLocaleDateString('fr-FR', {
+        Votre mot de passe a ete modifie avec succes le ${new Date().toLocaleDateString('fr-FR', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -346,18 +316,18 @@ class EmailService {
     minute: '2-digit'
   })}.
       </p>
-      
+
       <!-- Warning -->
       <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 15px 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">
         <p style="margin: 0; color: #991b1b; font-size: 14px;">
-          🚨 Si vous n'êtes pas à l'origine de cette modification, contactez-nous immédiatement à 
+          Si vous n'etes pas a l'origine de cette modification, contactez-nous immediatement a
           <a href="mailto:contact@jana-distribution.fr" style="color: #ef4444;">contact@jana-distribution.fr</a>
         </p>
       </div>
-      
+
       <!-- CTA Button -->
       <div style="text-align: center; margin: 30px 0;">
-        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/connexion" 
+        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/connexion"
            style="display: inline-block; background-color: #22C55E; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px;">
           Me connecter
         </a>
@@ -366,58 +336,58 @@ class EmailService {
 
     return this.sendMail({
       to: user.email,
-      subject: '✅ Votre mot de passe a été modifié - Jana Distribution',
+      subject: 'Votre mot de passe a ete modifie - Jana Distribution',
       html: this.getBaseTemplate(content)
     });
   }
 
   // ==========================================
-  // EMAIL DE BIENVENUE (optionnel)
+  // EMAIL DE BIENVENUE
   // ==========================================
 
   /**
-   * Envoie un email de bienvenue après inscription
+   * Envoie un email de bienvenue apres inscription
    * @param {Object} user - L'utilisateur
    */
   async sendWelcomeEmail(user) {
     const content = `
       <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px;">
-        Bienvenue chez Jana Distribution ! 🎉
+        Bienvenue chez Jana Distribution !
       </h2>
-      
+
       <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
         Bonjour ${user.prenom || user.nom},
       </p>
-      
+
       <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
-        Merci de nous avoir rejoint ! Votre compte a été créé avec succès. Vous pouvez maintenant profiter de tous nos produits alimentaires de qualité.
+        Merci de nous avoir rejoint ! Votre compte a ete cree avec succes. Vous pouvez maintenant profiter de tous nos produits alimentaires de qualite.
       </p>
-      
+
       <!-- Features -->
       <div style="background-color: #f0fdf4; border-radius: 8px; padding: 20px; margin: 20px 0;">
         <h3 style="margin: 0 0 15px; color: #166534; font-size: 16px; font-weight: 600;">
-          ✨ Ce qui vous attend
+          Ce qui vous attend
         </h3>
         <ul style="margin: 0; padding: 0 0 0 20px; color: #4b5563; font-size: 14px; line-height: 1.8;">
-          <li>Des produits frais et de qualité</li>
-          <li>Des prix adaptés aux particuliers et professionnels</li>
-          <li>Un suivi de vos commandes en temps réel</li>
+          <li>Des produits frais et de qualite</li>
+          <li>Des prix adaptes aux particuliers et professionnels</li>
+          <li>Un suivi de vos commandes en temps reel</li>
           <li>Des promotions exclusives</li>
         </ul>
       </div>
-      
+
       <!-- CTA Button -->
       <div style="text-align: center; margin: 30px 0;">
-        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/catalogue" 
+        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/catalogue"
            style="display: inline-block; background-color: #22C55E; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-          Découvrir nos produits
+          Decouvrir nos produits
         </a>
       </div>
     `;
 
     return this.sendMail({
       to: user.email,
-      subject: '🎉 Bienvenue chez Jana Distribution !',
+      subject: 'Bienvenue chez Jana Distribution !',
       html: this.getBaseTemplate(content)
     });
   }
