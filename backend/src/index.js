@@ -139,6 +139,12 @@ app.use(errorHandler);
 // ==========================================
 const startServer = async () => {
   try {
+    // Démarrage du serveur HTTP en premier (pour que le healthcheck réponde)
+    app.listen(PORT, () => {
+      logger.info(`🚀 Serveur démarré sur le port ${PORT}`);
+      logger.info(`📚 Environment: ${process.env.NODE_ENV}`);
+    });
+
     // Connexion à PostgreSQL
     await connectDB();
     logger.info('✅ Connexion PostgreSQL établie');
@@ -151,15 +157,7 @@ const startServer = async () => {
       logger.warn('⚠️ Redis non disponible, fonctionnement sans cache');
     }
 
-    // Démarrage du serveur
-    app.listen(PORT, () => {
-      logger.info(`🚀 Serveur démarré sur http://localhost:${PORT}`);
-      logger.info(`📚 Environment: ${process.env.NODE_ENV}`);
-      logger.info('📊 Routes disponibles:');
-      logger.info('   - /api/admin/stats/* (dashboard)');
-      logger.info('   - /api/admin/clients/* (gestion clients)');
-      logger.info('   - /api/admin/orders/* (gestion commandes)');
-    });
+    logger.info('📊 Serveur prêt - toutes les connexions établies');
   } catch (error) {
     logger.error('❌ Erreur au démarrage du serveur:', error);
     process.exit(1);
