@@ -1,6 +1,6 @@
 /**
  * Email Service
- * @description Gestion des emails avec Resend (HTTP API)
+ * @description Gestion des emails avec Brevo (ex-Sendinblue) HTTP API
  *
  * Fonctionnalites :
  * - Notification changement statut commande
@@ -8,64 +8,67 @@
  * - Email de bienvenue
  */
 
-const { Resend } = require('resend');
+const SibApiV3Sdk = require('@getbrevo/brevo');
 const logger = require('../config/logger');
 
 class EmailService {
   constructor() {
-    this.resend = null;
+    this.apiInstance = null;
     this.initialized = false;
-    this.fromEmail = null;
+    this.senderEmail = null;
+    this.senderName = null;
   }
 
   /**
-   * Initialise le client Resend
+   * Initialise le client Brevo
    */
   init() {
     if (this.initialized) return;
 
-    const apiKey = process.env.RESEND_API_KEY;
+    const apiKey = process.env.BREVO_API_KEY;
 
     if (!apiKey) {
-      logger.warn('⚠️ RESEND_API_KEY manquante - les emails ne seront pas envoyes');
+      logger.warn('⚠️ BREVO_API_KEY manquante - les emails ne seront pas envoyes');
       return;
     }
 
-    this.resend = new Resend(apiKey);
-    this.fromEmail = process.env.RESEND_FROM_EMAIL || 'Jana Distribution <onboarding@resend.dev>';
+    const defaultClient = SibApiV3Sdk.ApiClient.instance;
+    const apiKeyAuth = defaultClient.authentications['api-key'];
+    apiKeyAuth.apiKey = apiKey;
+
+    this.apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+    this.senderEmail = process.env.BREVO_SENDER_EMAIL || 'noreply@jana-distribution.fr';
+    this.senderName = process.env.BREVO_SENDER_NAME || 'Jana Distribution';
     this.initialized = true;
 
-    logger.info(`📧 Service email Resend initialise (from: ${this.fromEmail})`);
+    logger.info(`📧 Service email Brevo initialise (from: ${this.senderName} <${this.senderEmail}>)`);
   }
 
   /**
-   * Envoie un email via Resend
+   * Envoie un email via Brevo
    * @param {Object} options - Options de l'email
    */
   async sendMail(options) {
-    if (!this.resend) {
-      logger.warn(`Email non envoye - Resend non configure: ${options.subject}`);
-      return { success: false, reason: 'Resend non configure' };
+    if (!this.apiInstance) {
+      logger.warn(`Email non envoye - Brevo non configure: ${options.subject}`);
+      return { success: false, reason: 'Brevo non configure' };
     }
 
     try {
-      const result = await this.resend.emails.send({
-        from: this.fromEmail,
-        to: options.to,
-        subject: options.subject,
-        html: options.html
-      });
+      const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+      sendSmtpEmail.sender = { name: this.senderName, email: this.senderEmail };
+      sendSmtpEmail.to = [{ email: options.to }];
+      sendSmtpEmail.subject = options.subject;
+      sendSmtpEmail.htmlContent = options.html;
 
-      if (result.error) {
-        logger.error(`❌ Erreur envoi email: ${result.error.message}`);
-        return { success: false, error: result.error.message };
-      }
+      const result = await this.apiInstance.sendTransacEmail(sendSmtpEmail);
 
-      logger.info(`📧 Email envoye a ${options.to}: ${options.subject}`);
-      return { success: true, messageId: result.data?.id };
+      logger.info(`📧 Email envoye a ${options.to}: ${options.subject} (messageId: ${result.messageId})`);
+      return { success: true, messageId: result.messageId };
     } catch (error) {
-      logger.error(`❌ Erreur envoi email: ${error.message}`);
-      return { success: false, error: error.message };
+      const errorMsg = error.response?.body?.message || error.message;
+      logger.error(`❌ Erreur envoi email a ${options.to}: ${errorMsg}`);
+      return { success: false, error: errorMsg };
     }
   }
 
@@ -158,7 +161,6 @@ class EmailService {
   async sendOrderStatusEmail(order, oldStatus, newStatus, user) {
     const statusInfo = this.getStatusLabel(newStatus);
 
-    // Messages personnalises selon le statut
     const messages = {
       'CONFIRMEE': 'Bonne nouvelle ! Votre commande a ete confirmee et sera bientot preparee.',
       'EN_PREPARATION': 'Notre equipe prepare actuellement votre commande avec soin.',
@@ -191,7 +193,7 @@ class EmailService {
         <table width="100%" style="font-size: 14px; color: #4b5563;">
           <tr>
             <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
-              <strong>N° de commande</strong>
+              <strong>N de commande</strong>
             </td>
             <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb; text-align: right;">
               ${order.numeroCommande}
