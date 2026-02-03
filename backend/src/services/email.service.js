@@ -23,21 +23,29 @@ class EmailService {
   init() {
     if (this.initialized) return;
 
-    const config = {
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT) || 587,
-      secure: process.env.SMTP_SECURE === 'true', // true pour 465, false pour autres
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      }
-    };
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPass = process.env.SMTP_PASS;
 
     // Vérifier que les credentials sont configurés
-    if (!config.auth.user || !config.auth.pass) {
+    if (!smtpUser || !smtpPass) {
       logger.warn('⚠️ Configuration SMTP manquante - les emails ne seront pas envoyés');
       return;
     }
+
+    logger.info(`📧 Configuration SMTP: host=${process.env.SMTP_HOST || 'smtp.gmail.com'}, port=${process.env.SMTP_PORT || 587}, user=${smtpUser}`);
+
+    const config = {
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.SMTP_PORT) || 587,
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: smtpUser,
+        pass: smtpPass
+      },
+      tls: {
+        rejectUnauthorized: false
+      }
+    };
 
     this.transporter = nodemailer.createTransport(config);
     this.initialized = true;
@@ -45,7 +53,10 @@ class EmailService {
     // Vérifier la connexion
     this.transporter.verify()
       .then(() => logger.info('✅ Service email connecté'))
-      .catch(err => logger.error('❌ Erreur connexion SMTP:', err.message));
+      .catch(err => {
+        logger.error(`❌ Erreur connexion SMTP: ${err.code || 'UNKNOWN'} - ${err.message}`);
+        logger.error(`❌ SMTP Details: ${JSON.stringify({ host: config.host, port: config.port, secure: config.secure, user: config.auth.user })}`);
+      });
   }
 
   /**
