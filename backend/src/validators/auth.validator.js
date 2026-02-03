@@ -33,7 +33,7 @@ const registerValidation = [
     .trim()
     .notEmpty().withMessage('L\'email est obligatoire')
     .isEmail().withMessage('L\'email doit être valide')
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false }),
 
   body('motDePasse')
     .notEmpty().withMessage('Le mot de passe est obligatoire')
@@ -108,7 +108,7 @@ const loginValidation = [
     .trim()
     .notEmpty().withMessage('L\'email est obligatoire')
     .isEmail().withMessage('L\'email doit être valide')
-    .normalizeEmail(),
+    .normalizeEmail({ gmail_remove_dots: false }),
 
   body('motDePasse')
     .notEmpty().withMessage('Le mot de passe est obligatoire'),
