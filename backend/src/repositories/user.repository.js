@@ -116,7 +116,7 @@ class UserRepository {
    * @returns {Promise<boolean>} true si l'email existe
    */
   async emailExists(email) {
-    const sql = 'ELECT 1 FROM utilisateur WHERE email = $1';
+    const sql = 'SELECT 1 FROM utilisateur WHERE email = $1';
     const result = await query(sql, [email.toLowerCase()]);
     return result.rows.length > 0;
   }
