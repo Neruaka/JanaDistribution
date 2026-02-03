@@ -1,6 +1,6 @@
 /**
  * Email Service
- * @description Gestion des emails avec Brevo (ex-Sendinblue) HTTP API
+ * @description Gestion des emails avec Brevo (ex-Sendinblue) via API REST
  *
  * Fonctionnalites :
  * - Notification changement statut commande
@@ -8,67 +8,70 @@
  * - Email de bienvenue
  */
 
-const SibApiV3Sdk = require('@getbrevo/brevo');
 const logger = require('../config/logger');
 
 class EmailService {
   constructor() {
-    this.apiInstance = null;
-    this.initialized = false;
+    this.apiKey = null;
     this.senderEmail = null;
     this.senderName = null;
   }
 
   /**
-   * Initialise le client Brevo
+   * Initialise la config Brevo
    */
   init() {
-    if (this.initialized) return;
+    this.apiKey = process.env.BREVO_API_KEY;
 
-    const apiKey = process.env.BREVO_API_KEY;
-
-    if (!apiKey) {
-      logger.warn('⚠️ BREVO_API_KEY manquante - les emails ne seront pas envoyes');
+    if (!this.apiKey) {
+      logger.warn('BREVO_API_KEY manquante - les emails ne seront pas envoyes');
       return;
     }
 
-    const defaultClient = SibApiV3Sdk.ApiClient.instance;
-    const apiKeyAuth = defaultClient.authentications['api-key'];
-    apiKeyAuth.apiKey = apiKey;
-
-    this.apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
     this.senderEmail = process.env.BREVO_SENDER_EMAIL || 'noreply@jana-distribution.fr';
     this.senderName = process.env.BREVO_SENDER_NAME || 'Jana Distribution';
-    this.initialized = true;
 
-    logger.info(`📧 Service email Brevo initialise (from: ${this.senderName} <${this.senderEmail}>)`);
+    logger.info(`Service email Brevo initialise (from: ${this.senderName} <${this.senderEmail}>)`);
   }
 
   /**
-   * Envoie un email via Brevo
+   * Envoie un email via l'API REST Brevo
    * @param {Object} options - Options de l'email
    */
   async sendMail(options) {
-    if (!this.apiInstance) {
+    if (!this.apiKey) {
       logger.warn(`Email non envoye - Brevo non configure: ${options.subject}`);
       return { success: false, reason: 'Brevo non configure' };
     }
 
     try {
-      const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
-      sendSmtpEmail.sender = { name: this.senderName, email: this.senderEmail };
-      sendSmtpEmail.to = [{ email: options.to }];
-      sendSmtpEmail.subject = options.subject;
-      sendSmtpEmail.htmlContent = options.html;
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'api-key': this.apiKey,
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify({
+          sender: { name: this.senderName, email: this.senderEmail },
+          to: [{ email: options.to }],
+          subject: options.subject,
+          htmlContent: options.html
+        })
+      });
 
-      const result = await this.apiInstance.sendTransacEmail(sendSmtpEmail);
+      const data = await response.json();
 
-      logger.info(`📧 Email envoye a ${options.to}: ${options.subject} (messageId: ${result.messageId})`);
-      return { success: true, messageId: result.messageId };
+      if (!response.ok) {
+        logger.error(`Erreur envoi email a ${options.to}: ${data.message || JSON.stringify(data)}`);
+        return { success: false, error: data.message || 'Erreur Brevo' };
+      }
+
+      logger.info(`Email envoye a ${options.to}: ${options.subject} (messageId: ${data.messageId})`);
+      return { success: true, messageId: data.messageId };
     } catch (error) {
-      const errorMsg = error.response?.body?.message || error.message;
-      logger.error(`❌ Erreur envoi email a ${options.to}: ${errorMsg}`);
-      return { success: false, error: errorMsg };
+      logger.error(`Erreur envoi email a ${options.to}: ${error.message}`);
+      return { success: false, error: error.message };
     }
   }
 
@@ -153,10 +156,6 @@ class EmailService {
 
   /**
    * Envoie un email de notification de changement de statut de commande
-   * @param {Object} order - La commande
-   * @param {string} oldStatus - Ancien statut
-   * @param {string} newStatus - Nouveau statut
-   * @param {Object} user - L'utilisateur
    */
   async sendOrderStatusEmail(order, oldStatus, newStatus, user) {
     const statusInfo = this.getStatusLabel(newStatus);
@@ -248,8 +247,6 @@ class EmailService {
 
   /**
    * Envoie un email de reinitialisation de mot de passe
-   * @param {Object} user - L'utilisateur
-   * @param {string} resetToken - Token de reinitialisation
    */
   async sendPasswordResetEmail(user, resetToken) {
     const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
@@ -297,7 +294,6 @@ class EmailService {
 
   /**
    * Envoie un email de confirmation apres changement de mot de passe
-   * @param {Object} user - L'utilisateur
    */
   async sendPasswordChangedEmail(user) {
     const content = `
@@ -349,7 +345,6 @@ class EmailService {
 
   /**
    * Envoie un email de bienvenue apres inscription
-   * @param {Object} user - L'utilisateur
    */
   async sendWelcomeEmail(user) {
     const content = `
