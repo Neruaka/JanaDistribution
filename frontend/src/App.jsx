@@ -38,6 +38,12 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 // Pages client
 import MonComptePage from './pages/MonComptePage';
 
+// Pages légales
+import CGVPage from './pages/CGVPage';
+import ConfidentialitePage from './pages/ConfidentialitePage';
+import MentionsLegalesPage from './pages/MentionsLegalesPage';
+import AccessibilitePage from './pages/AccessibilitePage';
+
 // Pages Admin
 import AdminLayout from './components/admin/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -107,6 +113,14 @@ function App() {
             <Route path="/catalogue" element={<PublicLayout><CataloguePage /></PublicLayout>} />
             <Route path="/produit/:slug" element={<PublicLayout><ProductDetailPage /></PublicLayout>} />
             <Route path="/panier" element={<PublicLayout><CartPage /></PublicLayout>} />
+
+            {/* ==================== */}
+            {/* Pages légales */}
+            {/* ==================== */}
+            <Route path="/cgv" element={<PublicLayout><CGVPage /></PublicLayout>} />
+            <Route path="/confidentialite" element={<PublicLayout><ConfidentialitePage /></PublicLayout>} />
+            <Route path="/mentions-legales" element={<PublicLayout><MentionsLegalesPage /></PublicLayout>} />
+            <Route path="/accessibilite" element={<PublicLayout><AccessibilitePage /></PublicLayout>} />
 
             {/* ==================== */}
             {/* Pages auth (sans Navbar/Footer) */}
