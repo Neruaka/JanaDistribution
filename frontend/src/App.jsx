@@ -3,8 +3,8 @@
  * @description Point d'entrÃ©e de l'application React
  * @location frontend/src/App.jsx
  * 
- * âœ… MODIF: Suppression des pages Promotions et CatÃ©gories
- * âœ… AJOUT: Recherche intelligente dans la Navbar
+ *  MODIF: Suppression des pages Promotions et Catégories
+ *  AJOUT: Recherche intelligente dans la Navbar
  */
 
 import { Routes, Route, Link } from 'react-router-dom';
@@ -61,9 +61,9 @@ const NotFoundPage = () => {
     <div className="flex-grow flex items-center justify-center bg-gray-100 py-20">
       <div className="text-center">
         <h1 className="text-6xl font-bold text-gray-300">404</h1>
-        <p className="text-xl text-gray-600 mt-4">Page non trouvÃ©e</p>
+        <p className="text-xl text-gray-600 mt-4">Page non trouvée</p>
         <Link to="/" className="text-green-600 hover:underline mt-4 inline-block">
-          Retour Ã  l'accueil
+          Retour à l'accueil
         </Link>
       </div>
     </div>
@@ -115,7 +115,7 @@ function App() {
             <Route path="/panier" element={<PublicLayout><CartPage /></PublicLayout>} />
 
             {/* ==================== */}
-            {/* Pages lÃ©gales */}
+            {/* Pages légales */}
             {/* ==================== */}
             <Route path="/cgv" element={<PublicLayout><CGVPage /></PublicLayout>} />
             <Route path="/confidentialite" element={<PublicLayout><ConfidentialitePage /></PublicLayout>} />
@@ -131,7 +131,7 @@ function App() {
             <Route path="/reset-password" element={<ResetPasswordPage />} />
 
             {/* ==================== */}
-            {/* Checkout (protÃ©gÃ©) */}
+            {/* Checkout (protégé) */}
             {/* ==================== */}
             <Route path="/checkout" element={
               <PrivateRoute>
@@ -151,7 +151,7 @@ function App() {
             } />
 
             {/* ==================== */}
-            {/* Pages protÃ©gÃ©es client */}
+            {/* Pages protégées client */}
             {/* ==================== */}
             <Route path="/mon-compte" element={
               <PrivateRoute>
@@ -192,7 +192,7 @@ function App() {
               <Route path="produits/:id" element={<AdminProductForm />} />
               <Route path="produits/:id/modifier" element={<AdminProductForm />} />
               
-              {/* CatÃ©gories */}
+              {/* Catégories */}
               <Route path="categories" element={<AdminCategoriesList />} />
               
               {/* Commandes */}
@@ -201,7 +201,7 @@ function App() {
               {/* Clients */}
               <Route path="clients" element={<AdminClientsList />} />
               
-              {/* ParamÃ¨tres */}
+              {/* Paramètres */}
               <Route path="parametres" element={<AdminSettingsPage />} />
               
               {/* Profil admin */}

@@ -1,8 +1,8 @@
 ﻿/**
- * Routes d'authentification - AVEC MOT DE PASSE OUBLIÃ‰
- * @description Inscription, connexion, dÃ©connexion, profil, reset password
+ * Routes d'authentification - AVEC MOT DE PASSE OUBLIÉ
+ * @description Inscription, connexion, déconnexion, profil, reset password
  * 
- * âœ… AJOUTS:
+ * AJOUTS:
  * - POST /api/auth/forgot-password
  * - POST /api/auth/reset-password
  */
@@ -47,39 +47,39 @@ router.post('/login', loginValidation, authController.login);
 
 /**
  * POST /api/auth/forgot-password
- * @description Demande de rÃ©initialisation de mot de passe
+ * @description Demande de réinitialisation de mot de passe
  * @access Public
  */
 router.post('/forgot-password', forgotPasswordValidation, authController.forgotPassword);
 
 /**
  * POST /api/auth/reset-password
- * @description RÃ©initialise le mot de passe avec le token
+ * @description Réinitialise le mot de passe avec le token
  * @access Public
  */
 router.post('/reset-password', resetPasswordValidation, authController.resetPassword);
 
 // ==========================================
-// ROUTES PROTÃ‰GÃ‰ES (authentification requise)
+// ROUTES PROTÉGÉES (authentification requise)
 // ==========================================
 
 /**
  * POST /api/auth/logout
- * @description DÃ©connexion de l'utilisateur
+ * @description Déconnexion de l'utilisateur
  * @access Private
  */
 router.post('/logout', authenticate, authController.logout);
 
 /**
  * GET /api/auth/me
- * @description RÃ©cupÃ¨re le profil de l'utilisateur connectÃ©
+ * @description Récupère le profil de l'utilisateur connecté
  * @access Private
  */
 router.get('/me', authenticate, authController.getProfile);
 
 /**
  * PUT /api/auth/profile
- * @description Met Ã  jour le profil de l'utilisateur
+ * @description Met à jour le profil de l'utilisateur
  * @access Private
  */
 router.put('/profile', authenticate, updateProfileValidation, authController.updateProfile);
@@ -93,14 +93,14 @@ router.put('/password', authenticate, changePasswordValidation, authController.c
 
 /**
  * POST /api/auth/refresh
- * @description RafraÃ®chit le token JWT
+ * @description Rafraîchit le token JWT
  * @access Public (refresh token requis)
  */
 router.post('/refresh', refreshTokenValidation, authController.refreshToken);
 
 
 /** * DELETE /api/auth/account
- * @description Supprime dÃ©finitivement le compte utilisateur
+ * @description Supprime définitivement le compte utilisateur
  * @access Private
  */
 router.delete('/account', authenticate, authController.deleteAccount);

@@ -1,10 +1,10 @@
 ﻿/**
  * Composant AdresseLivraison
- * Section 2 du checkout - Adresse de livraison avec sÃ©lection d'adresses enregistrÃ©es
+ * Section 2 du checkout - Adresse de livraison avec sélection d'adresses enregistrées
  * 
- * âœ… FIX: Correction bug sÃ©lection multiple sur premiÃ¨re ligne
- *    - Utilisation de l'INDEX au lieu de l'ID pour la sÃ©lection
- *    - SÃ©paration du bouton "Nouvelle adresse" de la map
+ *  FIX: Correction bug sélection multiple sur première ligne
+ *    - Utilisation de l'INDEX au lieu de l'ID pour la sélection
+ *    - Séparation du bouton "Nouvelle adresse" de la map
  */
 
 import { useState, useEffect } from 'react';
@@ -19,10 +19,10 @@ const AdresseLivraison = ({
   stepNumber = 2 
 }) => {
   const [savedAddresses, setSavedAddresses] = useState([]);
-  const [selectedIndex, setSelectedIndex] = useState(-1); // âœ… Utiliser l'index au lieu de l'ID
+  const [selectedIndex, setSelectedIndex] = useState(-1); // ✓ Utiliser l'index au lieu de l'ID
   const [useNewAddress, setUseNewAddress] = useState(false);
 
-  // Charger les adresses enregistrÃ©es depuis localStorage
+  // Charger les adresses enregistrées depuis localStorage
   useEffect(() => {
     if (userId) {
       const storageKey = `addresses_${userId}`;
@@ -34,7 +34,7 @@ const AdresseLivraison = ({
           const addresses = JSON.parse(storedAddresses);
           setSavedAddresses(addresses);
           
-          // Trouver l'index de l'adresse par dÃ©faut
+          // Trouver l'index de l'adresse par défaut
           const defaultIndex = addresses.findIndex(a => a.estDefaut);
           if (defaultIndex !== -1) {
             setSelectedIndex(defaultIndex);
@@ -63,7 +63,7 @@ const AdresseLivraison = ({
     onChange('ville', address.ville || '');
   };
 
-  // âœ… SÃ©lectionner une adresse par son INDEX (plus fiable que l'ID)
+  // ✓ Sélectionner une adresse par son INDEX (plus fiable que l'ID)
   const handleSelectAddress = (index) => {
     const address = savedAddresses[index];
     if (!address) return;
@@ -83,7 +83,7 @@ const AdresseLivraison = ({
     onChange('ville', '');
   };
 
-  // âœ… VÃ©rifier si une adresse est sÃ©lectionnÃ©e (par index strict)
+  // ✓ Vérifier si une adresse est sélectionnée (par index strict)
   const isSelected = (index) => {
     return selectedIndex === index && !useNewAddress;
   };
@@ -103,14 +103,14 @@ const AdresseLivraison = ({
         Adresse de livraison
       </h2>
 
-      {/* SÃ©lection d'adresses enregistrÃ©es */}
+      {/* Sélection d'adresses enregistrées */}
       {savedAddresses.length > 0 && (
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Choisir une adresse enregistrÃ©e
+            Choisir une adresse enregistrée
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* âœ… Liste des adresses avec INDEX comme clÃ© et comparaison */}
+            {/* ✓ Liste des adresses avec INDEX comme clé et comparaison */}
             {savedAddresses.map((address, index) => (
               <button
                 key={`saved-address-${index}`}
@@ -151,7 +151,7 @@ const AdresseLivraison = ({
               </button>
             ))}
             
-            {/* âœ… Bouton nouvelle adresse (HORS de la map pour Ã©viter les conflits) */}
+            {/* ✓ Bouton nouvelle adresse (HORS de la map pour éviter les conflits) */}
             <button
               type="button"
               onClick={handleUseNewAddress}
@@ -166,7 +166,7 @@ const AdresseLivraison = ({
                 <span className="font-medium text-gray-700">Nouvelle adresse</span>
               </div>
               <p className="text-sm text-gray-500 mt-1">
-                Saisir une adresse diffÃ©rente
+                Saisir une adresse différente
               </p>
             </button>
           </div>
@@ -200,17 +200,17 @@ const AdresseLivraison = ({
             )}
           </div>
 
-          {/* ComplÃ©ment */}
+          {/* Complément */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              ComplÃ©ment d'adresse <span className="text-gray-400">(optionnel)</span>
+              Complément d'adresse <span className="text-gray-400">(optionnel)</span>
             </label>
             <input
               type="text"
               value={formData.complement}
               onChange={(e) => onChange('complement', e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-400 transition-colors"
-              placeholder="BÃ¢timent A, 2Ã¨me Ã©tage..."
+              placeholder="Bâtiment A, 2ème étage..."
             />
           </div>
 
@@ -267,11 +267,11 @@ const AdresseLivraison = ({
         </div>
       )}
 
-      {/* Affichage de l'adresse sÃ©lectionnÃ©e (mode lecture) */}
+      {/* Affichage de l'adresse sélectionnée (mode lecture) */}
       {!useNewAddress && selectedIndex >= 0 && savedAddresses.length > 0 && (
         <div className="mt-4 p-4 bg-gray-50 rounded-xl">
           <p className="text-sm text-gray-700">
-            <strong>Adresse sÃ©lectionnÃ©e :</strong><br />
+            <strong>Adresse sélectionnée :</strong><br />
             {formData.adresse}
             {formData.complement && <>, {formData.complement}</>}<br />
             {formData.codePostal} {formData.ville}
