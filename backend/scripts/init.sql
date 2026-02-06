@@ -80,7 +80,7 @@ CREATE TABLE utilisateur (
   reset_token_expiry TIMESTAMP,
   date_creation TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   date_modification TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  derniere_connexion TIMESTAMP
+  derniere_connexion TIMESTAMP,
   CONSTRAINT chk_siret_pro CHECK (type_client != 'PROFESSIONNEL' OR siret IS NOT NULL)
 );
 
@@ -179,11 +179,11 @@ CREATE TABLE panier (
   session_id VARCHAR(255),
   date_creation TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   date_modification TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT panier_user_or_session CHECK (utilisateur_id IS NOT NULL OR session_id IS NOT NULL)
+  CONSTRAINT panier_user_or_session CHECK (utilisateur_id IS NOT NULL OR session_id IS NOT NULL),
+  CONSTRAINT panier_unique_utilisateur UNIQUE (utilisateur_id)
 );
 
 -- Index panier
-CREATE INDEX idx_panier_utilisateur_id ON panier(utilisateur_id);
 CREATE INDEX idx_panier_session_id ON panier(session_id) WHERE session_id IS NOT NULL;
 
 -- ============================================

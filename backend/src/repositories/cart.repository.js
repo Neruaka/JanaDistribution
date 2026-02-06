@@ -8,6 +8,7 @@
  */
 
 const { pool } = require('../config/database');
+const logger = require('../config/logger');
 
 class CartRepository {
   
@@ -22,25 +23,69 @@ class CartRepository {
     try {
       await client.query('BEGIN');
       
-      // Créer le panier de manière atomique, sinon récupérer l'existant
-      let cartResult = await client.query(
-        `INSERT INTO panier (utilisateur_id)
-         VALUES ($1)
-         ON CONFLICT (utilisateur_id) DO NOTHING
-         RETURNING id, utilisateur_id, date_creation, date_modification`,
+      // Sérialiser l'accès au panier utilisateur pour éviter les créations concurrentes
+      await client.query(
+        `SELECT id
+         FROM utilisateur
+         WHERE id = $1
+         FOR UPDATE`,
         [userId]
       );
 
-      if (cartResult.rows.length === 0) {
-        cartResult = await client.query(
-          `SELECT id, utilisateur_id, date_creation, date_modification
-           FROM panier
-           WHERE utilisateur_id = $1`,
+      const cartsResult = await client.query(
+        `SELECT id, utilisateur_id, date_creation, date_modification
+         FROM panier
+         WHERE utilisateur_id = $1
+         ORDER BY date_creation ASC`,
+        [userId]
+      );
+
+      let cartRow = cartsResult.rows[0];
+
+      if (!cartRow) {
+        const insertResult = await client.query(
+          `INSERT INTO panier (utilisateur_id)
+           VALUES ($1)
+           RETURNING id, utilisateur_id, date_creation, date_modification`,
           [userId]
         );
+        cartRow = insertResult.rows[0];
+      } else if (cartsResult.rows.length > 1) {
+        const duplicateCartIds = cartsResult.rows.slice(1).map(row => row.id);
+
+        await client.query(
+          `INSERT INTO ligne_panier (panier_id, produit_id, quantite, prix_unitaire, date_ajout)
+           SELECT $1, lp.produit_id, lp.quantite, lp.prix_unitaire, lp.date_ajout
+           FROM ligne_panier lp
+           WHERE lp.panier_id = ANY($2::uuid[])
+           ON CONFLICT (panier_id, produit_id) DO UPDATE
+           SET quantite = ligne_panier.quantite + EXCLUDED.quantite,
+               prix_unitaire = EXCLUDED.prix_unitaire,
+               date_ajout = GREATEST(ligne_panier.date_ajout, EXCLUDED.date_ajout)`,
+          [cartRow.id, duplicateCartIds]
+        );
+
+        await client.query(
+          `DELETE FROM panier
+           WHERE id = ANY($1::uuid[])`,
+          [duplicateCartIds]
+        );
+
+        await client.query(
+          `UPDATE panier
+           SET date_modification = NOW()
+           WHERE id = $1`,
+          [cartRow.id]
+        );
+
+        logger.warn('Duplicate carts were consolidated for user', {
+          userId,
+          keptCartId: cartRow.id,
+          duplicateCartIds
+        });
       }
 
-      const cart = this._mapCart(cartResult.rows[0]);
+      const cart = this._mapCart(cartRow);
       
       // récupérer les items du panier avec les infos produit
       // ATTENTION: table = ligne_panier, colonnes produit = prix, taux_tva
