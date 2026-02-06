@@ -1,5 +1,5 @@
-/**
- * Point d'entrée de l'API Jana Distribution
+﻿/**
+ * Point d'entrÃ©e de l'API Jana Distribution
  * @description Serveur Express avec PostgreSQL et Redis
  */
 
@@ -11,7 +11,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
 // Import des configurations
-const { connectDB } = require('./config/database');
+const { connectDB, query } = require('./config/database');
 const { connectRedis } = require('./config/redis');
 const logger = require('./config/logger');
 
@@ -33,10 +33,10 @@ const errorHandler = require('./middlewares/errorHandler');
 const notFoundHandler = require('./middlewares/notFoundHandler');
 
 // ==========================================
-// Gestion des uploads de fichiers (création du dossier si nécessaire)
+// Gestion des uploads de fichiers (crÃ©ation du dossier si nÃ©cessaire)
 // ==========================================
 
-// Créer le dossier uploads s'il n'existe pas
+// CrÃ©er le dossier uploads s'il n'existe pas
 const uploadsDir = path.join(__dirname, '../uploads/products');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -52,7 +52,7 @@ const PORT = process.env.PORT || 3000;
 // MIDDLEWARES GLOBAUX
 // ==========================================
 
-// Sécurité
+// SÃ©curitÃ©
 app.use(helmet());
 
 // CORS
@@ -63,17 +63,17 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Rate limiting - AJUSTÉ pour le développement
+// Rate limiting - AJUSTÃ‰ pour le dÃ©veloppement
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 1 * 60 * 1000, // 1 minute
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 500, // 500 requêtes par minute
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 500, // 500 requÃªtes par minute
   message: {
     success: false,
-    message: 'Trop de requêtes, veuillez réessayer plus tard.'
+    message: 'Trop de requÃªtes, veuillez rÃ©essayer plus tard.'
   },
   standardHeaders: true,
   legacyHeaders: false,
-  // Désactiver le rate limiting en développement
+  // DÃ©sactiver le rate limiting en dÃ©veloppement
   skip: (req) => process.env.NODE_ENV === 'development'
 });
 app.use('/api/', limiter);
@@ -82,7 +82,7 @@ app.use('/api/', limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Logging des requêtes
+// Logging des requÃªtes
 app.use((req, res, next) => {
   logger.info(`${req.method} ${req.url}`, {
     ip: req.ip,
@@ -104,13 +104,29 @@ app.use('/uploads', (req, res, next) => {
 }, express.static(path.join(__dirname, '../uploads')));
 
 // Health check
-app.get('/api/health', (req, res) => {
-  res.json({
-    success: true,
-    message: 'API Jana Distribution opérationnelle',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV
-  });
+app.get('/api/health', async (req, res) => {
+  try {
+    await query('SELECT 1');
+    res.json({
+      success: true,
+      message: 'API Jana Distribution operationnelle',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV,
+      services: {
+        database: 'up'
+      }
+    });
+  } catch (error) {
+    res.status(503).json({
+      success: false,
+      message: 'API indisponible',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV,
+      services: {
+        database: 'down'
+      }
+    });
+  }
 });
 
 // Routes API publiques
@@ -133,43 +149,42 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 // ==========================================
-// DÉMARRAGE DU SERVEUR
+// DÃ‰MARRAGE DU SERVEUR
 // ==========================================
 const startServer = async () => {
   try {
-    // Démarrage du serveur HTTP en premier (pour que le healthcheck réponde)
-    app.listen(PORT, () => {
-      logger.info(`🚀 Serveur démarré sur le port ${PORT}`);
-      logger.info(`📚 Environment: ${process.env.NODE_ENV}`);
-    });
-
-    // Connexion à PostgreSQL
+    // Connexion Ã  PostgreSQL
     await connectDB();
-    logger.info('✅ Connexion PostgreSQL établie');
+    logger.info('âœ… Connexion PostgreSQL Ã©tablie');
 
-    // Connexion à Redis (optionnel)
+    // Connexion Ã  Redis (optionnel)
     try {
       await connectRedis();
-      logger.info('✅ Connexion Redis établie');
+      logger.info('âœ… Connexion Redis Ã©tablie');
     } catch (redisError) {
-      logger.warn('⚠️ Redis non disponible, fonctionnement sans cache');
+      logger.warn('âš ï¸ Redis non disponible, fonctionnement sans cache');
     }
 
-    logger.info('📊 Serveur prêt - toutes les connexions établies');
+    app.listen(PORT, () => {
+      logger.info('Serveur demarre sur le port ' + PORT);
+      logger.info('Environment: ' + process.env.NODE_ENV);
+    });
+
+    logger.info('ðŸ“Š Serveur prÃªt - toutes les connexions Ã©tablies');
   } catch (error) {
-    logger.error('❌ Erreur au démarrage du serveur:', error);
+    logger.error('âŒ Erreur au dÃ©marrage du serveur:', error);
     process.exit(1);
   }
 };
 
-// Gestion propre de l'arrêt
+// Gestion propre de l'arrÃªt
 process.on('SIGTERM', () => {
-  logger.info('SIGTERM reçu, arrêt gracieux...');
+  logger.info('SIGTERM reÃ§u, arrÃªt gracieux...');
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
-  logger.info('SIGINT reçu, arrêt gracieux...');
+  logger.info('SIGINT reÃ§u, arrÃªt gracieux...');
   process.exit(0);
 });
 
