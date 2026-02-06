@@ -1,5 +1,5 @@
-/**
- * Page de Connexion - Version modernisée
+﻿/**
+ * Page de Connexion - Version modernisÃ©e
  * @description Formulaire de connexion avec animations
  */
 
@@ -36,7 +36,7 @@ const LoginPage = () => {
 
     try {
       await login(formData.email, formData.motDePasse);
-      toast.success('Connexion réussie ! 👋');
+      toast.success('Connexion rÃ©ussie ! ðŸ‘‹');
       navigate(from, { replace: true });
     } catch (err) {
       toast.error(err.message);
@@ -66,7 +66,7 @@ const LoginPage = () => {
           {/* Header */}
           <div className="text-center">
             <Link to="/" className="inline-flex items-center gap-2 text-2xl font-bold text-green-600 hover:text-green-700 transition-colors">
-              <span className="text-3xl">🥬</span>
+              <span className="text-3xl">ðŸ¥¬</span>
               Jana Distribution
             </Link>
             <motion.h2 
@@ -83,7 +83,7 @@ const LoginPage = () => {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              Connectez-vous pour accéder à votre compte
+              Connectez-vous pour accÃ©der Ã  votre compte
             </motion.p>
           </div>
 
@@ -137,7 +137,7 @@ const LoginPage = () => {
                     value={formData.motDePasse}
                     onChange={handleChange}
                     className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:border-green-400"
-                    placeholder="••••••••"
+                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   />
                   <button
                     type="button"
@@ -171,9 +171,9 @@ const LoginPage = () => {
                 />
                 <span className="ml-2 text-sm text-gray-600">Se souvenir de moi</span>
               </label>
-              <a href="/mot-de-passe-oublie" className="text-sm font-medium text-green-600 hover:text-green-500 transition-colors">
-                Mot de passe oublié ?
-              </a>
+              <Link to="/mot-de-passe-oublie" className="text-sm font-medium text-green-600 hover:text-green-500 transition-colors">
+                Mot de passe oubliÃ© ?
+              </Link>
             </div>
 
             {/* Submit button */}
@@ -209,7 +209,7 @@ const LoginPage = () => {
                 <div className="w-full border-t border-gray-200"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500">Comptes de démonstration</span>
+                <span className="px-4 bg-white text-gray-500">Comptes de dÃ©monstration</span>
               </div>
             </div>
 
@@ -241,7 +241,7 @@ const LoginPage = () => {
             <p className="text-center text-sm text-gray-600">
               Pas encore de compte ?{' '}
               <Link to="/register" className="font-semibold text-green-600 hover:text-green-500 transition-colors">
-                Créer un compte
+                CrÃ©er un compte
               </Link>
             </p>
           </motion.form>
@@ -265,20 +265,20 @@ const LoginPage = () => {
           >
             <div className="mb-8">
               <div className="inline-flex items-center justify-center w-24 h-24 bg-white/10 backdrop-blur rounded-3xl mb-6">
-                <span className="text-6xl">🥬</span>
+                <span className="text-6xl">ðŸ¥¬</span>
               </div>
               <h3 className="text-3xl font-bold mb-4">Votre grossiste de confiance</h3>
               <p className="text-green-100 text-lg max-w-md mx-auto">
-                Accédez à des milliers de produits frais et de qualité pour votre commerce ou votre foyer.
+                AccÃ©dez Ã  des milliers de produits frais et de qualitÃ© pour votre commerce ou votre foyer.
               </p>
             </div>
             
             <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
               {[
-                { icon: '📦', text: '+500 produits' },
-                { icon: '🚚', text: 'Livraison 24h' },
-                { icon: '💰', text: 'Prix grossiste' },
-                { icon: '✅', text: 'Qualité garantie' },
+                { icon: 'ðŸ“¦', text: '+500 produits' },
+                { icon: 'ðŸšš', text: 'Livraison 24h' },
+                { icon: 'ðŸ’°', text: 'Prix grossiste' },
+                { icon: 'âœ…', text: 'QualitÃ© garantie' },
               ].map((item, i) => (
                 <motion.div
                   key={i}
@@ -300,3 +300,4 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+

@@ -4,7 +4,7 @@
  * 
  * Ce context utilise le pattern "Provider" de React :
  * - On enveloppe l'app avec <AuthProvider>
- * - N'importe quel composant peut accÃ©der Ã  l'utilisateur avec useAuth()
+ * - N'importe quel composant peut accÃ©der Ã  l'utilisateur avec useAuth()
  */
 
 import { createContext, useContext, useState, useEffect } from 'react';
@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   /**
-   * Effet au montage : vÃ©rifie si l'utilisateur est dÃ©jÃ  connectÃ©
+   * Effet au montage : vÃ©rifie si l'utilisateur est dÃ©jÃ  connectÃ©
    * (token dans localStorage)
    */
   useEffect(() => {
@@ -131,9 +131,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Met Ã  jour le profil utilisateur
-   * @param {Object} updates - Champs Ã  mettre Ã  jour
-   * @returns {Object} Utilisateur mis Ã  jour
+   * Met Ã  jour le profil utilisateur
+   * @param {Object} updates - Champs Ã  mettre Ã  jour
+   * @returns {Object} Utilisateur mis Ã  jour
    */
   const updateProfile = async (updates) => {
     try {
@@ -142,14 +142,14 @@ export const AuthProvider = ({ children }) => {
       const response = await api.put('/auth/profile', updates);
       const updatedUser = response.data.data;
       
-      // Met Ã  jour l'Ã©tat et le localStorage
+      // Met Ã  jour l'Ã©tat et le localStorage
       setUser(updatedUser);
       sessionStorage.setItem('user', JSON.stringify(updatedUser));
       localStorage.removeItem('user');
       
       return updatedUser;
     } catch (err) {
-      const message = err.response?.data?.message || 'Erreur lors de la mise Ã  jour';
+      const message = err.response?.data?.message || 'Erreur lors de la mise Ã  jour';
       setError(message);
       throw new Error(message);
     }
@@ -205,3 +205,4 @@ export const AuthProvider = ({ children }) => {
 };
 
 export default AuthContext;
+
