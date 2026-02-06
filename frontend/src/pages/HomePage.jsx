@@ -13,7 +13,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { motion } from 'framer-motion';
-import { 
+import {
   ShoppingCart, 
   Truck, 
   Shield, 
@@ -24,6 +24,7 @@ import {
   Loader2
 } from 'lucide-react';
 import productService from '../services/productService';
+import categoryService from '../services/categoryService';
 import toast from 'react-hot-toast';
 
 // ✅ Import du helper pour les images
@@ -59,6 +60,7 @@ const HomePage = () => {
   const [produitsVedettes, setProduitsVedettes] = useState([]);
   const [loadingProduits, setLoadingProduits] = useState(true);
   const [addingToCart, setAddingToCart] = useState(null);
+  const [dynamicCategories, setDynamicCategories] = useState([]);
 
   // Charger les produits vedettes depuis l'API
   useEffect(() => {
@@ -75,6 +77,25 @@ const HomePage = () => {
       }
     };
     fetchProduits();
+  }, []);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await categoryService.getAll({ includeProductCount: true });
+        if (response.success && Array.isArray(response.data)) {
+          const activeCategories = response.data
+            .filter((category) => category.estActif !== false)
+            .slice(0, 6);
+
+          setDynamicCategories(activeCategories);
+        }
+      } catch (error) {
+        console.error('Erreur chargement categories:', error);
+      }
+    };
+
+    fetchCategories();
   }, []);
 
   // Ajouter au panier
@@ -98,6 +119,13 @@ const HomePage = () => {
     { id: 5, nom: 'Épicerie', icone: '🫒', slug: 'epicerie', color: 'from-orange-400 to-red-500', bgLight: 'bg-orange-50' },
     { id: 6, nom: 'Poissonnerie', icone: '🐟', slug: 'poissonnerie', color: 'from-blue-400 to-cyan-500', bgLight: 'bg-blue-50' },
   ];
+
+  const categoriesToDisplay = dynamicCategories.length > 0
+    ? dynamicCategories.map((category, index) => ({
+        ...categories[index % categories.length],
+        ...category
+      }))
+    : categories;
 
   // Avantages
   const avantages = [
@@ -260,7 +288,7 @@ const HomePage = () => {
           viewport={{ once: true }}
           variants={staggerContainer}
         >
-          {categories.map((cat, index) => (
+          {categoriesToDisplay.map((cat, index) => (
             <motion.div
               key={cat.id}
               variants={scaleIn}
@@ -268,7 +296,7 @@ const HomePage = () => {
               whileTap={{ scale: 0.98 }}
             >
               <Link
-                to={`/catalogue?categorie=${cat.slug}`}
+                to={`/catalogue?categorie=${cat.id || cat.slug}`}
                 className={`block ${cat.bgLight} p-6 rounded-2xl text-center transition-all duration-300 hover:shadow-lg border border-transparent hover:border-gray-200`}
               >
                 <span className="text-5xl block mb-3">{cat.icone}</span>
