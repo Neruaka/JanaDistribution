@@ -16,7 +16,37 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true
+    sourcemap: false,
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) {
+            return;
+          }
+
+          if (id.includes('exceljs')) {
+            return 'excel';
+          }
+
+          if (id.includes('recharts')) {
+            return 'charts';
+          }
+
+          if (id.includes('framer-motion') || id.includes('lucide-react')) {
+            return 'ui';
+          }
+
+          if (
+            id.includes('react-router-dom') ||
+            id.includes('react-dom') ||
+            id.includes('/react/')
+          ) {
+            return 'vendor';
+          }
+        }
+      }
+    }
   },
   resolve: {
     alias: {
