@@ -10,7 +10,8 @@ const { body, param, query } = require('express-validator');
 
 const { authenticate, isAdmin } = require('../middlewares/auth.middleware');
 const validate = require('../middlewares/validate.middleware');
-const { query: dbQuery, getClient } = require('../config/database');
+const { query: dbQuery } = require('../config/database');
+const orderService = require('../services/order.service');
 const logger = require('../config/logger');
 
 // Toutes les routes nécessitent d'être admin
@@ -367,83 +368,32 @@ router.get('/:id',
 router.patch('/:id/status',
   [
     param('id').isUUID(),
-    body('statut').isIn(['EN_ATTENTE', 'CONFIRMEE', 'EN_PREPARATION', 'EXPEDIEE', 'LIVREE', 'ANNULEE'])
+    body('statut').isIn(['EN_ATTENTE', 'CONFIRMEE', 'EN_PREPARATION', 'EXPEDIEE', 'LIVREE', 'ANNULEE']),
+    body('instructionsLivraison').optional().isString().trim().isLength({ max: 500 })
   ],
   validate,
   async (req, res, next) => {
-    const client = await getClient();
-    
     try {
       const { id } = req.params;
-      const { statut } = req.body;
+      const { statut, instructionsLivraison } = req.body;
 
-      await client.query('BEGIN');
-
-      // Vérifier que la commande existe et récupérer son statut actuel
-      const checkResult = await client.query(
-        'SELECT id, statut, numero_commande FROM commande WHERE id = $1',
-        [id]
-      );
-
-      if (checkResult.rows.length === 0) {
-        await client.query('ROLLBACK');
-        return res.status(404).json({
-          success: false,
-          message: 'Commande non trouvée'
-        });
-      }
-
-      const currentStatut = checkResult.rows[0].statut;
-      const numeroCommande = checkResult.rows[0].numero_commande;
-
-      // ✅ Si annulation et pas déjà annulée, restaurer le stock
-      if (statut === 'ANNULEE' && currentStatut !== 'ANNULEE') {
-        // Récupérer les lignes pour restaurer le stock
-        const linesResult = await client.query(
-          'SELECT produit_id, quantite FROM ligne_commande WHERE commande_id = $1',
-          [id]
-        );
-
-        // Restaurer le stock pour chaque produit
-        for (const ligne of linesResult.rows) {
-          await client.query(
-            'UPDATE produit SET stock_quantite = stock_quantite + $1, date_modification = NOW() WHERE id = $2',
-            [ligne.quantite, ligne.produit_id]
-          );
-          logger.info(`Stock restauré: +${ligne.quantite} pour produit ${ligne.produit_id}`);
-        }
-
-        logger.info(`Commande ${numeroCommande} annulée - Stock restauré pour ${linesResult.rows.length} produits`);
-      }
-
-      // Mettre à jour le statut
-      const updateResult = await client.query(
-        `UPDATE commande 
-         SET statut = $2, date_modification = NOW() 
-         WHERE id = $1 
-         RETURNING *`,
-        [id, statut]
-      );
-
-      await client.query('COMMIT');
+      const result = await orderService.updateStatus(id, statut, instructionsLivraison);
 
       res.json({
         success: true,
-        message: `Commande passée en "${statut}"`,
+        message: result.message,
         data: {
-          id: updateResult.rows[0].id,
-          numeroCommande: updateResult.rows[0].numero_commande,
-          statut: updateResult.rows[0].statut
+          id: result.order.id,
+          numeroCommande: result.order.numeroCommande,
+          statut: result.order.statut
         }
       });
     } catch (error) {
-      await client.query('ROLLBACK');
-      logger.error('Erreur mise à jour statut commande', { error: error.message });
+      logger.error('Erreur mise a jour statut commande', { error: error.message });
       next(error);
-    } finally {
-      client.release();
     }
   }
 );
 
 module.exports = router;
+
