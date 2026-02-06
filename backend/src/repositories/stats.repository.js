@@ -179,8 +179,8 @@ class StatsRepository {
         SELECT 
           cat.id,
           cat.nom,
-          COALESCE(SUM(lc.quantite * lc.prix_unitaire_ht), 0) as montant_total,
-          COALESCE(SUM(lc.quantite), 0) as quantite_totale,
+          COALESCE(SUM(CASE WHEN c.id IS NOT NULL THEN lc.quantite * lc.prix_unitaire_ht ELSE 0 END), 0) as montant_total,
+          COALESCE(SUM(CASE WHEN c.id IS NOT NULL THEN lc.quantite ELSE 0 END), 0) as quantite_totale,
           COUNT(DISTINCT c.id) as nombre_commandes
         FROM categorie cat
         LEFT JOIN produit p ON p.categorie_id = cat.id
@@ -188,6 +188,7 @@ class StatsRepository {
         LEFT JOIN commande c ON c.id = lc.commande_id AND c.statut != 'ANNULEE' ${dateCondition}
         WHERE cat.est_actif = true
         GROUP BY cat.id, cat.nom
+        HAVING COUNT(DISTINCT c.id) > 0
         ORDER BY montant_total DESC
         LIMIT $1
       `;
@@ -235,8 +236,8 @@ class StatsRepository {
           p.reference,
           p.image_url,
           cat.nom as categorie_nom,
-          COALESCE(SUM(lc.quantite * lc.prix_unitaire_ht), 0) as montant_total,
-          COALESCE(SUM(lc.quantite), 0) as quantite_totale,
+          COALESCE(SUM(CASE WHEN c.id IS NOT NULL THEN lc.quantite * lc.prix_unitaire_ht ELSE 0 END), 0) as montant_total,
+          COALESCE(SUM(CASE WHEN c.id IS NOT NULL THEN lc.quantite ELSE 0 END), 0) as quantite_totale,
           COUNT(DISTINCT c.id) as nombre_commandes
         FROM produit p
         LEFT JOIN categorie cat ON p.categorie_id = cat.id
@@ -244,7 +245,7 @@ class StatsRepository {
         LEFT JOIN commande c ON c.id = lc.commande_id AND c.statut != 'ANNULEE' ${dateCondition}
         WHERE p.est_actif = true
         GROUP BY p.id, p.nom, p.reference, p.image_url, cat.nom
-        HAVING SUM(lc.quantite) > 0
+        HAVING SUM(CASE WHEN c.id IS NOT NULL THEN lc.quantite ELSE 0 END) > 0
         ORDER BY quantite_totale DESC
         LIMIT $1
       `;
