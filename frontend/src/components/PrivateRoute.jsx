@@ -1,13 +1,13 @@
-/**
+﻿/**
  * Composant PrivateRoute
- * @description Protège les routes qui nécessitent une authentification
+ * @description ProtÃ¨ge les routes qui nÃ©cessitent une authentification
  * 
  * Utilisation :
  * <Route path="/mon-compte" element={<PrivateRoute><MonComptePage /></PrivateRoute>} />
  * <Route path="/admin" element={<PrivateRoute adminOnly><AdminPage /></PrivateRoute>} />
  */
 
-import { Navigate, useLocation } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const PrivateRoute = ({ children, adminOnly = false }) => {
@@ -26,9 +26,9 @@ const PrivateRoute = ({ children, adminOnly = false }) => {
     );
   }
 
-  // Si non authentifié, redirige vers login
+  // Si non authentifiÃ©, redirige vers login
   if (!isAuthenticated) {
-    // On sauvegarde la page demandée pour y revenir après connexion
+    // On sauvegarde la page demandÃ©e pour y revenir aprÃ¨s connexion
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
@@ -37,19 +37,16 @@ const PrivateRoute = ({ children, adminOnly = false }) => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center p-8 bg-white rounded-lg shadow-md max-w-md">
-          <span className="text-6xl">🚫</span>
+          <span className="text-6xl">ðŸš«</span>
           <h2 className="mt-4 text-2xl font-bold text-gray-900">
-            Accès refusé
+            AccÃ¨s refusÃ©
           </h2>
           <p className="mt-2 text-gray-600">
-            Cette section est réservée aux administrateurs.
+            Cette section est rÃ©servÃ©e aux administrateurs.
           </p>
-          <a 
-            href="/" 
-            className="mt-6 inline-block bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors"
-          >
-            Retour à l'accueil
-          </a>
+          <Link to="/" className="mt-6 inline-block bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors">
+            Retour Ã  l'accueil
+          </Link>
         </div>
       </div>
     );
@@ -60,3 +57,5 @@ const PrivateRoute = ({ children, adminOnly = false }) => {
 };
 
 export default PrivateRoute;
+
+
