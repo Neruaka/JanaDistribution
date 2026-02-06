@@ -155,12 +155,18 @@ class AuthController {
    */
   async refreshToken(req, res, next) {
     try {
-      const user = await authService.getProfile(req.user.id);
+      const { refreshToken } = req.body;
+      const payload = authService.verifyRefreshToken(refreshToken);
+      const user = await authService.getProfile(payload.id);
       const token = authService.generateToken(user);
+      const rotatedRefreshToken = authService.generateRefreshToken(user);
 
       res.json({
         success: true,
-        data: { token }
+        data: {
+          token,
+          refreshToken: rotatedRefreshToken
+        }
       });
     } catch (error) {
       next(error);

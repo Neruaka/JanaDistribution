@@ -117,6 +117,18 @@ const loginValidation = [
 ];
 
 /**
+ * Validation pour le refresh token
+ */
+const refreshTokenValidation = [
+  body('refreshToken')
+    .isString().withMessage('Le refresh token est invalide')
+    .trim()
+    .notEmpty().withMessage('Le refresh token est obligatoire'),
+
+  validate
+];
+
+/**
  * Validation pour le changement de mot de passe
  */
 const changePasswordValidation = [
@@ -182,6 +194,7 @@ module.exports = {
   validate,
   registerValidation,
   loginValidation,
+  refreshTokenValidation,
   changePasswordValidation,
   updateProfileValidation
 };
