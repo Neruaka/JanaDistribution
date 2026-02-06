@@ -1,6 +1,6 @@
 ﻿/**
  * Composant PrivateRoute
- * @description ProtÃ¨ge les routes qui nÃ©cessitent une authentification
+ * @description Protège les routes qui nécessitent une authentification
  * 
  * Utilisation :
  * <Route path="/mon-compte" element={<PrivateRoute><MonComptePage /></PrivateRoute>} />
@@ -26,9 +26,9 @@ const PrivateRoute = ({ children, adminOnly = false }) => {
     );
   }
 
-  // Si non authentifiÃ©, redirige vers login
+  // Si non authentifié, redirige vers login
   if (!isAuthenticated) {
-    // On sauvegarde la page demandÃ©e pour y revenir aprÃ¨s connexion
+    // On sauvegarde la page demandée pour y revenir après connexion
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
@@ -37,15 +37,15 @@ const PrivateRoute = ({ children, adminOnly = false }) => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center p-8 bg-white rounded-lg shadow-md max-w-md">
-          <span className="text-6xl">ðŸš«</span>
+          <span className="text-6xl"></span>
           <h2 className="mt-4 text-2xl font-bold text-gray-900">
-            AccÃ¨s refusÃ©
+            Accès refusé
           </h2>
           <p className="mt-2 text-gray-600">
-            Cette section est rÃ©servÃ©e aux administrateurs.
+            Cette section est réservée aux administrateurs.
           </p>
           <Link to="/" className="mt-6 inline-block bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors">
-            Retour Ã  l'accueil
+            Retour à l'accueil
           </Link>
         </div>
       </div>
