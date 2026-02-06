@@ -35,7 +35,9 @@ const removeAuthStorage = (key) => {
   localStorage.removeItem(key);
 };
 
-console.log('API URL:', API_URL);
+if (import.meta.env.DEV) {
+  console.log('API URL:', API_URL);
+}
 
 // ==========================================
 // INSTANCE AXIOS
