@@ -20,6 +20,8 @@ const { authenticate } = require('../middlewares/auth.middleware');
 const {
   registerValidation,
   loginValidation,
+  forgotPasswordValidation,
+  resetPasswordValidation,
   changePasswordValidation,
   updateProfileValidation
 } = require('../validators/auth.validator');
@@ -47,14 +49,14 @@ router.post('/login', loginValidation, authController.login);
  * @description Demande de réinitialisation de mot de passe
  * @access Public
  */
-router.post('/forgot-password', authController.forgotPassword);
+router.post('/forgot-password', forgotPasswordValidation, authController.forgotPassword);
 
 /**
  * POST /api/auth/reset-password
  * @description Réinitialise le mot de passe avec le token
  * @access Public
  */
-router.post('/reset-password', authController.resetPassword);
+router.post('/reset-password', resetPasswordValidation, authController.resetPassword);
 
 // ==========================================
 // ROUTES PROTÉGÉES (authentification requise)

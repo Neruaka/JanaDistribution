@@ -117,6 +117,40 @@ const loginValidation = [
 ];
 
 /**
+ * Validation pour forgot-password
+ */
+const forgotPasswordValidation = [
+  body('email')
+    .trim()
+    .notEmpty().withMessage('L\'email est obligatoire')
+    .isEmail().withMessage('L\'email doit etre valide')
+    .normalizeEmail({ gmail_remove_dots: false }),
+
+  validate
+];
+
+/**
+ * Validation pour reset-password
+ */
+const resetPasswordValidation = [
+  body('token')
+    .trim()
+    .notEmpty().withMessage('Le token de reinitialisation est obligatoire')
+    .isLength({ min: 64, max: 64 }).withMessage('Le token de reinitialisation est invalide')
+    .isHexadecimal().withMessage('Le token de reinitialisation est invalide'),
+
+  body('nouveauMotDePasse')
+    .notEmpty().withMessage('Le nouveau mot de passe est obligatoire')
+    .isLength({ min: 8 }).withMessage('Le mot de passe doit contenir au moins 8 caracteres')
+    .matches(/[a-z]/).withMessage('Le mot de passe doit contenir au moins une minuscule')
+    .matches(/[A-Z]/).withMessage('Le mot de passe doit contenir au moins une majuscule')
+    .matches(/[0-9]/).withMessage('Le mot de passe doit contenir au moins un chiffre')
+    .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('Le mot de passe doit contenir au moins un caractere special'),
+
+  validate
+];
+
+/**
  * Validation pour le changement de mot de passe
  */
 const changePasswordValidation = [
@@ -182,6 +216,8 @@ module.exports = {
   validate,
   registerValidation,
   loginValidation,
+  forgotPasswordValidation,
+  resetPasswordValidation,
   changePasswordValidation,
   updateProfileValidation
 };

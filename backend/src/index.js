@@ -63,20 +63,29 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Rate limiting - AJUSTÃ‰ pour le dÃ©veloppement
+// Rate limiting global API
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 1 * 60 * 1000, // 1 minute
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 500, // 500 requÃªtes par minute
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000, // 15 minutes
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 300,
   message: {
     success: false,
-    message: 'Trop de requÃªtes, veuillez rÃ©essayer plus tard.'
+    message: 'Trop de requetes, veuillez reessayer plus tard.'
   },
   standardHeaders: true,
-  legacyHeaders: false,
-  // DÃ©sactiver le rate limiting en dÃ©veloppement
-  skip: (req) => process.env.NODE_ENV === 'development'
+  legacyHeaders: false
 });
 app.use('/api/', limiter);
+
+const authLimiter = rateLimit({
+  windowMs: parseInt(process.env.AUTH_RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000, // 15 minutes
+  max: parseInt(process.env.AUTH_RATE_LIMIT_MAX_REQUESTS, 10) || 20,
+  message: {
+    success: false,
+    message: 'Trop de tentatives sur les routes d authentification, veuillez reessayer plus tard.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+});
 
 // Parsing
 app.use(express.json({ limit: '10mb' }));
@@ -130,7 +139,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 // Routes API publiques
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
