@@ -1,8 +1,8 @@
 ﻿/**
- * Configuration Base de donnÃ©es PostgreSQL
- * @description Compatible Railway (DATABASE_URL) et dÃ©veloppement local
+ * Configuration Base de données PostgreSQL
+ * @description Compatible Railway (DATABASE_URL) et développement local
  * 
- * âœ… MODIFIÃ‰ POUR MISE EN LIGNE RAILWAY
+ *  MODIFIÉ POUR MISE EN LIGNE RAILWAY
  */
 
 const { Pool } = require('pg');
@@ -10,12 +10,12 @@ const logger = require('./logger');
 
 let pool;
 
-// DÃ©tection automatique de l'environnement
+// Détection automatique de l'environnement
 if (process.env.DATABASE_URL) {
   // ==========================================
   // PRODUCTION (Railway, Render, Heroku...)
   // ==========================================
-  console.log('ðŸŒ Mode Production dÃ©tectÃ© (DATABASE_URL)');
+  console.log('🌐 Mode Production détecté (DATABASE_URL)');
   
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -23,14 +23,14 @@ if (process.env.DATABASE_URL) {
       rejectUnauthorized: false // Requis pour Railway/Render
     },
     max: 20,                    // Connexions max dans le pool
-    idleTimeoutMillis: 30000,   // Fermer connexions inactives aprÃ¨s 30s
+    idleTimeoutMillis: 30000,   // Fermer connexions inactives après 30s
     connectionTimeoutMillis: 10000 // Timeout connexion 10s
   });
 } else {
   // ==========================================
-  // DÃ‰VELOPPEMENT LOCAL
+  // DÉVELOPPEMENT LOCAL
   // ==========================================
-  console.log('ðŸ  Mode DÃ©veloppement dÃ©tectÃ©');
+  console.log('🛈 Mode Développement détecté');
   
   pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
@@ -45,7 +45,7 @@ if (process.env.DATABASE_URL) {
 }
 
 /**
- * Connexion Ã  la base de donnÃ©es
+ * Connexion à la base de données
  */
 const connectDB = async () => {
   const isProduction = process.env.NODE_ENV === 'production';
@@ -60,7 +60,7 @@ const connectDB = async () => {
 
       // Test de connexion
       const result = await client.query('SELECT NOW() as now');
-      logger.info(`Connexion PostgreSQL etablie - ${result.rows[0].now}`);
+      logger.info(`Connexion PostgreSQL établie - ${result.rows[0].now}`);
 
       client.release();
       return true;
@@ -68,7 +68,7 @@ const connectDB = async () => {
       logger.error('Erreur connexion PostgreSQL:', error.message);
 
       if (attempt === safeMaxRetries) {
-        logger.error(`Echec connexion PostgreSQL apres ${safeMaxRetries} tentative(s)`);
+        logger.error(`Échec connexion PostgreSQL après ${safeMaxRetries} tentative(s)`);
         throw error;
       }
 
@@ -79,7 +79,7 @@ const connectDB = async () => {
 };
 
 /**
- * ExÃ©cuter une requÃªte SQL
+ * Exécuter une requête SQL
  */
 const query = async (text, params) => {
   const start = Date.now();
@@ -87,7 +87,7 @@ const query = async (text, params) => {
     const result = await pool.query(text, params);
     const duration = Date.now() - start;
     
-    // Log en dÃ©veloppement uniquement
+    // Log en développement uniquement
     if (process.env.NODE_ENV === 'development') {
       logger.debug(`Query executed in ${duration}ms`, { 
         text: text.substring(0, 100),
@@ -115,7 +115,7 @@ const getClient = () => pool.connect();
  */
 const closePool = async () => {
   await pool.end();
-  logger.info('Pool PostgreSQL fermÃ©');
+  logger.info('Pool PostgreSQL fermé');
 };
 
 module.exports = { 
