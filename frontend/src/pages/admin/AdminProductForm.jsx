@@ -292,6 +292,7 @@ const AdminProductForm = () => {
             <Link
               to={`/produit/${formData.slug}`}
               target="_blank"
+              rel="noopener noreferrer"
               className="px-4 py-2 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-2"
             >
               <Eye className="w-4 h-4" />

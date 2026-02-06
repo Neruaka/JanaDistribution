@@ -352,11 +352,11 @@ const CheckoutPage = () => {
                     />
                     <span className="text-sm text-gray-600">
                       J'accepte les{' '}
-                      <Link to="/cgv" className="text-green-600 hover:underline" target="_blank">
+                      <Link to="/cgv" className="text-green-600 hover:underline" target="_blank" rel="noopener noreferrer">
                         conditions générales de vente
                       </Link>{' '}
                       et la{' '}
-                      <Link to="/confidentialite" className="text-green-600 hover:underline" target="_blank">
+                      <Link to="/confidentialite" className="text-green-600 hover:underline" target="_blank" rel="noopener noreferrer">
                         politique de confidentialité
                       </Link>
                       . <span className="text-red-500">*</span>
