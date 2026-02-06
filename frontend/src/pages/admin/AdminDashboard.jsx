@@ -38,6 +38,7 @@ import {
 } from 'recharts';
 import adminService from '../../services/adminService';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '../../utils/imageUtils';
 
 // Périodes prédéfinies
 const PERIODS = [
@@ -480,7 +481,7 @@ const AdminDashboard = () => {
                 
                 <div className="flex-shrink-0 w-12 h-12 bg-gray-100 rounded-lg overflow-hidden">
                   {product.imageUrl ? (
-                    <img src={product.imageUrl} alt={product.nom} className="w-full h-full object-cover" />
+                    <img src={getImageUrl(product.imageUrl)} alt={product.nom} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400">
                       <Package className="w-6 h-6" />
@@ -606,7 +607,7 @@ const AdminDashboard = () => {
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                       {product.imageUrl ? (
-                        <img src={product.imageUrl} alt={product.nom} className="w-full h-full object-cover" />
+                        <img src={getImageUrl(product.imageUrl)} alt={product.nom} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <Package className="w-5 h-5 text-gray-400" />

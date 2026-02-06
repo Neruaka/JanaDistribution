@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserOrders, getStatutInfo, STATUTS_COMMANDE } from '../services/orderService';
+import { getImageUrl } from '../utils/imageUtils';
 
 // ==========================================
 // CONSTANTES
@@ -401,7 +402,7 @@ const OrderHistoryPage = () => {
                                   title={ligne.nomProduit}
                                 >
                                   {ligne.produit?.imageUrl ? (
-                                    <img src={ligne.produit.imageUrl} alt="" className="w-full h-full object-cover" />
+                                    <img src={getImageUrl(ligne.produit.imageUrl)} alt="" className="w-full h-full object-cover" />
                                   ) : (
                                     <Package className="w-5 h-5 text-gray-400" />
                                   )}
