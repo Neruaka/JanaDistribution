@@ -280,16 +280,31 @@ INSERT INTO configuration (cle, valeur, type, categorie, description) VALUES
 ('site_code_postal', '75001', 'string', 'site', 'Code postal'),
 ('site_ville', 'Paris', 'string', 'site', 'Ville'),
 ('site_siret', '123 456 789 00012', 'string', 'site', 'Numéro SIRET'),
+('site_tva_intra', '', 'string', 'site', 'Numéro TVA Intracommunautaire'),
 
 -- Livraison
 ('livraison_frais_standard', '5.90', 'number', 'livraison', 'Frais de livraison standard'),
 ('livraison_seuil_franco', '50', 'number', 'livraison', 'Montant minimum pour livraison gratuite'),
 ('livraison_delai_min', '2', 'number', 'livraison', 'Délai minimum de livraison (jours)'),
 ('livraison_delai_max', '5', 'number', 'livraison', 'Délai maximum de livraison (jours)'),
+('livraison_zones', 'France métropolitaine', 'string', 'livraison', 'Zones de livraison'),
+('livraison_message_indisponible', '', 'string', 'livraison', 'Message si livraison indisponible'),
 
 -- Commande
 ('commande_montant_min', '15', 'number', 'commande', 'Montant minimum de commande'),
-('commande_produits_par_page', '12', 'number', 'commande', 'Nombre de produits par page');
+('commande_produits_par_page', '12', 'number', 'commande', 'Nombre de produits par page'),
+('commande_tva_defaut', '5.5', 'number', 'commande', 'Taux de TVA par défaut'),
+('commande_stock_alerte', '10', 'number', 'commande', 'Seuil alerte stock'),
+('commande_autoriser_sans_stock', 'false', 'boolean', 'commande', 'Autoriser commandes sans stock'),
+('commande_email_confirmation', 'true', 'boolean', 'commande', 'Envoyer email de confirmation'),
+('commande_email_expedition', 'true', 'boolean', 'commande', 'Envoyer email expédition'),
+
+-- Emails
+('email_expediteur', 'contact@jana-distribution.fr', 'string', 'emails', 'Email expéditeur'),
+('email_nom_expediteur', 'Jana Distribution', 'string', 'emails', 'Nom affiché expéditeur'),
+('email_copie_admin', 'true', 'boolean', 'emails', 'Envoyer copie à admin'),
+('email_admin', 'admin@jana-distribution.fr', 'string', 'emails', 'Email admin pour copies'),
+('email_signature', 'L équipe Jana Distribution', 'string', 'emails', 'Signature emails');
 
 -- ============================================
 -- FONCTIONS UTILITAIRES
