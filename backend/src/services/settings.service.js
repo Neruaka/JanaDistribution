@@ -32,10 +32,10 @@ class SettingsService {
     // Essayer le cache Redis
     if (redis) {
       try {
-        const cached = await redis.get(CACHE_KEY);
+        const cached = await redis.cacheGet(CACHE_KEY);
         if (cached) {
           logger.debug('Settings récupérés depuis le cache');
-          return JSON.parse(cached);
+          return cached;
         }
       } catch (err) {
         logger.warn('Erreur cache Redis:', err.message);
@@ -48,7 +48,7 @@ class SettingsService {
     // Mettre en cache
     if (redis) {
       try {
-        await redis.setex(CACHE_KEY, CACHE_TTL, JSON.stringify(settings));
+        await redis.cacheSet(CACHE_KEY, settings, CACHE_TTL);
       } catch (err) {
         logger.warn('Erreur mise en cache:', err.message);
       }
@@ -67,9 +67,9 @@ class SettingsService {
     // Essayer le cache Redis
     if (redis) {
       try {
-        const cached = await redis.get(cacheKey);
+        const cached = await redis.cacheGet(cacheKey);
         if (cached) {
-          return JSON.parse(cached);
+          return cached;
         }
       } catch (err) {
         logger.warn('Erreur cache Redis:', err.message);
@@ -106,7 +106,7 @@ class SettingsService {
     // Mettre en cache
     if (redis) {
       try {
-        await redis.setex(cacheKey, CACHE_TTL, JSON.stringify(formatted));
+        await redis.cacheSet(cacheKey, formatted, CACHE_TTL);
       } catch (err) {
         logger.warn('Erreur mise en cache:', err.message);
       }
@@ -195,8 +195,8 @@ class SettingsService {
   async _invalidateCache() {
     if (redis) {
       try {
-        await redis.del(CACHE_KEY);
-        await redis.del('app:settings:public');
+        await redis.cacheDel(CACHE_KEY);
+        await redis.cacheDel('app:settings:public');
         logger.debug('Cache settings invalidé');
       } catch (err) {
         logger.warn('Erreur invalidation cache:', err.message);
