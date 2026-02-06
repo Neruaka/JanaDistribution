@@ -98,7 +98,7 @@ const ResetPasswordPage = () => {
             </Link>
             
             <Link
-              to="/connexion"
+              to="/login"
               className="block w-full py-3 px-4 border border-gray-200 text-gray-600 rounded-xl font-medium hover:bg-gray-50 transition-colors"
             >
               Retour à la connexion
@@ -132,7 +132,7 @@ const ResetPasswordPage = () => {
           </p>
           
           <Link
-            to="/connexion"
+            to="/login"
             className="block w-full py-3 px-4 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors"
           >
             Se connecter
@@ -152,7 +152,7 @@ const ResetPasswordPage = () => {
       >
         {/* Retour */}
         <Link
-          to="/connexion"
+          to="/login"
           className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />

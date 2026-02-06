@@ -154,7 +154,7 @@ const ForgotPasswordPage = () => {
         {/* Info */}
         <p className="text-center text-sm text-gray-500 mt-6">
           Vous vous souvenez de votre mot de passe ?{' '}
-          <Link to="/connexion" className="text-green-600 hover:text-green-700 font-medium">
+          <Link to="/login" className="text-green-600 hover:text-green-700 font-medium">
             Se connecter
           </Link>
         </p>
