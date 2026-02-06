@@ -1,4 +1,4 @@
-# 🥬 Jana Distribution
+﻿# ðŸ¥¬ Jana Distribution
 
 > Plateforme e-commerce B2B/B2C pour le commerce de gros alimentaire
 
@@ -7,17 +7,17 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue.svg)](https://www.postgresql.org/)
 [![Redis](https://img.shields.io/badge/Redis-7-red.svg)](https://redis.io/)
 
-## 📋 Description
+## ðŸ“‹ Description
 
-Jana Distribution est une application e-commerce complète permettant la vente de produits alimentaires en gros, destinée à deux segments de clientèle :
-- **Particuliers** : achats à l'unité
-- **Professionnels** : achats en gros avec tarifs dédiés
+Jana Distribution est une application e-commerce complÃ¨te permettant la vente de produits alimentaires en gros, destinÃ©e Ã  deux segments de clientÃ¨le :
+- **Particuliers** : achats Ã  l'unitÃ©
+- **Professionnels** : achats en gros avec tarifs dÃ©diÃ©s
 
-## 🚀 Stack Technique
+## ðŸš€ Stack Technique
 
 ### Backend
 - **Node.js** 18+ avec **Express.js**
-- **PostgreSQL** 15 (base de données relationnelle)
+- **PostgreSQL** 15 (base de donnÃ©es relationnelle)
 - **Redis** 7 (cache)
 - **JWT** pour l'authentification
 - **bcrypt** pour le hashage des mots de passe
@@ -25,16 +25,16 @@ Jana Distribution est une application e-commerce complète permettant la vente d
 ### Frontend
 - **React** 18.2 avec **Vite**
 - **React Router** v6
-- **Axios** pour les requêtes HTTP
+- **Axios** pour les requÃªtes HTTP
 - **Tailwind CSS** pour le styling
 
 ### DevOps
 - **Docker** & **Docker Compose**
 - **GitHub Actions** (CI/CD)
 
-## 📦 Installation
+## ðŸ“¦ Installation
 
-### Prérequis
+### PrÃ©requis
 - Node.js 18+
 - Docker & Docker Compose
 - Git
@@ -49,9 +49,16 @@ cd jana-distribution
 ### 2. Configurer l'environnement
 
 ```bash
-# Backend
+# Variables Docker Compose (racine du projet)
+cp .env.example .env
+
+# Backend API
 cp backend/.env.example backend/.env
-# Modifier les variables si nécessaire
+
+# Frontend (optionnel en local, utile en build)
+cp frontend/.env.example frontend/.env
+
+# Modifier les variables si necessaire
 ```
 
 ### 3. Lancer les conteneurs Docker
@@ -60,12 +67,12 @@ cp backend/.env.example backend/.env
 docker-compose up -d
 ```
 
-Cela démarre :
+Cela dÃ©marre :
 - PostgreSQL sur le port `5432`
 - Redis sur le port `6379`
 - Adminer (interface DB) sur le port `8080`
 
-### 4. Installer les dépendances
+### 4. Installer les dÃ©pendances
 
 ```bash
 # Backend
@@ -89,7 +96,7 @@ cd frontend
 npm run dev
 ```
 
-## 🔗 URLs
+## ðŸ”— URLs
 
 | Service | URL |
 |---------|-----|
@@ -98,85 +105,85 @@ npm run dev
 | API Health | http://localhost:3000/api/health |
 | Adminer (DB) | http://localhost:8080 |
 
-## 📁 Structure du Projet
+## ðŸ“ Structure du Projet
 
 ```
 jana-distribution/
-├── backend/
-│   ├── src/
-│   │   ├── config/          # Configurations (DB, Redis, Logger)
-│   │   ├── controllers/     # Logique des routes
-│   │   ├── middlewares/     # Middlewares Express
-│   │   ├── models/          # Modèles de données
-│   │   ├── repositories/    # Accès aux données
-│   │   ├── routes/          # Définition des routes
-│   │   ├── services/        # Logique métier
-│   │   ├── utils/           # Utilitaires
-│   │   └── index.js         # Point d'entrée
-│   ├── tests/               # Tests unitaires
-│   └── package.json
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/      # Composants réutilisables
-│   │   ├── pages/           # Pages de l'application
-│   │   ├── services/        # Services API
-│   │   ├── hooks/           # Custom hooks
-│   │   ├── context/         # Contexts React
-│   │   ├── assets/          # Images, fonts, etc.
-│   │   ├── App.jsx          # Composant principal
-│   │   └── main.jsx         # Point d'entrée
-│   └── package.json
-│
-├── docs/                    # Documentation
-├── scripts/                 # Scripts utilitaires
-│   └── init.sql             # Script d'initialisation DB
-├── docker-compose.yml       # Configuration Docker
-└── README.md
+â”œâ”€â”€ backend/
+â”‚   â”œâ”€â”€ src/
+â”‚   â”‚   â”œâ”€â”€ config/          # Configurations (DB, Redis, Logger)
+â”‚   â”‚   â”œâ”€â”€ controllers/     # Logique des routes
+â”‚   â”‚   â”œâ”€â”€ middlewares/     # Middlewares Express
+â”‚   â”‚   â”œâ”€â”€ models/          # ModÃ¨les de donnÃ©es
+â”‚   â”‚   â”œâ”€â”€ repositories/    # AccÃ¨s aux donnÃ©es
+â”‚   â”‚   â”œâ”€â”€ routes/          # DÃ©finition des routes
+â”‚   â”‚   â”œâ”€â”€ services/        # Logique mÃ©tier
+â”‚   â”‚   â”œâ”€â”€ utils/           # Utilitaires
+â”‚   â”‚   â””â”€â”€ index.js         # Point d'entrÃ©e
+â”‚   â”œâ”€â”€ tests/               # Tests unitaires
+â”‚   â””â”€â”€ package.json
+â”‚
+â”œâ”€â”€ frontend/
+â”‚   â”œâ”€â”€ src/
+â”‚   â”‚   â”œâ”€â”€ components/      # Composants rÃ©utilisables
+â”‚   â”‚   â”œâ”€â”€ pages/           # Pages de l'application
+â”‚   â”‚   â”œâ”€â”€ services/        # Services API
+â”‚   â”‚   â”œâ”€â”€ hooks/           # Custom hooks
+â”‚   â”‚   â”œâ”€â”€ context/         # Contexts React
+â”‚   â”‚   â”œâ”€â”€ assets/          # Images, fonts, etc.
+â”‚   â”‚   â”œâ”€â”€ App.jsx          # Composant principal
+â”‚   â”‚   â””â”€â”€ main.jsx         # Point d'entrÃ©e
+â”‚   â””â”€â”€ package.json
+â”‚
+â”œâ”€â”€ docs/                    # Documentation
+â”œâ”€â”€ scripts/                 # Scripts utilitaires
+â”‚   â””â”€â”€ init.sql             # Script d'initialisation DB
+â”œâ”€â”€ docker-compose.yml       # Configuration Docker
+â””â”€â”€ README.md
 ```
 
-## 🔐 Comptes de Test
+## ðŸ” Comptes de Test
 
-| Rôle | Email | Mot de passe |
+| RÃ´le | Email | Mot de passe |
 |------|-------|--------------|
 | Admin | admin@jana-distribution.fr | Admin123! |
 | Client | client@test.fr | Client123! |
 
-## 📡 Endpoints API
+## ðŸ“¡ Endpoints API
 
 ### Authentification
-| Méthode | Endpoint | Description |
+| MÃ©thode | Endpoint | Description |
 |---------|----------|-------------|
 | POST | `/api/auth/register` | Inscription |
 | POST | `/api/auth/login` | Connexion |
-| POST | `/api/auth/logout` | Déconnexion |
+| POST | `/api/auth/logout` | DÃ©connexion |
 | GET | `/api/auth/me` | Profil utilisateur |
 
 ### Produits
-| Méthode | Endpoint | Description |
+| MÃ©thode | Endpoint | Description |
 |---------|----------|-------------|
 | GET | `/api/products` | Liste des produits |
-| GET | `/api/products/:id` | Détail d'un produit |
-| POST | `/api/products` | Créer un produit (admin) |
+| GET | `/api/products/:id` | DÃ©tail d'un produit |
+| POST | `/api/products` | CrÃ©er un produit (admin) |
 | PUT | `/api/products/:id` | Modifier un produit (admin) |
 | DELETE | `/api/products/:id` | Supprimer un produit (admin) |
 
 ### Panier
-| Méthode | Endpoint | Description |
+| MÃ©thode | Endpoint | Description |
 |---------|----------|-------------|
-| GET | `/api/cart` | Récupérer le panier |
+| GET | `/api/cart` | RÃ©cupÃ©rer le panier |
 | POST | `/api/cart/items` | Ajouter au panier |
-| PUT | `/api/cart/items/:id` | Modifier quantité |
+| PUT | `/api/cart/items/:id` | Modifier quantitÃ© |
 | DELETE | `/api/cart/items/:id` | Retirer du panier |
 
 ### Commandes
-| Méthode | Endpoint | Description |
+| MÃ©thode | Endpoint | Description |
 |---------|----------|-------------|
 | GET | `/api/orders` | Liste des commandes |
-| GET | `/api/orders/:id` | Détail d'une commande |
-| POST | `/api/orders` | Créer une commande |
+| GET | `/api/orders/:id` | DÃ©tail d'une commande |
+| POST | `/api/orders` | CrÃ©er une commande |
 
-## 🧪 Tests
+## ðŸ§ª Tests
 
 ```bash
 # Backend
@@ -188,14 +195,15 @@ cd frontend
 npm test
 ```
 
-## 📄 Licence
+## ðŸ“„ Licence
 
-Ce projet est réalisé dans le cadre de la certification CDA (Concepteur Développeur d'Applications).
+Ce projet est rÃ©alisÃ© dans le cadre de la certification CDA (Concepteur DÃ©veloppeur d'Applications).
 
-## 👤 Auteur
+## ðŸ‘¤ Auteur
 
 **Frederick** - Projet CDA 2024
 
 ---
 
 *Projet Jana Distribution - E-commerce B2B/B2C*
+
