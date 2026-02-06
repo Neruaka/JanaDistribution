@@ -63,7 +63,7 @@ const TabPreferences = ({
 
       const [profileRes, ordersRes] = await Promise.all([
         api.get('/auth/me'),
-        api.get('/orders/my-orders').catch(() => ({ data: { data: [] } }))
+        api.get('/orders').catch(() => ({ data: { data: [] } }))
       ]);
 
       // Charger les adresses depuis localStorage
