@@ -77,6 +77,59 @@ class StatsService {
   }
 
   /**
+   * CompatibilitÃ© avec /api/admin/stats/revenue
+   * Renvoie le mÃªme format que getEvolution()
+   */
+  async getRevenueEvolution({ dateDebut, dateFin, periode, groupBy = 'day' }) {
+    return this.getEvolution({ dateDebut, dateFin, periode, groupBy });
+  }
+
+  /**
+   * CompatibilitÃ© avec /api/admin/stats/comparison
+   * Compare la pÃ©riode demandÃ©e avec la pÃ©riode prÃ©cÃ©dente de mÃªme durÃ©e
+   */
+  async getComparisonStats({ dateDebut, dateFin, periode }) {
+    try {
+      const {
+        currentDateDebut,
+        currentDateFin,
+        previousDateDebut,
+        previousDateFin
+      } = this.resolveComparisonRanges({ dateDebut, dateFin, periode });
+
+      const currentRaw = await statsRepository.getDashboardStats(currentDateDebut, currentDateFin);
+
+      let previousRaw = null;
+      if (previousDateDebut && previousDateFin) {
+        previousRaw = await statsRepository.getDashboardStats(previousDateDebut, previousDateFin);
+      }
+
+      const current = this.mapComparisonStats(currentRaw);
+      const previous = previousRaw ? this.mapComparisonStats(previousRaw) : null;
+
+      return {
+        current,
+        previous,
+        variation: {
+          chiffreAffaires: previous ? this.calculateVariation(current.chiffreAffaires, previous.chiffreAffaires) : 0,
+          commandes: previous ? this.calculateVariation(current.commandes, previous.commandes) : 0,
+          panierMoyen: previous ? this.calculateVariation(current.panierMoyen, previous.panierMoyen) : 0,
+          clients: previous ? this.calculateVariation(current.clients, previous.clients) : 0
+        },
+        periode: {
+          dateDebut: currentDateDebut,
+          dateFin: currentDateFin,
+          previousDateDebut,
+          previousDateFin
+        }
+      };
+    } catch (error) {
+      logger.error('Erreur rÃ©cupÃ©ration stats comparison', { error: error.message });
+      throw error;
+    }
+  }
+
+  /**
    * Récupère l'évolution du CA
    * ✅ Renomme 'montant' en 'chiffreAffaires' pour le graphique LineChart
    */
@@ -277,6 +330,86 @@ class StatsService {
       '#00BCD4', '#FFEB3B', '#795548', '#607D8B', '#E91E63'
     ];
     return colors[index % colors.length];
+  }
+
+  /**
+   * Normalise les stats brutes du repository pour la comparaison
+   * @private
+   */
+  mapComparisonStats(raw) {
+    return {
+      chiffreAffaires: raw?.chiffreAffaires || 0,
+      commandes: raw?.nombreCommandes || 0,
+      panierMoyen: raw?.panierMoyen || 0,
+      clients: raw?.nombreClients || 0,
+      produits: raw?.nombreProduits || 0,
+      stockFaible: raw?.produitsStockFaible || 0
+    };
+  }
+
+  /**
+   * Calcule un pourcentage de variation
+   * @private
+   */
+  calculateVariation(currentValue, previousValue) {
+    if (!previousValue) {
+      return currentValue ? 100 : 0;
+    }
+
+    const variation = ((currentValue - previousValue) / previousValue) * 100;
+    return Number(variation.toFixed(2));
+  }
+
+  /**
+   * Determine current and previous comparison ranges
+   * @private
+   */
+  resolveComparisonRanges({ dateDebut, dateFin, periode }) {
+    // Predefined period takes priority.
+    if (periode && !dateDebut && !dateFin) {
+      const dates = this.calculatePeriodDates(periode);
+      dateDebut = dates.dateDebut;
+      dateFin = dates.dateFin;
+    }
+
+    // Without explicit dates, fallback to last 30 days.
+    if (!dateDebut && !dateFin) {
+      const fallback = this.calculatePeriodDates('30j');
+      dateDebut = fallback.dateDebut;
+      dateFin = fallback.dateFin;
+    }
+
+    // If only one bound is provided, complete with "now".
+    if (dateDebut && !dateFin) {
+      dateFin = new Date().toISOString();
+    }
+
+    if (!dateDebut || !dateFin) {
+      return {
+        currentDateDebut: dateDebut || null,
+        currentDateFin: dateFin || null,
+        previousDateDebut: null,
+        previousDateFin: null
+      };
+    }
+
+    const currentStart = new Date(dateDebut);
+    const currentEnd = new Date(dateFin);
+
+    if (Number.isNaN(currentStart.getTime()) || Number.isNaN(currentEnd.getTime())) {
+      throw new Error('PÃ©riode invalide pour la comparaison');
+    }
+
+    const durationMs = Math.max(1, currentEnd.getTime() - currentStart.getTime());
+    const previousEnd = new Date(currentStart.getTime() - 1);
+    const previousStart = new Date(previousEnd.getTime() - durationMs);
+
+    return {
+      currentDateDebut: currentStart.toISOString(),
+      currentDateFin: currentEnd.toISOString(),
+      previousDateDebut: previousStart.toISOString(),
+      previousDateFin: previousEnd.toISOString()
+    };
   }
 }
 
