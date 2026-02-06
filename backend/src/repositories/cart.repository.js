@@ -22,27 +22,25 @@ class CartRepository {
     try {
       await client.query('BEGIN');
       
-      // chercher un panier existant
+      // Créer le panier de manière atomique, sinon récupérer l'existant
       let cartResult = await client.query(
-        `SELECT id, utilisateur_id, date_creation, date_modification
-         FROM panier
-         WHERE utilisateur_id = $1`,
+        `INSERT INTO panier (utilisateur_id)
+         VALUES ($1)
+         ON CONFLICT (utilisateur_id) DO NOTHING
+         RETURNING id, utilisateur_id, date_creation, date_modification`,
         [userId]
       );
-      
-      let cart;
-      
-      // si pas de panier, on en crée un
+
       if (cartResult.rows.length === 0) {
         cartResult = await client.query(
-          `INSERT INTO panier (utilisateur_id)
-           VALUES ($1)
-           RETURNING id, utilisateur_id, date_creation, date_modification`,
+          `SELECT id, utilisateur_id, date_creation, date_modification
+           FROM panier
+           WHERE utilisateur_id = $1`,
           [userId]
         );
       }
-      
-      cart = this._mapCart(cartResult.rows[0]);
+
+      const cart = this._mapCart(cartResult.rows[0]);
       
       // récupérer les items du panier avec les infos produit
       // ATTENTION: table = ligne_panier, colonnes produit = prix, taux_tva
@@ -428,3 +426,4 @@ class CartRepository {
 }
 
 module.exports = new CartRepository();
+
