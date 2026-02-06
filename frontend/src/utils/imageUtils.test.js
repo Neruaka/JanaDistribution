@@ -19,7 +19,7 @@ describe('imageUtils', () => {
   });
 
   it('returns default placeholder when image is missing', () => {
-    expect(getImageUrlOrDefault(null)).toBe('/placeholder-product.jpg');
+    expect(getImageUrlOrDefault(null)).toBe('/placeholder-product.svg');
   });
 
   it('detects local product images', () => {
