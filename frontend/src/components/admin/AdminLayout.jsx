@@ -506,6 +506,7 @@ const AdminLayout = () => {
               <Link
                 to="/"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="hidden md:flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 hover:text-green-600 rounded-xl hover:bg-gray-100 transition-colors"
               >
                 Voir le site
