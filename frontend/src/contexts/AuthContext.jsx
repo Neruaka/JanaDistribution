@@ -75,10 +75,10 @@ export const AuthProvider = ({ children }) => {
       setError(null);
       
       const response = await api.post('/auth/register', userData);
-      const { user: newUser, token } = response.data.data;
+      const { user: newUser, token, refreshToken } = response.data.data;
       
       // Stocke le token et les infos utilisateur
-      setAuthData(token, newUser);
+      setAuthData(token, newUser, refreshToken);
       setUser(newUser);
       
       return newUser;
@@ -100,10 +100,10 @@ export const AuthProvider = ({ children }) => {
       setError(null);
       
       const response = await api.post('/auth/login', { email, motDePasse });
-      const { user: loggedUser, token } = response.data.data;
+      const { user: loggedUser, token, refreshToken } = response.data.data;
       
       // Stocke le token et les infos utilisateur
-      setAuthData(token, loggedUser);
+      setAuthData(token, loggedUser, refreshToken);
       setUser(loggedUser);
       
       return loggedUser;
