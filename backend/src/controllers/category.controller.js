@@ -154,7 +154,7 @@ class CategoryController {
 
       res.json({
         success: true,
-        message: category.estActive ? 'Catégorie activée' : 'Catégorie désactivée',
+        message: category.estActif ? 'Catégorie activée' : 'Catégorie désactivée',
         data: category
       });
     } catch (error) {
