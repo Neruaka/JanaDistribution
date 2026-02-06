@@ -13,7 +13,7 @@
     "test:ci": "jest --ci --coverage --reporters=default --reporters=jest-junit",
     "lint": "eslint src/ --ext .js",
     "lint:fix": "eslint src/ --ext .js --fix",
-    "seed": "node src/scripts/seed.js"
+    "seed": "node scripts/seed.js"
   },
   "keywords": [
     "nodejs",
