@@ -72,7 +72,6 @@ const OrderHistoryPage = () => {
   // Filtres
   const [filters, setFilters] = useState({
     statut: searchParams.get('statut') || '',
-    search: searchParams.get('search') || '',
     orderBy: searchParams.get('orderBy') || 'createdAt',
     orderDir: searchParams.get('orderDir') || 'DESC'
   });
@@ -147,7 +146,6 @@ const OrderHistoryPage = () => {
   const clearFilters = () => {
     setFilters({
       statut: '',
-      search: '',
       orderBy: 'createdAt',
       orderDir: 'DESC'
     });
@@ -204,7 +202,7 @@ const OrderHistoryPage = () => {
   // RENDER
   // ==========================================
 
-  const hasFilters = filters.statut || filters.search;
+  const hasFilters = filters.statut;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
