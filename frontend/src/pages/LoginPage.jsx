@@ -68,7 +68,7 @@ const LoginPage = () => {
           {/* Header */}
           <div className="text-center">
             <Link to="/" className="inline-flex items-center gap-2 text-2xl font-bold text-green-600 hover:text-green-700 transition-colors">
-              <span className="text-3xl">ðŸ¥¬</span>
+              <span className="text-3xl">🥬</span>
               Jana Distribution
             </Link>
             <motion.h2 
@@ -139,7 +139,7 @@ const LoginPage = () => {
                     value={formData.motDePasse}
                     onChange={handleChange}
                     className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:border-green-400"
-                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                    placeholder="******************"
                   />
                   <button
                     type="button"
