@@ -28,16 +28,21 @@ const TabAdresses = ({ userId }) => {
   // Charger les adresses
   useEffect(() => {
     if (userId) {
-      const saved = localStorage.getItem(`addresses_${userId}`);
+      const storageKey = `addresses_${userId}`;
+      const saved = sessionStorage.getItem(storageKey) || localStorage.getItem(storageKey);
       if (saved) {
         setAdresses(JSON.parse(saved));
+        sessionStorage.setItem(storageKey, saved);
+        localStorage.removeItem(storageKey);
       }
     }
   }, [userId]);
 
-  // Sauvegarder dans localStorage
+  // Sauvegarder dans le stockage de session
   const saveToStorage = (newAdresses) => {
-    localStorage.setItem(`addresses_${userId}`, JSON.stringify(newAdresses));
+    const storageKey = `addresses_${userId}`;
+    sessionStorage.setItem(storageKey, JSON.stringify(newAdresses));
+    localStorage.removeItem(storageKey);
     setAdresses(newAdresses);
   };
 
