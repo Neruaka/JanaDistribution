@@ -81,6 +81,7 @@ CREATE TABLE utilisateur (
   date_creation TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   date_modification TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   derniere_connexion TIMESTAMP
+  CONSTRAINT chk_siret_pro CHECK (type_client != 'PROFESSIONNEL' OR siret IS NOT NULL)
 );
 
 -- Index utilisateur

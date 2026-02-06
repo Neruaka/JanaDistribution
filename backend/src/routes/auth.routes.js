@@ -54,7 +54,7 @@ router.post('/forgot-password', forgotPasswordValidation, authController.forgotP
 
 /**
  * POST /api/auth/reset-password
- * @description Réinitialise le mot de passe avec le token
+ * @description RÃ©initialise le mot de passe avec le token
  * @access Public
  */
 router.post('/reset-password', resetPasswordValidation, authController.resetPassword);
