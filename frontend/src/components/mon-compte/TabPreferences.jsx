@@ -66,8 +66,13 @@ const TabPreferences = ({
         api.get('/orders').catch(() => ({ data: { data: [] } }))
       ]);
 
-      // Charger les adresses depuis localStorage
-      const savedAddresses = localStorage.getItem(`addresses_${user.id}`);
+      // Charger les adresses depuis le stockage de session
+      const storageKey = `addresses_${user.id}`;
+      const savedAddresses = sessionStorage.getItem(storageKey) || localStorage.getItem(storageKey);
+      if (savedAddresses) {
+        sessionStorage.setItem(storageKey, savedAddresses);
+        localStorage.removeItem(storageKey);
+      }
       const adresses = savedAddresses ? JSON.parse(savedAddresses) : [];
 
       const userData = {

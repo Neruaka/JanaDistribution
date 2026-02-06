@@ -11,6 +11,30 @@ import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 const BACKEND_URL = API_URL.replace(/\/api\/?$/, '');
 
+const readAuthStorage = (key) => {
+  const sessionValue = sessionStorage.getItem(key);
+  if (sessionValue !== null) return sessionValue;
+
+  const legacyValue = localStorage.getItem(key);
+  if (legacyValue !== null) {
+    sessionStorage.setItem(key, legacyValue);
+    localStorage.removeItem(key);
+    return legacyValue;
+  }
+
+  return null;
+};
+
+const writeAuthStorage = (key, value) => {
+  sessionStorage.setItem(key, value);
+  localStorage.removeItem(key);
+};
+
+const removeAuthStorage = (key) => {
+  sessionStorage.removeItem(key);
+  localStorage.removeItem(key);
+};
+
 console.log('API URL:', API_URL);
 
 // ==========================================
@@ -33,13 +57,13 @@ const api = axios.create({
  */
 export const setAuthData = (token, user, refreshToken) => {
   if (token) {
-    localStorage.setItem('token', token);
+    writeAuthStorage('token', token);
   }
   if (user) {
-    localStorage.setItem('user', JSON.stringify(user));
+    writeAuthStorage('user', JSON.stringify(user));
   }
   if (refreshToken) {
-    localStorage.setItem('refreshToken', refreshToken);
+    writeAuthStorage('refreshToken', refreshToken);
   }
 };
 
@@ -47,9 +71,9 @@ export const setAuthData = (token, user, refreshToken) => {
  * Supprime les donnees d'authentification
  */
 export const clearAuthData = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
-  localStorage.removeItem('refreshToken');
+  removeAuthStorage('token');
+  removeAuthStorage('user');
+  removeAuthStorage('refreshToken');
 };
 
 /**
@@ -57,7 +81,7 @@ export const clearAuthData = () => {
  */
 export const getStoredUser = () => {
   try {
-    const user = localStorage.getItem('user');
+    const user = readAuthStorage('user');
     return user ? JSON.parse(user) : null;
   } catch {
     return null;
@@ -68,14 +92,14 @@ export const getStoredUser = () => {
  * Recupere le token stocke
  */
 export const getStoredToken = () => {
-  return localStorage.getItem('token');
+  return readAuthStorage('token');
 };
 
 /**
  * Recupere le refresh token stocke
  */
 export const getStoredRefreshToken = () => {
-  return localStorage.getItem('refreshToken');
+  return readAuthStorage('refreshToken');
 };
 
 /**
