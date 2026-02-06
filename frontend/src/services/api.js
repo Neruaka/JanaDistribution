@@ -1,8 +1,6 @@
-/**
+﻿/**
  * Configuration API Frontend
- * @description Compatible Railway (VITE_API_URL) et développement local
- * 
- * ✅ COMPLET AVEC TOUTES LES FONCTIONS AUTH
+ * @description Compatible Railway (VITE_API_URL) et developpement local
  */
 
 import axios from 'axios';
@@ -12,7 +10,7 @@ import axios from 'axios';
 // ==========================================
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
-console.log('🌐 API URL:', API_URL);
+console.log('API URL:', API_URL);
 
 // ==========================================
 // INSTANCE AXIOS
@@ -30,27 +28,31 @@ const api = axios.create({
 // ==========================================
 
 /**
- * Stocke les données d'authentification
+ * Stocke les donnees d'authentification
  */
-export const setAuthData = (token, user) => {
+export const setAuthData = (token, user, refreshToken) => {
   if (token) {
     localStorage.setItem('token', token);
   }
   if (user) {
     localStorage.setItem('user', JSON.stringify(user));
   }
+  if (refreshToken) {
+    localStorage.setItem('refreshToken', refreshToken);
+  }
 };
 
 /**
- * Supprime les données d'authentification
+ * Supprime les donnees d'authentification
  */
 export const clearAuthData = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
+  localStorage.removeItem('refreshToken');
 };
 
 /**
- * Récupère l'utilisateur stocké
+ * Recupere l'utilisateur stocke
  */
 export const getStoredUser = () => {
   try {
@@ -62,19 +64,74 @@ export const getStoredUser = () => {
 };
 
 /**
- * Récupère le token stocké
+ * Recupere le token stocke
  */
 export const getStoredToken = () => {
   return localStorage.getItem('token');
 };
 
 /**
- * Vérifie si l'utilisateur est authentifié
+ * Recupere le refresh token stocke
+ */
+export const getStoredRefreshToken = () => {
+  return localStorage.getItem('refreshToken');
+};
+
+/**
+ * Verifie si l'utilisateur est authentifie
  */
 export const isAuthenticated = () => {
   const token = getStoredToken();
   const user = getStoredUser();
   return !!(token && user);
+};
+
+const AUTH_PUBLIC_ROUTES = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+  '/auth/refresh'
+];
+
+const redirectToLogin = () => {
+  if (window.location.pathname !== '/login') {
+    window.location.href = '/login';
+  }
+};
+
+const isPublicAuthRoute = (url = '') => {
+  return AUTH_PUBLIC_ROUTES.some((route) => url.includes(route));
+};
+
+let refreshPromise = null;
+
+const refreshAccessToken = async () => {
+  const refreshToken = getStoredRefreshToken();
+
+  if (!refreshToken) {
+    throw new Error('Aucun refresh token disponible');
+  }
+
+  const response = await axios.post(
+    `${API_URL}/auth/refresh`,
+    { refreshToken },
+    {
+      timeout: 15000,
+      headers: { 'Content-Type': 'application/json' }
+    }
+  );
+
+  const { token, refreshToken: rotatedRefreshToken } = response.data?.data || {};
+
+  if (!token || !rotatedRefreshToken) {
+    throw new Error('Reponse refresh invalide');
+  }
+
+  const user = getStoredUser();
+  setAuthData(token, user, rotatedRefreshToken);
+
+  return token;
 };
 
 // ==========================================
@@ -99,20 +156,50 @@ api.interceptors.request.use(
 // ==========================================
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response) {
-      const { status } = error.response;
-      
-      if (status === 401) {
-        console.warn('🔒 Session expirée');
-        clearAuthData();
-        
-        if (!window.location.pathname.includes('/login')) {
-          window.location.href = '/login';
-        }
-      }
+  async (error) => {
+    if (!error.response) {
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
+
+    const { status } = error.response;
+    const originalRequest = error.config || {};
+
+    if (status !== 401) {
+      return Promise.reject(error);
+    }
+
+    if (isPublicAuthRoute(originalRequest.url)) {
+      clearAuthData();
+      redirectToLogin();
+      return Promise.reject(error);
+    }
+
+    if (originalRequest._retry) {
+      clearAuthData();
+      redirectToLogin();
+      return Promise.reject(error);
+    }
+
+    try {
+      originalRequest._retry = true;
+
+      if (!refreshPromise) {
+        refreshPromise = refreshAccessToken().finally(() => {
+          refreshPromise = null;
+        });
+      }
+
+      const newToken = await refreshPromise;
+      originalRequest.headers = originalRequest.headers || {};
+      originalRequest.headers.Authorization = `Bearer ${newToken}`;
+
+      return api(originalRequest);
+    } catch (refreshError) {
+      console.warn('Session expiree');
+      clearAuthData();
+      redirectToLogin();
+      return Promise.reject(refreshError);
+    }
   }
 );
 
@@ -123,15 +210,15 @@ export default api;
 // ==========================================
 export const getImageUrl = (imagePath) => {
   if (!imagePath) return '/placeholder-product.jpg';
-  
+
   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
     return imagePath;
   }
-  
+
   if (imagePath.startsWith('/uploads/')) {
     const backendUrl = API_URL.replace('/api', '');
     return `${backendUrl}${imagePath}`;
   }
-  
+
   return imagePath;
 };
