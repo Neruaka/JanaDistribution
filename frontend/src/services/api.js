@@ -107,8 +107,8 @@ api.interceptors.response.use(
         console.warn('🔒 Session expirée');
         clearAuthData();
         
-        if (!window.location.pathname.includes('/connexion')) {
-          window.location.href = '/connexion';
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
         }
       }
     }
