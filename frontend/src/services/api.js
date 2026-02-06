@@ -9,6 +9,7 @@ import axios from 'axios';
 // URL DE L'API
 // ==========================================
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const BACKEND_URL = API_URL.replace(/\/api\/?$/, '');
 
 console.log('API URL:', API_URL);
 
@@ -216,8 +217,7 @@ export const getImageUrl = (imagePath) => {
   }
 
   if (imagePath.startsWith('/uploads/')) {
-    const backendUrl = API_URL.replace('/api', '');
-    return `${backendUrl}${imagePath}`;
+    return `${BACKEND_URL}${imagePath}`;
   }
 
   return imagePath;
