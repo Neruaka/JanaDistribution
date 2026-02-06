@@ -40,6 +40,18 @@ const CataloguePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const resolveCategoryId = useCallback((categoryRef, categoryList) => {
+    if (!categoryRef) return undefined;
+
+    const byId = categoryList.find((category) => category.id === categoryRef);
+    if (byId) return byId.id;
+
+    const bySlug = categoryList.find((category) => category.slug === categoryRef);
+    if (bySlug) return bySlug.id;
+
+    return categoryRef;
+  }, []);
+
   // Filtres initiaux depuis l'URL
   const getFiltersFromUrl = useCallback(() => {
     return {
@@ -79,7 +91,7 @@ const CataloguePage = () => {
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const response = await categoryService.getAll(true);
+        const response = await categoryService.getAll({ includeProductCount: true });
         if (response.success) {
           setCategories(response.data);
         }
@@ -96,7 +108,13 @@ const CataloguePage = () => {
     setError(null);
 
     try {
-      const response = await productService.getAll(filters);
+      const effectiveCategoryId = resolveCategoryId(filters.categorieId, categories);
+      const requestFilters = {
+        ...filters,
+        categorieId: effectiveCategoryId
+      };
+
+      const response = await productService.getAll(requestFilters);
       
       if (response.success) {
         setProducts(response.data);
@@ -113,7 +131,7 @@ const CataloguePage = () => {
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [categories, filters, resolveCategoryId]);
 
   // Recharger quand les filtres changent
   useEffect(() => {
@@ -161,7 +179,9 @@ const CataloguePage = () => {
       return `Résultats pour "${filters.search}"`;
     }
     if (filters.categorieId) {
-      const category = categories.find(c => c.id === filters.categorieId);
+      const category = categories.find((c) => (
+        c.id === filters.categorieId || c.slug === filters.categorieId
+      ));
       return category ? category.nom : 'Catalogue';
     }
     return 'Tous nos produits';

@@ -147,7 +147,7 @@ const ProductCard = ({ product, onAddToCart }) => {
         {/* Catégorie */}
         {categorie && (
           <Link 
-            to={`/catalogue?categorie=${categorie.slug}`}
+            to={`/catalogue?categorie=${categorie.id || categorie.slug}`}
             className="text-xs text-green-600 hover:text-green-700 font-medium mb-1 block"
           >
             {categorie.nom}
