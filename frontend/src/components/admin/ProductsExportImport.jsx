@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Composant ProductsExportImport
  * @description Boutons et logique d'export/import Excel
  * @location frontend/src/components/admin/ProductsExportImport.jsx
@@ -6,8 +6,75 @@
 
 import { useRef } from 'react';
 import { Download, Upload, FileSpreadsheet } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import toast from 'react-hot-toast';
+
+const EXPORT_COLUMNS = [
+  { header: 'Reference', key: 'reference', width: 15 },
+  { header: 'Nom', key: 'nom', width: 40 },
+  { header: 'Categorie', key: 'categorie', width: 20 },
+  { header: 'Origine', key: 'origine', width: 15 },
+  { header: 'Prix', key: 'prix', width: 10 },
+  { header: 'Prix Promo', key: 'prixPromo', width: 10 },
+  { header: 'Description', key: 'description', width: 50 },
+  { header: 'Unite de mesure', key: 'uniteMesure', width: 15 },
+  { header: 'Stock', key: 'stockQuantite', width: 10 },
+  { header: 'Actif', key: 'estActif', width: 8 }
+];
+
+const normalizeHeader = (value) => {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '_');
+};
+
+const toCellText = (value) => {
+  if (value === null || value === undefined) return '';
+
+  if (typeof value === 'object') {
+    if (Array.isArray(value.richText)) {
+      return value.richText.map((part) => part.text || '').join('').trim();
+    }
+    if (value.text !== undefined && value.text !== null) {
+      return String(value.text).trim();
+    }
+    if (value.result !== undefined && value.result !== null) {
+      return String(value.result).trim();
+    }
+    if (value.formula && value.result !== undefined && value.result !== null) {
+      return String(value.result).trim();
+    }
+    return '';
+  }
+
+  return String(value).trim();
+};
+
+const parseNumber = (value, fallback = 0) => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  const normalized = String(value || '')
+    .replace(',', '.')
+    .replace(/[^0-9.-]/g, '');
+
+  const parsed = Number.parseFloat(normalized);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const pickValue = (row, keys) => {
+  for (const key of keys) {
+    const value = row[key];
+    if (value !== undefined && value !== null && String(value).trim() !== '') {
+      return value;
+    }
+  }
+  return '';
+};
 
 const ProductsExportImport = ({
   categories,
@@ -24,50 +91,50 @@ const ProductsExportImport = ({
 
   const handleExportClick = async () => {
     const data = await onExport();
-    
+
     if (!data || data.length === 0) {
-      toast.error('Aucun produit à exporter');
+      toast.error('Aucun produit a exporter');
       return;
     }
 
-    // Transformer les données pour Excel
-    const excelData = data.map(p => ({
-      'Référence': p.reference,
-      'Nom': p.nom,
-      'Catégorie': p.categorie,
-      'Origine': p.origine,
-      'Prix': p.prix,
-      'Prix Promo': p.prixPromo,
-      'Description': p.description,
-      'Unité de mesure': p.uniteMesure,
-      'Stock': p.stockQuantite,
-      'Actif': p.estActif
-    }));
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Produits');
 
-    // Créer le workbook
-    const ws = XLSX.utils.json_to_sheet(excelData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Produits');
+    worksheet.columns = EXPORT_COLUMNS;
 
-    // Largeurs de colonnes
-    ws['!cols'] = [
-      { wch: 15 },  // Référence
-      { wch: 40 },  // Nom
-      { wch: 20 },  // Catégorie
-      { wch: 15 },  // Origine
-      { wch: 10 },  // Prix
-      { wch: 10 },  // Prix Promo
-      { wch: 50 },  // Description
-      { wch: 15 },  // Unité
-      { wch: 10 },  // Stock
-      { wch: 8 }    // Actif
-    ];
+    data.forEach((product) => {
+      worksheet.addRow({
+        reference: product.reference,
+        nom: product.nom,
+        categorie: product.categorie,
+        origine: product.origine,
+        prix: product.prix,
+        prixPromo: product.prixPromo,
+        description: product.description,
+        uniteMesure: product.uniteMesure,
+        stockQuantite: product.stockQuantite,
+        estActif: product.estActif
+      });
+    });
 
-    // Télécharger
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob(
+      [buffer],
+      { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
+    );
+
     const fileName = `produits_jana_${new Date().toISOString().split('T')[0]}.xlsx`;
-    XLSX.writeFile(wb, fileName);
-    
-    toast.success(`${data.length} produits exportés`);
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+
+    toast.success(`${data.length} produits exportes`);
   };
 
   // ==========================================
@@ -79,50 +146,80 @@ const ProductsExportImport = ({
     if (!file) return;
 
     try {
-      // Lire le fichier
-      const data = await file.arrayBuffer();
-      const workbook = XLSX.read(data);
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      if (!file.name.toLowerCase().endsWith('.xlsx')) {
+        toast.error('Format non supporte. Utilisez un fichier .xlsx');
+        return;
+      }
 
-      if (jsonData.length === 0) {
+      const data = await file.arrayBuffer();
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(data);
+
+      const worksheet = workbook.worksheets[0];
+
+      if (!worksheet) {
+        toast.error('Aucune feuille trouvee dans le fichier');
+        return;
+      }
+
+      const headerMap = {};
+      worksheet.getRow(1).eachCell((cell, columnIndex) => {
+        const normalized = normalizeHeader(cell.text || cell.value);
+        if (normalized) {
+          headerMap[columnIndex] = normalized;
+        }
+      });
+
+      const rows = [];
+      worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+        if (rowNumber === 1) return;
+
+        const rowData = {};
+        row.eachCell({ includeEmpty: true }, (cell, columnIndex) => {
+          const key = headerMap[columnIndex];
+          if (!key) return;
+          rowData[key] = toCellText(cell.value);
+        });
+
+        if (Object.keys(rowData).length > 0) {
+          rows.push(rowData);
+        }
+      });
+
+      if (rows.length === 0) {
         toast.error('Le fichier est vide');
         return;
       }
 
-      // Trouver la catégorie TBD par défaut
-      const tbdCategory = categories.find(c => c.nom.toUpperCase() === 'TBD');
+      const tbdCategory = categories.find((c) => c.nom.toUpperCase() === 'TBD');
       if (!tbdCategory) {
-        toast.error('Catégorie "TBD" non trouvée. Créez-la d\'abord.');
+        toast.error('Categorie "TBD" non trouvee. Creez-la d\'abord.');
         return;
       }
 
-      // Transformer les données
-      const products = jsonData.map(row => ({
-        reference: row['Référence'] || row['reference'] || row['Reference'] || row['REF'] || '',
-        nom: row['Nom'] || row['nom'] || row['Name'] || row['NOM'] || '',
-        categorie: row['Catégorie'] || row['categorie'] || row['Categorie'] || row['Category'] || '',
-        origine: row['Origine'] || row['origine'] || row['Origin'] || '',
-        prix: parseFloat(row['Prix'] || row['prix'] || row['Price'] || 0),
-        description: row['Description'] || row['description'] || '',
-        uniteMesure: row['Unité de mesure'] || row['unite_mesure'] || row['uniteMesure'] || row['Unit'] || row['Unité'] || 'kg',
-        stockQuantite: parseInt(row['Stock'] || row['stock'] || row['Quantité'] || 100)
-      })).filter(p => p.reference && p.nom);
+      const products = rows
+        .map((row) => ({
+          reference: pickValue(row, ['reference', 'ref']),
+          nom: pickValue(row, ['nom', 'name']),
+          categorie: pickValue(row, ['categorie', 'category']),
+          origine: pickValue(row, ['origine', 'origin']),
+          prix: parseNumber(pickValue(row, ['prix', 'price']), 0),
+          description: pickValue(row, ['description']),
+          uniteMesure: pickValue(row, ['unite_de_mesure', 'unite', 'unit', 'unite_mesure']) || 'kg',
+          stockQuantite: Math.trunc(parseNumber(pickValue(row, ['stock', 'quantite']), 100))
+        }))
+        .filter((product) => product.reference && product.nom);
 
       if (products.length === 0) {
-        toast.error('Aucun produit valide trouvé (référence et nom requis)');
+        toast.error('Aucun produit valide trouve (reference et nom requis)');
         return;
       }
 
-      // Lancer l'import
       await onImport(products, tbdCategory.id);
-
     } catch (err) {
       console.error('Erreur lecture fichier:', err);
       toast.error('Erreur lors de la lecture du fichier');
     } finally {
-      // Reset input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -131,17 +228,17 @@ const ProductsExportImport = ({
 
   return (
     <>
-      {/* Input file caché */}
+      {/* Input file cache */}
       <input
         type="file"
         ref={fileInputRef}
         onChange={handleFileChange}
-        accept=".xlsx,.xls"
+        accept=".xlsx"
         className="hidden"
       />
-      
+
       {/* Bouton Import */}
-      <button 
+      <button
         onClick={() => fileInputRef.current?.click()}
         disabled={importing}
         className="px-4 py-2 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-2 text-gray-600 disabled:opacity-50"
@@ -158,9 +255,9 @@ const ProductsExportImport = ({
           </>
         )}
       </button>
-      
+
       {/* Bouton Export */}
-      <button 
+      <button
         onClick={handleExportClick}
         disabled={exporting}
         className="px-4 py-2 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-2 text-gray-600 disabled:opacity-50"
@@ -192,10 +289,10 @@ export const ImportInfoBox = () => (
       <div>
         <h3 className="font-medium text-blue-800">Format d'import Excel</h3>
         <p className="text-sm text-blue-600 mt-1">
-          Colonnes attendues : <strong>Référence</strong> | <strong>Nom</strong> | Catégorie | Origine | Prix | Description | Unité de mesure | Stock
+          Colonnes attendues : <strong>Reference</strong> | <strong>Nom</strong> | Categorie | Origine | Prix | Description | Unite de mesure | Stock
         </p>
         <p className="text-sm text-blue-600 mt-1">
-          Les produits sans catégorie existante seront assignés à "TBD". Référence et Nom sont obligatoires.
+          Les produits sans categorie existante seront assignes a "TBD". Reference et Nom sont obligatoires.
         </p>
       </div>
     </div>
