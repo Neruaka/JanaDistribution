@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Package, FolderOpen, X, Loader2 } from 'lucide-react';
 import productService from '../services/productService';
 import categoryService from '../services/categoryService';
+import { getImageUrl } from '../utils/imageUtils';
 
 // Debounce hook
 const useDebounce = (value, delay) => {
@@ -270,7 +271,7 @@ const SearchBar = ({ className = '' }) => {
                   <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {product.imageUrl ? (
                       <img 
-                        src={product.imageUrl} 
+                        src={getImageUrl(product.imageUrl)} 
                         alt={product.nom} 
                         className="w-full h-full object-cover"
                       />
