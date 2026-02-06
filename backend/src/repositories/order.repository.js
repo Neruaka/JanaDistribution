@@ -300,6 +300,21 @@ class OrderRepository {
         const totalHt = ligne.prixUnitaireHt * ligne.quantite;
         const totalTtc = totalHt * (1 + ligne.tauxTva / 100);
 
+        // Decrementation atomique pour eviter la course critique sur le stock.
+        const stockUpdateResult = await client.query(
+          `UPDATE produit
+           SET stock_quantite = stock_quantite - $1, date_modification = NOW()
+           WHERE id = $2
+             AND est_actif = true
+             AND stock_quantite >= $1
+           RETURNING id, stock_quantite`,
+          [ligne.quantite, ligne.produitId]
+        );
+
+        if (stockUpdateResult.rowCount === 0) {
+          throw new Error(`Stock insuffisant ou produit indisponible (${ligne.produitId})`);
+        }
+
         const lineResult = await client.query(lineSql, [
           order.id,
           ligne.produitId,
@@ -311,12 +326,6 @@ class OrderRepository {
           ligne.nomProduit
         ]);
         lines.push(lineResult.rows[0]);
-
-        // Décrémenter le stock du produit
-        await client.query(
-          'UPDATE produit SET stock_quantite = stock_quantite - $1 WHERE id = $2',
-          [ligne.quantite, ligne.produitId]
-        );
       }
 
       await client.query('COMMIT');
