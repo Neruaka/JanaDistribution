@@ -10,6 +10,7 @@ const cartRepository = require('../repositories/cart.repository');
 const userRepository = require('../repositories/user.repository');
 // const productRepository = require('../repositories/product.repository');
 const emailService = require('./email.service');
+const settingsService = require('./settings.service');
 const logger = require('../config/logger');
 const { ApiError } = require('../middlewares/errorHandler');
 
@@ -98,10 +99,47 @@ class OrderService {
       }
     }
     
-    // Calculer les totaux
-    const fraisLivraison = data.fraisLivraison || 0;
+    // Calculer les totaux depuis le panier serveur
     const totalHt = cart.summary.subtotalHT;
     const totalTva = cart.summary.totalTVA;
+    const totalPanierTtc = cart.summary.totalTTC;
+
+    // Appliquer le montant minimum cÃ´tÃ© serveur
+    let montantMinCommande = 0;
+    try {
+      montantMinCommande = await settingsService.get('commande_montant_min') || 0;
+    } catch (error) {
+      logger.warn('Impossible de rÃ©cupÃ©rer le montant minimum de commande, valeur par dÃ©faut appliquÃ©e', {
+        error: error.message
+      });
+    }
+
+    if (montantMinCommande > 0 && totalPanierTtc < montantMinCommande) {
+      throw ApiError.badRequest(
+        `Le montant minimum de commande est de ${montantMinCommande.toFixed(2)}â‚¬ TTC`
+      );
+    }
+
+    // Calcul des frais de livraison strictement cÃ´tÃ© serveur
+    let fraisLivraison = 0;
+    try {
+      fraisLivraison = await settingsService.getFraisLivraison(totalPanierTtc);
+    } catch (error) {
+      logger.warn('Impossible de rÃ©cupÃ©rer les frais de livraison dynamiques, fallback appliquÃ©', {
+        error: error.message
+      });
+      fraisLivraison = totalPanierTtc >= 150 ? 0 : 15;
+    }
+
+    // DÃ©tection d'une tentative de forcer un montant cÃ´tÃ© client
+    if (data.fraisLivraison !== undefined && Number(data.fraisLivraison) !== Number(fraisLivraison)) {
+      logger.warn('Frais livraison fournis par le client ignorÃ©s', {
+        userId,
+        clientValue: data.fraisLivraison,
+        serverValue: fraisLivraison
+      });
+    }
+
     const totalTtc = cart.summary.totalTTC + fraisLivraison;
     
     // Créer la commande
