@@ -31,7 +31,7 @@ export const getFilenameFromUrl = (imageUrl) => {
   return imageUrl.split('/').pop();
 };
 
-export const DEFAULT_PRODUCT_IMAGE = '/placeholder-product.jpg';
+export const DEFAULT_PRODUCT_IMAGE = '/placeholder-product.svg';
 
 export const getImageUrlOrDefault = (imageUrl) => {
   const url = getImageUrl(imageUrl);
