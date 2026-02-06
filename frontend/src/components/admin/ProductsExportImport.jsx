@@ -6,7 +6,6 @@
 
 import { useRef } from 'react';
 import { Download, Upload, FileSpreadsheet } from 'lucide-react';
-import ExcelJS from 'exceljs';
 import toast from 'react-hot-toast';
 
 const EXPORT_COLUMNS = [
@@ -76,6 +75,11 @@ const pickValue = (row, keys) => {
   return '';
 };
 
+const loadExcelJS = async () => {
+  const module = await import('exceljs');
+  return module.default;
+};
+
 const ProductsExportImport = ({
   categories,
   exporting,
@@ -90,6 +94,7 @@ const ProductsExportImport = ({
   // ==========================================
 
   const handleExportClick = async () => {
+    const ExcelJS = await loadExcelJS();
     const data = await onExport();
 
     if (!data || data.length === 0) {
@@ -146,6 +151,7 @@ const ProductsExportImport = ({
     if (!file) return;
 
     try {
+      const ExcelJS = await loadExcelJS();
       if (!file.name.toLowerCase().endsWith('.xlsx')) {
         toast.error('Format non supporte. Utilisez un fichier .xlsx');
         return;
