@@ -18,9 +18,11 @@ const emailService = require('./email.service');
 
 class AuthService {
   constructor() {
-    this.saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12;
+    this.saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS, 10) || 12;
     this.jwtSecret = process.env.JWT_SECRET;
     this.jwtExpiresIn = process.env.JWT_EXPIRES_IN || '7d';
+    this.jwtRefreshSecret = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET;
+    this.jwtRefreshExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN || '30d';
     this.resetTokenExpiry = 60 * 60 * 1000; // 1 heure en millisecondes
   }
 
@@ -86,6 +88,7 @@ class AuthService {
 
     // Générer le token JWT
     const token = this.generateToken(user);
+    const refreshToken = this.generateRefreshToken(user);
 
     logger.info(`Nouvel utilisateur inscrit: ${user.email} (${user.typeClient})`);
 
@@ -96,7 +99,8 @@ class AuthService {
 
     return {
       user: this.sanitizeUser(user),
-      token
+      token,
+      refreshToken
     };
   }
 
@@ -131,12 +135,14 @@ class AuthService {
 
     // Générer le token
     const token = this.generateToken(user);
+    const refreshToken = this.generateRefreshToken(user);
 
     logger.info(`Connexion réussie: ${user.email}`);
 
     return {
       user: this.sanitizeUser(user),
-      token
+      token,
+      refreshToken
     };
   }
 
@@ -351,11 +357,28 @@ class AuthService {
       id: user.id,
       email: user.email,
       role: user.role,
-      typeClient: user.typeClient
+      typeClient: user.typeClient,
+      tokenType: 'access'
     };
 
     return jwt.sign(payload, this.jwtSecret, {
       expiresIn: this.jwtExpiresIn
+    });
+  }
+
+  /**
+   * GÃ©nÃ¨re un refresh token JWT
+   * @param {Object} user - Utilisateur
+   * @returns {string} Refresh token JWT
+   */
+  generateRefreshToken(user) {
+    const payload = {
+      id: user.id,
+      tokenType: 'refresh'
+    };
+
+    return jwt.sign(payload, this.jwtRefreshSecret, {
+      expiresIn: this.jwtRefreshExpiresIn
     });
   }
 
@@ -372,6 +395,31 @@ class AuthService {
         throw ApiError.unauthorized('Token expiré');
       }
       throw ApiError.unauthorized('Token invalide');
+    }
+  }
+
+  /**
+   * VÃ©rifie un refresh token JWT
+   * @param {string} refreshToken - Refresh token Ã  vÃ©rifier
+   * @returns {Object} Payload dÃ©codÃ©
+   */
+  verifyRefreshToken(refreshToken) {
+    try {
+      const payload = jwt.verify(refreshToken, this.jwtRefreshSecret);
+
+      if (payload.tokenType !== 'refresh') {
+        throw ApiError.unauthorized('Refresh token invalide');
+      }
+
+      return payload;
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        throw ApiError.unauthorized('Refresh token expirÃ©');
+      }
+      if (error.statusCode) {
+        throw error;
+      }
+      throw ApiError.unauthorized('Refresh token invalide');
     }
   }
 

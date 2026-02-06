@@ -20,6 +20,7 @@ const { authenticate } = require('../middlewares/auth.middleware');
 const {
   registerValidation,
   loginValidation,
+  refreshTokenValidation,
   changePasswordValidation,
   updateProfileValidation
 } = require('../validators/auth.validator');
@@ -91,9 +92,9 @@ router.put('/password', authenticate, changePasswordValidation, authController.c
 /**
  * POST /api/auth/refresh
  * @description Rafraîchit le token JWT
- * @access Private
+ * @access Public (refresh token requis)
  */
-router.post('/refresh', authenticate, authController.refreshToken);
+router.post('/refresh', refreshTokenValidation, authController.refreshToken);
 
 
 /** * DELETE /api/auth/account
