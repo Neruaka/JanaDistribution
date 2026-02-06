@@ -375,27 +375,46 @@ class UserRepository {
    * @param {string} id - UUID de l'utilisateur
    */
   async anonymize(id) {
-    const sql = `
-      UPDATE utilisateur 
-      SET 
-        email = CONCAT('deleted_', id, '@anonymized.local'),
-        nom = 'Utilisateur',
-        prenom = 'Supprimé',
-        telephone = NULL,
-        mot_de_passe_hash = 'ACCOUNT_DELETED',
-        siret = NULL,
-        raison_sociale = NULL,
-        numero_tva = NULL,
-        reset_token = NULL,
-        reset_token_expiry = NULL,
-        est_actif = false,
-        accepte_newsletter = false,
-        notifications_commandes = false,
-        date_modification = CURRENT_TIMESTAMP
-      WHERE id = $1
-    `;
-    await query(sql, [id]);
-    logger.info(`Utilisateur anonymisé: ${id}`);
+    const client = await getClient();
+
+    try {
+      await client.query('BEGIN');
+
+      // Supprime les adresses liees (donnees personnelles directes).
+      await client.query('DELETE FROM adresse WHERE utilisateur_id = $1', [id]);
+
+      // Supprime le panier (et les lignes via ON DELETE CASCADE).
+      await client.query('DELETE FROM panier WHERE utilisateur_id = $1', [id]);
+
+      const sql = `
+        UPDATE utilisateur 
+        SET 
+          email = CONCAT('deleted_', id, '@anonymized.local'),
+          nom = 'Utilisateur',
+          prenom = 'Supprime',
+          telephone = NULL,
+          mot_de_passe_hash = 'ACCOUNT_DELETED',
+          siret = NULL,
+          raison_sociale = NULL,
+          numero_tva = NULL,
+          reset_token = NULL,
+          reset_token_expiry = NULL,
+          est_actif = false,
+          accepte_newsletter = false,
+          notifications_commandes = false,
+          date_modification = CURRENT_TIMESTAMP
+        WHERE id = $1
+      `;
+      await client.query(sql, [id]);
+
+      await client.query('COMMIT');
+      logger.info(`Utilisateur anonymise: ${id}`);
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   /**
@@ -469,3 +488,4 @@ class UserRepository {
 }
 
 module.exports = new UserRepository();
+
