@@ -85,7 +85,7 @@ const CartItem = forwardRef(function CartItem({ item, compact = false }, ref) {
           className="flex-shrink-0"
         >
           <img
-            src={fullImageUrl || '/placeholder-product.jpg'}
+            src={fullImageUrl || '/placeholder-product.svg'}
             alt={product.name}
             className="w-16 h-16 object-cover rounded-md"
           />
@@ -191,7 +191,7 @@ const CartItem = forwardRef(function CartItem({ item, compact = false }, ref) {
         className="flex-shrink-0"
       >
         <img
-          src={fullImageUrl || '/placeholder-product.jpg'}
+          src={fullImageUrl || '/placeholder-product.svg'}
           alt={product.name}
           className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-lg"
         />

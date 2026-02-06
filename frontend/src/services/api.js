@@ -234,7 +234,7 @@ export default api;
 // HELPER POUR LES IMAGES
 // ==========================================
 export const getImageUrl = (imagePath) => {
-  if (!imagePath) return '/placeholder-product.jpg';
+  if (!imagePath) return '/placeholder-product.svg';
 
   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
     return imagePath;
