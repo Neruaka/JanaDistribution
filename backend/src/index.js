@@ -52,7 +52,7 @@ const PORT = process.env.PORT || 3000;
 // MIDDLEWARES GLOBAUX
 // ==========================================
 
-// SÃ©curitÃ©
+// Sécurité
 app.use(helmet());
 
 // CORS
@@ -91,7 +91,7 @@ const authLimiter = rateLimit({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Logging des requÃªtes
+// Logging des requêtes
 app.use((req, res, next) => {
   logger.info(`${req.method} ${req.url}`, {
     ip: req.ip,
@@ -162,38 +162,38 @@ app.use(errorHandler);
 // ==========================================
 const startServer = async () => {
   try {
-    // Connexion Ã  PostgreSQL
+    // Connexion à PostgreSQL
     await connectDB();
-    logger.info('âœ… Connexion PostgreSQL Ã©tablie');
+    logger.info(' ✔ Connexion PostgreSQL établie');
 
-    // Connexion Ã  Redis (optionnel)
+    // Connexion à Redis (optionnel)
     try {
       await connectRedis();
-      logger.info('âœ… Connexion Redis Ã©tablie');
+      logger.info(' ✔ Connexion Redis établie');
     } catch (redisError) {
-      logger.warn('âš ï¸ Redis non disponible, fonctionnement sans cache');
+      logger.warn(' ⚠ Redis non disponible, fonctionnement sans cache');
     }
 
     app.listen(PORT, () => {
-      logger.info('Serveur demarre sur le port ' + PORT);
+      logger.info('Serveur démarre sur le port ' + PORT);
       logger.info('Environment: ' + process.env.NODE_ENV);
     });
 
-    logger.info('ðŸ“Š Serveur prÃªt - toutes les connexions Ã©tablies');
+    logger.info('✔ Serveur prêt - toutes les connexions établies');
   } catch (error) {
-    logger.error('âŒ Erreur au dÃ©marrage du serveur:', error);
+    logger.error('❌ Erreur au démarrage du serveur:', error);
     process.exit(1);
   }
 };
 
-// Gestion propre de l'arrÃªt
+// Gestion propre de l'arrêt
 process.on('SIGTERM', () => {
-  logger.info('SIGTERM reÃ§u, arrÃªt gracieux...');
+  logger.info('SIGTERM reçu, arrêt gracieux...');
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
-  logger.info('SIGINT reÃ§u, arrÃªt gracieux...');
+  logger.info('SIGINT reçu, arrêt gracieux...');
   process.exit(0);
 });
 
