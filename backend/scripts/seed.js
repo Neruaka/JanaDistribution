@@ -7,9 +7,16 @@ require('dotenv').config();
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 
+const hasExplicitLocalDbConfig = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'].some((key) => {
+  const value = process.env[key];
+  return typeof value === 'string' && value.trim() !== '';
+});
+const hasDatabaseUrl = typeof process.env.DATABASE_URL === 'string' && process.env.DATABASE_URL.trim() !== '';
+const shouldUseDatabaseUrl = hasDatabaseUrl && (process.env.NODE_ENV === 'production' || !hasExplicitLocalDbConfig);
+
 // Configuration de la connexion - supporte DATABASE_URL ou variables séparées
 const pool = new Pool(
-  process.env.DATABASE_URL 
+  shouldUseDatabaseUrl
     ? { connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } }
     : {
         host: process.env.DB_HOST || 'localhost',

@@ -9,9 +9,15 @@ const { Pool } = require('pg');
 const logger = require('./logger');
 
 let pool;
+const hasExplicitLocalDbConfig = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'].some((key) => {
+  const value = process.env[key];
+  return typeof value === 'string' && value.trim() !== '';
+});
+const hasDatabaseUrl = typeof process.env.DATABASE_URL === 'string' && process.env.DATABASE_URL.trim() !== '';
+const shouldUseDatabaseUrl = hasDatabaseUrl && (process.env.NODE_ENV === 'production' || !hasExplicitLocalDbConfig);
 
 // Détection automatique de l'environnement
-if (process.env.DATABASE_URL) {
+if (shouldUseDatabaseUrl) {
   // ==========================================
   // PRODUCTION (Railway, Render, Heroku...)
   // ==========================================
