@@ -204,6 +204,12 @@ cd backend
 npm run seed
 ```
 
+Si tu utilises Docker Compose (recommande en local), lance le seed dans le conteneur backend:
+
+```bash
+docker compose exec backend npm run seed
+```
+
 Le seed cree des categories, produits et comptes de demonstration.
 
 Comptes de test:
@@ -325,6 +331,11 @@ Probleme: port deja occupe.
 Probleme: schema SQL non reapplique.
 - Les scripts d'init Postgres ne se rejouent pas si le volume existe deja.
 - Pour reset complet local: `docker compose down -v` puis `docker compose up -d`.
+
+Probleme: `role "postgres" does not exist` / `password authentication failed`.
+- Le volume Postgres local contient souvent une ancienne initialisation avec un autre utilisateur.
+- Verifier que `.env` (racine) et `backend/.env` utilisent le meme `DB_USER`/`DB_PASSWORD`/`DB_NAME`.
+- Reset propre recommande: `docker compose down -v` puis `docker compose up -d --build`.
 
 Probleme: Redis indisponible.
 - Le backend continue a fonctionner sans cache (mode degrade).

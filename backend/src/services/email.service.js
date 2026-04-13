@@ -325,7 +325,7 @@ class EmailService {
 
       <!-- CTA Button -->
       <div style="text-align: center; margin: 30px 0;">
-        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/connexion"
+        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/login"
            style="display: inline-block; background-color: #22C55E; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px;">
           Me connecter
         </a>

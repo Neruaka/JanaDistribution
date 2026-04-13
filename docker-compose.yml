@@ -59,7 +59,7 @@ services:
     container_name: jana_backend
     restart: unless-stopped
     environment:
-      NODE_ENV: ${NODE_ENV:-production}
+      NODE_ENV: ${NODE_ENV:-development}
       PORT: 3000
       # Database
       DB_HOST: postgres
@@ -104,7 +104,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000/api}
+        VITE_API_URL: ${VITE_API_URL:-/api}
     container_name: jana_frontend
     restart: unless-stopped
     ports:

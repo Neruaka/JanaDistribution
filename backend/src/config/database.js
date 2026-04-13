@@ -9,12 +9,30 @@ const { Pool } = require('pg');
 const logger = require('./logger');
 
 let pool;
-const hasExplicitLocalDbConfig = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'].some((key) => {
+const getEnv = (...keys) => {
+  for (const key of keys) {
+    const value = process.env[key];
+    if (typeof value === 'string' && value.trim() !== '') {
+      return value.trim();
+    }
+  }
+  return undefined;
+};
+
+const hasExplicitLocalDbConfig = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'PGHOST', 'PGPORT', 'PGDATABASE', 'PGUSER', 'PGPASSWORD'].some((key) => {
   const value = process.env[key];
   return typeof value === 'string' && value.trim() !== '';
 });
 const hasDatabaseUrl = typeof process.env.DATABASE_URL === 'string' && process.env.DATABASE_URL.trim() !== '';
 const shouldUseDatabaseUrl = hasDatabaseUrl && (process.env.NODE_ENV === 'production' || !hasExplicitLocalDbConfig);
+const parsedLocalPort = parseInt(getEnv('DB_PORT', 'PGPORT') || '5432', 10);
+const localDbConfig = {
+  host: getEnv('DB_HOST', 'PGHOST') || 'localhost',
+  port: Number.isNaN(parsedLocalPort) ? 5432 : parsedLocalPort,
+  database: getEnv('DB_NAME', 'PGDATABASE') || 'jana_distribution',
+  user: getEnv('DB_USER', 'PGUSER') || 'postgres',
+  password: getEnv('DB_PASSWORD', 'PGPASSWORD') || 'postgres'
+};
 
 // Détection automatique de l'environnement
 if (shouldUseDatabaseUrl) {
@@ -36,14 +54,14 @@ if (shouldUseDatabaseUrl) {
   // ==========================================
   // DÉVELOPPEMENT LOCAL
   // ==========================================
-  console.log('🛈 Mode Développement détecté');
+  console.log(`🛈 Mode Développement détecté (host=${localDbConfig.host}, db=${localDbConfig.database}, user=${localDbConfig.user})`);
   
   pool = new Pool({
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT) || 5432,
-    database: process.env.DB_NAME || 'jana_distribution',
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'postgres',
+    host: localDbConfig.host,
+    port: localDbConfig.port,
+    database: localDbConfig.database,
+    user: localDbConfig.user,
+    password: localDbConfig.password,
     max: 10,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 5000
@@ -72,6 +90,15 @@ const connectDB = async () => {
       return true;
     } catch (error) {
       logger.error('Erreur connexion PostgreSQL:', error.message);
+
+      if (error?.code === '28P01' || error?.code === '28000') {
+        logger.error(
+          `Authentification PostgreSQL invalide (user=${localDbConfig.user}, db=${localDbConfig.database}, host=${localDbConfig.host}).`
+        );
+        logger.error(
+          'Si vous etes en Docker local avec un ancien volume, lancez: docker compose down -v puis docker compose up -d --build'
+        );
+      }
 
       if (attempt === safeMaxRetries) {
         logger.error(`Échec connexion PostgreSQL après ${safeMaxRetries} tentative(s)`);

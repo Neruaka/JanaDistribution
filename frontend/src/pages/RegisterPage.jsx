@@ -486,9 +486,9 @@ const RegisterPage = () => {
                 />
                 <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
                   J'accepte les{' '}
-                  <a href="#" className="text-green-600 hover:underline">conditions générales d'utilisation</a>
+                  <Link to="/cgv" className="text-green-600 hover:underline">conditions générales d'utilisation</Link>
                   {' '}et la{' '}
-                  <a href="#" className="text-green-600 hover:underline">politique de confidentialité</a> *
+                  <Link to="/confidentialite" className="text-green-600 hover:underline">politique de confidentialité</Link> *
                 </span>
               </label>
               {validationErrors.accepteCgu && (

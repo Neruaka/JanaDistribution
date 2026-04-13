@@ -7,24 +7,36 @@ require('dotenv').config();
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 
-const hasExplicitLocalDbConfig = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'].some((key) => {
+const getEnv = (...keys) => {
+  for (const key of keys) {
+    const value = process.env[key];
+    if (typeof value === 'string' && value.trim() !== '') {
+      return value.trim();
+    }
+  }
+  return undefined;
+};
+
+const hasExplicitLocalDbConfig = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'PGHOST', 'PGPORT', 'PGDATABASE', 'PGUSER', 'PGPASSWORD'].some((key) => {
   const value = process.env[key];
   return typeof value === 'string' && value.trim() !== '';
 });
 const hasDatabaseUrl = typeof process.env.DATABASE_URL === 'string' && process.env.DATABASE_URL.trim() !== '';
 const shouldUseDatabaseUrl = hasDatabaseUrl && (process.env.NODE_ENV === 'production' || !hasExplicitLocalDbConfig);
+const parsedLocalPort = parseInt(getEnv('DB_PORT', 'PGPORT') || '5432', 10);
+const localDbConfig = {
+  host: getEnv('DB_HOST', 'PGHOST') || 'localhost',
+  port: Number.isNaN(parsedLocalPort) ? 5432 : parsedLocalPort,
+  database: getEnv('DB_NAME', 'PGDATABASE') || 'jana_distribution',
+  user: getEnv('DB_USER', 'PGUSER') || 'postgres',
+  password: getEnv('DB_PASSWORD', 'PGPASSWORD') || 'postgres'
+};
 
 // Configuration de la connexion - supporte DATABASE_URL ou variables séparées
 const pool = new Pool(
   shouldUseDatabaseUrl
     ? { connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } }
-    : {
-        host: process.env.DB_HOST || 'localhost',
-        port: parseInt(process.env.DB_PORT) || 5432,
-        database: process.env.DB_NAME || 'jana_distribution',
-        user: process.env.DB_USER || 'postgres',
-        password: process.env.DB_PASSWORD || 'postgres'
-      }
+    : localDbConfig
 );
 
 // ==========================================
@@ -252,10 +264,10 @@ async function seed() {
     console.log('✨ SEED TERMINÉ AVEC SUCCÈS !');
     console.log('═'.repeat(50));
     console.log('\n📋 Récapitulatif:');
-    console.log(`   • 3 utilisateurs (1 admin, 1 client, 1 pro)`);
+    console.log('   - 3 utilisateurs (1 admin, 1 client, 1 pro)');
     console.log(`   • ${categories.length} catégories`);
     console.log(`   • ${productCount} produits`);
-    console.log(`   • 2 adresses`);
+    console.log('   - 2 adresses');
     console.log('\n🔑 Comptes de test:');
     console.log('   Admin:  admin@jana-distribution.fr / Admin123!');
     console.log('   Client: client@test.fr / Client123!');
@@ -275,6 +287,16 @@ async function seed() {
 
 // Exécution
 seed().catch(err => {
+  if (err?.code === '28P01' || err?.code === '28000') {
+    console.error(
+      '\n[seed] Auth PostgreSQL invalide. Verifie DB_USER/DB_PASSWORD, ou reset le volume local: docker compose down -v && docker compose up -d'
+    );
+  }
+  if (err?.code === 'ECONNRESET') {
+    console.error(
+      '\n[seed] Connexion coupee par PostgreSQL. Souvent cause par un redemarrage du conteneur ou des credentials invalides.'
+    );
+  }
   console.error(err);
   process.exit(1);
 });
