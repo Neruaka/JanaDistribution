@@ -16,6 +16,7 @@
 
 const { query, pool } = require('../config/database');
 const logger = require('../config/logger');
+const { ApiError } = require('../middlewares/errorHandler');
 
 class OrderRepository {
   
@@ -301,18 +302,34 @@ class OrderRepository {
         const totalTtc = totalHt * (1 + ligne.tauxTva / 100);
 
         // Decrementation atomique pour eviter la course critique sur le stock.
+        // Si la commande n'est pas satisfiable (stock insuffisant ou produit inactif),
+        // le UPDATE ne matche aucune ligne et on lève une ApiError 400 qui déclenche le ROLLBACK.
         const stockUpdateResult = await client.query(
           `UPDATE produit
            SET stock_quantite = stock_quantite - $1, date_modification = NOW()
            WHERE id = $2
              AND est_actif = true
              AND stock_quantite >= $1
-           RETURNING id, stock_quantite`,
+           RETURNING id, nom, stock_quantite`,
           [ligne.quantite, ligne.produitId]
         );
 
         if (stockUpdateResult.rowCount === 0) {
-          throw new Error(`Stock insuffisant ou produit indisponible (${ligne.produitId})`);
+          const produitInfo = await client.query(
+            'SELECT nom, stock_quantite, est_actif FROM produit WHERE id = $1',
+            [ligne.produitId]
+          );
+          const infos = produitInfo.rows[0];
+          throw ApiError.badRequest(
+            `Stock insuffisant ou produit indisponible pour "${ligne.nomProduit || infos?.nom || ligne.produitId}"`,
+            {
+              type: 'STOCK_CONFLICT',
+              produitId: ligne.produitId,
+              requested: ligne.quantite,
+              available: infos?.stock_quantite ?? 0,
+              estActif: infos?.est_actif ?? false
+            }
+          );
         }
 
         const lineResult = await client.query(lineSql, [

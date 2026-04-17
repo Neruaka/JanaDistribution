@@ -8,6 +8,7 @@
  */
 
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const router = express.Router();
 
 // Controllers
@@ -26,6 +27,22 @@ const {
   changePasswordValidation,
   updateProfileValidation
 } = require('../validators/auth.validator');
+
+// ==========================================
+// RATE LIMITERS SPÉCIFIQUES (password reset)
+// Plus strict que le authLimiter global de /api/auth,
+// pour prévenir énumération d'emails et brute-force de tokens.
+// ==========================================
+const passwordResetLimiter = rateLimit({
+  windowMs: parseInt(process.env.PASSWORD_RESET_RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000,
+  max: parseInt(process.env.PASSWORD_RESET_RATE_LIMIT_MAX_REQUESTS, 10) || 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Trop de tentatives de réinitialisation, veuillez réessayer dans 15 minutes.'
+  }
+});
 
 // ==========================================
 // ROUTES PUBLIQUES (sans authentification)
@@ -50,14 +67,14 @@ router.post('/login', loginValidation, authController.login);
  * @description Demande de réinitialisation de mot de passe
  * @access Public
  */
-router.post('/forgot-password', forgotPasswordValidation, authController.forgotPassword);
+router.post('/forgot-password', passwordResetLimiter, forgotPasswordValidation, authController.forgotPassword);
 
 /**
  * POST /api/auth/reset-password
- * @description RÃ©initialise le mot de passe avec le token
+ * @description Réinitialise le mot de passe avec le token
  * @access Public
  */
-router.post('/reset-password', resetPasswordValidation, authController.resetPassword);
+router.post('/reset-password', passwordResetLimiter, resetPasswordValidation, authController.resetPassword);
 
 // ==========================================
 // ROUTES PROTÉGÉES (authentification requise)

@@ -111,21 +111,37 @@ const HomePage = () => {
   };
 
   // Catégories
-  const categories = [
-    { id: 1, nom: 'Fruits & Légumes', icone: '🥬', slug: 'fruits-legumes', color: 'from-green-400 to-emerald-500', bgLight: 'bg-green-50' },
-    { id: 2, nom: 'Produits Laitiers', icone: '🧀', slug: 'produits-laitiers', color: 'from-yellow-400 to-amber-500', bgLight: 'bg-yellow-50' },
-    { id: 3, nom: 'Boucherie', icone: '🥩', slug: 'boucherie', color: 'from-red-400 to-rose-500', bgLight: 'bg-red-50' },
-    { id: 4, nom: 'Boulangerie', icone: '🥖', slug: 'boulangerie', color: 'from-amber-400 to-orange-500', bgLight: 'bg-amber-50' },
-    { id: 5, nom: 'Épicerie', icone: '🫒', slug: 'epicerie', color: 'from-orange-400 to-red-500', bgLight: 'bg-orange-50' },
-    { id: 6, nom: 'Poissonnerie', icone: '🐟', slug: 'poissonnerie', color: 'from-blue-400 to-cyan-500', bgLight: 'bg-blue-50' },
+  const categoryThemes = [
+    { id: 1, nom: 'Fruits & Légumes', icone: '🥬', slug: 'fruits-legumes', color: 'from-green-400 to-emerald-500' },
+    { id: 2, nom: 'Produits Laitiers', icone: '🧀', slug: 'produits-laitiers', color: 'from-yellow-400 to-amber-500' },
+    { id: 3, nom: 'Boucherie', icone: '🥩', slug: 'boucherie', color: 'from-red-400 to-rose-500' },
+    { id: 4, nom: 'Boulangerie', icone: '🥖', slug: 'boulangerie', color: 'from-amber-400 to-orange-500' },
+    { id: 5, nom: 'Épicerie', icone: '🫒', slug: 'epicerie', color: 'from-orange-400 to-red-500' },
+    { id: 6, nom: 'Poissonnerie', icone: '🐟', slug: 'poissonnerie', color: 'from-blue-400 to-cyan-500' },
   ];
 
-  const categoriesToDisplay = dynamicCategories.length > 0
-    ? dynamicCategories.map((category, index) => ({
-        ...categories[index % categories.length],
-        ...category
-      }))
-    : categories;
+  const normalizeCategoryCard = (category, index) => {
+    const fallback = categoryThemes[index % categoryThemes.length];
+
+    const displayName = typeof category?.nom === 'string' && category.nom.trim()
+      ? category.nom.trim()
+      : fallback.nom;
+    const displayIcon = typeof category?.icone === 'string' && category.icone.trim()
+      ? category.icone.trim()
+      : fallback.icone;
+    const routeCategory = category?.id || category?.slug || fallback.slug;
+
+    return {
+      ...fallback,
+      ...category,
+      nom: displayName,
+      icone: displayIcon,
+      routeCategory
+    };
+  };
+
+  const sourceCategories = dynamicCategories.length > 0 ? dynamicCategories : categoryThemes;
+  const categoriesToDisplay = sourceCategories.map(normalizeCategoryCard);
 
   // Avantages
   const avantages = [
@@ -296,10 +312,12 @@ const HomePage = () => {
               whileTap={{ scale: 0.98 }}
             >
               <Link
-                to={`/catalogue?categorie=${cat.id || cat.slug}`}
-                className={`block ${cat.bgLight} p-6 rounded-2xl text-center transition-all duration-300 hover:shadow-lg border border-transparent hover:border-gray-200`}
+                to={`/catalogue?categorie=${encodeURIComponent(cat.routeCategory)}`}
+                className="block bg-white p-6 rounded-2xl text-center transition-all duration-300 shadow-sm hover:shadow-lg border border-gray-100 hover:border-gray-200"
               >
-                <span className="text-5xl block mb-3">{cat.icone}</span>
+                <span className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br ${cat.color} text-3xl shadow-sm mb-3`}>
+                  {cat.icone}
+                </span>
                 <span className="font-semibold text-gray-800">{cat.nom}</span>
               </Link>
             </motion.div>
