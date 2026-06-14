@@ -623,7 +623,7 @@ const AdminDashboard = () => {
                       </p>
                     </div>
                   </div>
-                  <Link to={`/admin/produits/${product.id}`} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+                  <Link to={`/admin/produits/${product.id}/modifier`} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
                     <Eye className="w-4 h-4" />
                   </Link>
                 </div>

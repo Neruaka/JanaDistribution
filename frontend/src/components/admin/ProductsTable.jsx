@@ -172,7 +172,7 @@ const ProductsTable = ({
                       </div>
                       <div>
                         <Link
-                          to={`/admin/produits/${product.id}`}
+                          to={`/admin/produits/${product.id}/modifier`}
                           className="font-medium text-gray-800 hover:text-green-600"
                         >
                           {product.nom}

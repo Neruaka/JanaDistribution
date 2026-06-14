@@ -56,8 +56,7 @@ const authenticate = async (req, res, next) => {
       id: user.id,
       email: user.email,
       role: user.role,
-      typeClient: user.typeClient,
-      permissions: user.permissions
+      typeClient: user.typeClient
     };
 
     next();
@@ -94,8 +93,7 @@ const optionalAuth = async (req, res, next) => {
           id: user.id,
           email: user.email,
           role: user.role,
-          typeClient: user.typeClient,
-          permissions: user.permissions
+          typeClient: user.typeClient
         };
       }
     } catch (error) {
@@ -143,28 +141,6 @@ const isClient = (req, res, next) => {
 };
 
 /**
- * Middleware pour vérifier une permission spécifique (admin)
- * @param {string} permission - Permission requise
- */
-const hasPermission = (permission) => {
-  return (req, res, next) => {
-    if (!req.user) {
-      return next(ApiError.unauthorized('Authentification requise'));
-    }
-
-    if (req.user.role !== 'ADMIN') {
-      return next(ApiError.forbidden('Accès réservé aux administrateurs'));
-    }
-
-    if (!req.user.permissions || !req.user.permissions.includes(permission)) {
-      return next(ApiError.forbidden(`Permission requise: ${permission}`));
-    }
-
-    next();
-  };
-};
-
-/**
  * Middleware pour vérifier que l'utilisateur est propriétaire de la ressource
  * ou est admin
  * @param {Function} getOwnerId - Fonction qui extrait l'ID du propriétaire
@@ -198,8 +174,7 @@ module.exports = {
   authenticate,
   optionalAuth,
   isAdmin,
-  requireAdmin,  // ✅ AJOUTÉ - alias pour isAdmin
+  requireAdmin,
   isClient,
-  hasPermission,
   isOwnerOrAdmin
 };

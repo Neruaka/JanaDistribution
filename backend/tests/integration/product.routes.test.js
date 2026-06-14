@@ -78,7 +78,6 @@ jest.mock('../../src/middlewares/auth.middleware', () => ({
   },
   optionalAuth: (req, res, next) => next(),
   isClient: (req, res, next) => next(),
-  hasPermission: () => (req, res, next) => next(),
   isOwnerOrAdmin: () => (req, res, next) => next()
 }));
 

@@ -353,6 +353,20 @@ class OrderRepository {
         lines.push(lineResult.rows[0]);
       }
 
+      // Vider le panier dans la même transaction pour garantir l'atomicité.
+      // Si cartId est fourni, la suppression se fait avant COMMIT — un échec
+      // déclenche le ROLLBACK complet (commande + stock + lignes annulés).
+      if (data.cartId) {
+        await client.query(
+          'DELETE FROM ligne_panier WHERE panier_id = $1',
+          [data.cartId]
+        );
+        await client.query(
+          'UPDATE panier SET date_modification = NOW() WHERE id = $1',
+          [data.cartId]
+        );
+      }
+
       await client.query('COMMIT');
 
       logger.info(`Commande créée: ${numeroCommande} pour utilisateur ${data.utilisateurId}`);

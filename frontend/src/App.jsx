@@ -207,7 +207,6 @@ function App() {
               {/* Produits */}
               <Route path="produits" element={<AdminProductsList />} />
               <Route path="produits/nouveau" element={<AdminProductForm />} />
-              <Route path="produits/:id" element={<AdminProductForm />} />
               <Route path="produits/:id/modifier" element={<AdminProductForm />} />
               
               {/* Catégories */}

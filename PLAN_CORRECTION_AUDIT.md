@@ -9,17 +9,17 @@
 
 | Indicateur | Valeur |
 |---|---|
-| Phase active | Phase 1 — Stabilisation et migrations |
-| Tâche active | Aucune |
+| Phase active | Phase 2 — Authentification, commandes et traçabilité |
+| Tâche active | Aucune — Phase 1 terminée |
 | Tâches totales | 75 |
 | READY | 0 |
 | IN_PROGRESS | 0 |
 | BLOCKED | 3 |
-| TODO | 66 |
-| DONE | 6 |
+| TODO | 58 |
+| DONE | 14 |
 | CANCELLED | 0 |
 | P0 restants | 1 |
-| P1 restants | 7 |
+| P1 restants | 5 |
 | Verdict | NON PRÊT POUR LA PRODUCTION |
 
 ---
@@ -37,8 +37,8 @@ T0-05  Validation mot de passe          → DONE ✓
 T0-06  Encodage UTF-8                   → DONE ✓
 T0-07  CORS * sur /uploads             → DONE ✓
   ↓
-T1-01  Panier dans transaction          → TODO (Phase 1)
-T1-02  hasPermission fonctionnel        → TODO
+T1-01  Panier dans transaction          → DONE ✓
+T1-02  hasPermission fonctionnel        → DONE ✓
 T1-05  Migrations versionnées           → TODO
   ↓
 T2-03..T2-05  Refresh tokens DB         → TODO (Phase 2)
@@ -297,7 +297,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 ### T1-01 — Inclure la vidange panier dans la transaction commande
 
-- **Statut :** TODO
+- **Statut :** DONE (2026-06-14)
 - **Priorité :** P1
 - **Catégorie :** CODE
 - **Domaine :** Backend
@@ -319,7 +319,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 ### T1-02 — Supprimer ou implémenter hasPermission()
 
-- **Statut :** TODO
+- **Statut :** DONE (2026-06-14)
 - **Priorité :** P1
 - **Catégorie :** CODE
 - **Domaine :** Backend — Sécurité
@@ -341,7 +341,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 ### T1-03 — Supprimer le doublon package Redis
 
-- **Statut :** TODO
+- **Statut :** DONE (2026-06-14)
 - **Priorité :** P2
 - **Catégorie :** CODE
 - **Domaine :** Backend
@@ -359,7 +359,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 ### T1-04 — Unifier le système de validation
 
-- **Statut :** TODO
+- **Statut :** DONE (2026-06-14) — express-validator seul (5/5 validators) ; joi supprimé (jamais importé dans src)
 - **Priorité :** P2
 - **Catégorie :** CODE
 - **Domaine :** Backend
@@ -378,7 +378,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 ### T1-05 — Mettre en place les migrations versionnées
 
-- **Statut :** TODO
+- **Statut :** DONE (2026-06-14)
 - **Priorité :** P2
 - **Catégorie :** CODE
 - **Domaine :** Backend — Base de données
@@ -401,7 +401,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 ### T1-06 — Corriger les CVE npm en production
 
-- **Statut :** TODO
+- **Statut :** DONE (2026-06-14)
 - **Priorité :** P2
 - **Catégorie :** CODE
 - **Domaine :** Backend / Frontend
@@ -417,7 +417,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 ### T1-07 — Corriger double route admin produit
 
-- **Statut :** TODO
+- **Statut :** DONE (2026-06-14)
 - **Priorité :** P2
 - **Catégorie :** CODE
 - **Domaine :** Frontend
@@ -430,7 +430,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 ### T1-08 — Corriger accents dans templates email
 
-- **Statut :** TODO
+- **Statut :** DONE (2026-06-14) — email.service.js inspecté : aucune corruption UTF-8 (déjà propre depuis T0-06)
 - **Priorité :** P3
 - **Catégorie :** CODE
 - **Domaine :** Backend

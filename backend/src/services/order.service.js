@@ -166,6 +166,7 @@ class OrderService {
     // Créer la commande
     const orderData = {
       utilisateurId: userId,
+      cartId: cart.id,
       adresseLivraison: data.adresseLivraison,
       adresseFacturation: data.adresseFacturation || data.adresseLivraison,
       modePaiement: data.modePaiement || 'CARTE',
@@ -176,11 +177,8 @@ class OrderService {
       totalTtc,
       lignes
     };
-    
+
     const order = await orderRepository.create(orderData);
-    
-    // Vider le panier après création de la commande
-    await cartRepository.clearCart(cart.id);
     
     logger.info('Commande créée depuis panier', {
       userId,

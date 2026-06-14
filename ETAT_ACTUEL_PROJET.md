@@ -11,10 +11,10 @@
 |---|---|
 | Projet | Jana Distribution — e-commerce alimentaire B2C/B2B |
 | Branche active | `develop` |
-| Dernier commit | `d6422f4` — `fix: add rate limiting for authentication routes...` |
-| Fichiers modifiés non commités | 19 fichiers modifiés + 12 nouveaux non trackés |
-| Phase active | Phase 1 — Stabilisation et migrations |
-| Tâche active | Aucune (Phase 0 terminée sauf T0-02 BLOCKED) |
+| Dernier commit | `085fc5f` — `feat(audit): add comprehensive go live checklist and audit index` |
+| Fichiers modifiés non commités | 0 — working tree propre (tout committé dans 085fc5f) |
+| Phase active | Phase 2 — Authentification, commandes et traçabilité |
+| Tâche active | Aucune — Phase 1 terminée |
 | Verdict | **NON PRÊT POUR LA PRODUCTION** |
 | Avancement estimé | ~68 % |
 
@@ -38,7 +38,7 @@ Phase 0 terminée (6/7 tâches DONE, T0-02 BLOCKED décision provider). Deux blo
 | State | Context API | — |
 | Backend | Node.js + Express | ≥18 / 4.18.2 |
 | Base de données | PostgreSQL | 15 |
-| Cache | ioredis (+ redis en doublon — à supprimer) | 7 |
+| Cache | ioredis | 7 |
 | Auth | JWT access 7j + refresh 30j | jsonwebtoken 9 |
 | Email | Brevo REST API (`BREVO_API_KEY`) | — |
 | Paiements | Stripe Checkout Sessions | stripe 22.0.2 |
@@ -46,7 +46,7 @@ Phase 0 terminée (6/7 tâches DONE, T0-02 BLOCKED décision provider). Deux blo
 | Upload fichiers | Multer → disque local `/uploads/products/` | 1.4.5-lts.1 |
 | Déploiement | Railway (NIXPACKS backend, Dockerfile frontend) | — |
 | CI/CD | GitHub Actions | — |
-| Validation | express-validator + Joi (doublon — à unifier) | — |
+| Validation | express-validator | — |
 | Logs | Winston | 3.11.0 |
 | Tests backend | Jest (DB mockée) | — |
 | Tests frontend | Vitest | 4.0.16 |
@@ -126,8 +126,8 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 | P1-01 | P1 | `JWT_REFRESH_SECRET` fallback silencieux sur `JWT_SECRET` | `auth.service.js:24` | T0-03 | ~~RÉSOLU~~ |
 | P1-02 | P1 | Refresh tokens non révocables (pas de table en DB) | Absent de `init.sql` | T2-03..T2-05 | TODO |
 | P1-03 | P1 | `stripe_event.payload` JSONB complet stocké (données sensibles) | `payment.service.js:149` + `init.sql` | T0-04 | ~~RÉSOLU~~ |
-| P1-04 | P1 | `hasPermission()` utilise `req.user.permissions` inexistant en DB | `auth.middleware.js:159` — `permissions` absent de `utilisateur` | T1-02 | TODO |
-| P1-05 | P1 | Panier vidé APRÈS le COMMIT de la transaction commande | `order.service.js:183` | T1-01 | TODO |
+| P1-04 | P1 | `hasPermission()` utilise `req.user.permissions` inexistant en DB | `auth.middleware.js:159` — `permissions` absent de `utilisateur` | T1-02 | ~~RÉSOLU~~ |
+| P1-05 | P1 | Panier vidé APRÈS le COMMIT de la transaction commande | `order.service.js:183` | T1-01 | ~~RÉSOLU~~ |
 | P1-06 | P1 | Pas de validation force mot de passe côté backend | `auth.service.js` — aucune regex | T0-05 | ~~RÉSOLU~~ |
 | P1-07 | P1 | `charge.refunded` au lieu de `refund.created` (moins précis) | `payment.service.js:174` | T4-01 | TODO |
 | P1-08 | P1 | Sauvegardes PostgreSQL non configurées Railway | Non vérifiable localement | T8-04 | TODO |
@@ -158,16 +158,9 @@ Ces changements ne sont PAS encore commités. Ils incluent une implémentation p
 | `DEPLOY-RAILWAY.md` | Notes de déploiement |
 | `docs/audit-finalisation/` | Rapports d'audit (ce dossier) |
 
-### Modifications notables dans les fichiers trackés
+### État du working tree
 
-| Fichier | Changement principal |
-|---|---|
-| `backend/scripts/init.sql` | + enum `statut_paiement`, + colonnes Stripe sur `commande`, + table `stripe_event` |
-| `backend/src/repositories/order.repository.js` | + `attachStripeSession()`, `updatePaymentStatus()`, `markPaid()` |
-| `backend/src/services/order.service.js` | + validation zone hors-livraison en mode DISTANCE |
-| `backend/src/services/settings.service.js` | + intégration `geocoding.service` pour mode DISTANCE |
-| `frontend/src/pages/CheckoutPage.jsx` | + `modePaiement` state (CARTE/VIREMENT/CHEQUE), + redirect Stripe conditionnel. Bandeau trompeur toujours présent. |
-| `backend/src/index.js` | + import routes webhook et payment. CORS `*` `/uploads` toujours présent. |
+Working tree propre. Tout est committé dans `085fc5f`. Les corrections Phase 0 (T0-01..T0-07) et les fichiers Stripe/géocodage/paiement sont inclus dans ce commit.
 
 ---
 
@@ -222,7 +215,7 @@ Ces changements ne sont PAS encore commités. Ils incluent une implémentation p
 | `backend/src/index.js` | Point d'entrée Express, middlewares, ordre des routes |
 | `backend/scripts/init.sql` | Schéma DB complet (NE PAS exécuter en production) |
 | `backend/src/services/auth.service.js` | JWT, login, refresh, reset MDP |
-| `backend/src/middlewares/auth.middleware.js` | `authenticate`, `isAdmin`, `hasPermission` (non fonctionnel) |
+| `backend/src/middlewares/auth.middleware.js` | `authenticate`, `isAdmin`, `isOwnerOrAdmin` (`hasPermission` supprimé — T1-02) |
 | `backend/src/repositories/order.repository.js` | Transaction commande, stock, Stripe columns |
 | `backend/src/services/order.service.js` | Logique commande, validation stock, livraison |
 | `backend/src/services/payment.service.js` | Stripe Checkout + webhook *(non commité)* |
@@ -252,21 +245,29 @@ Ces changements ne sont PAS encore commités. Ils incluent une implémentation p
 | 2026-06-14 | T0-06 | 8 fichiers corrigés (UTF-8 double-encodé) — y compris order.service.js:119 (€ runtime) | npm test ✓, npm run build ✓ | DONE |
 | 2026-06-14 | T0-07 | index.js:117 : CORS /uploads → process.env.CORS_ORIGIN \|\| 'http://localhost:5173' | npm test ✓ | DONE |
 | 2026-06-14 | Infra tests | tests/setup.js + jest.config.js : ajout JWT_REFRESH_SECRET ; tests/unit/auth.service.test.js : mdp conforme T0-05 | 4/4 suites, 92/92 ✓ | DONE |
+| 2026-06-14 | T1-01 | order.repository.js : DELETE ligne_panier + UPDATE panier dans la transaction avant COMMIT ; order.service.js : cartId transmis, clearCart() supprimé du service | 5/5 suites, 97/97 ✓ | DONE |
+| 2026-06-14 | T1-02 | auth.middleware.js : hasPermission() supprimé (jamais importé), permissions retiré de req.user ; product.routes.test.js : mock nettoyé | 5/5 suites, 97/97 ✓ | DONE |
+| 2026-06-14 | T1-07 | App.jsx : route produits/:id supprimée, URL canonique produits/:id/modifier conservée ; ProductsTable.jsx + AdminDashboard.jsx : 2 liens mis à jour | — | DONE |
+| 2026-06-14 | T1-08 | email.service.js inspecté : aucune corruption UTF-8 — déjà propre depuis T0-06 | — | DONE |
+| 2026-06-14 | T1-03 | npm uninstall redis : package doublon supprimé, ioredis seul conservé (redis.js n'importait que ioredis) | 5/5 suites, 97/97 ✓ | DONE |
+| 2026-06-14 | T1-04 | npm uninstall joi : jamais importé dans src, express-validator seul (5/5 validators) | 5/5 suites, 97/97 ✓ | DONE |
+| 2026-06-14 | T1-05 | scripts/run-migrations.js : schema_migrations, sha256 checksum, pg_advisory_lock, strip BEGIN/COMMIT, npm run migrate | 5/5 suites, 97/97 ✓ | DONE |
+| 2026-06-14 | T1-06 | Backend: 10→1 CVE (bcrypt@6 fixe tar HIGH; uuid MODERATE non-exploitable). Frontend: 11→2 CVE (uuid/exceljs + esbuild/vite devDep non-fixables sans breaking) | 5/5 suites, 97/97 ✓, build ✓ | DONE |
 
 ---
 
 ## 13. Prochaine action recommandée
 
-**Phase 0 terminée. Prochaine : T1-01 — Inclure le vidage panier dans la transaction commande**
+**T1-01 à T1-02 et T1-07 à T1-08 terminés. Prochaine : T1-03 — Supprimer le doublon package Redis**
 
 | Champ | Valeur |
 |---|---|
-| Identifiant | T1-01 |
-| Objectif | Inclure `clearCart` dans le BEGIN/COMMIT de la transaction commande |
-| Raison | Actuellement le panier est vidé APRÈS le COMMIT — si clearCart échoue, le panier reste plein mais la commande existe (incohérence) |
-| Documents à lire | `docs/audit-finalisation/06_AUDIT_BACKEND_BDD.md` |
-| Fichiers à inspecter | `backend/src/services/order.service.js:183`, `backend/src/repositories/order.repository.js`, `backend/src/repositories/cart.repository.js` |
-| Prérequis | Aucun |
-| Critère de sortie | Si la commande est créée, le panier est toujours vide ; si la commande échoue, le panier reste intact |
+**Phase 1 terminée.** Prochaine : Phase 2 — T2-01 Historique statuts commande
 
-**Alternative (si décision DB-01 disponible) : T0-02 — Migrer images vers stockage persistant**
+| Champ | Valeur |
+|---|---|
+| Identifiant | T2-01 |
+| Objectif | Migration SQL `schema_migrations` + table `commande_statut_historique` + endpoint admin GET historique |
+| Fichiers | `backend/scripts/migrations/0002_commande_statut_historique.sql` (à créer), `order.repository.js`, `order.routes.js` |
+| Prérequis | T1-05 (runner de migrations — DONE) |
+| Critère de sortie | Chaque transition de statut est tracée, visible en admin |
