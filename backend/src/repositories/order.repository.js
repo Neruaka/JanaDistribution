@@ -72,7 +72,7 @@ class OrderRepository {
     const direction = orderDir.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
     const sql = `
-      SELECT 
+      SELECT
         c.id,
         c.numero_commande,
         c.utilisateur_id,
@@ -86,6 +86,10 @@ class OrderRepository {
         c.mode_paiement,
         c.frais_livraison,
         c.instructions_livraison,
+        c.stripe_session_id,
+        c.stripe_payment_intent_id,
+        c.paiement_statut,
+        c.paye_le,
         c.date_modification,
         u.nom as utilisateur_nom,
         u.prenom as utilisateur_prenom,
@@ -133,7 +137,7 @@ class OrderRepository {
    */
   async findById(id) {
     const orderSql = `
-      SELECT 
+      SELECT
         c.id,
         c.numero_commande,
         c.utilisateur_id,
@@ -147,6 +151,10 @@ class OrderRepository {
         c.mode_paiement,
         c.frais_livraison,
         c.instructions_livraison,
+        c.stripe_session_id,
+        c.stripe_payment_intent_id,
+        c.paiement_statut,
+        c.paye_le,
         c.date_modification,
         u.nom as utilisateur_nom,
         u.prenom as utilisateur_prenom,
@@ -445,6 +453,72 @@ class OrderRepository {
     }
   }
 
+  // ==========================================
+  // PAIEMENT (Stripe)
+  // ==========================================
+
+  /**
+   * Attache une Stripe Checkout Session à une commande.
+   * Idempotent : ne change pas le statut paiement (toujours PENDING tant que le webhook
+   * n'a pas confirmé la capture).
+   */
+  async attachStripeSession(orderId, sessionId) {
+    const sql = `
+      UPDATE commande
+      SET stripe_session_id = $2,
+          date_modification = NOW()
+      WHERE id = $1
+      RETURNING id
+    `;
+    const result = await query(sql, [orderId, sessionId]);
+    return result.rows[0] || null;
+  }
+
+  /**
+   * Met à jour le statut de paiement (sans toucher au statut commande).
+   * Utilisé pour FAILED / REFUNDED / AUTHORIZED.
+   */
+  async updatePaymentStatus(orderId, paiementStatut) {
+    const sql = `
+      UPDATE commande
+      SET paiement_statut = $2,
+          date_modification = NOW()
+      WHERE id = $1
+      RETURNING id, paiement_statut
+    `;
+    const result = await query(sql, [orderId, paiementStatut]);
+    return result.rows[0] || null;
+  }
+
+  /**
+   * Marque une commande comme payée (PAID + paye_le + payment_intent_id).
+   * Idempotent : si la commande est déjà PAID, on ne fait rien.
+   */
+  async markPaid(orderId, { stripeSessionId, stripePaymentIntentId }) {
+    const sql = `
+      UPDATE commande
+      SET paiement_statut = 'PAID',
+          paye_le = NOW(),
+          stripe_session_id = COALESCE($2, stripe_session_id),
+          stripe_payment_intent_id = COALESCE($3, stripe_payment_intent_id),
+          date_modification = NOW()
+      WHERE id = $1 AND paiement_statut <> 'PAID'
+      RETURNING id
+    `;
+    const result = await query(sql, [orderId, stripeSessionId || null, stripePaymentIntentId || null]);
+    return result.rows[0] || null;
+  }
+
+  /**
+   * Trouve une commande par Stripe Checkout Session ID (utilisé au retour /paiement/succes)
+   */
+  async findBySessionId(sessionId) {
+    const sql = 'SELECT id FROM commande WHERE stripe_session_id = $1';
+    const result = await query(sql, [sessionId]);
+    if (!result.rows[0]) return null;
+    return this.findById(result.rows[0].id);
+  }
+
   /**
    * Récupère les statistiques des commandes
    */
@@ -534,6 +608,10 @@ class OrderRepository {
       modePaiement: row.mode_paiement,
       fraisLivraison: parseFloat(row.frais_livraison) || 0,
       instructionsLivraison: row.instructions_livraison,
+      stripeSessionId: row.stripe_session_id || null,
+      stripePaymentIntentId: row.stripe_payment_intent_id || null,
+      paiementStatut: row.paiement_statut || 'PENDING',
+      payeLe: row.paye_le || null,
       nbArticles: row.nb_articles ? parseInt(row.nb_articles) : undefined,
       dateModification: row.date_modification
     };

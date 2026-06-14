@@ -19,11 +19,56 @@ const emailService = require('./email.service');
 class AuthService {
   constructor() {
     this.saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS, 10) || 12;
+
+    // Validation stricte des secrets JWT au démarrage.
+    // Ne jamais autoriser de fallback silencieux : si l'un des secrets est absent
+    // ou si les deux secrets sont identiques, le serveur refuse de démarrer.
+    if (!process.env.JWT_SECRET) {
+      throw new Error('[FATAL] JWT_SECRET must be set. Define it as an environment variable.');
+    }
+    if (!process.env.JWT_REFRESH_SECRET) {
+      throw new Error('[FATAL] JWT_REFRESH_SECRET must be set. Define it as an environment variable distinct from JWT_SECRET.');
+    }
+    if (process.env.JWT_REFRESH_SECRET === process.env.JWT_SECRET) {
+      throw new Error('[FATAL] JWT_REFRESH_SECRET must be different from JWT_SECRET. Using the same value defeats token revocation isolation.');
+    }
+
     this.jwtSecret = process.env.JWT_SECRET;
     this.jwtExpiresIn = process.env.JWT_EXPIRES_IN || '7d';
-    this.jwtRefreshSecret = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET;
+    this.jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
     this.jwtRefreshExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN || '30d';
     this.resetTokenExpiry = 60 * 60 * 1000; // 1 heure en millisecondes
+  }
+
+  /**
+   * Valide la robustesse d'un mot de passe.
+   * Politique : ≥ 8 caractères, au moins 1 minuscule, 1 majuscule, 1 chiffre.
+   * Centralisé ici pour être utilisé sur tous les parcours de création/remplacement.
+   * @param {string} password
+   * @throws {ApiError} 400 si le mot de passe ne respecte pas la politique
+   */
+  _validatePasswordStrength(password) {
+    if (!password || typeof password !== 'string') {
+      throw ApiError.badRequest('Le mot de passe est requis.');
+    }
+    const errors = [];
+    if (password.length < 8) {
+      errors.push('au moins 8 caractères');
+    }
+    if (!/[a-z]/.test(password)) {
+      errors.push('au moins une lettre minuscule');
+    }
+    if (!/[A-Z]/.test(password)) {
+      errors.push('au moins une lettre majuscule');
+    }
+    if (!/[0-9]/.test(password)) {
+      errors.push('au moins un chiffre');
+    }
+    if (errors.length > 0) {
+      throw ApiError.badRequest(
+        `Le mot de passe doit contenir ${errors.join(', ')}.`
+      );
+    }
   }
 
   /**
@@ -66,6 +111,9 @@ class AuthService {
         throw ApiError.badRequest('La raison sociale est obligatoire pour les professionnels');
       }
     }
+
+    // Valider la robustesse du mot de passe
+    this._validatePasswordStrength(motDePasse);
 
     // Hasher le mot de passe
     const motDePasseHash = await bcrypt.hash(motDePasse, this.saltRounds);
@@ -191,6 +239,9 @@ class AuthService {
       throw ApiError.badRequest('L\'ancien mot de passe est incorrect');
     }
 
+    // Valider la robustesse du nouveau mot de passe
+    this._validatePasswordStrength(nouveauMotDePasse);
+
     // Hasher et sauvegarder le nouveau mot de passe
     const nouveauHash = await bcrypt.hash(nouveauMotDePasse, this.saltRounds);
     await userRepository.updatePassword(userId, nouveauHash);
@@ -315,6 +366,9 @@ class AuthService {
       throw ApiError.badRequest('Ce lien a expiré. Veuillez refaire une demande de réinitialisation.');
     }
 
+    // Valider la robustesse du nouveau mot de passe
+    this._validatePasswordStrength(nouveauMotDePasse);
+
     // Hasher le nouveau mot de passe
     const nouveauHash = await bcrypt.hash(nouveauMotDePasse, this.saltRounds);
 
@@ -371,7 +425,7 @@ class AuthService {
   }
 
   /**
-   * GÃ©nÃ¨re un refresh token JWT
+   * Génère un refresh token JWT
    * @param {Object} user - Utilisateur
    * @returns {string} Refresh token JWT
    */
@@ -403,9 +457,9 @@ class AuthService {
   }
 
   /**
-   * VÃ©rifie un refresh token JWT
-   * @param {string} refreshToken - Refresh token Ã  vÃ©rifier
-   * @returns {Object} Payload dÃ©codÃ©
+   * Vérifie un refresh token JWT
+   * @param {string} refreshToken - Refresh token à vérifier
+   * @returns {Object} Payload décodé
    */
   verifyRefreshToken(refreshToken) {
     try {
@@ -418,7 +472,7 @@ class AuthService {
       return payload;
     } catch (error) {
       if (error.name === 'TokenExpiredError') {
-        throw ApiError.unauthorized('Refresh token expirÃ©');
+        throw ApiError.unauthorized('Refresh token expiré');
       }
       if (error.statusCode) {
         throw error;

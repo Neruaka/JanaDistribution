@@ -423,11 +423,11 @@ describe('AuthService', () => {
       userRepository.updatePassword.mockResolvedValue();
 
       // Act
-      await authService.changePassword('uuid-123', 'oldPassword', 'newPassword');
+      await authService.changePassword('uuid-123', 'oldPassword', 'NewPassword1');
 
       // Assert
       expect(bcrypt.compare).toHaveBeenCalledWith('oldPassword', user.motDePasseHash);
-      expect(bcrypt.hash).toHaveBeenCalledWith('newPassword', expect.any(Number));
+      expect(bcrypt.hash).toHaveBeenCalledWith('NewPassword1', expect.any(Number));
       expect(userRepository.updatePassword).toHaveBeenCalledWith('uuid-123', '$2b$12$newhash');
     });
 

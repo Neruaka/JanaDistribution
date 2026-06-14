@@ -12,6 +12,7 @@ const { authenticate, isAdmin } = require('../middlewares/auth.middleware');
 const validate = require('../middlewares/validate.middleware');
 const { query: dbQuery } = require('../config/database');
 const orderService = require('../services/order.service');
+const paymentController = require('../controllers/payment.controller');
 const logger = require('../config/logger');
 
 // Toutes les routes nécessitent d'être admin
@@ -393,6 +394,23 @@ router.patch('/:id/status',
       next(error);
     }
   }
+);
+
+/**
+ * @route   PATCH /api/admin/orders/:id/payment-status
+ * @desc    Mettre à jour manuellement le statut de paiement (modes hors CARTE)
+ * @access  Admin
+ *
+ * Pour CARTE, le statut PAID doit venir du webhook Stripe.
+ * Utile pour VIREMENT / ESPECES / CHEQUE.
+ */
+router.patch('/:id/payment-status',
+  [
+    param('id').isUUID(),
+    body('paiementStatut').isIn(['PENDING', 'AUTHORIZED', 'PAID', 'FAILED', 'REFUNDED'])
+  ],
+  validate,
+  paymentController.adminUpdatePaymentStatus
 );
 
 module.exports = router;

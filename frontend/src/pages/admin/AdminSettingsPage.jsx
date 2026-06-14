@@ -70,7 +70,12 @@ const AdminSettingsPage = () => {
     delaiLivraisonMin: 2,
     delaiLivraisonMax: 5,
     zonesLivraison: 'France métropolitaine',
-    messageIndisponible: ''
+    messageIndisponible: '',
+    // Calcul par distance
+    modeCalcul: 'FIXE',
+    prixParKm: 0.8,
+    fraisBase: 5,
+    distanceMaxKm: 200
   });
 
   // Configuration commandes
@@ -474,11 +479,48 @@ const AdminSettingsPage = () => {
                   </div>
                 </div>
 
+                {/* Mode de calcul */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Mode de calcul des frais
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleDeliveryChange('modeCalcul', 'FIXE')}
+                      className={`p-4 rounded-xl border-2 text-left transition-colors ${
+                        deliverySettings.modeCalcul === 'FIXE'
+                          ? 'border-green-500 bg-green-50'
+                          : 'border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      <p className="font-medium text-gray-800">Tarif fixe</p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Montant identique pour toutes les livraisons.
+                      </p>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeliveryChange('modeCalcul', 'DISTANCE')}
+                      className={`p-4 rounded-xl border-2 text-left transition-colors ${
+                        deliverySettings.modeCalcul === 'DISTANCE'
+                          ? 'border-green-500 bg-green-50'
+                          : 'border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      <p className="font-medium text-gray-800">Selon la distance</p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        frais = base + (km × prix/km), à vol d'oiseau.
+                      </p>
+                    </button>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       <Euro className="w-4 h-4 inline mr-1" />
-                      Frais de livraison standard
+                      {deliverySettings.modeCalcul === 'DISTANCE' ? 'Frais standard (fallback)' : 'Frais de livraison standard'}
                     </label>
                     <div className="relative">
                       <input
@@ -491,6 +533,9 @@ const AdminSettingsPage = () => {
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">€</span>
                     </div>
+                    {deliverySettings.modeCalcul === 'DISTANCE' && (
+                      <p className="text-xs text-gray-400 mt-1">Utilisé si le géocodage échoue</p>
+                    )}
                   </div>
 
                   <div>
@@ -552,13 +597,92 @@ const AdminSettingsPage = () => {
                   </div>
                 </div>
 
+                {/* Paramètres mode DISTANCE */}
+                {deliverySettings.modeCalcul === 'DISTANCE' && (
+                  <div className="pt-4 border-t border-gray-100 space-y-4">
+                    <div>
+                      <h3 className="font-medium text-gray-800 mb-1">Calcul par distance</h3>
+                      <p className="text-xs text-gray-500">
+                        Distance calculée à vol d'oiseau entre l'adresse de votre entreprise (section Informations générales)
+                        et l'adresse de livraison du client.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Frais de base
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={deliverySettings.fraisBase}
+                            onChange={(e) => handleDeliveryChange('fraisBase', parseFloat(e.target.value) || 0)}
+                            className="w-full px-4 py-2.5 pr-8 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">€</span>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">Montant fixe ajouté</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Tarif au km
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={deliverySettings.prixParKm}
+                            onChange={(e) => handleDeliveryChange('prixParKm', parseFloat(e.target.value) || 0)}
+                            className="w-full px-4 py-2.5 pr-12 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">€/km</span>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">Coût par kilomètre parcouru</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Distance max.
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            min="0"
+                            value={deliverySettings.distanceMaxKm}
+                            onChange={(e) => handleDeliveryChange('distanceMaxKm', parseFloat(e.target.value) || 0)}
+                            className="w-full px-4 py-2.5 pr-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">km</span>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">0 = illimité</p>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-gray-50 rounded-xl text-sm text-gray-600">
+                      <span className="font-medium">Formule :</span>{' '}
+                      <code className="text-green-700">
+                        {deliverySettings.fraisBase} € + (distance × {deliverySettings.prixParKm} €/km)
+                      </code>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Ex. 30 km → {(Number(deliverySettings.fraisBase) + 30 * Number(deliverySettings.prixParKm)).toFixed(2)} €
+                        — sauf si la commande dépasse le franco de port ({deliverySettings.seuilFrancoPort} €).
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
                   <div className="flex gap-3">
                     <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="text-sm text-blue-800 font-medium">Livraison gratuite</p>
                       <p className="text-xs text-blue-600 mt-1">
-                        Les clients bénéficient de la livraison gratuite pour toute commande 
+                        Les clients bénéficient de la livraison gratuite pour toute commande
                         supérieure à {deliverySettings.seuilFrancoPort}€
                       </p>
                     </div>

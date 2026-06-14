@@ -11,6 +11,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- ============================================
 -- SUPPRESSION DES TABLES EXISTANTES (reset)
 -- ============================================
+DROP TABLE IF EXISTS stripe_event CASCADE;
 DROP TABLE IF EXISTS ligne_commande CASCADE;
 DROP TABLE IF EXISTS commande CASCADE;
 DROP TABLE IF EXISTS ligne_panier CASCADE;
@@ -25,6 +26,7 @@ DROP TABLE IF EXISTS utilisateur CASCADE;
 DROP TYPE IF EXISTS role_utilisateur CASCADE;
 DROP TYPE IF EXISTS type_client CASCADE;
 DROP TYPE IF EXISTS statut_commande CASCADE;
+DROP TYPE IF EXISTS statut_paiement CASCADE;
 DROP TYPE IF EXISTS mode_paiement CASCADE;
 DROP TYPE IF EXISTS type_adresse CASCADE;
 
@@ -53,6 +55,15 @@ CREATE TYPE statut_commande AS ENUM (
 
 -- Modes de paiement
 CREATE TYPE mode_paiement AS ENUM ('CARTE', 'VIREMENT', 'ESPECES', 'CHEQUE');
+
+-- Statut paiement
+CREATE TYPE statut_paiement AS ENUM (
+  'PENDING',
+  'AUTHORIZED',
+  'PAID',
+  'FAILED',
+  'REFUNDED'
+);
 
 -- Types d'adresse
 CREATE TYPE type_adresse AS ENUM ('LIVRAISON', 'FACTURATION');
@@ -225,6 +236,10 @@ CREATE TABLE commande (
   mode_paiement mode_paiement NOT NULL DEFAULT 'CARTE',
   frais_livraison DECIMAL(10, 2) NOT NULL DEFAULT 0,
   instructions_livraison TEXT,
+  stripe_session_id VARCHAR(255),
+  stripe_payment_intent_id VARCHAR(255),
+  paiement_statut statut_paiement NOT NULL DEFAULT 'PENDING',
+  paye_le TIMESTAMP NULL,
   date_modification TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -233,6 +248,23 @@ CREATE INDEX idx_commande_numero ON commande(numero_commande);
 CREATE INDEX idx_commande_utilisateur_id ON commande(utilisateur_id);
 CREATE INDEX idx_commande_statut ON commande(statut);
 CREATE INDEX idx_commande_date ON commande(date_commande);
+CREATE INDEX idx_commande_stripe_session ON commande(stripe_session_id);
+CREATE INDEX idx_commande_stripe_intent ON commande(stripe_payment_intent_id);
+CREATE INDEX idx_commande_paiement_statut ON commande(paiement_statut);
+
+-- ============================================
+-- TABLE: stripe_event (idempotency webhooks)
+-- IMPORTANT : init.sql est réservé au premier démarrage local.
+-- Pour les bases déjà provisionnées, utiliser backend/migrations/001_remove_stripe_event_payload.sql
+-- ============================================
+CREATE TABLE stripe_event (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  event_id VARCHAR(255) NOT NULL UNIQUE,
+  type VARCHAR(100) NOT NULL,
+  processed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_stripe_event_type ON stripe_event(type);
 
 -- ============================================
 -- TABLE: ligne_commande

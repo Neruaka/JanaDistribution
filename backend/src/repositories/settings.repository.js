@@ -168,6 +168,8 @@ class SettingsRepository {
         'site_adresse', 'site_code_postal', 'site_ville', 'site_siret',
         'livraison_frais_standard', 'livraison_seuil_franco',
         'livraison_delai_min', 'livraison_delai_max',
+        'livraison_mode_calcul', 'livraison_prix_par_km',
+        'livraison_frais_base', 'livraison_distance_max_km',
         'commande_montant_min', 'commande_produits_par_page'
       )
     `;

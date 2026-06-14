@@ -32,6 +32,15 @@ router.get('/public', settingsController.getPublicSettings);
  */
 router.get('/delivery-fees', settingsController.getDeliveryFees);
 
+/**
+ * POST /api/settings/shipping/estimate
+ * @description Estime les frais de livraison en fonction de la distance
+ *              Haversine entre l'adresse du site et l'adresse fournie.
+ * @body { montant, adresse, codePostal, ville }
+ * @access Public
+ */
+router.post('/shipping/estimate', settingsController.estimateShipping);
+
 // ==========================================
 // ROUTES ADMIN (authentification + admin)
 // ==========================================

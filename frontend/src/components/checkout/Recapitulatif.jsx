@@ -14,7 +14,7 @@ import {
   Loader2
 } from 'lucide-react';
 
-const Recapitulatif = ({ 
+const Recapitulatif = ({
   items,
   itemCount,
   subtotalHT,
@@ -22,6 +22,8 @@ const Recapitulatif = ({
   totalTTC,
   savings,
   fraisLivraison,
+  shippingInfo,
+  shippingLoading,
   totalCommande,
   formData,
   errors,
@@ -87,9 +89,37 @@ const Recapitulatif = ({
             <span className="flex items-center gap-1">
               <Truck className="w-4 h-4" />
               Livraison
+              {shippingInfo?.distanceKm != null && !shippingInfo?.horsZone && (
+                <span className="ml-1 text-xs text-gray-400">
+                  ({shippingInfo.distanceKm} km)
+                </span>
+              )}
             </span>
-            <span>{formatPrice(fraisLivraison)}</span>
+            <span>
+              {shippingLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin inline" />
+              ) : shippingInfo?.francoAtteint ? (
+                <span className="text-green-600">Offerte</span>
+              ) : (
+                formatPrice(fraisLivraison)
+              )}
+            </span>
           </div>
+          {shippingInfo?.horsZone && (
+            <div className="flex items-start gap-2 p-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-700">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>
+                Adresse hors zone de livraison
+                (distance &gt; {shippingInfo.distanceMaxKm} km).
+              </span>
+            </div>
+          )}
+          {shippingInfo?.geocodageEchoue && (
+            <p className="text-xs text-amber-600 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />
+              Adresse non géolocalisée — tarif standard appliqué.
+            </p>
+          )}
           <div className="flex justify-between text-xl font-bold text-gray-800 pt-3 border-t border-gray-200">
             <span>Total TTC</span>
             <span className="text-green-600">{formatPrice(totalCommande)}</span>
@@ -147,7 +177,9 @@ const Recapitulatif = ({
           </button>
 
           <p className="text-xs text-gray-500 text-center mt-3">
-            Un devis vous sera envoyé par email
+            {formData?.modePaiement === 'CARTE'
+              ? 'Vous serez redirigé vers Stripe pour payer en ligne'
+              : 'Un devis vous sera envoyé par email'}
           </p>
         </div>
 
@@ -159,7 +191,11 @@ const Recapitulatif = ({
           </div>
           <div className="flex items-center gap-2 text-gray-500 text-xs mt-1">
             <CheckCircle className="w-4 h-4 text-green-500" />
-            <span>Paiement à la livraison</span>
+            <span>
+              {formData?.modePaiement === 'CARTE'
+                ? 'Paiement sécurisé Stripe'
+                : 'Paiement selon le mode choisi'}
+            </span>
           </div>
         </div>
       </div>

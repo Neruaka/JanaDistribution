@@ -10,6 +10,7 @@
  */
 
 const settingsRepository = require('../repositories/settings.repository');
+const geocodingService = require('./geocoding.service');
 const logger = require('../config/logger');
 
 // Optionnel: Redis pour le cache (si disponible)
@@ -95,7 +96,11 @@ class SettingsService {
         fraisStandard: settings.livraison_frais_standard,
         seuilFranco: settings.livraison_seuil_franco,
         delaiMin: settings.livraison_delai_min,
-        delaiMax: settings.livraison_delai_max
+        delaiMax: settings.livraison_delai_max,
+        modeCalcul: settings.livraison_mode_calcul || 'FIXE',
+        prixParKm: settings.livraison_prix_par_km,
+        fraisBase: settings.livraison_frais_base,
+        distanceMaxKm: settings.livraison_distance_max_km
       },
       commande: {
         montantMin: settings.commande_montant_min,
@@ -154,14 +159,30 @@ class SettingsService {
    * @returns {Promise<Object>} Résultat
    */
   async updateAll(allSettings) {
+    // Détection d'un changement d'adresse du site → invalidation du cache de coordonnées
+    const newSite = allSettings.general || {};
+    const previousAdresse   = await this.get('site_adresse');
+    const previousCp        = await this.get('site_code_postal');
+    const previousVille     = await this.get('site_ville');
+    const adresseChanged =
+      (newSite.adresse !== undefined && newSite.adresse !== previousAdresse) ||
+      (newSite.codePostal !== undefined && newSite.codePostal !== previousCp) ||
+      (newSite.ville !== undefined && newSite.ville !== previousVille);
+
     // Transformer le format frontend vers le format BDD
     const dbSettings = this._transformToDbFormat(allSettings);
 
     // Mettre à jour en BDD
     const updated = await settingsRepository.updateAll(dbSettings);
 
-    // Invalider le cache
+    // Invalider le cache settings
     await this._invalidateCache();
+
+    // Si l'adresse a changé, on force le re-géocodage du point de départ
+    if (adresseChanged) {
+      await this.resetDepartCoords();
+      logger.info('Adresse du site modifiée → coordonnées de départ réinitialisées');
+    }
 
     logger.info(`Settings globaux mis à jour: ${updated} paramètres`);
 
@@ -172,20 +193,125 @@ class SettingsService {
   }
 
   /**
-   * Récupère les frais de livraison
-   * @param {number} montantCommande - Montant de la commande
-   * @returns {Promise<number>} Frais de livraison
+   * Récupère les frais de livraison.
+   *
+   * Si mode = DISTANCE et qu'une adresse est fournie, calcule
+   *   frais = frais_base + (distance_km * prix_par_km)
+   * et refuse si distance > distance_max_km (0 = illimité).
+   * Le franco de port s'applique en priorité dans tous les modes.
+   *
+   * @param {number} montantCommande - Montant TTC de la commande
+   * @param {Object} [adresseLivraison] - Optionnel, requis pour mode DISTANCE
+   * @returns {Promise<number|object>} Frais en € (number) ou détail si DISTANCE
    */
-  async getFraisLivraison(montantCommande = 0) {
-    const seuilFranco = await this.get('livraison_seuil_franco') || 150;
-    const fraisStandard = await this.get('livraison_frais_standard') || 15;
+  async getFraisLivraison(montantCommande = 0, adresseLivraison = null) {
+    const seuilFranco   = (await this.get('livraison_seuil_franco'))   ?? 150;
+    const fraisStandard = (await this.get('livraison_frais_standard')) ?? 15;
+    const mode          = (await this.get('livraison_mode_calcul'))    || 'FIXE';
 
-    // Franco de port si montant >= seuil
+    // Franco de port : prioritaire dans tous les modes
     if (montantCommande >= seuilFranco) {
       return 0;
     }
 
-    return fraisStandard;
+    if (mode !== 'DISTANCE' || !adresseLivraison) {
+      return fraisStandard;
+    }
+
+    // Mode DISTANCE
+    const result = await this.computeDistanceShipping(adresseLivraison);
+    if (result === null) {
+      // Géocodage échoué ou point de départ non configuré → fallback prix fixe
+      logger.warn('Calcul distance impossible, fallback frais fixes', { adresseLivraison });
+      return fraisStandard;
+    }
+    return result.frais;
+  }
+
+  /**
+   * Calcule les frais de livraison par distance pour une adresse.
+   * Renvoie null si impossible (géocodage KO, point de départ manquant).
+   *
+   * @param {Object} adresseLivraison - { adresse, codePostal, ville }
+   * @returns {Promise<{frais:number, distanceKm:number, distanceMaxKm:number, hors_zone:boolean}|null>}
+   */
+  async computeDistanceShipping(adresseLivraison) {
+    const prixParKm    = parseFloat(await this.get('livraison_prix_par_km'))     || 0;
+    const fraisBase    = parseFloat(await this.get('livraison_frais_base'))      || 0;
+    const distanceMax  = parseFloat(await this.get('livraison_distance_max_km')) || 0;
+
+    const depart = await this._getDepartCoords();
+    if (!depart) return null;
+
+    const livraison = await geocodingService.geocode(adresseLivraison);
+    if (!livraison) return null;
+
+    const distanceKm = geocodingService.haversineKm(depart, livraison);
+    if (distanceKm === null) return null;
+
+    if (distanceMax > 0 && distanceKm > distanceMax) {
+      return {
+        frais: 0,
+        distanceKm,
+        distanceMaxKm: distanceMax,
+        hors_zone: true
+      };
+    }
+
+    const frais = Math.round((fraisBase + distanceKm * prixParKm) * 100) / 100;
+    return {
+      frais,
+      distanceKm,
+      distanceMaxKm: distanceMax,
+      hors_zone: false
+    };
+  }
+
+  /**
+   * Coordonnées GPS du point de départ. Mise en cache dans la table configuration
+   * pour éviter de re-géocoder l'adresse du site à chaque commande.
+   * @private
+   */
+  async _getDepartCoords() {
+    const cachedLat = await this.get('livraison_depart_lat');
+    const cachedLng = await this.get('livraison_depart_lng');
+    if (cachedLat && cachedLng) {
+      return { lat: parseFloat(cachedLat), lng: parseFloat(cachedLng) };
+    }
+
+    const adresse = await this.get('site_adresse');
+    const codePostal = await this.get('site_code_postal');
+    const ville = await this.get('site_ville');
+    if (!ville && !codePostal) return null;
+
+    const coords = await geocodingService.geocode({ adresse, codePostal, ville });
+    if (!coords) return null;
+
+    // On cache directement dans la table configuration
+    try {
+      await settingsRepository.set('livraison_depart_lat', String(coords.lat), 'delivery');
+      await settingsRepository.set('livraison_depart_lng', String(coords.lng), 'delivery');
+      await this._invalidateCache();
+    } catch (err) {
+      logger.warn('Impossible de cacher les coordonnées de départ', { error: err.message });
+    }
+
+    return { lat: coords.lat, lng: coords.lng };
+  }
+
+  /**
+   * Force le re-géocodage du point de départ. À appeler après modification
+   * de l'adresse de l'entreprise par l'admin.
+   */
+  async resetDepartCoords() {
+    try {
+      await settingsRepository.set('livraison_depart_lat', '', 'delivery');
+      await settingsRepository.set('livraison_depart_lng', '', 'delivery');
+      await this._invalidateCache();
+      geocodingService.clearCache();
+    } catch (err) {
+      logger.warn('Erreur lors du reset des coordonnées de départ', { error: err.message });
+    }
   }
 
   /**
@@ -237,6 +363,20 @@ class SettingsService {
         livraison_zones: frontendSettings.delivery.zonesLivraison,
         livraison_message_indisponible: frontendSettings.delivery.messageIndisponible
       };
+
+      // Calcul par distance — champs optionnels
+      if (frontendSettings.delivery.modeCalcul !== undefined) {
+        dbSettings.livraison.livraison_mode_calcul = frontendSettings.delivery.modeCalcul;
+      }
+      if (frontendSettings.delivery.prixParKm !== undefined) {
+        dbSettings.livraison.livraison_prix_par_km = frontendSettings.delivery.prixParKm;
+      }
+      if (frontendSettings.delivery.fraisBase !== undefined) {
+        dbSettings.livraison.livraison_frais_base = frontendSettings.delivery.fraisBase;
+      }
+      if (frontendSettings.delivery.distanceMaxKm !== undefined) {
+        dbSettings.livraison.livraison_distance_max_km = frontendSettings.delivery.distanceMaxKm;
+      }
     }
 
     // Orders → commande

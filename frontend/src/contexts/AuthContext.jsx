@@ -1,59 +1,59 @@
 ﻿/**
  * Context d'Authentification
- * @description GÃ¨re l'Ã©tat de l'utilisateur connectÃ© dans toute l'application
+ * @description Gère l'état de l'utilisateur connecté dans toute l'application
  * 
  * Ce context utilise le pattern "Provider" de React :
  * - On enveloppe l'app avec <AuthProvider>
- * - N'importe quel composant peut accÃ©der Ã  l'utilisateur avec useAuth()
+ * - N'importe quel composant peut accéder à l'utilisateur avec useAuth()
  */
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import api, { setAuthData, clearAuthData, getStoredUser, isAuthenticated } from '../services/api';
 
-// 1. CrÃ©ation du context (comme une "boÃ®te" qui contient les donnÃ©es)
+// 1. Création du context (comme une "boîte" qui contient les données)
 const AuthContext = createContext(null);
 
 /**
- * Hook personnalisÃ© pour accÃ©der au context
+ * Hook personnalisé pour accéder au context
  * Utilisation : const { user, login, logout } = useAuth();
  */
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth doit Ãªtre utilisÃ© dans un AuthProvider');
+    throw new Error('useAuth doit être utilisé dans un AuthProvider');
   }
   return context;
 };
 
 /**
  * Provider d'authentification
- * Enveloppe l'application et fournit l'Ã©tat utilisateur
+ * Enveloppe l'application et fournit l'état utilisateur
  */
 export const AuthProvider = ({ children }) => {
-  // Ã‰tat de l'utilisateur connectÃ© (null = non connectÃ©)
+  // État de l'utilisateur connecté (null = non connecté)
   const [user, setUser] = useState(null);
   
-  // Ã‰tat de chargement (true pendant la vÃ©rification initiale)
+  // État de chargement (true pendant la vérification initiale)
   const [loading, setLoading] = useState(true);
   
-  // Ã‰tat d'erreur
+  // État d'erreur
   const [error, setError] = useState(null);
 
   /**
-   * Effet au montage : vÃ©rifie si l'utilisateur est dÃ©jÃ  connectÃ©
+   * Effet au montage : vérifie si l'utilisateur est déjà connecté
    * (token dans localStorage)
    */
   useEffect(() => {
     const initAuth = async () => {
       try {
-        // VÃ©rifie si un token existe dans localStorage
+        // Vérifie si un token existe dans localStorage
         if (isAuthenticated()) {
-          // RÃ©cupÃ¨re les infos utilisateur depuis l'API
+          // Récupère les infos utilisateur depuis l'API
           const response = await api.get('/auth/me');
           setUser(response.data.data);
         }
       } catch (err) {
-        // Token invalide ou expirÃ© : on dÃ©connecte
+        // Token invalide ou expiré : on déconnecte
         console.error('Erreur initialisation auth:', err);
         clearAuthData();
         setUser(null);
@@ -67,8 +67,8 @@ export const AuthProvider = ({ children }) => {
 
   /**
    * Inscription d'un nouvel utilisateur
-   * @param {Object} userData - DonnÃ©es du formulaire d'inscription
-   * @returns {Object} DonnÃ©es utilisateur
+   * @param {Object} userData - Données du formulaire d'inscription
+   * @returns {Object} Données utilisateur
    */
   const register = async (userData) => {
     try {
@@ -93,7 +93,7 @@ export const AuthProvider = ({ children }) => {
    * Connexion d'un utilisateur
    * @param {string} email - Email
    * @param {string} motDePasse - Mot de passe
-   * @returns {Object} DonnÃ©es utilisateur
+   * @returns {Object} Données utilisateur
    */
   const login = async (email, motDePasse) => {
     try {
@@ -115,14 +115,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * DÃ©connexion
+   * Déconnexion
    */
   const logout = async () => {
     try {
-      // Appelle l'API (optionnel, le token est gÃ©rÃ© cÃ´tÃ© client)
+      // Appelle l'API (optionnel, le token est géré côté client)
       await api.post('/auth/logout');
     } catch (err) {
-      // MÃªme si l'API Ã©choue, on dÃ©connecte localement
+      // Même si l'API échoue, on déconnecte localement
       console.error('Erreur logout API:', err);
     } finally {
       clearAuthData();
@@ -131,9 +131,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Met Ã  jour le profil utilisateur
-   * @param {Object} updates - Champs Ã  mettre Ã  jour
-   * @returns {Object} Utilisateur mis Ã  jour
+   * Met à jour le profil utilisateur
+   * @param {Object} updates - Champs à mettre à jour
+   * @returns {Object} Utilisateur mis à jour
    */
   const updateProfile = async (updates) => {
     try {
@@ -142,14 +142,14 @@ export const AuthProvider = ({ children }) => {
       const response = await api.put('/auth/profile', updates);
       const updatedUser = response.data.data;
       
-      // Met Ã  jour l'Ã©tat et le localStorage
+      // Met à jour l'état et le localStorage
       setUser(updatedUser);
       sessionStorage.setItem('user', JSON.stringify(updatedUser));
       localStorage.removeItem('user');
       
       return updatedUser;
     } catch (err) {
-      const message = err.response?.data?.message || 'Erreur lors de la mise Ã  jour';
+      const message = err.response?.data?.message || 'Erreur lors de la mise à jour';
       setError(message);
       throw new Error(message);
     }

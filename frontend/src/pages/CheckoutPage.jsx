@@ -13,6 +13,8 @@ import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useSettings } from '../contexts/SettingsContext'; // ✅ AJOUT
 import { createOrder, MODES_PAIEMENT } from '../services/orderService';
+import { createCheckoutSession } from '../services/paymentService';
+import { estimateShipping } from '../services/shippingService';
 import toast from 'react-hot-toast';
 
 // Composants checkout
@@ -46,12 +48,16 @@ const CheckoutPage = () => {
   // ✅ AJOUT: Récupérer les settings pour les frais de livraison
   const { getFraisLivraison, seuilFrancoPort, loading: settingsLoading } = useSettings();
 
-  // ✅ Frais de livraison dynamiques depuis settings (avec calcul franco de port)
-  const fraisLivraison = getFraisLivraison(totalTTC);
-
   // États
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Frais de livraison : commencer avec le fallback statique, puis affiner via l'API
+  // dès que l'adresse est complète (mode DISTANCE).
+  const fallbackFrais = getFraisLivraison(totalTTC);
+  const [fraisLivraison, setFraisLivraison] = useState(fallbackFrais);
+  const [shippingInfo, setShippingInfo] = useState(null);
+  const [shippingLoading, setShippingLoading] = useState(false);
 
   // Formulaire
   const [formData, setFormData] = useState({
@@ -108,6 +114,50 @@ const CheckoutPage = () => {
       navigate('/login?redirect=/checkout');
     }
   }, [user, navigate]);
+
+  // Estimation dynamique des frais de livraison dès que l'adresse est complète.
+  // Debounce 500 ms pour limiter les appels pendant la saisie.
+  useEffect(() => {
+    const cp = (formData.codePostal || '').trim();
+    const ville = (formData.ville || '').trim();
+    const adresse = (formData.adresse || '').trim();
+
+    if (!/^\d{5}$/.test(cp) || !ville) {
+      // Adresse incomplète → fallback franco/fixe
+      setFraisLivraison(getFraisLivraison(totalTTC));
+      setShippingInfo(null);
+      return;
+    }
+
+    const t = setTimeout(async () => {
+      setShippingLoading(true);
+      try {
+        const data = await estimateShipping({
+          montant: totalTTC,
+          adresse,
+          codePostal: cp,
+          ville
+        });
+        setShippingInfo(data);
+        setFraisLivraison(Number(data.frais) || 0);
+
+        if (data.horsZone) {
+          toast.error(
+            `Adresse hors zone de livraison (max ${data.distanceMaxKm} km)`,
+            { id: 'shipping-hors-zone' }
+          );
+        }
+      } catch (err) {
+        console.error('Erreur estimation frais:', err);
+        setShippingInfo(null);
+        setFraisLivraison(getFraisLivraison(totalTTC));
+      } finally {
+        setShippingLoading(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(t);
+  }, [formData.codePostal, formData.ville, formData.adresse, totalTTC, getFraisLivraison]);
 
   // ==========================================
   // CALCULS - ✅ Utilise fraisLivraison dynamiques
@@ -193,26 +243,50 @@ const CheckoutPage = () => {
       return;
     }
 
+    if (shippingInfo?.horsZone) {
+      toast.error(
+        `Désolé, votre adresse est hors zone de livraison (max ${shippingInfo.distanceMaxKm} km).`
+      );
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       // ✅ Passer les frais de livraison dynamiques à createOrder
       const result = await createOrder(formData, fraisLivraison);
 
-      if (result.success) {
-        resetCartLocal();
-        
-        navigate(`/commande/confirmation/${result.data.id}`, {
-          state: {
-            order: result.data,
-            fromCheckout: true
-          }
-        });
-        
-        toast.success('Commande enregistrée avec succès !');
-      } else {
+      if (!result.success) {
         toast.error(result.message || 'Erreur lors de la commande');
+        return;
       }
+
+      const orderId = result.data.id;
+
+      // ✅ Paiement CARTE : redirection Stripe Checkout
+      if (formData.modePaiement === 'CARTE') {
+        try {
+          const { url } = await createCheckoutSession(orderId);
+          resetCartLocal();
+          window.location.href = url;
+          return;
+        } catch (err) {
+          console.error('Erreur création session Stripe:', err);
+          toast.error(
+            err.response?.data?.message ||
+            'Impossible de démarrer le paiement. Votre commande est enregistrée, vous pouvez réessayer depuis Mes commandes.'
+          );
+          navigate(`/mes-commandes/${orderId}`);
+          return;
+        }
+      }
+
+      // ✅ Autres modes (VIREMENT / CHEQUE / ESPECES) : flux devis existant
+      resetCartLocal();
+      navigate(`/commande/confirmation/${orderId}`, {
+        state: { order: result.data, fromCheckout: true }
+      });
+      toast.success('Commande enregistrée avec succès !');
     } catch (error) {
       console.error('Erreur commande:', error);
       toast.error(error.message || 'Erreur lors de la commande. Veuillez réessayer.');
@@ -248,10 +322,12 @@ const CheckoutPage = () => {
     ville: formData.ville
   };
 
+  const isCarte = formData.modePaiement === 'CARTE';
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4">
-        
+
         {/* Header */}
         <div className="mb-8">
           <Link
@@ -261,31 +337,51 @@ const CheckoutPage = () => {
             <ArrowLeft className="w-4 h-4" />
             Retour au panier
           </Link>
-          
+
           <h1 className="text-3xl font-bold text-gray-800">
             Finaliser ma commande
           </h1>
           <p className="text-gray-600 mt-2">
-            Remplissez les informations ci-dessous pour recevoir votre devis par email
+            {isCarte
+              ? 'Remplissez les informations ci-dessous pour finaliser votre commande'
+              : 'Remplissez les informations ci-dessous pour recevoir votre devis par email'}
           </p>
         </div>
 
-        {/* Bandeau info B2B */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-start gap-3"
-        >
-          <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-blue-800 font-medium">Comment ça marche ?</p>
-            <p className="text-blue-700 text-sm mt-1">
-              Après validation, vous recevrez un <strong>devis par email</strong> récapitulant votre commande. 
-              Notre équipe vous contactera pour confirmer la livraison. 
-              Le paiement s'effectue <strong>à la livraison</strong> selon le mode choisi.
-            </p>
-          </div>
-        </motion.div>
+        {/* Bandeau info — contenu adapté selon le mode de paiement */}
+        {isCarte ? (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 flex items-start gap-3"
+          >
+            <Info className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-green-800 font-medium">Paiement sécurisé par carte bancaire</p>
+              <p className="text-green-700 text-sm mt-1">
+                Après validation, votre commande sera créée puis vous serez redirigé vers{' '}
+                <strong>la page de paiement sécurisée Stripe</strong>. Votre commande sera confirmée
+                uniquement après validation du paiement par Stripe.
+              </p>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-start gap-3"
+          >
+            <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-blue-800 font-medium">Comment ça marche ?</p>
+              <p className="text-blue-700 text-sm mt-1">
+                Après validation, vous recevrez un <strong>devis par email</strong> récapitulant votre commande.
+                Notre équipe vous contactera pour confirmer la livraison.
+                Le paiement s'effectue selon le mode choisi.
+              </p>
+            </div>
+          </motion.div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -384,7 +480,7 @@ const CheckoutPage = () => {
                   ) : (
                     <>
                       <FileText className="w-5 h-5" />
-                      Valider et recevoir mon devis
+                      {isCarte ? 'Valider et payer par carte' : 'Valider et recevoir mon devis'}
                     </>
                   )}
                 </button>
@@ -400,6 +496,8 @@ const CheckoutPage = () => {
               totalTTC={totalTTC}
               savings={savings}
               fraisLivraison={fraisLivraison}
+              shippingInfo={shippingInfo}
+              shippingLoading={shippingLoading}
               totalCommande={totalCommande}
               formData={formData}
               errors={errors}

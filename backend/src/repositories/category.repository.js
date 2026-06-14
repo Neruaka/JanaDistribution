@@ -1,6 +1,6 @@
 /**
- * Repository CatÃ©gories
- * @description AccÃ¨s aux donnÃ©es catÃ©gories PostgreSQL
+ * Repository Catégories
+ * @description Accès aux données catégories PostgreSQL
  */
 
 const { query } = require('../config/database');
@@ -8,7 +8,7 @@ const logger = require('../config/logger');
 
 class CategoryRepository {
   /**
-   * RÃ©cupÃ¨re toutes les catÃ©gories
+   * Récupère toutes les catégories
    */
   async findAll(options = {}) {
     const { estActif = true, includeProductCount = false } = options;
@@ -42,7 +42,7 @@ class CategoryRepository {
   }
 
   /**
-   * RÃ©cupÃ¨re une catÃ©gorie par ID
+   * Récupère une catégorie par ID
    */
   async findById(id) {
     const sql = `
@@ -58,7 +58,7 @@ class CategoryRepository {
   }
 
   /**
-   * RÃ©cupÃ¨re une catÃ©gorie par slug
+   * Récupère une catégorie par slug
    */
   async findBySlug(slug) {
     const sql = `
@@ -83,10 +83,10 @@ class CategoryRepository {
   }
 
   /**
-   * CrÃ©e une nouvelle catÃ©gorie
+   * Crée une nouvelle catégorie
    */
   async create(data) {
-    // RÃ©cupÃ©rer le prochain ordre
+    // Récupérer le prochain ordre
     const orderResult = await query('SELECT COALESCE(MAX(ordre), 0) + 1 as next_order FROM categorie');
     const nextOrder = orderResult.rows[0].next_order;
 
@@ -107,7 +107,7 @@ class CategoryRepository {
     ];
 
     const result = await query(sql, params);
-    logger.info(`CatÃ©gorie crÃ©Ã©e: ${result.rows[0].nom}`);
+    logger.info(`Catégorie créée: ${result.rows[0].nom}`);
     return this.mapCategory(result.rows[0]);
   }
 
@@ -166,12 +166,12 @@ class CategoryRepository {
     `;
     
     const result = await query(sql, [id]);
-    logger.info(`CatÃ©gorie dÃ©sactivÃ©e: ${id}`);
+    logger.info(`Catégorie désactivée: ${id}`);
     return result.rows[0] ? this.mapCategory(result.rows[0]) : null;
   }
 
   /**
-   * VÃ©rifie si une catÃ©gorie a des produits
+   * Vérifie si une catégorie a des produits
    */
   async hasProducts(id) {
     const sql = 'SELECT COUNT(*) as count FROM produit WHERE categorie_id = $1 AND est_actif = true';
@@ -180,7 +180,7 @@ class CategoryRepository {
   }
 
   /**
-   * VÃ©rifie si un slug existe
+   * Vérifie si un slug existe
    */
   async slugExists(slug, excludeId = null) {
     let sql = 'SELECT id FROM categorie WHERE slug = $1';
@@ -196,7 +196,7 @@ class CategoryRepository {
   }
 
   /**
-   * RÃ©organise l'ordre des catÃ©gories
+   * Réorganise l'ordre des catégories
    */
   async reorder(orderedIds) {
     const client = await require('../config/database').getClient();
@@ -212,7 +212,7 @@ class CategoryRepository {
       }
       
       await client.query('COMMIT');
-      logger.info('Ordre des catÃ©gories mis Ã  jour');
+      logger.info('Ordre des catégories mis à jour');
       return true;
     } catch (error) {
       await client.query('ROLLBACK');
@@ -223,7 +223,7 @@ class CategoryRepository {
   }
 
   /**
-   * Active/dÃ©sactive une catÃ©gorie
+   * Active/désactive une catégorie
    */
   async toggleActive(id) {
     const sql = `
@@ -234,8 +234,8 @@ class CategoryRepository {
     `;
     
     const result = await query(sql, [id]);
-    const action = result.rows[0].est_actif ? 'activÃ©e' : 'dÃ©sactivÃ©e';
-    logger.info(`CatÃ©gorie ${action}: ${id}`);
+    const action = result.rows[0].est_actif ? 'activée' : 'désactivée';
+    logger.info(`Catégorie ${action}: ${id}`);
     return result.rows[0] ? this.mapCategory(result.rows[0]) : null;
   }
 

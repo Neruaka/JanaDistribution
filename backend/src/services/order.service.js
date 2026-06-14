@@ -104,36 +104,57 @@ class OrderService {
     const totalTva = cart.summary.totalTVA;
     const totalPanierTtc = cart.summary.totalTTC;
 
-    // Appliquer le montant minimum cÃ´tÃ© serveur
+    // Appliquer le montant minimum côté serveur
     let montantMinCommande = 0;
     try {
       montantMinCommande = await settingsService.get('commande_montant_min') || 0;
     } catch (error) {
-      logger.warn('Impossible de rÃ©cupÃ©rer le montant minimum de commande, valeur par dÃ©faut appliquÃ©e', {
+      logger.warn('Impossible de récupérer le montant minimum de commande, valeur par défaut appliquée', {
         error: error.message
       });
     }
 
     if (montantMinCommande > 0 && totalPanierTtc < montantMinCommande) {
       throw ApiError.badRequest(
-        `Le montant minimum de commande est de ${montantMinCommande.toFixed(2)}â‚¬ TTC`
+        `Le montant minimum de commande est de ${montantMinCommande.toFixed(2)}€ TTC`
       );
     }
 
-    // Calcul des frais de livraison strictement cÃ´tÃ© serveur
+    // Calcul des frais de livraison strictement côté serveur
+    // Inclut le calcul par distance (Haversine) si mode DISTANCE activé
     let fraisLivraison = 0;
     try {
-      fraisLivraison = await settingsService.getFraisLivraison(totalPanierTtc);
+      fraisLivraison = await settingsService.getFraisLivraison(totalPanierTtc, {
+        adresse: data.adresseLivraison.adresse,
+        codePostal: data.adresseLivraison.codePostal,
+        ville: data.adresseLivraison.ville
+      });
+
+      // Vérifier que la zone est livrable si mode DISTANCE
+      const mode = await settingsService.get('livraison_mode_calcul');
+      if (mode === 'DISTANCE' && totalPanierTtc < (await settingsService.get('livraison_seuil_franco') || 150)) {
+        const details = await settingsService.computeDistanceShipping({
+          adresse: data.adresseLivraison.adresse,
+          codePostal: data.adresseLivraison.codePostal,
+          ville: data.adresseLivraison.ville
+        });
+        if (details?.hors_zone) {
+          throw ApiError.badRequest(
+            `L'adresse est hors zone de livraison (distance > ${details.distanceMaxKm} km)`
+          );
+        }
+      }
     } catch (error) {
-      logger.warn('Impossible de rÃ©cupÃ©rer les frais de livraison dynamiques, fallback appliquÃ©', {
+      if (error?.statusCode) throw error;
+      logger.warn('Impossible de récupérer les frais de livraison dynamiques, fallback appliqué', {
         error: error.message
       });
       fraisLivraison = totalPanierTtc >= 150 ? 0 : 15;
     }
 
-    // DÃ©tection d'une tentative de forcer un montant cÃ´tÃ© client
+    // Détection d'une tentative de forcer un montant côté client
     if (data.fraisLivraison !== undefined && Number(data.fraisLivraison) !== Number(fraisLivraison)) {
-      logger.warn('Frais livraison fournis par le client ignorÃ©s', {
+      logger.warn('Frais livraison fournis par le client ignorés', {
         userId,
         clientValue: data.fraisLivraison,
         serverValue: fraisLivraison

@@ -1,6 +1,6 @@
 ﻿/**
  * Application principale - AVEC SETTINGS
- * @description Point d'entrÃ©e de l'application React
+ * @description Point d'entrée de l'application React
  * @location frontend/src/App.jsx
  * 
  *  MODIF: Suppression des pages Promotions et Catégories
@@ -34,11 +34,13 @@ import OrderHistoryPage from './pages/OrderHistoryPage';
 import OrderDetailPage from './pages/OrderDetailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import PaymentSuccessPage from './pages/PaymentSuccessPage';
+import PaymentCancelPage from './pages/PaymentCancelPage';
 
 // Pages client
 import MonComptePage from './pages/MonComptePage';
 
-// Pages lÃ©gales
+// Pages légales
 import CGVPage from './pages/CGVPage';
 import ConfidentialitePage from './pages/ConfidentialitePage';
 import MentionsLegalesPage from './pages/MentionsLegalesPage';
@@ -146,6 +148,22 @@ function App() {
               <PrivateRoute>
                 <PublicLayout>
                   <OrderConfirmationPage />
+                </PublicLayout>
+              </PrivateRoute>
+            } />
+
+            {/* Paiement Stripe : retour */}
+            <Route path="/paiement/succes" element={
+              <PrivateRoute>
+                <PublicLayout>
+                  <PaymentSuccessPage />
+                </PublicLayout>
+              </PrivateRoute>
+            } />
+            <Route path="/paiement/annule" element={
+              <PrivateRoute>
+                <PublicLayout>
+                  <PaymentCancelPage />
                 </PublicLayout>
               </PrivateRoute>
             } />

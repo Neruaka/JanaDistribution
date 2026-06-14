@@ -114,6 +114,68 @@ class SettingsController {
   };
 
   /**
+   * POST /api/settings/shipping/estimate
+   * Body : { montant, adresse, codePostal, ville }
+   * Calcul live des frais de livraison côté serveur, basé sur la distance
+   * Haversine entre l'adresse du site et l'adresse fournie.
+   */
+  estimateShipping = async (req, res, next) => {
+    try {
+      const { montant = 0, adresse = '', codePostal = '', ville = '' } = req.body || {};
+      const montantCommande = parseFloat(montant) || 0;
+
+      const seuilFranco = (await settingsService.get('livraison_seuil_franco')) ?? 150;
+      const mode = (await settingsService.get('livraison_mode_calcul')) || 'FIXE';
+
+      // Franco appliqué en priorité
+      if (montantCommande >= seuilFranco) {
+        return res.json({
+          success: true,
+          data: { mode, frais: 0, francoAtteint: true, seuilFranco }
+        });
+      }
+
+      if (mode !== 'DISTANCE' || (!codePostal && !ville)) {
+        const frais = await settingsService.getFraisLivraison(montantCommande);
+        return res.json({
+          success: true,
+          data: { mode, frais, francoAtteint: false, seuilFranco }
+        });
+      }
+
+      const details = await settingsService.computeDistanceShipping({ adresse, codePostal, ville });
+      if (!details) {
+        const frais = (await settingsService.get('livraison_frais_standard')) ?? 15;
+        return res.json({
+          success: true,
+          data: {
+            mode,
+            frais,
+            francoAtteint: false,
+            seuilFranco,
+            geocodageEchoue: true
+          }
+        });
+      }
+
+      res.json({
+        success: true,
+        data: {
+          mode,
+          frais: details.frais,
+          distanceKm: details.distanceKm,
+          distanceMaxKm: details.distanceMaxKm,
+          horsZone: details.hors_zone,
+          francoAtteint: false,
+          seuilFranco
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
    * Formate les settings pour le frontend admin
    * @private
    * Note: La BDD utilise les catégories: site, livraison, commande, emails
@@ -137,7 +199,11 @@ class SettingsController {
         delaiLivraisonMin: settings.livraison?.livraison_delai_min || 2,
         delaiLivraisonMax: settings.livraison?.livraison_delai_max || 5,
         zonesLivraison: settings.livraison?.livraison_zones || 'France métropolitaine',
-        messageIndisponible: settings.livraison?.livraison_message_indisponible || ''
+        messageIndisponible: settings.livraison?.livraison_message_indisponible || '',
+        modeCalcul: settings.livraison?.livraison_mode_calcul || 'FIXE',
+        prixParKm: settings.livraison?.livraison_prix_par_km ?? 0.8,
+        fraisBase: settings.livraison?.livraison_frais_base ?? 5,
+        distanceMaxKm: settings.livraison?.livraison_distance_max_km ?? 200
       },
       orders: {
         montantMinCommande: settings.commande?.commande_montant_min || 20,

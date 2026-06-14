@@ -77,16 +77,16 @@ class StatsService {
   }
 
   /**
-   * CompatibilitÃ© avec /api/admin/stats/revenue
-   * Renvoie le mÃªme format que getEvolution()
+   * Compatibilité avec /api/admin/stats/revenue
+   * Renvoie le même format que getEvolution()
    */
   async getRevenueEvolution({ dateDebut, dateFin, periode, groupBy = 'day' }) {
     return this.getEvolution({ dateDebut, dateFin, periode, groupBy });
   }
 
   /**
-   * CompatibilitÃ© avec /api/admin/stats/comparison
-   * Compare la pÃ©riode demandÃ©e avec la pÃ©riode prÃ©cÃ©dente de mÃªme durÃ©e
+   * Compatibilité avec /api/admin/stats/comparison
+   * Compare la période demandée avec la période précédente de même durée
    */
   async getComparisonStats({ dateDebut, dateFin, periode }) {
     try {
@@ -124,7 +124,7 @@ class StatsService {
         }
       };
     } catch (error) {
-      logger.error('Erreur rÃ©cupÃ©ration stats comparison', { error: error.message });
+      logger.error('Erreur récupération stats comparison', { error: error.message });
       throw error;
     }
   }
@@ -397,7 +397,7 @@ class StatsService {
     const currentEnd = new Date(dateFin);
 
     if (Number.isNaN(currentStart.getTime()) || Number.isNaN(currentEnd.getTime())) {
-      throw new Error('PÃ©riode invalide pour la comparaison');
+      throw new Error('Période invalide pour la comparaison');
     }
 
     const durationMs = Math.max(1, currentEnd.getTime() - currentStart.getTime());

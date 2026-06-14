@@ -1,5 +1,5 @@
 ﻿/**
- * Point d'entrÃ©e de l'API Jana Distribution
+ * Point d'entrée de l'API Jana Distribution
  * @description Serveur Express avec PostgreSQL et Redis
  */
 
@@ -22,9 +22,11 @@ const productRoutes = require('./routes/product.routes');
 const cartRoutes = require('./routes/cart.routes');
 const orderRoutes = require('./routes/order.routes');
 const adminOrderRoutes = require('./routes/admin.order.routes');
-const adminStatsRoutes = require('./routes/admin.stats.routes');       
-const adminClientsRoutes = require('./routes/admin.clients.routes');  
+const adminStatsRoutes = require('./routes/admin.stats.routes');
+const adminClientsRoutes = require('./routes/admin.clients.routes');
 const settingsRoutes = require('./routes/settings.routes');
+const paymentRoutes = require('./routes/payment.routes');
+const webhookRoutes = require('./routes/webhook.routes');
 const path = require('path');
 const fs = require('fs');
 
@@ -33,10 +35,10 @@ const errorHandler = require('./middlewares/errorHandler');
 const notFoundHandler = require('./middlewares/notFoundHandler');
 
 // ==========================================
-// Gestion des uploads de fichiers (crÃ©ation du dossier si nÃ©cessaire)
+// Gestion des uploads de fichiers (création du dossier si nécessaire)
 // ==========================================
 
-// CrÃ©er le dossier uploads s'il n'existe pas
+// Créer le dossier uploads s'il n'existe pas
 const uploadsDir = path.join(__dirname, '../uploads/products');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -87,6 +89,10 @@ const authLimiter = rateLimit({
   legacyHeaders: false
 });
 
+// ⚠️ Webhooks Stripe : body brut obligatoire → à monter AVANT express.json()
+// La route interne applique elle-même `express.raw(...)`.
+app.use('/api/webhooks', webhookRoutes);
+
 // Parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -108,7 +114,7 @@ app.use((req, res, next) => {
 // Fichiers statiques pour les uploads - AVEC HEADERS CORS
 app.use('/uploads', (req, res, next) => {
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', process.env.CORS_ORIGIN || 'http://localhost:5173');
   next();
 }, express.static(path.join(__dirname, '../uploads')));
 
@@ -144,11 +150,12 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Routes API Admin
 app.use('/api/admin/orders', adminOrderRoutes);
-app.use('/api/admin/stats', adminStatsRoutes);       
-app.use('/api/admin/clients', adminClientsRoutes);   
+app.use('/api/admin/stats', adminStatsRoutes);
+app.use('/api/admin/clients', adminClientsRoutes);
 app.use('/api/settings', settingsRoutes);
 
 // ==========================================
@@ -158,7 +165,7 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 // ==========================================
-// DÃ‰MARRAGE DU SERVEUR
+// DÉMARRAGE DU SERVEUR
 // ==========================================
 const startServer = async () => {
   try {

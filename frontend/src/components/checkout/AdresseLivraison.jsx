@@ -137,7 +137,7 @@ const AdresseLivraison = ({
                   <span className="font-medium text-gray-800">{address.nom}</span>
                   {address.estDefaut && (
                     <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
-                      Par dÃ©faut
+                      Par défaut
                     </span>
                   )}
                 </div>
