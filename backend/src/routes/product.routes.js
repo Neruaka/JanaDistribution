@@ -11,7 +11,7 @@ const productController = require('../controllers/product.controller');
 const productValidators = require('../validators/product.validator');
 const validate = require('../middlewares/validate.middleware');
 const { authenticate, isAdmin, optionalAuth } = require('../middlewares/auth.middleware');
-const { productImageUpload } = require('../middlewares/upload.middleware');
+const { productImageUpload, uploadToR2 } = require('../middlewares/upload.middleware');
 
 // ==========================================
 // ROUTES PUBLIQUES
@@ -123,6 +123,7 @@ router.post('/upload-image',
   authenticate,
   isAdmin,
   productImageUpload.single('image'),
+  uploadToR2,
   productController.uploadImage
 );
 

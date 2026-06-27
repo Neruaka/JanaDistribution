@@ -1,12 +1,8 @@
-/**
- * Upload Middleware
- * @description Configuration Multer pour l'upload de fichiers
- */
-
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 
 // ==========================================
 // CONFIGURATION
@@ -135,12 +131,60 @@ const isLocalImage = (url) => {
 };
 
 // ==========================================
+// MIDDLEWARE R2 (optionnel — activé si R2_ACCOUNT_ID est défini)
+// ==========================================
+
+/**
+ * Middleware à chaîner après productImageUpload.single('image').
+ * Si R2 est configuré : upload le fichier vers Cloudflare R2, supprime le fichier local,
+ * et expose req.file.r2Url. Sinon : no-op (le fichier reste sur disque local).
+ */
+const uploadToR2 = async (req, res, next) => {
+  if (!req.file) return next();
+  if (!process.env.R2_ACCOUNT_ID || !process.env.R2_ACCESS_KEY_ID) {
+    return next(); // Mode dev sans R2 : garder le fichier local
+  }
+
+  try {
+    const { r2Client, bucketName } = require('../config/r2');
+    const { Upload } = require('@aws-sdk/lib-storage');
+
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    const key = `products/${crypto.randomUUID()}${ext}`;
+    const fileBuffer = fs.readFileSync(req.file.path);
+
+    const uploadInstance = new Upload({
+      client: r2Client,
+      params: {
+        Bucket: bucketName,
+        Key: key,
+        Body: fileBuffer,
+        ContentType: req.file.mimetype,
+      },
+    });
+
+    await uploadInstance.done();
+
+    // Nettoyage du fichier local après upload R2 réussi
+    fs.unlink(req.file.path, () => {});
+
+    req.file.r2Key = key;
+    req.file.r2Url = `${process.env.R2_PUBLIC_URL}/${key}`;
+
+    next();
+  } catch (error) {
+    next(new Error(`Upload R2 échoué: ${error.message}`));
+  }
+};
+
+// ==========================================
 // EXPORTS
 // ==========================================
 
 module.exports = {
   productImageUpload,
   productGalleryUpload,
+  uploadToR2,
   deleteImage,
   getFilenameFromUrl,
   isLocalImage,

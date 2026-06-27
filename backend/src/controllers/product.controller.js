@@ -453,16 +453,17 @@ class ProductController {
         });
       }
 
-      const imageUrl = `/uploads/products/${req.file.filename}`;
+      // R2 en prod, disque local en dev
+      const imageUrl = req.file.r2Url || `/uploads/products/${req.file.filename}`;
 
-      logger.info(`Image uploadée par ${req.user?.email}: ${req.file.filename}`);
+      logger.info(`Image uploadée par ${req.user?.email}: ${req.file.r2Key || req.file.filename}`);
 
       res.json({
         success: true,
         message: 'Image uploadée avec succès',
         data: {
           imageUrl,
-          filename: req.file.filename
+          filename: req.file.r2Key || req.file.filename
         }
       });
     } catch (error) {
