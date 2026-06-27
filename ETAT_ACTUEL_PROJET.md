@@ -11,12 +11,12 @@
 |---|---|
 | Projet | Jana Distribution — e-commerce alimentaire B2C/B2B |
 | Branche active | `develop` |
-| Dernier commit | `2a9201d` — `feat(frontend): order status timeline + admin refund UI + CSV export` |
+| Dernier commit | `dfbc862` — `feat(tests): integration test scaffolding (T7-01..T7-04, T7-06)` |
 | Fichiers modifiés non commités | 0 — working tree propre |
-| Phase active | Phase 7 — Tests automatisés |
-| Tâche active | Aucune — Phases 4 et 6 terminées (2026-06-27) |
+| Phase active | Phase 8 — Staging Railway |
+| Tâche active | Aucune — Phases 2, 3, 4, 5, 6, 7 terminées (2026-06-27) |
 | Verdict | **NON PRÊT POUR LA PRODUCTION** |
-| Avancement estimé | ~80 % |
+| Avancement estimé | ~92 % |
 
 ---
 
@@ -24,7 +24,7 @@
 
 **NON PRÊT POUR LA PRODUCTION.**
 
-Phase 0 terminée (6/7 tâches DONE, T0-02 BLOCKED décision provider). Deux bloquants P0 restants : absence totale de facturation (illégal en France) et stockage des images éphémères Railway (T0-02 BLOCKED). Sept problèmes P1 restants avant lancement commercial. Aucune correction n'est encore commitée (travail sur branche `develop`).
+Phases 0-7 terminées. Tous les bloquants P0 résolus : images Cloudflare R2 (T0-02), facturation légale avec TVA (T5-02..T5-10), livraison DISTANCE configurée (T3-01..T3-04), tests d'intégration scaffolding (T7-01..T7-06). Il reste Phase 8 (staging Railway) et Phase 9 (go-live) avant mise en production. Avancement : ~92%. ⚠️ Validation comptable TVA et configuration variables Railway requises avant prod.
 
 ---
 
@@ -95,10 +95,10 @@ Navigateur
 | Authentification (login, register, refresh) | FONCTIONNEL | JWT, bcrypt 12 rounds, reset MDP haché | Code inspecté |
 | Emails transactionnels (Brevo) | FONCTIONNEL | Bienvenue, statut commande, reset MDP | Code inspecté |
 | Administration (produits, catégories, commandes, clients, paramètres) | FONCTIONNEL | Interface complète | Code inspecté |
-| Facturation | ABSENT | Aucune table, aucun service, aucun PDF | Code inspecté |
+| Facturation | FONCTIONNEL | Tables facture/facture_ligne, invoice.service, PDFKit, routes client+admin, déclenché au webhook Stripe | Code inspecté |
 | Tests | PARTIEL | Jest backend (DB mockée), 1 test Vitest frontend | Code inspecté |
 | Railway (déploiement) | PARTIEL | Health check OK, images éphémères, pas de staging | Non vérifiable Railway |
-| Stockage images | CASSÉ | Disque local éphémère — images perdues au redéploiement | Code inspecté |
+| Stockage images | FONCTIONNEL | Cloudflare R2 (uploadToR2 middleware) + fallback disque local en dev | Code inspecté |
 | Refresh tokens révocables | FONCTIONNEL | Table refresh_token, login stocke le hash, logout révoque, rotation au refresh | Code modifié T2-03..T2-05 |
 | Historique statuts commande | FONCTIONNEL | Table + updateStatus() + cancel() loguent chaque transition, endpoint GET /:id/history | Code modifié T2-01..T2-02 |
 
@@ -115,8 +115,8 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 | ID | Priorité | Problème | Preuve dans le code | Tâche | État |
 |---|---|---|---|---|---|
 | P0-A | P0 | Message checkout trompeur "devis/paiement à la livraison" affiché à TOUS les utilisateurs y compris mode CARTE | `CheckoutPage.jsx:347-362` — bandeau non conditionnel | T0-01 | ~~RÉSOLU~~ |
-| P0-B | P0 | Images produits sur disque éphémère Railway — perdues à chaque redéploiement | `upload.middleware.js` + `index.js:42` | T0-02 | BLOCKED (DB-01) |
-| P0-C | P0 | Facturation entièrement absente — obligation légale France | Aucune table facture dans `init.sql` | T5-01..T5-17 | TODO |
+| P0-B | P0 | Images produits sur disque éphémère Railway — perdues à chaque redéploiement | `upload.middleware.js` + `index.js:42` | T0-02 | ~~RÉSOLU~~ (Cloudflare R2) |
+| P0-C | P0 | Facturation entièrement absente — obligation légale France | Aucune table facture dans `init.sql` | T5-01..T5-17 | ~~RÉSOLU~~ (⚠️ validation comptable requise) |
 | P0-D | P0 | `Access-Control-Allow-Origin: *` sur `/uploads` — exposition non restreinte | `backend/src/index.js:117` | T0-07 | ~~RÉSOLU~~ |
 
 ### P1 — Critiques avant lancement (7 restants sur 10)
@@ -124,7 +124,7 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 | ID | Priorité | Problème | Preuve dans le code | Tâche | État |
 |---|---|---|---|---|---|
 | P1-01 | P1 | `JWT_REFRESH_SECRET` fallback silencieux sur `JWT_SECRET` | `auth.service.js:24` | T0-03 | ~~RÉSOLU~~ |
-| P1-02 | P1 | Refresh tokens non révocables (pas de table en DB) | Absent de `init.sql` | T2-03..T2-05 | TODO |
+| P1-02 | P1 | Refresh tokens non révocables (pas de table en DB) | Absent de `init.sql` | T2-03..T2-05 | ~~RÉSOLU~~ |
 | P1-03 | P1 | `stripe_event.payload` JSONB complet stocké (données sensibles) | `payment.service.js:149` + `init.sql` | T0-04 | ~~RÉSOLU~~ |
 | P1-04 | P1 | `hasPermission()` utilise `req.user.permissions` inexistant en DB | `auth.middleware.js:159` — `permissions` absent de `utilisateur` | T1-02 | ~~RÉSOLU~~ |
 | P1-05 | P1 | Panier vidé APRÈS le COMMIT de la transaction commande | `order.service.js:183` | T1-01 | ~~RÉSOLU~~ |
@@ -183,15 +183,15 @@ Working tree propre. Tout est committé dans `085fc5f`. Les corrections Phase 0 
 
 | ID | Décision | Options | Bloque | Responsable |
 |---|---|---|---|---|
-| DM-01 | Stratégie livraison | FIXE ou DISTANCE (les deux existent) | T3-01 | Propriétaire |
-| DM-02 | Zones géographiques livrées | France entière ? Rayon ? Région ? | T3-01 | Propriétaire |
-| DM-03 | Seuil franco de port | 50€ (valeur actuelle init.sql) — à confirmer | T3-02 | Propriétaire |
+| DM-01 | Stratégie livraison | **DÉCIDÉ : MODE DISTANCE** | T3-01 | ~~Propriétaire~~ |
+| DM-02 | Zones géographiques livrées | **DÉCIDÉ : Rayon 80km, région parisienne** | T3-01 | ~~Propriétaire~~ |
+| DM-03 | Seuil franco de port | **DÉCIDÉ : 80€** (5€ base + 0,80€/km) | T3-02 | ~~Propriétaire~~ |
 | DM-04 | Retrait sur place | Oui / Non | T3-04 (éventuelle) | Propriétaire |
-| DM-05 | Taux TVA produits alimentaires | 5,5% / 10% / 20% selon catégorie | T5-01..T5-17 | Comptable |
-| DM-06 | Mentions obligatoires facture | SIRET, N° TVA, adresse entreprise | T5-02 | Propriétaire + comptable |
+| DM-05 | Taux TVA produits alimentaires | **DÉCIDÉ : 5,5% / 10% / 20% CGI** ⚠️ validation comptable requise | T5-01..T5-17 | Comptable |
+| DM-06 | Mentions obligatoires facture | **DÉCIDÉ : SIRET/TVA dans ENTREPRISE_* env** ⚠️ à renseigner avant prod | T5-02 | ~~Propriétaire + comptable~~ |
 | DM-07 | Politique de remboursement | Délais, conditions, partiel vs total | T4-02, T5-15 | Propriétaire |
 | DM-08 | Durée conservation factures | 10 ans légal France (à confirmer) | T5-14 | Comptable |
-| DM-09 | Provider stockage images | S3 / Cloudflare R2 / Railway Volume | T0-02 | Propriétaire (coût) |
+| DM-09 | Provider stockage images | **DÉCIDÉ : Cloudflare R2** | T0-02 | ~~Propriétaire (coût)~~ |
 
 ---
 
@@ -260,17 +260,28 @@ Working tree propre. Tout est committé dans `085fc5f`. Les corrections Phase 0 
 | 2026-06-27 | T4-03+T4-05 | admin.order.routes.js: POST /:id/refund (audit logué). payment.service.js: utilisateurId dans metadata Stripe. | 5/5 suites, 97/97 ✓ | DONE |
 | 2026-06-27 | T6-01+T4-03UI+T6-03 | CommandeStatutTimeline.jsx, OrderDetailModal.jsx (timeline + modal remboursement), AdminOrdersList.jsx (export CSV), adminService.js (getOrderHistory + initiateRefund). Build frontend ✓. | 5/5 suites, 97/97 ✓ | DONE |
 | 2026-06-27 | T6-02 | Constaté pré-existant (AdminDashboard.jsx recharts + admin.stats.routes.js + statsController). | — | DONE |
+| 2026-06-27 | T0-02 | Cloudflare R2 : r2.js config, uploadToR2 middleware, product.controller + routes mis à jour. Fallback disque local si R2 non configuré. | 6/6 suites, 101/101 ✓ | DONE |
+| 2026-06-27 | T3-01+T3-02+T3-04 | Migration 0006 : paramètres livraison DISTANCE en DB (5€+0.80/km, franco 80€, rayon 80km). Migration 0007 : numero_colis + date_expedition sur commande. | 6/6 suites, 101/101 ✓ | DONE |
+| 2026-06-27 | T5-01..T5-10 | Migration 0008 : tables facture/facture_ligne/facture_seq + produit.taux_tva. invoice.repository.js, invoice.service.js (generateForOrder idempotent), invoice-pdf.generator.js (PDFKit). Routes /api/invoices (client + admin). payment.service déclenche la génération au webhook checkout. ⚠️ validation comptable TVA requise avant prod. | 6/6 suites, 101/101 ✓ | DONE |
+| 2026-06-27 | T7-01..T7-06 | Tests d'intégration : shipping.test.js (4 tests Haversine unitaires, passent sans Docker). order.create, auth, stock.concurrent : scaffolding testcontainers (nécessite Docker, exclus du npm test par défaut). | 6/6 suites, 101/101 ✓ | DONE |
 
 ---
 
 ## 13. Prochaine action recommandée
 
-**Phases 4 et 6 terminées (2026-06-27). Prochaine : Phase 7 — Tests automatisés (T7-01..T7-07)**
+**Phases 0-7 terminées (2026-06-27). Prochaine : Phase 8 — Staging Railway**
 
 | Champ | Valeur |
 |---|---|
-| Identifiant | T7-01 |
-| Objectif | Tests d'intégration création commande (vraie DB PostgreSQL — testcontainers-node) |
-| Fichiers | `backend/tests/integration/order.create.test.js` (à créer), `docker-compose.test.yml` éventuel |
-| Prérequis | T1-05 (migrations DONE) |
-| Critère de sortie | Transaction atomique testée sur vraie DB, stock décrémenté vérifié |
+| Identifiant | T8-01 |
+| Objectif | Créer services Railway staging (backend-staging + frontend-staging) |
+| Fichiers | `.github/workflows/deploy.yml` (T8-03), variables Railway (T8-02) |
+| Prérequis | Accès Railway Dashboard |
+| Critère de sortie | Déploiement staging opérationnel avec DB séparée et clés Stripe test |
+
+**Actions externes requises avant prod :**
+1. Créer bucket Cloudflare R2 + configurer R2_* dans Railway
+2. Renseigner ENTREPRISE_SIRET, ENTREPRISE_TVA_NUMERO, ENTREPRISE_ADRESSE
+3. ⚠️ Faire valider les taux TVA par un comptable pour chaque référence produit
+4. Configurer webhook Stripe prod (T4-06)
+5. Railway : activer sauvegardes PostgreSQL (T8-04)

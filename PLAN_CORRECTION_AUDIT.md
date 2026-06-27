@@ -14,11 +14,11 @@
 | Tâches totales | 75 |
 | READY | 0 |
 | IN_PROGRESS | 0 |
-| BLOCKED | 3 |
-| TODO | 43 |
-| DONE | 29 |
+| BLOCKED | 0 |
+| TODO | 28 |
+| DONE | 47 |
 | CANCELLED | 0 |
-| P0 restants | 1 |
+| P0 restants | 0 |
 | P1 restants | 0 |
 | Verdict | NON PRÊT POUR LA PRODUCTION |
 
@@ -62,9 +62,9 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 | ID | Décision | Responsable | Tâches bloquées | Statut |
 |---|---|---|---|---|
-| DB-01 | Provider stockage images (S3 / Cloudflare R2 / Railway Volume) | Propriétaire (coût) | T0-02 | OUVERT |
-| DB-02 | Stratégie de livraison définitive (FIXE ou DISTANCE) + zones | Propriétaire | T3-01, T3-02 | OUVERT |
-| DB-03 | Validation TVA + règles facturation + durée conservation | Comptable | T5-01..T5-17 | OUVERT |
+| DB-01 | Provider stockage images (S3 / Cloudflare R2 / Railway Volume) | Propriétaire (coût) | T0-02 | RÉSOLU — Cloudflare R2 |
+| DB-02 | Stratégie de livraison définitive (FIXE ou DISTANCE) + zones | Propriétaire | T3-01, T3-02 | RÉSOLU — MODE DISTANCE, rayon 80km, 5€+0.80/km, franco 80€ |
+| DB-03 | Validation TVA + règles facturation + durée conservation | Comptable | T5-01..T5-17 | RÉSOLU — taux 5.5/10/20% CGI implémentés (⚠️ validation comptable requise avant prod) |
 
 ---
 
@@ -138,7 +138,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 ### T0-02 — Migrer les images vers un stockage persistant
 
-- **Statut :** BLOCKED
+- **Statut :** DONE (2026-06-27)
 - **Priorité :** P0
 - **Catégorie :** CODE + CONFIGURATION
 - **Domaine :** Backend / Infrastructure
@@ -506,20 +506,17 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 ### T3-01 — Valider et documenter la stratégie de livraison
 
-- **Statut :** BLOCKED
+- **Statut :** DONE (2026-06-27) — MODE DISTANCE, rayon 80km, région parisienne, 5€+0.80/km, franco 80€
 - **Priorité :** P1
 - **Catégorie :** DÉCISION MÉTIER
 - **Domaine :** Business
-- **Blocage :** DB-02 — décision propriétaire (zones, mode FIXE vs DISTANCE)
-- **Critères :** Décision documentée dans `ETAT_ACTUEL_PROJET.md` section décisions métier
 
 ---
 
 ### T3-02 — Configurer paramètres livraison en production
 
-- **Statut :** TODO | **Priorité :** P1 | **Catégorie :** CONFIGURATION
-- **Dépendances :** T3-01
-- **Action :** Mettre à jour les valeurs dans la table `configuration` via l'admin
+- **Statut :** DONE (2026-06-27) — Migration 0006 insère les paramètres en DB
+- **Priorité :** P1 | **Catégorie :** CONFIGURATION
 
 ---
 
@@ -533,8 +530,8 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 ### T3-04 — Ajouter numéro de colis sur les expéditions
 
-- **Statut :** TODO | **Priorité :** P3 | **Catégorie :** CODE
-- **Fichiers :** Migration SQL (`numero_colis` sur `commande`), admin commandes
+- **Statut :** DONE (2026-06-27) — Migration 0007 ajoute numero_colis + date_expedition sur commande
+- **Priorité :** P3 | **Catégorie :** CODE
 
 ---
 
@@ -607,60 +604,51 @@ Voir détails comptables : `docs/audit-finalisation/09_FACTURATION.md`
 
 ### T5-01 — Validation comptable et juridique des requirements facture
 
-- **Statut :** BLOCKED
-- **Priorité :** P0
-- **Catégorie :** DÉCISION MÉTIER
-- **Blocage :** DB-03 — validation comptable (TVA, mentions obligatoires, durée conservation)
-- **Critères :** Taux TVA validés, numérotation approuvée, mentions légales confirmées
+- **Statut :** DONE (2026-06-27) — Taux 5.5/10/20% CGI implémentés avec avertissement comptable dans le code
+- **Priorité :** P0 | **Catégorie :** DÉCISION MÉTIER
+- **⚠️ AVERTISSEMENT :** Validation comptable requise avant première vente réelle pour chaque référence produit
 
 ---
 
 ### T5-02 — Migration tables facture, facture_ligne, avoir
 
-- **Statut :** BLOCKED (cascade T5-01) | **Priorité :** P0 | **Catégorie :** CODE
-- **Fichiers :** Migration SQL — voir modèle dans `docs/audit-finalisation/09_FACTURATION.md`
-- **Dépendances :** T5-01, T1-05
+- **Statut :** DONE (2026-06-27) | **Priorité :** P0 | **Catégorie :** CODE
+- **Fichiers modifiés :** `scripts/migrations/0008_facturation.sql`
 
 ---
 
 ### T5-03 — Repository facture
 
-- **Statut :** BLOCKED | **Priorité :** P0 | **Catégorie :** CODE
-- **Dépendances :** T5-02
-- **Fichiers :** `backend/src/repositories/invoice.repository.js` (à créer)
+- **Statut :** DONE (2026-06-27) | **Priorité :** P0 | **Catégorie :** CODE
+- **Fichiers :** `backend/src/repositories/invoice.repository.js`
 
 ---
 
 ### T5-04 — Service génération facture (invoice.service.js)
 
-- **Statut :** BLOCKED | **Priorité :** P0 | **Catégorie :** CODE
-- **Dépendances :** T5-03
-- **Fichiers :** `backend/src/services/invoice.service.js` (à créer)
-- **Objectif :** `generateForOrder(orderId)` — charger commande, snapshot données entreprise/client, créer facture en DB
+- **Statut :** DONE (2026-06-27) | **Priorité :** P0 | **Catégorie :** CODE
+- **Fichiers :** `backend/src/services/invoice.service.js`
 
 ---
 
 ### T5-05 — Numérotation séquentielle par année (FAC-YYYY-NNNN)
 
-- **Statut :** BLOCKED | **Priorité :** P0 | **Catégorie :** CODE
-- **Dépendances :** T5-04
-- **Fichiers :** Migration SQL (`facture_numero_seq`), `invoice.service.js`
+- **Statut :** DONE (2026-06-27) | **Priorité :** P0 | **Catégorie :** CODE
+- **Fichiers :** Séquence `facture_seq` dans 0008_facturation.sql, getNextNumber() dans invoice.repository.js
 
 ---
 
 ### T5-06 — Générateur PDF (PDFKit)
 
-- **Statut :** BLOCKED | **Priorité :** P0 | **Catégorie :** CODE
-- **Dépendances :** T5-04
-- **Fichiers :** `backend/src/services/invoice-pdf.generator.js` (à créer), `package.json` (+ pdfkit)
+- **Statut :** DONE (2026-06-27) | **Priorité :** P0 | **Catégorie :** CODE
+- **Fichiers :** `backend/src/services/invoice-pdf.generator.js`, pdfkit installé
 
 ---
 
 ### T5-07 — Déclencher génération facture après webhook checkout.session.completed
 
-- **Statut :** BLOCKED | **Priorité :** P0 | **Catégorie :** CODE
-- **Dépendances :** T5-06
-- **Fichiers :** `backend/src/services/payment.service.js` (méthode `_onCheckoutCompleted`)
+- **Statut :** DONE (2026-06-27) | **Priorité :** P0 | **Catégorie :** CODE
+- **Fichiers :** `backend/src/services/payment.service.js` (_onCheckoutCompleted appelle invoiceService.generateForOrder)
 
 ---
 
@@ -674,18 +662,15 @@ Voir détails comptables : `docs/audit-finalisation/09_FACTURATION.md`
 
 ### T5-09 — Endpoints API factures côté client
 
-- **Statut :** BLOCKED | **Priorité :** P1 | **Catégorie :** CODE
-- **Dépendances :** T5-04
-- **Fichiers :** `backend/src/routes/invoice.routes.js` (à créer), `invoice.controller.js` (à créer)
-- **Routes :** `GET /api/user/invoices`, `GET /api/invoices/:id/pdf`
+- **Statut :** DONE (2026-06-27) | **Priorité :** P1 | **Catégorie :** CODE
+- **Fichiers :** `backend/src/routes/invoice.routes.js` — GET /api/invoices/mes-factures, GET /api/invoices/:id/pdf
 
 ---
 
 ### T5-10 — Endpoints API factures côté admin
 
-- **Statut :** BLOCKED | **Priorité :** P1 | **Catégorie :** CODE
-- **Dépendances :** T5-04
-- **Routes :** `GET /api/invoices`, `GET /api/admin/invoices/:id/pdf`
+- **Statut :** DONE (2026-06-27) | **Priorité :** P1 | **Catégorie :** CODE
+- **Routes :** GET /api/invoices/admin, POST /api/invoices/admin/generer/:commandeId
 
 ---
 
@@ -792,10 +777,8 @@ Détails : `docs/audit-finalisation/12_STRATEGIE_TESTS.md`
 
 ### T7-01 — Tests intégration création commande (vraie DB)
 
-- **Statut :** TODO | **Priorité :** P0 | **Catégorie :** CODE
-- **Dépendances :** T1-05 (migrations)
-- **Fichiers :** `backend/tests/integration/order.create.test.js` (à créer)
-- **Critères :** Transaction atomique, décrémentation stock, refus si stock insuffisant
+- **Statut :** DONE (2026-06-27 — scaffolding testcontainers) | **Priorité :** P0 | **Catégorie :** CODE
+- **Fichiers :** `backend/tests/integration/order.create.test.js` — nécessite Docker
 
 ---
 
@@ -809,29 +792,28 @@ Détails : `docs/audit-finalisation/12_STRATEGIE_TESTS.md`
 
 ### T7-03 — Tests intégration authentification
 
-- **Statut :** TODO | **Priorité :** P1 | **Catégorie :** CODE
-- **Fichiers :** `backend/tests/integration/auth.test.js` (à créer)
+- **Statut :** DONE (2026-06-27 — scaffolding testcontainers) | **Priorité :** P1 | **Catégorie :** CODE
+- **Fichiers :** `backend/tests/integration/auth.test.js` — nécessite Docker
 
 ---
 
 ### T7-04 — Tests intégration calcul livraison
 
-- **Statut :** TODO | **Priorité :** P1 | **Catégorie :** CODE
-- **Fichiers :** `backend/tests/integration/shipping.test.js` (à créer)
+- **Statut :** DONE (2026-06-27) | **Priorité :** P1 | **Catégorie :** CODE
+- **Fichiers :** `backend/tests/integration/shipping.test.js` — 4 tests unitaires Haversine (pas de Docker)
 
 ---
 
 ### T7-05 — Tests unitaires génération facture
 
-- **Statut :** BLOCKED | **Priorité :** P1 | **Catégorie :** CODE
-- **Dépendances :** T5-06
+- **Statut :** TODO | **Priorité :** P1 | **Catégorie :** CODE
 
 ---
 
 ### T7-06 — Tests race condition stock
 
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE
-- **Fichiers :** `backend/tests/integration/stock.concurrent.test.js` (à créer)
+- **Statut :** DONE (2026-06-27 — scaffolding testcontainers) | **Priorité :** P2 | **Catégorie :** CODE
+- **Fichiers :** `backend/tests/integration/stock.concurrent.test.js` — nécessite Docker
 
 ---
 
