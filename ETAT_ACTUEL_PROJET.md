@@ -11,12 +11,12 @@
 |---|---|
 | Projet | Jana Distribution — e-commerce alimentaire B2C/B2B |
 | Branche active | `develop` |
-| Dernier commit | `085fc5f` — `feat(audit): add comprehensive go live checklist and audit index` |
-| Fichiers modifiés non commités | 0 — working tree propre (tout committé dans 085fc5f) |
-| Phase active | Phase 2 — Authentification, commandes et traçabilité |
-| Tâche active | Aucune — T2-01..T2-07 terminés |
+| Dernier commit | `2a9201d` — `feat(frontend): order status timeline + admin refund UI + CSV export` |
+| Fichiers modifiés non commités | 0 — working tree propre |
+| Phase active | Phase 7 — Tests automatisés |
+| Tâche active | Aucune — Phases 4 et 6 terminées (2026-06-27) |
 | Verdict | **NON PRÊT POUR LA PRODUCTION** |
-| Avancement estimé | ~73 % |
+| Avancement estimé | ~80 % |
 
 ---
 
@@ -90,7 +90,7 @@ Navigateur
 | Catalogue (produits, catégories, filtres, pagination) | FONCTIONNEL | CRUD complet, recherche, tri | Code inspecté |
 | Panier (CRUD, persistance DB) | FONCTIONNEL | Ajout, modif, suppression, persistance | Code inspecté |
 | Commande (transaction atomique, stock) | FONCTIONNEL | BEGIN/COMMIT, décrémentation stock idempotente | Code inspecté |
-| Paiement Stripe (Checkout Session, webhook) | PARTIEL | Session créée, webhook signé, idempotency OK. Services non commités. | Code inspecté (non commité) |
+| Paiement Stripe (Checkout Session, webhook) | FONCTIONNEL | Session créée, webhook signé, idempotency OK, refund.created géré, remboursements partiels et totaux. | Code inspecté + committé |
 | Livraison (FIXE + DISTANCE Haversine) | FONCTIONNEL | Calcul serveur, franco de port, BAN API intégrée | Code inspecté |
 | Authentification (login, register, refresh) | FONCTIONNEL | JWT, bcrypt 12 rounds, reset MDP haché | Code inspecté |
 | Emails transactionnels (Brevo) | FONCTIONNEL | Bienvenue, statut commande, reset MDP | Code inspecté |
@@ -129,7 +129,7 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 | P1-04 | P1 | `hasPermission()` utilise `req.user.permissions` inexistant en DB | `auth.middleware.js:159` — `permissions` absent de `utilisateur` | T1-02 | ~~RÉSOLU~~ |
 | P1-05 | P1 | Panier vidé APRÈS le COMMIT de la transaction commande | `order.service.js:183` | T1-01 | ~~RÉSOLU~~ |
 | P1-06 | P1 | Pas de validation force mot de passe côté backend | `auth.service.js` — aucune regex | T0-05 | ~~RÉSOLU~~ |
-| P1-07 | P1 | `charge.refunded` au lieu de `refund.created` (moins précis) | `payment.service.js:174` | T4-01 | TODO |
+| P1-07 | P1 | `charge.refunded` au lieu de `refund.created` (moins précis) | `payment.service.js:174` | T4-01 | ~~RÉSOLU~~ |
 | P1-08 | P1 | Sauvegardes PostgreSQL non configurées Railway | Non vérifiable localement | T8-04 | TODO |
 | P1-09 | P1 | Pas d'environnement staging Railway | Non vérifiable localement | T8-01..T8-03 | TODO |
 | P1-10 | P1 | Tests backend mockent la DB — aucune requête SQL testée réellement | `tests/setup.js` — `jest.mock('../src/config/database')` | T7-01..T7-07 | TODO |
@@ -256,21 +256,21 @@ Working tree propre. Tout est committé dans `085fc5f`. Les corrections Phase 0 
 | 2026-06-27 | T2-01+T2-02 | order.repository.js : updateStatus() et cancel() loguent dans commande_statut_historique. admin.order.routes.js : GET /:id/history. Migration 0002. | 5/5 suites, 97/97 ✓ | DONE |
 | 2026-06-27 | T2-03..T2-05 | Migration 0003 refresh_token. auth.service.js : login/register stockent le token, logout révoque, refreshTokens() effectue la rotation. user.repository.js : save/find/revokeRefreshToken. auth.controller.js mis à jour. | 5/5 suites, 97/97 ✓ | DONE |
 | 2026-06-27 | T2-06+T2-07 | Migration 0004 audit_log. audit.repository.js créé. admin.order.routes.js logue chaque changement de statut commande dans audit_log. | 5/5 suites, 97/97 ✓ | DONE |
+| 2026-06-27 | T4-01+T4-02+T4-04 | Migration 0005: REMBOURSE/PARTIELLEMENT_REMBOURSE dans ENUM, stripe_refund_id + montant_rembourse sur commande. payment.service.js: _onRefundCreated(). order.repository.js: updateRefund(). | 5/5 suites, 97/97 ✓ | DONE |
+| 2026-06-27 | T4-03+T4-05 | admin.order.routes.js: POST /:id/refund (audit logué). payment.service.js: utilisateurId dans metadata Stripe. | 5/5 suites, 97/97 ✓ | DONE |
+| 2026-06-27 | T6-01+T4-03UI+T6-03 | CommandeStatutTimeline.jsx, OrderDetailModal.jsx (timeline + modal remboursement), AdminOrdersList.jsx (export CSV), adminService.js (getOrderHistory + initiateRefund). Build frontend ✓. | 5/5 suites, 97/97 ✓ | DONE |
+| 2026-06-27 | T6-02 | Constaté pré-existant (AdminDashboard.jsx recharts + admin.stats.routes.js + statsController). | — | DONE |
 
 ---
 
 ## 13. Prochaine action recommandée
 
-**T1-01 à T1-02 et T1-07 à T1-08 terminés. Prochaine : T1-03 — Supprimer le doublon package Redis**
+**Phases 4 et 6 terminées (2026-06-27). Prochaine : Phase 7 — Tests automatisés (T7-01..T7-07)**
 
 | Champ | Valeur |
 |---|---|
-**Phase 2 BLOC 1+2 terminés (T2-01..T2-07).** Prochaine : Phase 4 — T4-01 Remplacer charge.refunded par refund.created
-
-| Champ | Valeur |
-|---|---|
-| Identifiant | T2-01 |
-| Objectif | Migration SQL `schema_migrations` + table `commande_statut_historique` + endpoint admin GET historique |
-| Fichiers | `backend/scripts/migrations/0002_commande_statut_historique.sql` (à créer), `order.repository.js`, `order.routes.js` |
-| Prérequis | T1-05 (runner de migrations — DONE) |
-| Critère de sortie | Chaque transition de statut est tracée, visible en admin |
+| Identifiant | T7-01 |
+| Objectif | Tests d'intégration création commande (vraie DB PostgreSQL — testcontainers-node) |
+| Fichiers | `backend/tests/integration/order.create.test.js` (à créer), `docker-compose.test.yml` éventuel |
+| Prérequis | T1-05 (migrations DONE) |
+| Critère de sortie | Transaction atomique testée sur vraie DB, stock décrémenté vérifié |

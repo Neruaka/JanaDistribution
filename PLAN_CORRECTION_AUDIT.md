@@ -9,17 +9,17 @@
 
 | Indicateur | Valeur |
 |---|---|
-| Phase active | Phase 2 — Authentification, commandes et traçabilité |
-| Tâche active | Aucune — Phase 2 BLOC 1+2 terminé |
+| Phase active | Phase 6/7 — Finalisation administration + Tests |
+| Tâche active | Aucune — Phases 4 et 6 terminées (2026-06-27) |
 | Tâches totales | 75 |
 | READY | 0 |
 | IN_PROGRESS | 0 |
 | BLOCKED | 3 |
-| TODO | 51 |
-| DONE | 21 |
+| TODO | 43 |
+| DONE | 29 |
 | CANCELLED | 0 |
 | P0 restants | 1 |
-| P1 restants | 2 |
+| P1 restants | 0 |
 | Verdict | NON PRÊT POUR LA PRODUCTION |
 
 ---
@@ -544,7 +544,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 ### T4-01 — Remplacer charge.refunded par refund.created
 
-- **Statut :** TODO | **Priorité :** P1 | **Catégorie :** CODE | **Domaine :** Backend / Stripe
+- **Statut :** DONE (2026-06-27) | **Priorité :** P1 | **Catégorie :** CODE | **Domaine :** Backend / Stripe
 - **Objectif :** Utiliser l'événement Stripe `refund.created` pour une gestion plus précise (remboursements partiels)
 - **Source audit :** `docs/audit-finalisation/08_STRIPE_PAIEMENTS.md`
 - **Fichiers d'entrée :** `backend/src/services/payment.service.js` (ligne 174), `backend/src/routes/webhook.routes.js`
@@ -562,7 +562,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 ### T4-02 — Gérer les remboursements partiels
 
-- **Statut :** TODO | **Priorité :** P1 | **Catégorie :** CODE
+- **Statut :** DONE (2026-06-27) | **Priorité :** P1 | **Catégorie :** CODE
 - **Dépendances :** T4-01
 - **Fichiers :** `payment.service.js`, `order.repository.js`
 
@@ -570,7 +570,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 ### T4-03 — Interface admin d'initiation de remboursement
 
-- **Statut :** TODO | **Priorité :** P1 | **Catégorie :** CODE
+- **Statut :** DONE (2026-06-27) | **Priorité :** P1 | **Catégorie :** CODE
 - **Domaine :** Frontend Admin + Backend
 - **Fichiers :** `frontend/src/pages/admin/AdminOrdersList.jsx`, `backend/src/routes/payment.routes.js`
 - **Critères :** Admin peut déclencher un remboursement depuis l'interface, action loguée en audit_log
@@ -579,14 +579,14 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 ### T4-04 — Stocker stripe_refund_id sur la commande
 
-- **Statut :** TODO | **Priorité :** P1 | **Catégorie :** CODE
+- **Statut :** DONE (2026-06-27) | **Priorité :** P1 | **Catégorie :** CODE
 - **Fichiers :** Migration SQL (`stripe_refund_id` sur `commande`), `order.repository.js`
 
 ---
 
 ### T4-05 — Enrichir les métadonnées Stripe
 
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE
+- **Statut :** DONE (2026-06-27) | **Priorité :** P2 | **Catégorie :** CODE
 - **Fichiers :** `backend/src/services/payment.service.js` (section metadata)
 
 ---
@@ -750,7 +750,7 @@ Voir détails comptables : `docs/audit-finalisation/09_FACTURATION.md`
 
 ### T6-01 — Afficher historique statuts dans admin (timeline)
 
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE
+- **Statut :** DONE (2026-06-27) | **Priorité :** P2 | **Catégorie :** CODE
 - **Dépendances :** T2-01
 - **Fichiers :** `frontend/src/pages/admin/AdminOrdersList.jsx`, `backend/src/routes/admin.order.routes.js`
 
@@ -758,14 +758,14 @@ Voir détails comptables : `docs/audit-finalisation/09_FACTURATION.md`
 
 ### T6-02 — Dashboard graphiques CA par période
 
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE
+- **Statut :** DONE (pré-existant — AdminDashboard.jsx + admin.stats.routes.js déjà implémentés) | **Priorité :** P2 | **Catégorie :** CODE
 - **Fichiers :** `frontend/src/pages/admin/AdminDashboard.jsx`, `backend/src/services/stats.service.js`
 
 ---
 
 ### T6-03 — Export commandes CSV/Excel
 
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE
+- **Statut :** DONE (2026-06-27) | **Priorité :** P2 | **Catégorie :** CODE
 - **Fichiers :** `frontend/src/pages/admin/AdminOrdersList.jsx` (ExcelJS déjà installé)
 
 ---
