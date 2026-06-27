@@ -15,6 +15,7 @@ const orderService = require('../services/order.service');
 const orderRepository = require('../repositories/order.repository');
 const paymentController = require('../controllers/payment.controller');
 const auditRepository = require('../repositories/audit.repository');
+const { getStripe } = require('../config/stripe');
 const logger = require('../config/logger');
 
 // Toutes les routes nécessitent d'être admin
@@ -390,7 +391,7 @@ router.get('/:id/history',
 router.patch('/:id/status',
   [
     param('id').isUUID(),
-    body('statut').isIn(['EN_ATTENTE', 'CONFIRMEE', 'EN_PREPARATION', 'EXPEDIEE', 'LIVREE', 'ANNULEE']),
+    body('statut').isIn(['EN_ATTENTE', 'CONFIRMEE', 'EN_PREPARATION', 'EXPEDIEE', 'LIVREE', 'ANNULEE', 'REMBOURSE', 'PARTIELLEMENT_REMBOURSE']),
     body('instructionsLivraison').optional().isString().trim().isLength({ max: 500 })
   ],
   validate,
@@ -442,6 +443,109 @@ router.patch('/:id/payment-status',
   ],
   validate,
   paymentController.adminUpdatePaymentStatus
+);
+
+/**
+ * @route   POST /api/admin/orders/:id/refund
+ * @desc    Initier un remboursement Stripe depuis l'interface admin
+ * @access  Admin
+ * @body    { montant: number (EUR), raison?: string }
+ *
+ * Statuts autorisant un remboursement : commande avec paiement_statut=PAID
+ * et statut NOT IN (ANNULEE, REMBOURSE, EN_ATTENTE).
+ */
+router.post('/:id/refund',
+  [
+    param('id').isUUID(),
+    body('montant').isFloat({ min: 0.01 }).withMessage('montant requis (> 0)'),
+    body('raison').optional().isString().trim().isLength({ max: 500 })
+  ],
+  validate,
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { montant, raison } = req.body;
+
+      const order = await orderRepository.findById(id);
+      if (!order) {
+        return res.status(404).json({ success: false, message: 'Commande introuvable' });
+      }
+
+      const STATUTS_REMBOURSABLES = ['CONFIRMEE', 'EN_PREPARATION', 'EXPEDIEE', 'LIVREE', 'PARTIELLEMENT_REMBOURSE'];
+      if (!STATUTS_REMBOURSABLES.includes(order.statut)) {
+        return res.status(400).json({
+          success: false,
+          message: `Remboursement impossible pour une commande en statut "${order.statut}"`
+        });
+      }
+
+      if (order.paiementStatut !== 'PAID') {
+        return res.status(400).json({
+          success: false,
+          message: 'Seules les commandes payées peuvent être remboursées'
+        });
+      }
+
+      if (!order.stripePaymentIntentId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Aucun PaymentIntent Stripe associé à cette commande (paiement non-carte ?)'
+        });
+      }
+
+      const montantCents = Math.round(montant * 100);
+      const stripe = getStripe();
+
+      const refund = await stripe.refunds.create({
+        payment_intent: order.stripePaymentIntentId,
+        amount: montantCents,
+        reason: 'requested_by_customer',
+        metadata: {
+          orderId: order.id,
+          adminId: req.user.id,
+          raison: raison || ''
+        }
+      });
+
+      const isTotal = montantCents >= Math.round(order.totalTtc * 100);
+      const nouveauStatut = isTotal ? 'REMBOURSE' : 'PARTIELLEMENT_REMBOURSE';
+
+      await orderRepository.updateRefund(order.id, {
+        stripeRefundId: refund.id,
+        montantRembourse: montant,
+        nouveauStatut
+      });
+
+      if (isTotal) {
+        await orderRepository.updatePaymentStatus(order.id, 'REFUNDED');
+      }
+
+      auditRepository.log({
+        action: 'REFUND_INITIATED',
+        entiteType: 'commande',
+        entiteId: order.id,
+        utilisateurId: req.user.id,
+        details: { refundId: refund.id, montant, raison: raison || null, total: isTotal },
+        ipAddress: req.ip
+      }).catch(err => logger.warn('Audit refund non logué:', err.message));
+
+      logger.info('Remboursement admin initié', {
+        orderId: order.id, refundId: refund.id, montant, adminId: req.user.id
+      });
+
+      res.json({
+        success: true,
+        data: {
+          refundId: refund.id,
+          montant,
+          statutCommande: nouveauStatut
+        }
+      });
+    } catch (error) {
+      logger.error('Erreur initiation remboursement', { error: error.message });
+      next(error);
+    }
+  }
 );
 
 module.exports = router;

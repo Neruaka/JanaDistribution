@@ -13,6 +13,7 @@
 
 const { getStripe, getWebhookSecret } = require('../config/stripe');
 const orderRepository = require('../repositories/order.repository');
+const auditRepository = require('../repositories/audit.repository');
 const logger = require('../config/logger');
 const { ApiError } = require('../middlewares/errorHandler');
 const { query } = require('../config/database');
@@ -91,12 +92,14 @@ class PaymentService {
         client_reference_id: order.id,
         metadata: {
           orderId: order.id,
-          numeroCommande: order.numeroCommande
+          numeroCommande: order.numeroCommande,
+          utilisateurId: order.utilisateurId
         },
         payment_intent_data: {
           metadata: {
             orderId: order.id,
-            numeroCommande: order.numeroCommande
+            numeroCommande: order.numeroCommande,
+            utilisateurId: order.utilisateurId
           }
         }
       },
@@ -172,8 +175,8 @@ class PaymentService {
       await this._onPaymentFailed(event.data.object);
       break;
 
-    case 'charge.refunded':
-      await this._onChargeRefunded(event.data.object);
+    case 'refund.created':
+      await this._onRefundCreated(event.data.object);
       break;
 
     default:
@@ -243,23 +246,46 @@ class PaymentService {
     });
   }
 
-  async _onChargeRefunded(charge) {
-    const paymentIntentId = charge.payment_intent;
-    if (!paymentIntentId) return;
-
-    const row = await query(
-      `SELECT id FROM commande WHERE stripe_payment_intent_id = $1 LIMIT 1`,
-      [paymentIntentId]
-    );
-    if (!row.rows.length) {
-      logger.warn('Refund reçu pour un PaymentIntent inconnu', { paymentIntentId });
+  async _onRefundCreated(refund) {
+    const paymentIntentId = refund.payment_intent;
+    if (!paymentIntentId) {
+      logger.warn('refund.created sans payment_intent', { refundId: refund.id });
       return;
     }
 
-    await orderRepository.updatePaymentStatus(row.rows[0].id, 'REFUNDED');
-    logger.info('Commande remboursée (REFUNDED)', {
-      orderId: row.rows[0].id, paymentIntentId
+    const row = await query(
+      `SELECT id, total_ttc FROM commande WHERE stripe_payment_intent_id = $1 LIMIT 1`,
+      [paymentIntentId]
+    );
+    if (!row.rows.length) {
+      logger.warn('Refund reçu pour un PaymentIntent inconnu', { paymentIntentId, refundId: refund.id });
+      return;
+    }
+
+    const orderId = row.rows[0].id;
+    const totalTtcCents = Math.round(parseFloat(row.rows[0].total_ttc) * 100);
+    const montantRembourse = refund.amount / 100;
+    const isTotal = refund.amount >= totalTtcCents;
+    const nouveauStatut = isTotal ? 'REMBOURSE' : 'PARTIELLEMENT_REMBOURSE';
+
+    await orderRepository.updateRefund(orderId, {
+      stripeRefundId: refund.id,
+      montantRembourse,
+      nouveauStatut
     });
+
+    if (isTotal) {
+      await orderRepository.updatePaymentStatus(orderId, 'REFUNDED');
+    }
+
+    auditRepository.log({
+      action: 'REFUND_WEBHOOK',
+      entiteType: 'commande',
+      entiteId: orderId,
+      details: { refundId: refund.id, montantRembourse, total: isTotal }
+    }).catch(err => logger.warn('Audit refund webhook non logué:', err.message));
+
+    logger.info(`Commande ${nouveauStatut}`, { orderId, refundId: refund.id, montantRembourse });
   }
 }
 

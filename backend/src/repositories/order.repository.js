@@ -549,6 +549,35 @@ class OrderRepository {
   }
 
   /**
+   * Met à jour les informations de remboursement et le statut de la commande.
+   * Logue la transition dans commande_statut_historique.
+   */
+  async updateRefund(orderId, { stripeRefundId, montantRembourse, nouveauStatut }) {
+    const currentResult = await query('SELECT statut FROM commande WHERE id = $1', [orderId]);
+    const ancienStatut = currentResult.rows[0]?.statut || null;
+
+    const sql = `
+      UPDATE commande
+      SET stripe_refund_id = $2,
+          montant_rembourse = $3,
+          statut = $4,
+          date_modification = NOW()
+      WHERE id = $1
+      RETURNING *
+    `;
+    const result = await query(sql, [orderId, stripeRefundId, montantRembourse, nouveauStatut]);
+
+    if (result.rows[0]) {
+      query(
+        'INSERT INTO commande_statut_historique (commande_id, ancien_statut, nouveau_statut) VALUES ($1, $2, $3)',
+        [orderId, ancienStatut, nouveauStatut]
+      ).catch(err => logger.warn('Historique statut refund non logué:', err.message));
+    }
+
+    return result.rows[0] ? this._mapOrder(result.rows[0]) : null;
+  }
+
+  /**
    * Trouve une commande par Stripe Checkout Session ID (utilisé au retour /paiement/succes)
    */
   async findBySessionId(sessionId) {
