@@ -224,6 +224,11 @@ class PaymentService {
         error: err.message, orderId
       });
     }
+
+    // Génération facture (async — non bloquant)
+    const invoiceService = require('./invoice.service');
+    invoiceService.generateForOrder(orderId)
+      .catch(err => logger.error('Génération facture échouée:', err.message));
   }
 
   async _onCheckoutExpired(session) {
