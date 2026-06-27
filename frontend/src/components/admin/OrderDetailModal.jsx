@@ -4,30 +4,39 @@
  * @location frontend/src/components/admin/OrderDetailModal.jsx
  */
 
-import { motion } from 'framer-motion';
-import { 
-  X, 
-  User, 
-  MapPin, 
-  CreditCard, 
-  Package, 
-  ArrowRight, 
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  X,
+  User,
+  MapPin,
+  CreditCard,
+  Package,
+  ArrowRight,
   XCircle,
   Clock,
   CheckCircle,
-  Truck
+  Truck,
+  History,
+  RotateCcw
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { getImageUrl } from '../../utils/imageUtils';
+import CommandeStatutTimeline from './CommandeStatutTimeline';
+import adminService from '../../services/adminService';
 
-// Configuration des statuts
 const STATUTS = {
-  EN_ATTENTE: { label: 'En attente', color: 'yellow', Icon: Clock, next: 'CONFIRMEE' },
-  CONFIRMEE: { label: 'Confirmée', color: 'blue', Icon: CheckCircle, next: 'EN_PREPARATION' },
-  EN_PREPARATION: { label: 'En préparation', color: 'purple', Icon: Package, next: 'EXPEDIEE' },
-  EXPEDIEE: { label: 'Expédiée', color: 'indigo', Icon: Truck, next: 'LIVREE' },
-  LIVREE: { label: 'Livrée', color: 'green', Icon: CheckCircle, next: null },
-  ANNULEE: { label: 'Annulée', color: 'red', Icon: XCircle, next: null }
+  EN_ATTENTE:             { label: 'En attente',              color: 'yellow', Icon: Clock,        next: 'CONFIRMEE' },
+  CONFIRMEE:              { label: 'Confirmée',               color: 'blue',   Icon: CheckCircle,  next: 'EN_PREPARATION' },
+  EN_PREPARATION:         { label: 'En préparation',          color: 'purple', Icon: Package,      next: 'EXPEDIEE' },
+  EXPEDIEE:               { label: 'Expédiée',                color: 'indigo', Icon: Truck,        next: 'LIVREE' },
+  LIVREE:                 { label: 'Livrée',                  color: 'green',  Icon: CheckCircle,  next: null },
+  ANNULEE:                { label: 'Annulée',                 color: 'red',    Icon: XCircle,      next: null },
+  REMBOURSE:              { label: 'Remboursée',              color: 'gray',   Icon: RotateCcw,    next: null },
+  PARTIELLEMENT_REMBOURSE:{ label: 'Part. remboursée',        color: 'orange', Icon: RotateCcw,    next: null }
 };
+
+const STATUTS_REMBOURSABLES = ['CONFIRMEE', 'EN_PREPARATION', 'EXPEDIEE', 'LIVREE', 'PARTIELLEMENT_REMBOURSE'];
 
 // Badge statut
 const StatusBadge = ({ statut }) => {
@@ -36,11 +45,13 @@ const StatusBadge = ({ statut }) => {
   
   const colorClasses = {
     yellow: 'bg-yellow-100 text-yellow-700',
-    blue: 'bg-blue-100 text-blue-700',
+    blue:   'bg-blue-100 text-blue-700',
     purple: 'bg-purple-100 text-purple-700',
     indigo: 'bg-indigo-100 text-indigo-700',
-    green: 'bg-green-100 text-green-700',
-    red: 'bg-red-100 text-red-700'
+    green:  'bg-green-100 text-green-700',
+    red:    'bg-red-100 text-red-700',
+    gray:   'bg-gray-100 text-gray-600',
+    orange: 'bg-orange-100 text-orange-700'
   };
 
   return (
@@ -68,10 +79,42 @@ const OrderDetailModal = ({
   onChangeStatus,
   onCancel
 }) => {
+  const [showRefundModal, setShowRefundModal] = useState(false);
+  const [refundMontant, setRefundMontant] = useState('');
+  const [refundRaison, setRefundRaison] = useState('');
+  const [refunding, setRefunding] = useState(false);
+
   if (!order && !loading) return null;
 
-  const canChangeStatus = order && order.statut !== 'ANNULEE' && order.statut !== 'LIVREE';
+  const canChangeStatus = order && !['ANNULEE', 'LIVREE', 'REMBOURSE'].includes(order.statut);
   const nextStatus = order ? STATUTS[order.statut]?.next : null;
+  const canRefund = order && STATUTS_REMBOURSABLES.includes(order.statut) && order.paiementStatut === 'PAID';
+
+  const handleRefundSubmit = async (e) => {
+    e.preventDefault();
+    const montant = parseFloat(refundMontant);
+    if (!montant || montant <= 0) {
+      toast.error('Montant invalide');
+      return;
+    }
+    if (montant > order.totalTtc) {
+      toast.error(`Le montant ne peut pas dépasser ${formatMoney(order.totalTtc)}`);
+      return;
+    }
+    try {
+      setRefunding(true);
+      await adminService.initiateRefund(order.id, { montant, raison: refundRaison });
+      toast.success(`Remboursement de ${formatMoney(montant)} initié`);
+      setShowRefundModal(false);
+      setRefundMontant('');
+      setRefundRaison('');
+      onClose();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Erreur lors du remboursement');
+    } finally {
+      setRefunding(false);
+    }
+  };
 
   return (
     <motion.div
@@ -230,26 +273,44 @@ const OrderDetailModal = ({
               </div>
             </div>
 
+            {/* Historique statuts */}
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <History className="w-5 h-5" />
+                Historique
+              </h4>
+              <CommandeStatutTimeline commandeId={order.id} />
+            </div>
+
             {/* Actions */}
-            {canChangeStatus && (
-              <div className="flex flex-wrap gap-2 pt-4 border-t">
-                {/* Bouton passer au statut suivant */}
-                {nextStatus && (
-                  <button
-                    onClick={() => onChangeStatus(order, nextStatus)}
-                    disabled={updatingStatus === order.id}
-                    className="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    {updatingStatus === order.id ? (
-                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    ) : (
-                      <ArrowRight className="w-4 h-4" />
-                    )}
-                    Passer en "{STATUTS[nextStatus].label}"
-                  </button>
-                )}
-                
-                {/* Bouton annuler */}
+            <div className="flex flex-wrap gap-2 pt-4 border-t">
+              {canChangeStatus && nextStatus && (
+                <button
+                  onClick={() => onChangeStatus(order, nextStatus)}
+                  disabled={updatingStatus === order.id}
+                  className="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {updatingStatus === order.id ? (
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <ArrowRight className="w-4 h-4" />
+                  )}
+                  Passer en "{STATUTS[nextStatus]?.label}"
+                </button>
+              )}
+
+              {canRefund && (
+                <button
+                  onClick={() => { setRefundMontant(String(order.totalTtc)); setShowRefundModal(true); }}
+                  disabled={refunding}
+                  className="px-4 py-2.5 bg-orange-50 text-orange-600 rounded-xl font-medium hover:bg-orange-100 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Rembourser
+                </button>
+              )}
+
+              {canChangeStatus && (
                 <button
                   onClick={() => onCancel(order)}
                   disabled={updatingStatus === order.id}
@@ -258,11 +319,98 @@ const OrderDetailModal = ({
                   <XCircle className="w-4 h-4" />
                   Annuler
                 </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         ) : null}
       </motion.div>
+
+      {/* Modal remboursement */}
+      <AnimatePresence>
+        {showRefundModal && order && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4"
+            onClick={() => setShowRefundModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.95 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4"
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                  <RotateCcw className="w-5 h-5 text-orange-500" />
+                  Initier un remboursement
+                </h3>
+                <button onClick={() => setShowRefundModal(false)} className="p-1 hover:bg-gray-100 rounded-lg">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <p className="text-sm text-gray-500">
+                Commande <span className="font-medium">{order.numeroCommande}</span> — Total : <span className="font-medium">{formatMoney(order.totalTtc)}</span>
+              </p>
+
+              <form onSubmit={handleRefundSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Montant à rembourser (€)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    max={order.totalTtc}
+                    value={refundMontant}
+                    onChange={e => setRefundMontant(e.target.value)}
+                    className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Raison (optionnel)
+                  </label>
+                  <textarea
+                    rows={2}
+                    maxLength={500}
+                    value={refundRaison}
+                    onChange={e => setRefundRaison(e.target.value)}
+                    placeholder="Ex : produit endommagé, erreur de commande…"
+                    className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 resize-none"
+                  />
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowRefundModal(false)}
+                    className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={refunding}
+                    className="flex-1 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {refunding ? (
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <RotateCcw className="w-4 h-4" />
+                    )}
+                    Confirmer le remboursement
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

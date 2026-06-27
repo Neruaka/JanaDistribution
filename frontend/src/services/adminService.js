@@ -220,9 +220,28 @@ const adminService = {
     const params = new URLSearchParams();
     if (dateDebut) params.append('dateDebut', dateDebut);
     if (dateFin) params.append('dateFin', dateFin);
-    
+
     const response = await api.get(`/admin/orders/stats?${params}`);
     return response.data.data;
+  },
+
+  /**
+   * Récupérer l'historique des statuts d'une commande
+   * @param {string} id - UUID de la commande
+   */
+  async getOrderHistory(id) {
+    const response = await api.get(`/admin/orders/${id}/history`);
+    return response.data.data || [];
+  },
+
+  /**
+   * Initier un remboursement Stripe depuis l'admin
+   * @param {string} id - UUID de la commande
+   * @param {Object} data - { montant: number, raison?: string }
+   */
+  async initiateRefund(id, { montant, raison }) {
+    const response = await api.post(`/admin/orders/${id}/refund`, { montant, raison });
+    return response.data;
   }
 };
 

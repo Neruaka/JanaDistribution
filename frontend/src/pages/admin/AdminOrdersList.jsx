@@ -11,6 +11,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { Download } from 'lucide-react';
 import adminService from '../../services/adminService';
 
 // Composants
@@ -67,6 +68,8 @@ const AdminOrdersList = () => {
   // Menu contextuel
   const [openMenuOrderId, setOpenMenuOrderId] = useState(null);
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
+
+  const [exportLoading, setExportLoading] = useState(false);
 
   // Ref pour éviter les appels dupliqués
   const statsLoadedRef = useRef(false);
@@ -295,6 +298,66 @@ const AdminOrdersList = () => {
   };
 
   // ==========================================
+  // EXPORT CSV
+  // ==========================================
+
+  const handleExportCSV = async () => {
+    try {
+      setExportLoading(true);
+      // Récupérer toutes les commandes filtrées (sans pagination)
+      const response = await adminService.getOrders({
+        limit: 9999,
+        page: 1,
+        search: filters.search || undefined,
+        statut: filters.statut || undefined,
+        dateDebut: filters.dateDebut || undefined,
+        dateFin: filters.dateFin || undefined,
+        orderBy: filters.orderBy,
+        orderDir: filters.orderDir
+      });
+
+      const rows = response.data || [];
+      const headers = ['N° commande', 'Date', 'Client nom', 'Client email', 'Statut', 'Total TTC', 'Mode paiement', 'Nb articles'];
+
+      const escape = (v) => {
+        const s = v == null ? '' : String(v);
+        return s.includes(',') || s.includes('"') || s.includes('\n')
+          ? `"${s.replace(/"/g, '""')}"` : s;
+      };
+
+      const lines = [
+        headers.join(','),
+        ...rows.map(o => [
+          escape(o.numeroCommande),
+          escape(o.dateCommande ? new Date(o.dateCommande).toLocaleDateString('fr-FR') : ''),
+          escape(o.client ? `${o.client.prenom || ''} ${o.client.nom || ''}`.trim() : ''),
+          escape(o.client?.email || ''),
+          escape(o.statut || ''),
+          escape(o.totalTtc != null ? Number(o.totalTtc).toFixed(2) : ''),
+          escape(o.modePaiement || ''),
+          escape(o.nbArticles || '')
+        ].join(','))
+      ];
+
+      const csv = '﻿' + lines.join('\r\n'); // BOM pour Excel FR
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `commandes_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      toast.success(`${rows.length} commande(s) exportée(s)`);
+    } catch (err) {
+      console.error('Erreur export CSV:', err);
+      toast.error('Erreur lors de l\'export');
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  // ==========================================
   // PAGINATION
   // ==========================================
 
@@ -326,6 +389,18 @@ const AdminOrdersList = () => {
             )}
           </p>
         </div>
+        <button
+          onClick={handleExportCSV}
+          disabled={exportLoading || loading}
+          className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 text-sm"
+        >
+          {exportLoading ? (
+            <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+          ) : (
+            <Download className="w-4 h-4" />
+          )}
+          Exporter CSV
+        </button>
       </div>
 
       {/* Stats par statut */}
