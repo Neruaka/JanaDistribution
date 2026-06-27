@@ -12,7 +12,9 @@ const { authenticate, isAdmin } = require('../middlewares/auth.middleware');
 const validate = require('../middlewares/validate.middleware');
 const { query: dbQuery } = require('../config/database');
 const orderService = require('../services/order.service');
+const orderRepository = require('../repositories/order.repository');
 const paymentController = require('../controllers/payment.controller');
+const auditRepository = require('../repositories/audit.repository');
 const logger = require('../config/logger');
 
 // Toutes les routes nécessitent d'être admin
@@ -360,10 +362,29 @@ router.get('/:id',
 );
 
 /**
+ * @route   GET /api/admin/orders/:id/history
+ * @desc    Historique des transitions de statut d'une commande
+ * @access  Admin
+ */
+router.get('/:id/history',
+  [param('id').isUUID()],
+  validate,
+  async (req, res, next) => {
+    try {
+      const history = await orderRepository.getHistory(req.params.id);
+      res.json({ success: true, data: history });
+    } catch (error) {
+      logger.error('Erreur historique commande', { error: error.message });
+      next(error);
+    }
+  }
+);
+
+/**
  * @route   PATCH /api/admin/orders/:id/status
  * @desc    Mettre à jour le statut d'une commande
  * @access  Admin
- * 
+ *
  * ✅ Si statut = ANNULEE, restaure le stock
  */
 router.patch('/:id/status',
@@ -379,6 +400,16 @@ router.patch('/:id/status',
       const { statut, instructionsLivraison } = req.body;
 
       const result = await orderService.updateStatus(id, statut, instructionsLivraison);
+
+      // Audit log (non critique — fire and forget)
+      auditRepository.log({
+        action: 'ORDER_STATUS_UPDATE',
+        entiteType: 'commande',
+        entiteId: id,
+        utilisateurId: req.user.id,
+        details: { nouveauStatut: statut, instructionsLivraison: instructionsLivraison || null },
+        ipAddress: req.ip
+      }).catch(err => logger.warn('Audit log non enregistré:', err.message));
 
       res.json({
         success: true,

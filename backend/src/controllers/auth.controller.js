@@ -74,12 +74,12 @@ class AuthController {
 
   /**
    * POST /api/auth/logout
-   * Déconnexion (côté client, invalide le token)
+   * Déconnexion — révoque le refresh token en DB
    */
   async logout(req, res, next) {
     try {
-      // Le token est géré côté client (suppression du localStorage)
-      // Ici on pourrait ajouter le token à une blacklist Redis si besoin
+      const { refreshToken } = req.body;
+      await authService.logout(refreshToken);
 
       res.json({
         success: true,
@@ -151,21 +151,18 @@ class AuthController {
 
   /**
    * POST /api/auth/refresh
-   * Rafraîchit le token JWT
+   * Rafraîchit le token JWT et effectue la rotation du refresh token en DB
    */
   async refreshToken(req, res, next) {
     try {
       const { refreshToken } = req.body;
-      const payload = authService.verifyRefreshToken(refreshToken);
-      const user = await authService.getProfile(payload.id);
-      const token = authService.generateToken(user);
-      const rotatedRefreshToken = authService.generateRefreshToken(user);
+      const result = await authService.refreshTokens(refreshToken);
 
       res.json({
         success: true,
         data: {
-          token,
-          refreshToken: rotatedRefreshToken
+          token: result.token,
+          refreshToken: result.refreshToken
         }
       });
     } catch (error) {

@@ -14,9 +14,9 @@
 | Dernier commit | `085fc5f` — `feat(audit): add comprehensive go live checklist and audit index` |
 | Fichiers modifiés non commités | 0 — working tree propre (tout committé dans 085fc5f) |
 | Phase active | Phase 2 — Authentification, commandes et traçabilité |
-| Tâche active | Aucune — Phase 1 terminée |
+| Tâche active | Aucune — T2-01..T2-07 terminés |
 | Verdict | **NON PRÊT POUR LA PRODUCTION** |
-| Avancement estimé | ~68 % |
+| Avancement estimé | ~73 % |
 
 ---
 
@@ -99,8 +99,8 @@ Navigateur
 | Tests | PARTIEL | Jest backend (DB mockée), 1 test Vitest frontend | Code inspecté |
 | Railway (déploiement) | PARTIEL | Health check OK, images éphémères, pas de staging | Non vérifiable Railway |
 | Stockage images | CASSÉ | Disque local éphémère — images perdues au redéploiement | Code inspecté |
-| Refresh tokens révocables | ABSENT | Pas de table refresh_token en DB | Code inspecté |
-| Historique statuts commande | ABSENT | Pas de table commande_statut_historique | Code inspecté |
+| Refresh tokens révocables | FONCTIONNEL | Table refresh_token, login stocke le hash, logout révoque, rotation au refresh | Code modifié T2-03..T2-05 |
+| Historique statuts commande | FONCTIONNEL | Table + updateStatus() + cancel() loguent chaque transition, endpoint GET /:id/history | Code modifié T2-01..T2-02 |
 
 ---
 
@@ -253,6 +253,9 @@ Working tree propre. Tout est committé dans `085fc5f`. Les corrections Phase 0 
 | 2026-06-14 | T1-04 | npm uninstall joi : jamais importé dans src, express-validator seul (5/5 validators) | 5/5 suites, 97/97 ✓ | DONE |
 | 2026-06-14 | T1-05 | scripts/run-migrations.js : schema_migrations, sha256 checksum, pg_advisory_lock, strip BEGIN/COMMIT, npm run migrate | 5/5 suites, 97/97 ✓ | DONE |
 | 2026-06-14 | T1-06 | Backend: 10→1 CVE (bcrypt@6 fixe tar HIGH; uuid MODERATE non-exploitable). Frontend: 11→2 CVE (uuid/exceljs + esbuild/vite devDep non-fixables sans breaking) | 5/5 suites, 97/97 ✓, build ✓ | DONE |
+| 2026-06-27 | T2-01+T2-02 | order.repository.js : updateStatus() et cancel() loguent dans commande_statut_historique. admin.order.routes.js : GET /:id/history. Migration 0002. | 5/5 suites, 97/97 ✓ | DONE |
+| 2026-06-27 | T2-03..T2-05 | Migration 0003 refresh_token. auth.service.js : login/register stockent le token, logout révoque, refreshTokens() effectue la rotation. user.repository.js : save/find/revokeRefreshToken. auth.controller.js mis à jour. | 5/5 suites, 97/97 ✓ | DONE |
+| 2026-06-27 | T2-06+T2-07 | Migration 0004 audit_log. audit.repository.js créé. admin.order.routes.js logue chaque changement de statut commande dans audit_log. | 5/5 suites, 97/97 ✓ | DONE |
 
 ---
 
@@ -262,7 +265,7 @@ Working tree propre. Tout est committé dans `085fc5f`. Les corrections Phase 0 
 
 | Champ | Valeur |
 |---|---|
-**Phase 1 terminée.** Prochaine : Phase 2 — T2-01 Historique statuts commande
+**Phase 2 BLOC 1+2 terminés (T2-01..T2-07).** Prochaine : Phase 4 — T4-01 Remplacer charge.refunded par refund.created
 
 | Champ | Valeur |
 |---|---|

@@ -438,6 +438,39 @@ class UserRepository {
     logger.info(`Utilisateur supprimé définitivement: ${id}`);
   }
 
+  // ==========================================
+  // REFRESH TOKENS (T2-03..T2-05)
+  // ==========================================
+
+  async saveRefreshToken(utilisateurId, tokenHash, expiresAt) {
+    await query(
+      'INSERT INTO refresh_token (token_hash, utilisateur_id, expires_at) VALUES ($1, $2, $3)',
+      [tokenHash, utilisateurId, expiresAt]
+    );
+  }
+
+  async findRefreshToken(tokenHash) {
+    const result = await query(
+      'SELECT * FROM refresh_token WHERE token_hash = $1',
+      [tokenHash]
+    );
+    return result.rows[0] || null;
+  }
+
+  async revokeRefreshToken(tokenHash) {
+    await query(
+      'UPDATE refresh_token SET revoked_at = NOW() WHERE token_hash = $1 AND revoked_at IS NULL',
+      [tokenHash]
+    );
+  }
+
+  async revokeAllUserRefreshTokens(utilisateurId) {
+    await query(
+      'UPDATE refresh_token SET revoked_at = NOW() WHERE utilisateur_id = $1 AND revoked_at IS NULL',
+      [utilisateurId]
+    );
+  }
+
   /**
    * Formate un utilisateur depuis la BDD
    * @private

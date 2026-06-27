@@ -10,16 +10,16 @@
 | Indicateur | Valeur |
 |---|---|
 | Phase active | Phase 2 — Authentification, commandes et traçabilité |
-| Tâche active | Aucune — Phase 1 terminée |
+| Tâche active | Aucune — Phase 2 BLOC 1+2 terminé |
 | Tâches totales | 75 |
 | READY | 0 |
 | IN_PROGRESS | 0 |
 | BLOCKED | 3 |
-| TODO | 58 |
-| DONE | 14 |
+| TODO | 51 |
+| DONE | 21 |
 | CANCELLED | 0 |
 | P0 restants | 1 |
-| P1 restants | 5 |
+| P1 restants | 2 |
 | Verdict | NON PRÊT POUR LA PRODUCTION |
 
 ---
@@ -446,61 +446,57 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 ### T2-01 — Créer table commande_statut_historique
 
-- **Statut :** TODO | **Priorité :** P1 | **Catégorie :** CODE | **Domaine :** Backend/DB
-- **Objectif :** Tracer toutes les transitions de statut d'une commande
-- **Fichiers :** Migration SQL, `order.repository.js`
-- **Étapes :** 1. Migration `003_commande_statut_historique.sql` 2. Modifier `updateStatus` dans repository pour insérer une ligne d'historique 3. Endpoint admin GET historique
-- **Critères :** Table créée, chaque transition enregistrée, visible dans admin
+- **Statut :** DONE (2026-06-27) | **Priorité :** P1 | **Catégorie :** CODE | **Domaine :** Backend/DB
+- **Fichiers modifiés :** `scripts/migrations/0002_commande_statut_historique.sql` (créé), `order.repository.js` (updateStatus + cancel + getHistory), `admin.order.routes.js` (GET /:id/history)
+- **Tests :** 5/5 suites, 97/97 ✓
 
 ---
 
 ### T2-02 — Enregistrer historique statuts à chaque transition
 
-- **Statut :** TODO | **Priorité :** P1 | **Catégorie :** CODE
-- **Dépendances :** T2-01
-- **Fichiers :** `backend/src/services/order.service.js`
+- **Statut :** DONE (2026-06-27) | **Priorité :** P1 | **Catégorie :** CODE
+- **Note :** Inclus dans T2-01 — updateStatus() et cancel() loguent chaque transition
+- **Tests :** 5/5 suites, 97/97 ✓
 
 ---
 
 ### T2-03 — Créer table refresh_token en DB
 
-- **Statut :** TODO | **Priorité :** P1 | **Catégorie :** CODE | **Domaine :** Backend/DB
-- **Objectif :** Permettre la révocation des refresh tokens
-- **Fichiers :** Migration SQL
-- **Étapes :** Migration `004_refresh_token.sql` avec colonnes : `token_hash`, `utilisateur_id`, `expires_at`, `revoked_at`
+- **Statut :** DONE (2026-06-27) | **Priorité :** P1 | **Catégorie :** CODE | **Domaine :** Backend/DB
+- **Fichiers modifiés :** `scripts/migrations/0003_refresh_token.sql` (créé)
+- **Tests :** 5/5 suites, 97/97 ✓
 
 ---
 
 ### T2-04 — Stocker refresh token en DB à la connexion
 
-- **Statut :** TODO | **Priorité :** P1 | **Catégorie :** CODE
-- **Dépendances :** T2-03
-- **Fichiers :** `backend/src/services/auth.service.js` méthode `login`
+- **Statut :** DONE (2026-06-27) | **Priorité :** P1 | **Catégorie :** CODE
+- **Fichiers modifiés :** `auth.service.js` (login + register + _storeRefreshToken), `user.repository.js` (saveRefreshToken)
+- **Tests :** 5/5 suites, 97/97 ✓
 
 ---
 
 ### T2-05 — Révoquer refresh token à la déconnexion
 
-- **Statut :** TODO | **Priorité :** P1 | **Catégorie :** CODE
-- **Dépendances :** T2-04
-- **Fichiers :** `backend/src/routes/auth.routes.js`, `backend/src/repositories/user.repository.js`
-- **Critères :** Déconnexion invalide le refresh token en DB, un nouveau login est requis
+- **Statut :** DONE (2026-06-27) | **Priorité :** P1 | **Catégorie :** CODE
+- **Fichiers modifiés :** `auth.service.js` (logout + refreshTokens), `auth.controller.js` (logout + refreshToken), `user.repository.js` (revokeRefreshToken + revokeAllUserRefreshTokens)
+- **Tests :** 5/5 suites, 97/97 ✓
 
 ---
 
 ### T2-06 — Créer table audit_log
 
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE
-- **Fichiers :** Migration SQL
-- **Objectif :** Tracer les actions admin sensibles (remboursements, modifications statut, suppression produit)
+- **Statut :** DONE (2026-06-27) | **Priorité :** P2 | **Catégorie :** CODE
+- **Fichiers modifiés :** `scripts/migrations/0004_audit_log.sql` (créé), `repositories/audit.repository.js` (créé)
+- **Tests :** 5/5 suites, 97/97 ✓
 
 ---
 
 ### T2-07 — Logger actions sensibles admin
 
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE
-- **Dépendances :** T2-06
-- **Fichiers :** `order.service.js`, middleware admin
+- **Statut :** DONE (2026-06-27) | **Priorité :** P2 | **Catégorie :** CODE
+- **Fichiers modifiés :** `admin.order.routes.js` (audit log sur PATCH /:id/status)
+- **Tests :** 5/5 suites, 97/97 ✓
 
 ---
 

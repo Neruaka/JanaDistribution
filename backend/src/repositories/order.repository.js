@@ -385,13 +385,16 @@ class OrderRepository {
   }
 
   /**
-   * Met à jour le statut d'une commande
+   * Met à jour le statut d'une commande et logue la transition dans l'historique
    */
   async updateStatus(id, statut, instructionsLivraison = null) {
+    const currentResult = await query('SELECT statut FROM commande WHERE id = $1', [id]);
+    const ancienStatut = currentResult.rows[0]?.statut || null;
+
     const sql = `
-      UPDATE commande 
-      SET 
-        statut = $2, 
+      UPDATE commande
+      SET
+        statut = $2,
         instructions_livraison = COALESCE($3, instructions_livraison),
         date_modification = NOW()
       WHERE id = $1
@@ -399,12 +402,27 @@ class OrderRepository {
     `;
 
     const result = await query(sql, [id, statut, instructionsLivraison]);
-    
+
     if (result.rows[0]) {
-      logger.info(`Commande ${id} mise à jour: ${statut}`);
+      logger.info(`Commande ${id} mise à jour: ${ancienStatut} → ${statut}`);
+      query(
+        'INSERT INTO commande_statut_historique (commande_id, ancien_statut, nouveau_statut) VALUES ($1, $2, $3)',
+        [id, ancienStatut, statut]
+      ).catch(err => logger.warn('Historique statut non logué:', err.message));
     }
 
     return result.rows[0] ? this._mapOrder(result.rows[0]) : null;
+  }
+
+  /**
+   * Récupère l'historique des transitions de statut d'une commande
+   */
+  async getHistory(commandeId) {
+    const result = await query(
+      'SELECT * FROM commande_statut_historique WHERE commande_id = $1 ORDER BY created_at ASC',
+      [commandeId]
+    );
+    return result.rows;
   }
 
   /**
@@ -427,7 +445,7 @@ class OrderRepository {
       }
 
       const currentStatut = checkResult.rows[0].statut;
-      
+
       // On ne peut annuler que les commandes EN_ATTENTE ou CONFIRMEE
       if (!['EN_ATTENTE', 'CONFIRMEE'].includes(currentStatut)) {
         throw new Error(`Impossible d'annuler une commande ${currentStatut}`);
@@ -457,6 +475,13 @@ class OrderRepository {
       await client.query('COMMIT');
 
       logger.info(`Commande annulée: ${id} - Stock restauré pour ${linesResult.rows.length} produits`);
+
+      // Log de l'historique après COMMIT (non critique — fire and forget)
+      query(
+        'INSERT INTO commande_statut_historique (commande_id, ancien_statut, nouveau_statut) VALUES ($1, $2, $3)',
+        [id, currentStatut, 'ANNULEE']
+      ).catch(err => logger.warn('Historique statut non logué (cancel):', err.message));
+
       return result.rows[0] ? this._mapOrder(result.rows[0]) : null;
 
     } catch (error) {

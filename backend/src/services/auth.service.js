@@ -134,9 +134,12 @@ class AuthService {
       accepteNewsletter
     });
 
-    // Générer le token JWT
+    // Générer les tokens JWT
     const token = this.generateToken(user);
     const refreshToken = this.generateRefreshToken(user);
+
+    // Stocker le refresh token en DB
+    await this._storeRefreshToken(user.id, refreshToken);
 
     logger.info(`Nouvel utilisateur inscrit: ${user.email} (${user.typeClient})`);
 
@@ -161,7 +164,7 @@ class AuthService {
   async login(email, motDePasse) {
     // Trouver l'utilisateur
     const user = await userRepository.findByEmail(email.toLowerCase().trim());
-    
+
     if (!user) {
       throw ApiError.unauthorized('Email ou mot de passe incorrect');
     }
@@ -173,7 +176,7 @@ class AuthService {
 
     // Vérifier le mot de passe
     const isPasswordValid = await bcrypt.compare(motDePasse, user.motDePasseHash);
-    
+
     if (!isPasswordValid) {
       throw ApiError.unauthorized('Email ou mot de passe incorrect');
     }
@@ -181,9 +184,12 @@ class AuthService {
     // Mettre à jour la dernière connexion
     await userRepository.updateLastLogin(user.id);
 
-    // Générer le token
+    // Générer les tokens
     const token = this.generateToken(user);
     const refreshToken = this.generateRefreshToken(user);
+
+    // Stocker le refresh token en DB (permet la révocation)
+    await this._storeRefreshToken(user.id, refreshToken);
 
     logger.info(`Connexion réussie: ${user.email}`);
 
@@ -191,6 +197,60 @@ class AuthService {
       user: this.sanitizeUser(user),
       token,
       refreshToken
+    };
+  }
+
+  /**
+   * Déconnexion — révoque le refresh token en DB
+   * @param {string} refreshToken - Refresh token à révoquer
+   */
+  async logout(refreshToken) {
+    if (!refreshToken) return;
+    try {
+      const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+      await userRepository.revokeRefreshToken(tokenHash);
+    } catch (err) {
+      logger.warn('Révocation refresh token échouée (non critique):', err.message);
+    }
+  }
+
+  /**
+   * Rotation des tokens : révoque l'ancien refresh token et en crée un nouveau
+   * @param {string} oldRefreshToken - Refresh token à remplacer
+   * @returns {Promise<Object>} Nouveaux tokens
+   */
+  async refreshTokens(oldRefreshToken) {
+    // Vérification JWT (signature + expiration)
+    const payload = this.verifyRefreshToken(oldRefreshToken);
+
+    // Vérification DB : token existe et non révoqué
+    const tokenHash = crypto.createHash('sha256').update(oldRefreshToken).digest('hex');
+    const stored = await userRepository.findRefreshToken(tokenHash).catch(() => null);
+    if (stored) {
+      if (stored.revoked_at) {
+        throw ApiError.unauthorized('Refresh token révoqué');
+      }
+      if (new Date() > new Date(stored.expires_at)) {
+        throw ApiError.unauthorized('Refresh token expiré');
+      }
+      await userRepository.revokeRefreshToken(tokenHash);
+    }
+
+    // Récupérer l'utilisateur frais
+    const user = await userRepository.findById(payload.id);
+    if (!user || !user.estActif) {
+      throw ApiError.unauthorized('Utilisateur inactif ou supprimé');
+    }
+
+    // Générer nouveaux tokens
+    const newToken = this.generateToken(user);
+    const newRefreshToken = this.generateRefreshToken(user);
+    await this._storeRefreshToken(user.id, newRefreshToken);
+
+    return {
+      user: this.sanitizeUser(user),
+      token: newToken,
+      refreshToken: newRefreshToken
     };
   }
 
@@ -403,6 +463,31 @@ class AuthService {
     logger.info(`Profil mis à jour: ${user.email}`);
     
     return this.sanitizeUser(user);
+  }
+
+  // ==========================================
+  // REFRESH TOKEN STORAGE (T2-04/T2-05)
+  // ==========================================
+
+  /**
+   * Stocke un refresh token hashé en DB.
+   * Silencieux si la table n'existe pas encore (avant migration).
+   */
+  async _storeRefreshToken(userId, refreshToken) {
+    try {
+      const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+      const expiresAt = new Date(Date.now() + this._parseExpiry(this.jwtRefreshExpiresIn) * 1000);
+      await userRepository.saveRefreshToken(userId, tokenHash, expiresAt);
+    } catch (err) {
+      logger.warn('Stockage refresh token en DB échoué (non critique):', err.message);
+    }
+  }
+
+  _parseExpiry(expiresIn) {
+    const units = { s: 1, m: 60, h: 3600, d: 86400 };
+    const match = String(expiresIn).match(/^(\d+)([smhd])$/);
+    if (!match) return 30 * 86400;
+    return parseInt(match[1]) * units[match[2]];
   }
 
   /**
