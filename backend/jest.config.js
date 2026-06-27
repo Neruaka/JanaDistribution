@@ -16,10 +16,13 @@ module.exports = {
     '**/*.spec.js'
   ],
 
-  // Fichiers à ignorer
+  // Les fichiers testcontainers nécessitent Docker — exclure du run par défaut
   testPathIgnorePatterns: [
     '/node_modules/',
-    '/dist/'
+    '/dist/',
+    'tests/integration/order.create.test.js',
+    'tests/integration/auth.test.js',
+    'tests/integration/stock.concurrent.test.js',
   ],
 
   // Setup avant tous les tests
