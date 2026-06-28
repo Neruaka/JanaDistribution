@@ -39,6 +39,7 @@ import PaymentCancelPage from './pages/PaymentCancelPage';
 
 // Pages client
 import MonComptePage from './pages/MonComptePage';
+import MesFacturesPage from './pages/MesFacturesPage';
 
 // Pages légales
 import CGVPage from './pages/CGVPage';
@@ -189,6 +190,13 @@ function App() {
               <PrivateRoute>
                 <PublicLayout>
                   <OrderDetailPage />
+                </PublicLayout>
+              </PrivateRoute>
+            } />
+            <Route path="/mes-factures" element={
+              <PrivateRoute>
+                <PublicLayout>
+                  <MesFacturesPage />
                 </PublicLayout>
               </PrivateRoute>
             } />

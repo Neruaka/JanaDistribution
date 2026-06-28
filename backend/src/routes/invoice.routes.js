@@ -30,11 +30,17 @@ router.get('/:id/pdf', authenticate, [param('id').isUUID()], validate, async (re
   } catch (e) { next(e); }
 });
 
-// Admin — toutes les factures
+// Admin — toutes les factures (filtre optionnel par commande_id)
 router.get('/admin', authenticate, isAdmin, async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const factures = await invoiceRepository.findAll({ page, limit: 20 });
+    const { commande_id } = req.query;
+    let factures;
+    if (commande_id) {
+      factures = await invoiceRepository.findByCommande(commande_id);
+    } else {
+      const page = parseInt(req.query.page) || 1;
+      factures = await invoiceRepository.findAll({ page, limit: 20 });
+    }
     res.json({ success: true, data: factures });
   } catch (e) { next(e); }
 });

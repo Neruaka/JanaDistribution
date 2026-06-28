@@ -83,6 +83,25 @@ const OrderDetailModal = ({
   const [refundMontant, setRefundMontant] = useState('');
   const [refundRaison, setRefundRaison] = useState('');
   const [refunding, setRefunding] = useState(false);
+  const [downloadingInvoice, setDownloadingInvoice] = useState(false);
+
+  const handleDownloadInvoice = async () => {
+    if (!order) return;
+    setDownloadingInvoice(true);
+    try {
+      const factures = await adminService.getFactureByCommande(order.id);
+      const facture = Array.isArray(factures) ? factures[0] : factures;
+      if (!facture) {
+        toast.error('Aucune facture disponible pour cette commande');
+        return;
+      }
+      await adminService.downloadFacturePDF(facture.id, facture.numero);
+    } catch {
+      toast.error('Erreur lors du téléchargement de la facture');
+    } finally {
+      setDownloadingInvoice(false);
+    }
+  };
 
   if (!order && !loading) return null;
 
@@ -141,12 +160,24 @@ const OrderDetailModal = ({
               {order && <StatusBadge statut={order.statut} />}
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {order && (
+              <button
+                onClick={handleDownloadInvoice}
+                disabled={downloadingInvoice}
+                title="Télécharger la facture PDF"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {downloadingInvoice ? '...' : '🧾 Facture PDF'}
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Content */}
