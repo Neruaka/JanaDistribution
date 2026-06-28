@@ -1,6 +1,6 @@
 # ÉTAT ACTUEL DU PROJET — Jana Distribution
 
-> Mise à jour : 2026-06-14. Source : inspection statique du code + git status.
+> Mise à jour : 2026-06-28. Source : inspection statique du code + git status.
 > Mettre à jour après chaque tâche DONE.
 
 ---
@@ -11,10 +11,10 @@
 |---|---|
 | Projet | Jana Distribution — e-commerce alimentaire B2C/B2B |
 | Branche active | `develop` |
-| Dernier commit | `dfbc862` — `feat(tests): integration test scaffolding (T7-01..T7-04, T7-06)` |
-| Fichiers modifiés non commités | 0 — working tree propre |
-| Phase active | Phase 8 — Staging Railway |
-| Tâche active | Aucune — Phases 2, 3, 4, 5, 6, 7 terminées (2026-06-27) |
+| Dernier commit | `5603fd0` — `docs: update project state after session blocs A-D completion` |
+| Fichiers modifiés non commités | Voir section 7 — R2 endpoint EU corrigé, CI fixé, docs ajoutés |
+| Phase active | Phase 8 — Staging local (Railway en pause) |
+| Tâche active | Aucune — Phase 8 locale en cours (2026-06-28) |
 | Verdict | **NON PRÊT POUR LA PRODUCTION** |
 | Avancement estimé | ~92 % |
 
@@ -43,7 +43,7 @@ Phases 0-7 terminées. Tous les bloquants P0 résolus : images Cloudflare R2 (T0
 | Email | Brevo REST API (`BREVO_API_KEY`) | — |
 | Paiements | Stripe Checkout Sessions | stripe 22.0.2 |
 | Géocodage livraison | BAN API adresse.data.gouv.fr | gratuit |
-| Upload fichiers | Multer → disque local `/uploads/products/` | 1.4.5-lts.1 |
+| Upload fichiers | Multer → Cloudflare R2 (endpoint EU) | 1.4.5-lts.1 + @aws-sdk/client-s3 |
 | Déploiement | Railway (NIXPACKS backend, Dockerfile frontend) | — |
 | CI/CD | GitHub Actions | — |
 | Validation | express-validator | — |
@@ -138,29 +138,19 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 
 ## 7. État du working tree (important)
 
-**19 fichiers modifiés non stagés + 12 nouveaux fichiers non trackés.**
+**Branche develop, 8 commits ahead of origin/develop.**
 
-Ces changements ne sont PAS encore commités. Ils incluent une implémentation partielle de Stripe et du géocodage.
+### Fichiers modifiés en session 2026-06-28 (non commités)
 
-### Nouveaux fichiers non trackés (travail en cours)
-
-| Fichier | Contenu |
+| Fichier | Modification |
 |---|---|
-| `backend/src/services/payment.service.js` | Stripe Checkout Session + webhook handler |
-| `backend/src/controllers/payment.controller.js` | Endpoints paiement |
-| `backend/src/routes/payment.routes.js` | Route `/api/payment/checkout-session` |
-| `backend/src/routes/webhook.routes.js` | Route `/api/webhooks/stripe` (raw body) |
-| `backend/src/services/geocoding.service.js` | BAN API + Haversine |
-| `frontend/src/pages/PaymentSuccessPage.jsx` | Page retour paiement (polling) |
-| `frontend/src/pages/PaymentCancelPage.jsx` | Page annulation paiement |
-| `frontend/src/services/paymentService.js` | Service API paiement frontend |
-| `frontend/src/services/shippingService.js` | Service estimation livraison frontend |
-| `DEPLOY-RAILWAY.md` | Notes de déploiement |
-| `docs/audit-finalisation/` | Rapports d'audit (ce dossier) |
-
-### État du working tree
-
-Working tree propre. Tout est committé dans `085fc5f`. Les corrections Phase 0 (T0-01..T0-07) et les fichiers Stripe/géocodage/paiement sont inclus dans ce commit.
+| `backend/src/config/r2.js` | Endpoint EU corrigé (`.eu.r2.cloudflarestorage.com`) |
+| `.github/workflows/ci.yml` | JWT_REFRESH_SECRET + BCRYPT_SALT_ROUNDS ajoutés aux env tests |
+| `ETAT_ACTUEL_PROJET.md` | Mise à jour état environnements + décisions techniques |
+| `start-local.bat` | Script démarrage Windows (nouveau) |
+| `start-local.sh` | Script démarrage Linux/Mac (nouveau) |
+| `docs/CHECKLIST_TEST_LOCAL.md` | Checklist test complet local (nouveau) |
+| `docs/RAILWAY_CONFIG_READY.md` | Config Railway prête à appliquer (nouveau) |
 
 ---
 
@@ -168,14 +158,15 @@ Working tree propre. Tout est committé dans `085fc5f`. Les corrections Phase 0 
 
 | Décision | Statut | Détail |
 |---|---|---|
-| Stripe Checkout Sessions | DÉCIDÉ | Conserver — ne pas remplacer |
-| Bibliothèque PDF factures | RECOMMANDÉ MAIS NON VALIDÉ | PDFKit (pure JS, légère) |
-| Storage images | À DÉCIDER | S3 / Cloudflare R2 / Railway Volume — bloque T0-02 |
-| Client Redis | RECOMMANDÉ MAIS NON VALIDÉ | Garder ioredis, supprimer package `redis` |
-| Système de validation | À DÉCIDER | Choisir express-validator OU Joi — bloque T1-04 |
-| Tests intégration | DÉCIDÉ | Vraie PostgreSQL (testcontainers-node) — ne pas mocker |
+| Stripe Checkout Sessions | DÉCIDÉ ET CONFIGURÉ | Compte créé, clés TEST en .env, Stripe CLI installé |
+| Bibliothèque PDF factures | DÉCIDÉ | PDFKit ^0.19.1 — installé et implémenté |
+| Cloudflare R2 | DÉCIDÉ ET CONFIGURÉ | Bucket `jana-products`, endpoint EU, token R2 en .env, URL pub- active |
+| Client Redis | DÉCIDÉ | ioredis conservé, package `redis` supprimé |
+| Système de validation | DÉCIDÉ | express-validator (joi supprimé — jamais importé) |
+| Tests intégration | DÉCIDÉ | Vraie PostgreSQL (testcontainers-node) — installé, scaffolding DONE |
 | Architecture | DÉCIDÉ | Évolution progressive — pas de réécriture |
-| Refresh tokens | DÉCIDÉ | Stocker en DB (table `refresh_token` à créer) |
+| Refresh tokens | DÉCIDÉ ET IMPLÉMENTÉ | Table `refresh_token` créée et active |
+| Railway | EN PAUSE | Période d'essai expirée — déploiement différé, config prête dans RAILWAY_CONFIG_READY.md |
 
 ---
 
@@ -199,12 +190,13 @@ Working tree propre. Tout est committé dans `085fc5f`. Les corrections Phase 0 
 
 | Environnement | État | Vérifiable | Non vérifiable |
 |---|---|---|---|
-| Local (Docker Compose) | À vérifier | docker-compose.yml présent | Fonctionnement réel |
-| Tests | PARTIEL | setup.js présent, DB mockée | Tests d'intégration absents |
-| Staging Railway | ABSENT | — | Accès Railway requis |
-| Production Railway | NON PRÊT | Health check configuré | Variables env, sauvegardes |
-| Stripe test mode | PARTIEL | Clés test dans .env.example | Webhook configuré ? |
-| Stripe live mode | NON PRÊT | — | Clés live à configurer |
+| Local (Docker Compose) | CONFIGURÉ | docker-compose.yml complet, .env renseigné (R2 + Stripe + JWT) | Fonctionnement réel (lancer start-local.bat) |
+| Tests Jest backend | FONCTIONNEL | 101/101 tests passés (DB mockée) | Tests intégration testcontainers (Docker requis) |
+| Staging Railway | ABSENT — EN PAUSE | — | Plan Railway expiré, config prête dans RAILWAY_CONFIG_READY.md |
+| Production Railway | NON PRÊT | — | Plan Railway expiré |
+| Stripe test mode | CONFIGURÉ | Clés test en .env, Stripe CLI installé, whsec_ local obtenu | Webhook prod non configuré |
+| Stripe live mode | NON PRÊT | — | Clés live à récupérer, webhook prod à créer |
+| Cloudflare R2 | CONFIGURÉ | Bucket jana-products créé, endpoint EU, token en .env | Custom domain R2 (optionnel prod) |
 
 ---
 
