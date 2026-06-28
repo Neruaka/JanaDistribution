@@ -9,14 +9,14 @@
 
 | Indicateur | Valeur |
 |---|---|
-| Phase active | Phase 6/7 — Finalisation administration + Tests |
-| Tâche active | Aucune — Phases 4 et 6 terminées (2026-06-27) |
+| Phase active | Phase 8 — Staging Railway |
+| Tâche active | Aucune — Session 2026-06-28 terminée |
 | Tâches totales | 75 |
 | READY | 0 |
 | IN_PROGRESS | 0 |
 | BLOCKED | 0 |
-| TODO | 28 |
-| DONE | 47 |
+| TODO | 24 |
+| DONE | 51 |
 | CANCELLED | 0 |
 | P0 restants | 0 |
 | P1 restants | 0 |
@@ -676,17 +676,17 @@ Voir détails comptables : `docs/audit-finalisation/09_FACTURATION.md`
 
 ### T5-11 — Téléchargement PDF client (espace Mon Compte)
 
-- **Statut :** BLOCKED | **Priorité :** P1 | **Catégorie :** CODE
+- **Statut :** DONE (2026-06-28) | **Priorité :** P1 | **Catégorie :** CODE
 - **Dépendances :** T5-09
-- **Fichiers :** `frontend/src/pages/OrderHistoryPage.jsx` ou `MonComptePage.jsx`
+- **Fichiers :** `frontend/src/pages/MesFacturesPage.jsx` (créé), `frontend/src/services/api.js`, `frontend/src/App.jsx`, `frontend/src/components/Navbar.jsx`
 
 ---
 
 ### T5-12 — Téléchargement PDF admin
 
-- **Statut :** BLOCKED | **Priorité :** P1 | **Catégorie :** CODE
+- **Statut :** DONE (2026-06-28) | **Priorité :** P1 | **Catégorie :** CODE
 - **Dépendances :** T5-10
-- **Fichiers :** `frontend/src/pages/admin/AdminOrdersList.jsx`
+- **Fichiers :** `frontend/src/components/admin/OrderDetailModal.jsx`, `frontend/src/services/adminService.js`, `backend/src/routes/invoice.routes.js` (ajout ?commande_id=)
 
 ---
 
@@ -764,8 +764,8 @@ Voir détails comptables : `docs/audit-finalisation/09_FACTURATION.md`
 
 ### T6-05 — Supprimer composants orphelins (PromotionsPage)
 
-- **Statut :** TODO | **Priorité :** P3 | **Catégorie :** CODE
-- **Fichiers :** `frontend/src/pages/PromotionsPage.jsx`
+- **Statut :** DONE (2026-06-28) | **Priorité :** P3 | **Catégorie :** CODE
+- **Fichiers :** `frontend/src/pages/PromotionsPage.jsx` (supprimé — aucune référence dans le router)
 
 ---
 
@@ -784,9 +784,9 @@ Détails : `docs/audit-finalisation/12_STRATEGIE_TESTS.md`
 
 ### T7-02 — Tests intégration webhook Stripe
 
-- **Statut :** TODO | **Priorité :** P0 | **Catégorie :** CODE
-- **Fichiers :** `backend/tests/integration/webhook.stripe.test.js` (à créer)
-- **Critères :** Signature vérifiée, idempotency, tous les événements traités
+- **Statut :** DONE (2026-06-28) | **Priorité :** P0 | **Catégorie :** CODE
+- **Fichiers :** `backend/tests/integration/webhook.stripe.test.js` (créé — 7 tests)
+- **Critères :** Signature vérifiée ✓, idempotency (rowCount) ✓, checkout.session.completed ✓, refund.created ✓, event inconnu ✓
 
 ---
 

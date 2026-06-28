@@ -11,12 +11,12 @@
 |---|---|
 | Projet | Jana Distribution — e-commerce alimentaire B2C/B2B |
 | Branche active | `develop` |
-| Dernier commit | `5603fd0` — `docs: update project state after session blocs A-D completion` |
-| Fichiers modifiés non commités | Voir section 7 — R2 endpoint EU corrigé, CI fixé, docs ajoutés |
-| Phase active | Phase 8 — Staging local (Railway en pause) |
-| Tâche active | Aucune — Phase 8 locale en cours (2026-06-28) |
+| Dernier commit | `214c9fb` — `chore(frontend): remove orphan PromotionsPage (T6-05)` |
+| Fichiers modifiés non commités | Aucun — working tree propre |
+| Phase active | Phase 8 — Staging Railway (en pause, plan expiré) |
+| Tâche active | Aucune — Session 2026-06-28 terminée |
 | Verdict | **NON PRÊT POUR LA PRODUCTION** |
-| Avancement estimé | ~92 % |
+| Avancement estimé | ~95 % |
 
 ---
 
@@ -138,19 +138,16 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 
 ## 7. État du working tree (important)
 
-**Branche develop, 8 commits ahead of origin/develop.**
+**Branche develop, working tree propre.**
 
-### Fichiers modifiés en session 2026-06-28 (non commités)
+### Session 2026-06-28 — commits effectués
 
-| Fichier | Modification |
-|---|---|
-| `backend/src/config/r2.js` | Endpoint EU corrigé (`.eu.r2.cloudflarestorage.com`) |
-| `.github/workflows/ci.yml` | JWT_REFRESH_SECRET + BCRYPT_SALT_ROUNDS ajoutés aux env tests |
-| `ETAT_ACTUEL_PROJET.md` | Mise à jour état environnements + décisions techniques |
-| `start-local.bat` | Script démarrage Windows (nouveau) |
-| `start-local.sh` | Script démarrage Linux/Mac (nouveau) |
-| `docs/CHECKLIST_TEST_LOCAL.md` | Checklist test complet local (nouveau) |
-| `docs/RAILWAY_CONFIG_READY.md` | Config Railway prête à appliquer (nouveau) |
+| Commit | Tâche | Description |
+|---|---|---|
+| `254278b` | Docker | feat(docker): full docker-compose dev environment |
+| `2b76c08` | T7-02 | test(webhook): Stripe webhook integration tests (7 tests) |
+| `8b203d8` | T5-11/T5-12 | feat(invoices): PDF download client + admin |
+| `214c9fb` | T6-05 | chore(frontend): remove orphan PromotionsPage |
 
 ---
 
@@ -256,20 +253,24 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 | 2026-06-27 | T3-01+T3-02+T3-04 | Migration 0006 : paramètres livraison DISTANCE en DB (5€+0.80/km, franco 80€, rayon 80km). Migration 0007 : numero_colis + date_expedition sur commande. | 6/6 suites, 101/101 ✓ | DONE |
 | 2026-06-27 | T5-01..T5-10 | Migration 0008 : tables facture/facture_ligne/facture_seq + produit.taux_tva. invoice.repository.js, invoice.service.js (generateForOrder idempotent), invoice-pdf.generator.js (PDFKit). Routes /api/invoices (client + admin). payment.service déclenche la génération au webhook checkout. ⚠️ validation comptable TVA requise avant prod. | 6/6 suites, 101/101 ✓ | DONE |
 | 2026-06-27 | T7-01..T7-06 | Tests d'intégration : shipping.test.js (4 tests Haversine unitaires, passent sans Docker). order.create, auth, stock.concurrent : scaffolding testcontainers (nécessite Docker, exclus du npm test par défaut). | 6/6 suites, 101/101 ✓ | DONE |
+| 2026-06-28 | Docker | docker-compose.yml remplacé : Dockerfile.dev backend (nodemon) + frontend (Vite --host), DB_HOST=postgres overridé pour la logique dev. DEMARRAGE.md créé. start-local.bat/.sh supprimés. | — | DONE |
+| 2026-06-28 | T7-02 | webhook.stripe.test.js : 7 tests (sécurité, idempotency rowCount, checkout.session.completed, refund.created via payment_intent, event inconnu). Mini-app Express isolée. | 7/7 suites, 108/108 ✓ | DONE |
+| 2026-06-28 | T5-11 | MesFacturesPage.jsx créée, route /mes-factures (PrivateRoute), lien dans Navbar dropdown, getMesFactures + downloadFacturePDF dans api.js. | Build ✓ | DONE |
+| 2026-06-28 | T5-12 | invoice.routes.js : GET /admin avec ?commande_id=. adminService : getFactureByCommande + downloadFacturePDF. OrderDetailModal : bouton "Facture PDF" dans le header. | Build ✓ | DONE |
+| 2026-06-28 | T6-05 | PromotionsPage.jsx supprimé — confirmé orphelin (aucune référence dans App.jsx ni composants). | — | DONE |
 
 ---
 
 ## 13. Prochaine action recommandée
 
-**Phases 0-7 terminées (2026-06-27). Prochaine : Phase 8 — Staging Railway**
+**Phases 0-8 locale terminées (2026-06-28). Prochaine : T5-13 (email facture) ou Phase 8 Railway**
 
 | Champ | Valeur |
 |---|---|
-| Identifiant | T8-01 |
-| Objectif | Créer services Railway staging (backend-staging + frontend-staging) |
-| Fichiers | `.github/workflows/deploy.yml` (T8-03), variables Railway (T8-02) |
-| Prérequis | Accès Railway Dashboard |
-| Critère de sortie | Déploiement staging opérationnel avec DB séparée et clés Stripe test |
+| Option A | T5-13 — Envoi facture par email avec pièce jointe (Brevo base64) |
+| Option B | T8-01 — Staging Railway (nécessite réactivation plan Railway) |
+| Prérequis option A | Aucun — peut commencer immédiatement |
+| Prérequis option B | Accès Railway Dashboard + plan actif |
 
 **Actions externes requises avant prod :**
 1. Créer bucket Cloudflare R2 + configurer R2_* dans Railway
