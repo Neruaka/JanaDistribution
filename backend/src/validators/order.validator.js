@@ -122,7 +122,15 @@ const createOrderValidation = [
     .optional()
     .trim()
     .isLength({ max: 500 })
-    .withMessage('Les instructions ne peuvent pas dépasser 500 caractères')
+    .withMessage('Les instructions ne peuvent pas dépasser 500 caractères'),
+
+  // Code promo (optionnel)
+  body('code_promo')
+    .optional()
+    .isString()
+    .trim()
+    .isLength({ min: 1, max: 50 })
+    .withMessage('Le code promo est invalide')
 ];
 
 /**

@@ -26,6 +26,7 @@ const adminStatsRoutes = require('./routes/admin.stats.routes');
 const adminClientsRoutes = require('./routes/admin.clients.routes');
 const settingsRoutes = require('./routes/settings.routes');
 const invoiceRoutes = require('./routes/invoice.routes');
+const promoRoutes = require('./routes/promo.routes');
 const path = require('path');
 const fs = require('fs');
 
@@ -147,6 +148,7 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 
 app.use('/api/invoices', invoiceRoutes);
+app.use('/api/promo', promoRoutes);
 
 // Routes API Admin
 app.use('/api/admin/orders', adminOrderRoutes);

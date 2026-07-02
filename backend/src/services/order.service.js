@@ -11,6 +11,7 @@ const userRepository = require('../repositories/user.repository');
 // const productRepository = require('../repositories/product.repository');
 const emailService = require('./email.service');
 const settingsService = require('./settings.service');
+const promoService = require('./promo.service');
 const logger = require('../config/logger');
 const { ApiError } = require('../middlewares/errorHandler');
 
@@ -161,8 +162,29 @@ class OrderService {
       });
     }
 
-    const totalTtc = cart.summary.totalTTC + fraisLivraison;
-    
+    let totalTtc = cart.summary.totalTTC + fraisLivraison;
+
+    // Code promo (optionnel) : validation côté serveur AVANT la transaction de
+    // création de commande. Le total transmis par le client n'est jamais
+    // utilisé — le rabais est calculé sur le total recalculé serveur.
+    // Note (limite connue du MVP) : la re-vérification finale des limites
+    // d'utilisation (globale / par client) a lieu DANS la transaction
+    // (order.repository.js#create, avec verrou SELECT ... FOR UPDATE sur la
+    // ligne code_promo) pour éviter un dépassement sous forte concurrence.
+    // Cette validation préalable sert surtout à retourner une erreur claire
+    // au client sans ouvrir de transaction inutilement.
+    let promoInfo = null;
+    if (data.codePromo) {
+      const totalAvantRabais = totalTtc;
+      const validation = await promoService.validerCode(data.codePromo, userId, totalAvantRabais);
+      promoInfo = {
+        codePromoId: validation.codePromo.id,
+        montantRabais: validation.montantRabais,
+        totalAvantRabais
+      };
+      totalTtc = validation.totalApresRabais;
+    }
+
     // Créer la commande
     const orderData = {
       utilisateurId: userId,
@@ -175,7 +197,12 @@ class OrderService {
       totalHt,
       totalTva,
       totalTtc,
-      lignes
+      lignes,
+      ...(promoInfo && {
+        codePromoId: promoInfo.codePromoId,
+        montantRabais: promoInfo.montantRabais,
+        totalAvantRabais: promoInfo.totalAvantRabais
+      })
     };
 
     const order = await orderRepository.create(orderData);

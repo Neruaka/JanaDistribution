@@ -13,20 +13,22 @@ const { ApiError } = require('../middlewares/errorHandler');
 const createOrder = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const { 
-      adresseLivraison, 
-      adresseFacturation, 
-      modePaiement, 
+    const {
+      adresseLivraison,
+      adresseFacturation,
+      modePaiement,
       fraisLivraison,
-      instructionsLivraison 
+      instructionsLivraison,
+      code_promo: codePromo
     } = req.body;
-    
+
     const result = await orderService.createFromCart(userId, {
       adresseLivraison,
       adresseFacturation,
       modePaiement,
       fraisLivraison,
-      instructionsLivraison
+      instructionsLivraison,
+      codePromo
     });
     
     res.status(201).json({

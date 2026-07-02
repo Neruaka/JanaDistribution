@@ -17,6 +17,7 @@
 const { query, pool } = require('../config/database');
 const logger = require('../config/logger');
 const { ApiError } = require('../middlewares/errorHandler');
+const promoRepository = require('./promo.repository');
 
 class OrderRepository {
   
@@ -88,6 +89,9 @@ class OrderRepository {
         c.instructions_livraison,
         c.paiement_statut,
         c.paye_le,
+        c.code_promo_id,
+        c.montant_rabais,
+        c.total_avant_rabais,
         c.date_modification,
         u.nom as utilisateur_nom,
         u.prenom as utilisateur_prenom,
@@ -151,6 +155,9 @@ class OrderRepository {
         c.instructions_livraison,
         c.paiement_statut,
         c.paye_le,
+        c.code_promo_id,
+        c.montant_rabais,
+        c.total_avant_rabais,
         c.date_modification,
         u.nom as utilisateur_nom,
         u.prenom as utilisateur_prenom,
@@ -249,6 +256,52 @@ class OrderRepository {
       // Générer le numéro de commande
       const numeroCommande = await this._generateNumeroCommande(client);
 
+      // Code promo (optionnel) : re-vérification des limites d'utilisation
+      // DANS la transaction, avec verrou pessimiste sur la ligne code_promo,
+      // pour empêcher un dépassement de max_utilisations_global /
+      // max_utilisations_par_client sous forte concurrence (deux commandes
+      // simultanées avec le même code promo se sérialisent sur ce verrou).
+      if (data.codePromoId) {
+        const promoLockResult = await client.query(
+          `SELECT id, actif, date_debut, date_fin, max_utilisations_global, max_utilisations_par_client
+           FROM code_promo WHERE id = $1 FOR UPDATE`,
+          [data.codePromoId]
+        );
+        const promo = promoLockResult.rows[0];
+
+        if (!promo || !promo.actif) {
+          throw ApiError.badRequest('Ce code promo n\'est plus valide');
+        }
+
+        const now = new Date();
+        if (promo.date_debut && now < new Date(promo.date_debut)) {
+          throw ApiError.badRequest('Ce code promo n\'est pas encore valide');
+        }
+        if (promo.date_fin && now > new Date(promo.date_fin)) {
+          throw ApiError.badRequest('Ce code promo a expiré');
+        }
+
+        if (promo.max_utilisations_global !== null && promo.max_utilisations_global !== undefined) {
+          const globalCount = await client.query(
+            'SELECT COUNT(*) as total FROM code_promo_utilisation WHERE code_promo_id = $1',
+            [data.codePromoId]
+          );
+          if (parseInt(globalCount.rows[0].total, 10) >= promo.max_utilisations_global) {
+            throw ApiError.badRequest('Ce code promo a atteint son nombre maximum d\'utilisations');
+          }
+        }
+
+        if (promo.max_utilisations_par_client !== null && promo.max_utilisations_par_client !== undefined) {
+          const userCount = await client.query(
+            'SELECT COUNT(*) as total FROM code_promo_utilisation WHERE code_promo_id = $1 AND utilisateur_id = $2',
+            [data.codePromoId, data.utilisateurId]
+          );
+          if (parseInt(userCount.rows[0].total, 10) >= promo.max_utilisations_par_client) {
+            throw ApiError.badRequest('Vous avez déjà utilisé ce code promo le nombre maximum de fois autorisé');
+          }
+        }
+      }
+
       // Créer la commande
       const orderSql = `
         INSERT INTO commande (
@@ -262,8 +315,11 @@ class OrderRepository {
           adresse_facturation,
           mode_paiement,
           frais_livraison,
-          instructions_livraison
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          instructions_livraison,
+          code_promo_id,
+          montant_rabais,
+          total_avant_rabais
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
         RETURNING *
       `;
 
@@ -278,7 +334,10 @@ class OrderRepository {
         JSON.stringify(data.adresseFacturation || data.adresseLivraison),
         data.modePaiement || 'ESPECES',
         data.fraisLivraison || 0,
-        data.instructionsLivraison || null
+        data.instructionsLivraison || null,
+        data.codePromoId || null,
+        data.montantRabais || 0,
+        data.totalAvantRabais || null
       ];
 
       const orderResult = await client.query(orderSql, orderParams);
@@ -360,6 +419,22 @@ class OrderRepository {
         await client.query(
           'UPDATE panier SET date_modification = NOW() WHERE id = $1',
           [data.cartId]
+        );
+      }
+
+      // Enregistrer l'utilisation du code promo DANS la même transaction que
+      // la création de la commande (cohérence transactionnelle : si la
+      // commande échoue, l'utilisation n'est pas comptabilisée et vice versa).
+      if (data.codePromoId) {
+        await promoRepository.enregistrerUtilisation(
+          {
+            codePromoId: data.codePromoId,
+            commandeId: order.id,
+            utilisateurId: data.utilisateurId,
+            montantRabaisApplique: data.montantRabais || 0,
+            totalAvantRabais: data.totalAvantRabais
+          },
+          client
         );
       }
 
@@ -645,6 +720,9 @@ class OrderRepository {
       instructionsLivraison: row.instructions_livraison,
       paiementStatut: row.paiement_statut || 'PENDING',
       payeLe: row.paye_le || null,
+      codePromoId: row.code_promo_id || null,
+      montantRabais: row.montant_rabais !== undefined && row.montant_rabais !== null ? parseFloat(row.montant_rabais) : 0,
+      totalAvantRabais: row.total_avant_rabais !== undefined && row.total_avant_rabais !== null ? parseFloat(row.total_avant_rabais) : null,
       nbArticles: row.nb_articles ? parseInt(row.nb_articles) : undefined,
       dateModification: row.date_modification
     };
