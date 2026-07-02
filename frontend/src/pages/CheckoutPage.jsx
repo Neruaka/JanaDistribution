@@ -13,7 +13,6 @@ import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useSettings } from '../contexts/SettingsContext'; // ✅ AJOUT
 import { createOrder, MODES_PAIEMENT } from '../services/orderService';
-import { createCheckoutSession } from '../services/paymentService';
 import { estimateShipping } from '../services/shippingService';
 import toast from 'react-hot-toast';
 
@@ -80,7 +79,7 @@ const CheckoutPage = () => {
     villeFacturation: '',
     
     // Options
-    modePaiement: 'CARTE',
+    modePaiement: 'ESPECES',
     instructions: '',
     
     // CGV
@@ -263,25 +262,7 @@ const CheckoutPage = () => {
 
       const orderId = result.data.id;
 
-      // ✅ Paiement CARTE : redirection Stripe Checkout
-      if (formData.modePaiement === 'CARTE') {
-        try {
-          const { url } = await createCheckoutSession(orderId);
-          resetCartLocal();
-          window.location.href = url;
-          return;
-        } catch (err) {
-          console.error('Erreur création session Stripe:', err);
-          toast.error(
-            err.response?.data?.message ||
-            'Impossible de démarrer le paiement. Votre commande est enregistrée, vous pouvez réessayer depuis Mes commandes.'
-          );
-          navigate(`/mes-commandes/${orderId}`);
-          return;
-        }
-      }
-
-      // ✅ Autres modes (VIREMENT / CHEQUE / ESPECES) : flux devis existant
+      // Aucun paiement en ligne : flux devis (VIREMENT / CHEQUE / ESPECES)
       resetCartLocal();
       navigate(`/commande/confirmation/${orderId}`, {
         state: { order: result.data, fromCheckout: true }
@@ -322,8 +303,6 @@ const CheckoutPage = () => {
     ville: formData.ville
   };
 
-  const isCarte = formData.modePaiement === 'CARTE';
-
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4">
@@ -342,46 +321,26 @@ const CheckoutPage = () => {
             Finaliser ma commande
           </h1>
           <p className="text-gray-600 mt-2">
-            {isCarte
-              ? 'Remplissez les informations ci-dessous pour finaliser votre commande'
-              : 'Remplissez les informations ci-dessous pour recevoir votre devis par email'}
+            Remplissez les informations ci-dessous pour recevoir votre devis par email
           </p>
         </div>
 
-        {/* Bandeau info — contenu adapté selon le mode de paiement */}
-        {isCarte ? (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 flex items-start gap-3"
-          >
-            <Info className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-green-800 font-medium">Paiement sécurisé par carte bancaire</p>
-              <p className="text-green-700 text-sm mt-1">
-                Après validation, votre commande sera créée puis vous serez redirigé vers{' '}
-                <strong>la page de paiement sécurisée Stripe</strong>. Votre commande sera confirmée
-                uniquement après validation du paiement par Stripe.
-              </p>
-            </div>
-          </motion.div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-start gap-3"
-          >
-            <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-blue-800 font-medium">Comment ça marche ?</p>
-              <p className="text-blue-700 text-sm mt-1">
-                Après validation, vous recevrez un <strong>devis par email</strong> récapitulant votre commande.
-                Notre équipe vous contactera pour confirmer la livraison.
-                Le paiement s'effectue selon le mode choisi.
-              </p>
-            </div>
-          </motion.div>
-        )}
+        {/* Bandeau info */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-start gap-3"
+        >
+          <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-blue-800 font-medium">Comment ça marche ?</p>
+            <p className="text-blue-700 text-sm mt-1">
+              Après validation, vous recevrez un <strong>devis par email</strong> récapitulant votre commande.
+              Notre équipe vous contactera pour confirmer la livraison.
+              Le paiement s'effectue selon le mode choisi.
+            </p>
+          </div>
+        </motion.div>
 
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -480,7 +439,7 @@ const CheckoutPage = () => {
                   ) : (
                     <>
                       <FileText className="w-5 h-5" />
-                      {isCarte ? 'Valider et payer par carte' : 'Valider et recevoir mon devis'}
+                      Valider et recevoir mon devis
                     </>
                   )}
                 </button>

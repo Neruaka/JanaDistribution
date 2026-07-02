@@ -235,7 +235,7 @@ const adminService = {
   },
 
   /**
-   * Initier un remboursement Stripe depuis l'admin
+   * Enregistrer un remboursement manuel (ESPECES / VIREMENT / CHEQUE) depuis l'admin
    * @param {string} id - UUID de la commande
    * @param {Object} data - { montant: number, raison?: string }
    */

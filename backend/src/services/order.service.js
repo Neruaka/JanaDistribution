@@ -169,7 +169,7 @@ class OrderService {
       cartId: cart.id,
       adresseLivraison: data.adresseLivraison,
       adresseFacturation: data.adresseFacturation || data.adresseLivraison,
-      modePaiement: data.modePaiement || 'CARTE',
+      modePaiement: data.modePaiement || 'ESPECES',
       fraisLivraison,
       instructionsLivraison: data.instructionsLivraison,
       totalHt,

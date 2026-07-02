@@ -13,9 +13,7 @@ const validate = require('../middlewares/validate.middleware');
 const { query: dbQuery } = require('../config/database');
 const orderService = require('../services/order.service');
 const orderRepository = require('../repositories/order.repository');
-const paymentController = require('../controllers/payment.controller');
 const auditRepository = require('../repositories/audit.repository');
-const { getStripe } = require('../config/stripe');
 const logger = require('../config/logger');
 
 // Toutes les routes nécessitent d'être admin
@@ -430,11 +428,11 @@ router.patch('/:id/status',
 
 /**
  * @route   PATCH /api/admin/orders/:id/payment-status
- * @desc    Mettre à jour manuellement le statut de paiement (modes hors CARTE)
+ * @desc    Mettre à jour manuellement le statut de paiement
  * @access  Admin
  *
- * Pour CARTE, le statut PAID doit venir du webhook Stripe.
- * Utile pour VIREMENT / ESPECES / CHEQUE.
+ * Aucun paiement en ligne (MVP ESPECES / VIREMENT / CHEQUE uniquement) :
+ * le statut de paiement est toujours positionné manuellement par un admin.
  */
 router.patch('/:id/payment-status',
   [
@@ -442,15 +440,60 @@ router.patch('/:id/payment-status',
     body('paiementStatut').isIn(['PENDING', 'AUTHORIZED', 'PAID', 'FAILED', 'REFUNDED'])
   ],
   validate,
-  paymentController.adminUpdatePaymentStatus
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { paiementStatut } = req.body;
+
+      const order = await orderRepository.findById(id);
+      if (!order) {
+        return res.status(404).json({ success: false, message: 'Commande introuvable' });
+      }
+
+      let updated;
+      if (paiementStatut === 'PAID') {
+        updated = await orderRepository.markPaid(id);
+      } else {
+        updated = await orderRepository.updatePaymentStatus(id, paiementStatut);
+      }
+
+      logger.info('Paiement mis à jour manuellement par admin', {
+        orderId: id,
+        adminId: req.user.id,
+        paiementStatut,
+        modePaiement: order.modePaiement
+      });
+
+      auditRepository.log({
+        action: 'PAYMENT_STATUS_UPDATE',
+        entiteType: 'commande',
+        entiteId: id,
+        utilisateurId: req.user.id,
+        details: { paiementStatut },
+        ipAddress: req.ip
+      }).catch(err => logger.warn('Audit log non enregistré:', err.message));
+
+      res.json({
+        success: true,
+        data: updated,
+        message: `Statut paiement mis à jour: ${paiementStatut}`
+      });
+    } catch (error) {
+      logger.error('Erreur mise a jour statut paiement', { error: error.message });
+      next(error);
+    }
+  }
 );
 
 /**
  * @route   POST /api/admin/orders/:id/refund
- * @desc    Initier un remboursement Stripe depuis l'interface admin
+ * @desc    Enregistrer un remboursement manuel (ESPECES / VIREMENT / CHEQUE)
  * @access  Admin
  * @body    { montant: number (EUR), raison?: string }
  *
+ * Aucun paiement en ligne : le remboursement est effectué hors système
+ * (espèces rendues, virement émis, chèque annulé/réémis) et seulement tracé
+ * ici pour la comptabilité et l'audit.
  * Statuts autorisant un remboursement : commande avec paiement_statut=PAID
  * et statut NOT IN (ANNULEE, REMBOURSE, EN_ATTENTE).
  */
@@ -486,32 +529,19 @@ router.post('/:id/refund',
         });
       }
 
-      if (!order.stripePaymentIntentId) {
+      const montantCentsDemande = Math.round(montant * 100);
+      const totalTtcCents = Math.round(order.totalTtc * 100);
+      if (montantCentsDemande > totalTtcCents) {
         return res.status(400).json({
           success: false,
-          message: 'Aucun PaymentIntent Stripe associé à cette commande (paiement non-carte ?)'
+          message: 'Le montant remboursé ne peut pas dépasser le total de la commande'
         });
       }
 
-      const montantCents = Math.round(montant * 100);
-      const stripe = getStripe();
-
-      const refund = await stripe.refunds.create({
-        payment_intent: order.stripePaymentIntentId,
-        amount: montantCents,
-        reason: 'requested_by_customer',
-        metadata: {
-          orderId: order.id,
-          adminId: req.user.id,
-          raison: raison || ''
-        }
-      });
-
-      const isTotal = montantCents >= Math.round(order.totalTtc * 100);
+      const isTotal = montantCentsDemande >= totalTtcCents;
       const nouveauStatut = isTotal ? 'REMBOURSE' : 'PARTIELLEMENT_REMBOURSE';
 
       await orderRepository.updateRefund(order.id, {
-        stripeRefundId: refund.id,
         montantRembourse: montant,
         nouveauStatut
       });
@@ -521,28 +551,27 @@ router.post('/:id/refund',
       }
 
       auditRepository.log({
-        action: 'REFUND_INITIATED',
+        action: 'REFUND_MANUAL',
         entiteType: 'commande',
         entiteId: order.id,
         utilisateurId: req.user.id,
-        details: { refundId: refund.id, montant, raison: raison || null, total: isTotal },
+        details: { montant, raison: raison || null, total: isTotal, modePaiement: order.modePaiement },
         ipAddress: req.ip
       }).catch(err => logger.warn('Audit refund non logué:', err.message));
 
-      logger.info('Remboursement admin initié', {
-        orderId: order.id, refundId: refund.id, montant, adminId: req.user.id
+      logger.info('Remboursement manuel admin enregistré', {
+        orderId: order.id, montant, adminId: req.user.id, modePaiement: order.modePaiement
       });
 
       res.json({
         success: true,
         data: {
-          refundId: refund.id,
           montant,
           statutCommande: nouveauStatut
         }
       });
     } catch (error) {
-      logger.error('Erreur initiation remboursement', { error: error.message });
+      logger.error('Erreur enregistrement remboursement', { error: error.message });
       next(error);
     }
   }

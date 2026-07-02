@@ -37,7 +37,6 @@ import toast from 'react-hot-toast';
 
 const PAIEMENT_ICONS = {
   ESPECES: Banknote,
-  CARTE: CreditCard,
   VIREMENT: Building2,
   CHEQUE: Receipt
 };

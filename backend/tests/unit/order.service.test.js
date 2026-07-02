@@ -52,7 +52,7 @@ const mockOrder = {
 
 const validOrderData = {
   adresseLivraison: { nom: 'Dupont', prenom: 'Jean', adresse: '1 rue de la Paix', codePostal: '75001', ville: 'Paris' },
-  modePaiement: 'CARTE'
+  modePaiement: 'ESPECES'
 };
 
 describe('OrderService — T1-01 : atomicité panier/commande', () => {

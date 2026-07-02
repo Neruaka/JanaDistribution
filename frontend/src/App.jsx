@@ -34,8 +34,6 @@ import OrderHistoryPage from './pages/OrderHistoryPage';
 import OrderDetailPage from './pages/OrderDetailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
-import PaymentSuccessPage from './pages/PaymentSuccessPage';
-import PaymentCancelPage from './pages/PaymentCancelPage';
 
 // Pages client
 import MonComptePage from './pages/MonComptePage';
@@ -149,22 +147,6 @@ function App() {
               <PrivateRoute>
                 <PublicLayout>
                   <OrderConfirmationPage />
-                </PublicLayout>
-              </PrivateRoute>
-            } />
-
-            {/* Paiement Stripe : retour */}
-            <Route path="/paiement/succes" element={
-              <PrivateRoute>
-                <PublicLayout>
-                  <PaymentSuccessPage />
-                </PublicLayout>
-              </PrivateRoute>
-            } />
-            <Route path="/paiement/annule" element={
-              <PrivateRoute>
-                <PublicLayout>
-                  <PaymentCancelPage />
                 </PublicLayout>
               </PrivateRoute>
             } />

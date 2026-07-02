@@ -25,8 +25,6 @@ const adminOrderRoutes = require('./routes/admin.order.routes');
 const adminStatsRoutes = require('./routes/admin.stats.routes');
 const adminClientsRoutes = require('./routes/admin.clients.routes');
 const settingsRoutes = require('./routes/settings.routes');
-const paymentRoutes = require('./routes/payment.routes');
-const webhookRoutes = require('./routes/webhook.routes');
 const invoiceRoutes = require('./routes/invoice.routes');
 const path = require('path');
 const fs = require('fs');
@@ -90,10 +88,6 @@ const authLimiter = rateLimit({
   legacyHeaders: false
 });
 
-// ⚠️ Webhooks Stripe : body brut obligatoire → à monter AVANT express.json()
-// La route interne applique elle-même `express.raw(...)`.
-app.use('/api/webhooks', webhookRoutes);
-
 // Parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -151,7 +145,6 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
-app.use('/api/payment', paymentRoutes);
 
 app.use('/api/invoices', invoiceRoutes);
 

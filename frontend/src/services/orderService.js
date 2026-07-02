@@ -13,7 +13,6 @@ const DEFAULT_FRAIS_LIVRAISON = 15.00; // Fallback uniquement
 
 export const MODES_PAIEMENT = [
   { id: 'ESPECES', label: 'Espèces', description: 'Paiement en espèces à la livraison' },
-  { id: 'CARTE', label: 'Carte bancaire', description: 'Paiement par CB à la livraison' },
   { id: 'VIREMENT', label: 'Virement bancaire', description: 'Virement avant livraison' },
   { id: 'CHEQUE', label: 'Chèque', description: 'Chèque à la livraison' }
 ];

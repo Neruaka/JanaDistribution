@@ -177,9 +177,7 @@ const Recapitulatif = ({
           </button>
 
           <p className="text-xs text-gray-500 text-center mt-3">
-            {formData?.modePaiement === 'CARTE'
-              ? 'Vous serez redirigé vers Stripe pour payer en ligne'
-              : 'Un devis vous sera envoyé par email'}
+            Un devis vous sera envoyé par email
           </p>
         </div>
 
@@ -191,11 +189,7 @@ const Recapitulatif = ({
           </div>
           <div className="flex items-center gap-2 text-gray-500 text-xs mt-1">
             <CheckCircle className="w-4 h-4 text-green-500" />
-            <span>
-              {formData?.modePaiement === 'CARTE'
-                ? 'Paiement sécurisé Stripe'
-                : 'Paiement selon le mode choisi'}
-            </span>
+            <span>Paiement selon le mode choisi</span>
           </div>
         </div>
       </div>

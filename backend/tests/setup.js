@@ -158,7 +158,7 @@ global.testData = {
       codePostal: '75001',
       ville: 'Paris'
     },
-    modePaiement: 'CARTE'
+    modePaiement: 'ESPECES'
   },
 
   // Données d'inscription valides

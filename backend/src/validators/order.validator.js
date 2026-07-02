@@ -108,8 +108,8 @@ const createOrderValidation = [
   // Mode de paiement
   body('modePaiement')
     .optional()
-    .isIn(['CARTE', 'VIREMENT', 'CHEQUE', 'ESPECES'])
-    .withMessage('Mode de paiement invalide (CARTE, VIREMENT, CHEQUE, ESPECES)'),
+    .isIn(['ESPECES', 'VIREMENT', 'CHEQUE'])
+    .withMessage('Mode de paiement invalide (ESPECES, VIREMENT, CHEQUE)'),
   
   // Frais de livraison
   body('fraisLivraison')

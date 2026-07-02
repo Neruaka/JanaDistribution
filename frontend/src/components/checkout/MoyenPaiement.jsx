@@ -4,18 +4,17 @@
  */
 
 import { motion } from 'framer-motion';
-import { 
-  Banknote, 
-  CreditCard, 
-  Building2, 
+import {
+  Banknote,
+  CreditCard,
+  Building2,
   Receipt,
-  CheckCircle 
+  CheckCircle
 } from 'lucide-react';
 
 // Icônes pour les modes de paiement
 const PAIEMENT_ICONS = {
   ESPECES: Banknote,
-  CARTE: CreditCard,
   VIREMENT: Building2,
   CHEQUE: Receipt
 };
