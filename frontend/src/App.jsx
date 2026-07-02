@@ -53,6 +53,7 @@ import AdminProductForm from './pages/admin/AdminProductForm';
 import AdminCategoriesList from './pages/admin/AdminCategoriesList';
 import AdminClientsList from './pages/admin/AdminClientsList';
 import AdminOrdersList from './pages/admin/AdminOrdersList';
+import AdminPromoList from './pages/admin/AdminPromoList';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 import AdminProfilePage from './pages/admin/AdminProfilePage';
 
@@ -204,7 +205,10 @@ function App() {
               
               {/* Commandes */}
               <Route path="commandes" element={<AdminOrdersList />} />
-              
+
+              {/* Codes promo */}
+              <Route path="promo" element={<AdminPromoList />} />
+
               {/* Clients */}
               <Route path="clients" element={<AdminClientsList />} />
               

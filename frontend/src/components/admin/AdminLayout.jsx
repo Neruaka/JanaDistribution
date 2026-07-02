@@ -17,6 +17,7 @@ import {
   FolderTree,
   ShoppingCart,
   Users,
+  Tag,
   Settings,
   LogOut,
   Menu,
@@ -257,6 +258,7 @@ const AdminLayout = () => {
     { name: 'Produits', href: '/admin/produits', icon: Package },
     { name: 'Catégories', href: '/admin/categories', icon: FolderTree },
     { name: 'Commandes', href: '/admin/commandes', icon: ShoppingCart },
+    { name: 'Codes promo', href: '/admin/promo', icon: Tag },
     { name: 'Clients', href: '/admin/clients', icon: Users },
     { name: 'Paramètres', href: '/admin/parametres', icon: Settings }
   ];

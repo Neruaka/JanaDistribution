@@ -259,6 +259,70 @@ const adminService = {
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
+  },
+
+  // ==========================================
+  // CODES PROMO
+  // ==========================================
+
+  /**
+   * Récupérer la liste paginée des codes promo
+   * @param {Object} params - { page, limit, actif }
+   */
+  async getCodesPromo(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', params.page);
+    if (params.limit) queryParams.append('limit', params.limit);
+    if (params.actif !== undefined) queryParams.append('actif', params.actif);
+
+    const response = await api.get(`/promo/admin?${queryParams}`);
+    return response.data;
+  },
+
+  /**
+   * Récupérer un code promo par ID (détail + stats complètes)
+   * @param {string} id - UUID du code promo
+   */
+  async getCodePromoById(id) {
+    const response = await api.get(`/promo/admin/${id}`);
+    return response.data.data;
+  },
+
+  /**
+   * Créer un code promo
+   * @param {Object} data
+   */
+  async createCodePromo(data) {
+    const response = await api.post('/promo/admin', data);
+    return response.data.data;
+  },
+
+  /**
+   * Modifier un code promo (whitelist de champs)
+   * @param {string} id - UUID du code promo
+   * @param {Object} data - champs à modifier
+   */
+  async updateCodePromo(id, data) {
+    const response = await api.patch(`/promo/admin/${id}`, data);
+    return response.data.data;
+  },
+
+  /**
+   * Activer / désactiver un code promo
+   * @param {string} id - UUID du code promo
+   */
+  async toggleCodePromo(id) {
+    const response = await api.patch(`/promo/admin/${id}/toggle`);
+    return response.data.data;
+  },
+
+  /**
+   * Supprimer un code promo (impossible si déjà utilisé)
+   * @param {string} id - UUID du code promo
+   */
+  async deleteCodePromo(id) {
+    const response = await api.delete(`/promo/admin/${id}`);
+    return response.data;
   }
 };
 
