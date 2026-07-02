@@ -11,12 +11,12 @@
 |---|---|
 | Projet | Jana Distribution — e-commerce alimentaire B2C/B2B |
 | Branche active | `develop` |
-| Dernier commit | `9ee63d0` — `feat(mvp): remove Stripe entirely - MVP uses ESPECES/VIREMENT/CHEQUE only (T4-07)` |
+| Dernier commit | `58bf032` — `docs: log promo codes admin UI + backend/checkout commits in project state` |
 | Fichiers modifiés non commités | Aucun — working tree propre |
 | Phase active | Phase 8 — Staging Railway (en pause, plan expiré) |
-| Tâche active | Aucune — Session 2026-07-02 terminée (retrait Stripe) |
+| Tâche active | Aucune — Session 2026-07-02 terminée (retrait Stripe + codes promo) |
 | Verdict | **NON PRÊT POUR LA PRODUCTION** |
-| Avancement estimé | ~95 % |
+| Avancement estimé | ~96 % (50/80 tâches DONE) |
 
 ---
 
@@ -273,7 +273,7 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 
 ## 13. Prochaine action recommandée
 
-**Phases 0-8 locale terminées (2026-06-28). Prochaine : T5-13 (email facture) ou Phase 8 Railway**
+**Session Stripe removal + Codes promo terminée (2026-07-02). Prochaine : T5-13 (email facture) ou Phase 8 Railway**
 
 | Champ | Valeur |
 |---|---|
@@ -287,3 +287,6 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 2. Renseigner ENTREPRISE_SIRET, ENTREPRISE_TVA_NUMERO, ENTREPRISE_ADRESSE
 3. ⚠️ Faire valider les taux TVA par un comptable pour chaque référence produit
 4. Railway : activer sauvegardes PostgreSQL (T8-04)
+
+**Dette technique découverte (2026-07-02, agent Documentation) :**
+`backend/scripts/init.sql` n'est plus synchronisé avec les migrations versionnées : il référence encore des colonnes/tables Stripe supprimées (`stripe_event`, `CARTE` dans l'ENUM `mode_paiement`) et ne contient ni `refresh_token`, ni `audit_log`, ni `facture`/`facture_ligne`, ni `code_promo`/`code_promo_utilisation`. Les migrations font foi (convention confirmée dans `CLAUDE_WORKFLOW.md` §8), mais `init.sql` devrait être régénéré ou clairement marqué comme obsolète pour éviter toute confusion lors d'un futur bootstrap local. Détails dans `docs/CHANGEMENTS_MVP.md` et `docs/RESTE_A_FAIRE_PROD.md`.

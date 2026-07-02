@@ -10,13 +10,13 @@
 | Indicateur | Valeur |
 |---|---|
 | Phase active | Phase 8 — Staging Railway |
-| Tâche active | Aucune — Session 2026-07-02 terminée (retrait Stripe) |
-| Tâches totales | 76 |
+| Tâche active | Aucune — Session 2026-07-02 terminée (retrait Stripe + codes promo) |
+| Tâches totales | 80 |
 | READY | 0 |
 | IN_PROGRESS | 0 |
 | BLOCKED | 0 |
 | TODO | 21 |
-| DONE | 46 |
+| DONE | 50 |
 | CANCELLED | 9 |
 | P0 restants | 0 |
 | P1 restants | 0 |
@@ -947,6 +947,50 @@ Checklist complète : `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 ### T9-08 — Documentation déploiement à jour
 
 - **Statut :** TODO | **Priorité :** P1
+
+---
+
+## Phase 10 — Codes promo (MVP, décision client 2026-07-02)
+
+> Feature ajoutée suite à la décision client de retirer Stripe (voir T4-07) : rabais pourcentage ou montant fixe, dates de validité, limites d'utilisation globale/par client, montant minimum, activation manuelle, stats admin.
+
+### T10-01 — Schéma DB + repository + service + API codes promo (backend)
+
+- **Statut :** DONE (2026-07-02) | **Priorité :** P1 | **Catégorie :** CODE | **Domaine :** Backend
+- **Fichiers :** `backend/scripts/migrations/0010_codes_promo.sql`, `backend/src/repositories/promo.repository.js`, `backend/src/services/promo.service.js`, `backend/src/routes/promo.routes.js`, `backend/tests/unit/promo.service.test.js`
+- **Tables créées :** `code_promo`, `code_promo_utilisation` ; colonnes `commande.code_promo_id`, `commande.montant_rabais`, `commande.total_avant_rabais`
+- **Routes :** `POST /api/promo/valider` (client), `GET/POST/PATCH/DELETE /api/promo/admin[/:id]`, `PATCH /api/promo/admin/:id/toggle`
+- **Tests :** 112/112 (101 existants + 11 nouveaux)
+- **Commit :** `586da91`
+- **Risque documenté :** verrou `SELECT ... FOR UPDATE` sur `code_promo` pendant la transaction de commande pour fermer la fenêtre de course sur les limites d'utilisation ; limitation acceptée pour le volume MVP.
+
+---
+
+### T10-02 — Intégration code promo dans la création de commande
+
+- **Statut :** DONE (2026-07-02) | **Priorité :** P1 | **Catégorie :** CODE | **Domaine :** Backend
+- **Fichiers :** `backend/src/services/order.service.js`, `backend/src/repositories/order.repository.js`, `backend/src/controllers/order.controller.js`, `backend/src/validators/order.validator.js`
+- **Détail :** total recalculé côté serveur (jamais confiance au total client), utilisation enregistrée dans la même transaction que la commande.
+- **Commit :** `586da91` (même commit que T10-01)
+
+---
+
+### T10-03 — Champ code promo au checkout client (frontend)
+
+- **Statut :** DONE (2026-07-02) | **Priorité :** P1 | **Catégorie :** CODE | **Domaine :** Frontend
+- **Fichiers :** `frontend/src/pages/CheckoutPage.jsx`, `frontend/src/components/checkout/Recapitulatif.jsx`, `frontend/src/services/orderService.js`, `frontend/src/services/promoService.js`
+- **Détail :** validation en temps réel via `POST /promo/valider`, affichage du rabais, total recalculé par le backend à la commande réelle.
+- **Commit :** `5c7634d`
+
+---
+
+### T10-04 — Interface admin gestion codes promo (CRUD + stats)
+
+- **Statut :** DONE (2026-07-02) | **Priorité :** P1 | **Catégorie :** CODE | **Domaine :** Frontend Admin
+- **Fichiers :** `frontend/src/pages/admin/AdminPromoList.jsx`, `frontend/src/components/admin/PromoCodeModal.jsx`, `frontend/src/services/adminService.js`, `frontend/src/App.jsx`, `frontend/src/components/admin/AdminLayout.jsx`
+- **Détail :** tableau avec stats (utilisations, clients touchés, CA généré), toggle actif/inactif, suppression bloquée si déjà utilisé (suggère désactivation).
+- **Commits :** `dfaca2d`, `58bf032`
+- **Limite documentée :** cartes de stats rapides calculées sur la page chargée (pas d'agrégation globale serveur — hors contrat API actuel).
 
 ---
 
