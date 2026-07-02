@@ -144,6 +144,9 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 | Commit | Tâche | Description |
 |---|---|---|
 | `9ee63d0` | T4-07 | feat(mvp): remove Stripe entirely - MVP uses ESPECES/VIREMENT/CHEQUE only |
+| `586da91` | Promo (backend) | feat(promo): promo codes system - DB schema + repository + service + API routes (admin + client) |
+| `5c7634d` | Promo (checkout) | feat(promo): promo code field in checkout - validation + display discount in real time |
+| `dfaca2d` | T-PROMO-ADMIN | feat(admin): promo codes management page - CRUD + stats + toggle |
 
 ### Session 2026-06-28 — commits effectués
 
@@ -218,6 +221,9 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 | `frontend/src/pages/CheckoutPage.jsx` | Checkout multi-étapes (ESPECES/VIREMENT/CHEQUE uniquement) |
 | `frontend/src/App.jsx` | Routing React, routes admin |
 | `frontend/src/services/api.js` | Intercepteur Axios, refresh token auto |
+| `backend/src/routes/promo.routes.js` | Codes promo : validation client + CRUD/toggle/delete admin |
+| `frontend/src/pages/admin/AdminPromoList.jsx` | Admin codes promo : liste, stats, toggle, suppression protégée |
+| `frontend/src/components/admin/PromoCodeModal.jsx` | Modal création/édition code promo (validation front) |
 | `backend/scripts/migrations/0009_remove_stripe.sql` | Migration retrait Stripe (T4-07) |
 
 ---
@@ -260,6 +266,8 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 | 2026-06-28 | T5-12 | invoice.routes.js : GET /admin avec ?commande_id=. adminService : getFactureByCommande + downloadFacturePDF. OrderDetailModal : bouton "Facture PDF" dans le header. | Build ✓ | DONE |
 | 2026-06-28 | T6-05 | PromotionsPage.jsx supprimé — confirmé orphelin (aucune référence dans App.jsx ni composants). | — | DONE |
 | 2026-07-02 | T4-07 | **Décision client : retrait complet de Stripe** (pas de paiement en ligne au MVP, ESPECES/VIREMENT/CHEQUE uniquement). Supprimé : payment.service.js, payment.controller.js, payment.routes.js, webhook.routes.js, config/stripe.js, paymentService.js, PaymentSuccessPage.jsx, PaymentCancelPage.jsx, webhook.stripe.test.js. Migration 0009 : colonnes stripe_session_id/stripe_payment_intent_id/stripe_refund_id supprimées, table stripe_event supprimée, ENUM mode_paiement recréé sans CARTE (montant_rembourse et statuts REMBOURSE/PARTIELLEMENT_REMBOURSE conservés pour le suivi manuel). admin.order.routes.js : payment-status et refund passent en logique manuelle. npm uninstall stripe (backend) + @stripe/stripe-js (frontend). T4-01..T4-06, T7-02, T9-01, T9-05 passés CANCELLED. | 6/6 suites, 101/101 ✓, build frontend ✓ | DONE |
+| 2026-07-02 | Promo (backend+checkout) | Système de codes promo livré par un autre agent : migration + promo.repository.js + promo.service.js + routes.js (`/api/promo/valider` client, `/api/promo/admin*` CRUD+toggle+delete avec garde 409 si déjà utilisé), champ code promo intégré au CheckoutPage. | 6/6 suites, 112/112 ✓ | DONE |
+| 2026-07-02 | T-PROMO-ADMIN | Interface admin codes promo : adminService.js (getCodesPromo/getCodePromoById/createCodePromo/updateCodePromo/toggleCodePromo/deleteCodePromo), AdminPromoList.jsx (tableau + pagination + filtre actif/inactif + stats rapides + badge Actif/Inactif/Expiré + toggle + suppression protégée si nb_utilisations>0), PromoCodeModal.jsx (création/édition avec validation front alignée sur les règles backend ; le champ `code` est verrouillé en édition car absent de la whitelist PATCH). Route `/admin/promo` + lien sidebar "Codes promo" (AdminLayout.jsx). | build frontend ✓, 6/6 suites, 112/112 ✓ (non-régression backend) | DONE |
 
 ---
 
