@@ -10,14 +10,14 @@
 | Indicateur | Valeur |
 |---|---|
 | Phase active | Phase 8 — Staging Railway |
-| Tâche active | Aucune — Session 2026-06-28 terminée |
-| Tâches totales | 75 |
+| Tâche active | Aucune — Session 2026-07-02 terminée (retrait Stripe) |
+| Tâches totales | 76 |
 | READY | 0 |
 | IN_PROGRESS | 0 |
 | BLOCKED | 0 |
-| TODO | 24 |
-| DONE | 51 |
-| CANCELLED | 0 |
+| TODO | 21 |
+| DONE | 46 |
+| CANCELLED | 9 |
 | P0 restants | 0 |
 | P1 restants | 0 |
 | Verdict | NON PRÊT POUR LA PRODUCTION |
@@ -537,11 +537,17 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 ### Phase 4 — Stripe et remboursements finalisés
 
+> ⚠️ **Décision client (2026-07-02) : le MVP n'a PAS de paiement en ligne.**
+> Stripe a été retiré entièrement du projet (code, DB, package npm, env, tests).
+> Modes de paiement acceptés : ESPECES (livraison), VIREMENT, CHEQUE.
+> T4-01 à T4-06 sont **CANCELLED** (décision métier, plus de canal Stripe).
+> Voir T4-07 pour le détail du retrait.
+
 ---
 
 ### T4-01 — Remplacer charge.refunded par refund.created
 
-- **Statut :** DONE (2026-06-27) | **Priorité :** P1 | **Catégorie :** CODE | **Domaine :** Backend / Stripe
+- **Statut :** CANCELLED (2026-07-02) — Stripe retiré du projet, voir T4-07 | **Priorité :** P1 | **Catégorie :** CODE | **Domaine :** Backend / Stripe
 - **Objectif :** Utiliser l'événement Stripe `refund.created` pour une gestion plus précise (remboursements partiels)
 - **Source audit :** `docs/audit-finalisation/08_STRIPE_PAIEMENTS.md`
 - **Fichiers d'entrée :** `backend/src/services/payment.service.js` (ligne 174), `backend/src/routes/webhook.routes.js`
@@ -559,7 +565,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 ### T4-02 — Gérer les remboursements partiels
 
-- **Statut :** DONE (2026-06-27) | **Priorité :** P1 | **Catégorie :** CODE
+- **Statut :** CANCELLED (2026-07-02) — Stripe retiré du projet, voir T4-07 | **Priorité :** P1 | **Catégorie :** CODE
 - **Dépendances :** T4-01
 - **Fichiers :** `payment.service.js`, `order.repository.js`
 
@@ -567,7 +573,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 ### T4-03 — Interface admin d'initiation de remboursement
 
-- **Statut :** DONE (2026-06-27) | **Priorité :** P1 | **Catégorie :** CODE
+- **Statut :** CANCELLED (2026-07-02) — remplacé par un remboursement manuel (voir T4-07) | **Priorité :** P1 | **Catégorie :** CODE
 - **Domaine :** Frontend Admin + Backend
 - **Fichiers :** `frontend/src/pages/admin/AdminOrdersList.jsx`, `backend/src/routes/payment.routes.js`
 - **Critères :** Admin peut déclencher un remboursement depuis l'interface, action loguée en audit_log
@@ -576,23 +582,37 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 ### T4-04 — Stocker stripe_refund_id sur la commande
 
-- **Statut :** DONE (2026-06-27) | **Priorité :** P1 | **Catégorie :** CODE
+- **Statut :** CANCELLED (2026-07-02) — colonne `stripe_refund_id` supprimée (migration 0009), voir T4-07 | **Priorité :** P1 | **Catégorie :** CODE
 - **Fichiers :** Migration SQL (`stripe_refund_id` sur `commande`), `order.repository.js`
 
 ---
 
 ### T4-05 — Enrichir les métadonnées Stripe
 
-- **Statut :** DONE (2026-06-27) | **Priorité :** P2 | **Catégorie :** CODE
+- **Statut :** CANCELLED (2026-07-02) — Stripe retiré du projet, voir T4-07 | **Priorité :** P2 | **Catégorie :** CODE
 - **Fichiers :** `backend/src/services/payment.service.js` (section metadata)
 
 ---
 
 ### T4-06 — Configurer webhook Stripe en production
 
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** ACTION EXTERNE
-- **Action :** Stripe Dashboard → Webhooks → ajouter URL production → copier `STRIPE_WEBHOOK_SECRET`
+- **Statut :** CANCELLED (2026-07-02) — plus de webhook Stripe à configurer, voir T4-07 | **Priorité :** P2 | **Catégorie :** ACTION EXTERNE
+- **Action :** ~~Stripe Dashboard → Webhooks → ajouter URL production → copier `STRIPE_WEBHOOK_SECRET`~~
 - **Ne nécessite pas de code**
+
+---
+
+### T4-07 — Retrait complet de Stripe (décision client : pas de paiement en ligne au MVP)
+
+- **Statut :** DONE (2026-07-02) | **Priorité :** P0 | **Catégorie :** CODE + DB | **Domaine :** Backend / Frontend / E-commerce
+- **Objectif :** Retirer entièrement Stripe (code applicatif, colonnes DB, package npm, variables d'env, tests) — seuls ESPECES (livraison), VIREMENT et CHEQUE restent des modes de paiement valides.
+- **Fichiers supprimés :** `backend/src/services/payment.service.js`, `backend/src/controllers/payment.controller.js`, `backend/src/routes/payment.routes.js`, `backend/src/routes/webhook.routes.js`, `backend/src/config/stripe.js`, `frontend/src/services/paymentService.js`, `frontend/src/pages/PaymentSuccessPage.jsx`, `frontend/src/pages/PaymentCancelPage.jsx`, `backend/tests/integration/webhook.stripe.test.js`
+- **Fichiers modifiés :** `backend/src/index.js`, `backend/src/routes/admin.order.routes.js` (payment-status et refund passent en logique manuelle, sans Stripe), `backend/src/repositories/order.repository.js`, `backend/src/services/order.service.js`, `backend/src/validators/order.validator.js`, `frontend/src/App.jsx`, `frontend/src/pages/CheckoutPage.jsx` (option CARTE retirée, plus de redirection Stripe), `frontend/src/components/checkout/MoyenPaiement.jsx`, `frontend/src/components/checkout/Recapitulatif.jsx`, `frontend/src/pages/OrderConfirmationPage.jsx`, `frontend/src/pages/OrderDetailPage.jsx`, `frontend/src/services/orderService.js`, `frontend/src/services/adminService.js`, `backend/.env.example`, `frontend/.env.example`
+- **Impact DB :** Migration `backend/scripts/migrations/0009_remove_stripe.sql` — retire `stripe_session_id`, `stripe_payment_intent_id`, `stripe_refund_id` de `commande`, supprime la table `stripe_event`, recrée l'ENUM `mode_paiement` sans `'CARTE'`. `montant_rembourse` et les statuts `REMBOURSE` / `PARTIELLEMENT_REMBOURSE` sont **conservés** (suivi manuel des remboursements, indépendant de Stripe).
+- **Package npm :** `stripe` retiré du backend, `@stripe/stripe-js` retiré du frontend.
+- **Tests :** 101/101 tests backend passés après retrait. Build frontend OK.
+- **Décision prise :** Le remboursement admin (`POST /api/admin/orders/:id/refund`) est conservé mais devient purement déclaratif : l'admin enregistre un remboursement effectué hors système (espèces rendues, virement émis, chèque annulé) ; aucun appel à une API de paiement.
+- **Commit :** `9ee63d0`
 
 ---
 
@@ -784,8 +804,8 @@ Détails : `docs/audit-finalisation/12_STRATEGIE_TESTS.md`
 
 ### T7-02 — Tests intégration webhook Stripe
 
-- **Statut :** DONE (2026-06-28) | **Priorité :** P0 | **Catégorie :** CODE
-- **Fichiers :** `backend/tests/integration/webhook.stripe.test.js` (créé — 7 tests)
+- **Statut :** CANCELLED (2026-07-02) — Stripe retiré du projet (voir T4-07), fichier de test supprimé | **Priorité :** P0 | **Catégorie :** CODE
+- **Fichiers :** ~~`backend/tests/integration/webhook.stripe.test.js`~~ (supprimé)
 - **Critères :** Signature vérifiée ✓, idempotency (rowCount) ✓, checkout.session.completed ✓, refund.created ✓, event inconnu ✓
 
 ---
@@ -881,7 +901,7 @@ Checklist complète : `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 
 ### T9-01 — Test complet flux commande en staging (Stripe test)
 
-- **Statut :** TODO | **Priorité :** P0 | **Dépendances :** T8-01, T8-02
+- **Statut :** CANCELLED (2026-07-02) — remplacé par un test du flux ESPECES/VIREMENT/CHEQUE (pas de Stripe) | **Priorité :** P0 | **Dépendances :** T8-01, T8-02
 
 ---
 
@@ -907,8 +927,8 @@ Checklist complète : `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 
 ### T9-05 — Test paiement Stripe LIVE (1€)
 
-- **Statut :** TODO | **Priorité :** P0
-- **Dépendances :** T9-02, T4-06
+- **Statut :** CANCELLED (2026-07-02) — pas de paiement en ligne au MVP, Stripe retiré (voir T4-07) | **Priorité :** P0
+- **Dépendances :** ~~T9-02, T4-06~~
 
 ---
 

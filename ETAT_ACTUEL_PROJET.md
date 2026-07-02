@@ -1,6 +1,6 @@
 # ÉTAT ACTUEL DU PROJET — Jana Distribution
 
-> Mise à jour : 2026-06-28. Source : inspection statique du code + git status.
+> Mise à jour : 2026-07-02. Source : inspection statique du code + git status.
 > Mettre à jour après chaque tâche DONE.
 
 ---
@@ -11,10 +11,10 @@
 |---|---|
 | Projet | Jana Distribution — e-commerce alimentaire B2C/B2B |
 | Branche active | `develop` |
-| Dernier commit | `214c9fb` — `chore(frontend): remove orphan PromotionsPage (T6-05)` |
+| Dernier commit | `9ee63d0` — `feat(mvp): remove Stripe entirely - MVP uses ESPECES/VIREMENT/CHEQUE only (T4-07)` |
 | Fichiers modifiés non commités | Aucun — working tree propre |
 | Phase active | Phase 8 — Staging Railway (en pause, plan expiré) |
-| Tâche active | Aucune — Session 2026-06-28 terminée |
+| Tâche active | Aucune — Session 2026-07-02 terminée (retrait Stripe) |
 | Verdict | **NON PRÊT POUR LA PRODUCTION** |
 | Avancement estimé | ~95 % |
 
@@ -41,7 +41,7 @@ Phases 0-7 terminées. Tous les bloquants P0 résolus : images Cloudflare R2 (T0
 | Cache | ioredis | 7 |
 | Auth | JWT access 7j + refresh 30j | jsonwebtoken 9 |
 | Email | Brevo REST API (`BREVO_API_KEY`) | — |
-| Paiements | Stripe Checkout Sessions | stripe 22.0.2 |
+| Paiements | Pas de paiement en ligne (MVP) — ESPECES / VIREMENT / CHEQUE uniquement, Stripe retiré (T4-07, 2026-07-02) | — |
 | Géocodage livraison | BAN API adresse.data.gouv.fr | gratuit |
 | Upload fichiers | Multer → Cloudflare R2 (endpoint EU) | 1.4.5-lts.1 + @aws-sdk/client-s3 |
 | Déploiement | Railway (NIXPACKS backend, Dockerfile frontend) | — |
@@ -62,7 +62,6 @@ Navigateur
   → Backend Express (Railway)
       ├── PostgreSQL 15 (Railway)
       ├── Redis 7 / ioredis (Railway)
-      ├── Stripe API (externe)
       ├── Brevo REST API (externe — email)
       └── BAN API adresse.data.gouv.fr (externe — géocodage)
 ```
@@ -75,7 +74,7 @@ Navigateur
 | Schéma DB | `backend/scripts/init.sql` |
 | Auth (JWT, login, refresh) | `backend/src/services/auth.service.js` |
 | Commandes (transaction atomique) | `backend/src/repositories/order.repository.js` |
-| Stripe (checkout + webhook) | `backend/src/services/payment.service.js` *(non commité)* |
+| Paiement (statut manuel ESPECES/VIREMENT/CHEQUE) | `backend/src/routes/admin.order.routes.js` |
 | Livraison (FIXE/DISTANCE) | `backend/src/services/settings.service.js` |
 | Géocodage BAN | `backend/src/services/geocoding.service.js` *(non commité)* |
 | Checkout frontend | `frontend/src/pages/CheckoutPage.jsx` |
@@ -90,12 +89,12 @@ Navigateur
 | Catalogue (produits, catégories, filtres, pagination) | FONCTIONNEL | CRUD complet, recherche, tri | Code inspecté |
 | Panier (CRUD, persistance DB) | FONCTIONNEL | Ajout, modif, suppression, persistance | Code inspecté |
 | Commande (transaction atomique, stock) | FONCTIONNEL | BEGIN/COMMIT, décrémentation stock idempotente | Code inspecté |
-| Paiement Stripe (Checkout Session, webhook) | FONCTIONNEL | Session créée, webhook signé, idempotency OK, refund.created géré, remboursements partiels et totaux. | Code inspecté + committé |
+| Paiement (ESPECES / VIREMENT / CHEQUE, pas de paiement en ligne) | FONCTIONNEL | Statut paiement positionné manuellement par un admin ; remboursement manuel tracé (montant_rembourse + audit_log). Stripe retiré (T4-07, 2026-07-02). | Code inspecté + committé |
 | Livraison (FIXE + DISTANCE Haversine) | FONCTIONNEL | Calcul serveur, franco de port, BAN API intégrée | Code inspecté |
 | Authentification (login, register, refresh) | FONCTIONNEL | JWT, bcrypt 12 rounds, reset MDP haché | Code inspecté |
 | Emails transactionnels (Brevo) | FONCTIONNEL | Bienvenue, statut commande, reset MDP | Code inspecté |
 | Administration (produits, catégories, commandes, clients, paramètres) | FONCTIONNEL | Interface complète | Code inspecté |
-| Facturation | FONCTIONNEL | Tables facture/facture_ligne, invoice.service, PDFKit, routes client+admin, déclenché au webhook Stripe | Code inspecté |
+| Facturation | FONCTIONNEL | Tables facture/facture_ligne, invoice.service, PDFKit, routes client+admin, génération manuelle admin (POST /invoices/admin/generer/:commandeId) | Code inspecté |
 | Tests | PARTIEL | Jest backend (DB mockée), 1 test Vitest frontend | Code inspecté |
 | Railway (déploiement) | PARTIEL | Health check OK, images éphémères, pas de staging | Non vérifiable Railway |
 | Stockage images | FONCTIONNEL | Cloudflare R2 (uploadToR2 middleware) + fallback disque local en dev | Code inspecté |
@@ -140,12 +139,18 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 
 **Branche develop, working tree propre.**
 
+### Session 2026-07-02 — commits effectués
+
+| Commit | Tâche | Description |
+|---|---|---|
+| `9ee63d0` | T4-07 | feat(mvp): remove Stripe entirely - MVP uses ESPECES/VIREMENT/CHEQUE only |
+
 ### Session 2026-06-28 — commits effectués
 
 | Commit | Tâche | Description |
 |---|---|---|
 | `254278b` | Docker | feat(docker): full docker-compose dev environment |
-| `2b76c08` | T7-02 | test(webhook): Stripe webhook integration tests (7 tests) |
+| `2b76c08` | T7-02 | test(webhook): Stripe webhook integration tests (7 tests) — *fichier supprimé le 2026-07-02, voir T4-07* |
 | `8b203d8` | T5-11/T5-12 | feat(invoices): PDF download client + admin |
 | `214c9fb` | T6-05 | chore(frontend): remove orphan PromotionsPage |
 
@@ -155,7 +160,7 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 
 | Décision | Statut | Détail |
 |---|---|---|
-| Stripe Checkout Sessions | DÉCIDÉ ET CONFIGURÉ | Compte créé, clés TEST en .env, Stripe CLI installé |
+| Paiement en ligne (Stripe) | **RETIRÉ (2026-07-02)** | Décision client : pas de paiement en ligne au MVP. Modes acceptés : ESPECES (livraison), VIREMENT, CHEQUE. Voir T4-07. |
 | Bibliothèque PDF factures | DÉCIDÉ | PDFKit ^0.19.1 — installé et implémenté |
 | Cloudflare R2 | DÉCIDÉ ET CONFIGURÉ | Bucket `jana-products`, endpoint EU, token R2 en .env, URL pub- active |
 | Client Redis | DÉCIDÉ | ioredis conservé, package `redis` supprimé |
@@ -177,7 +182,7 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 | DM-04 | Retrait sur place | Oui / Non | T3-04 (éventuelle) | Propriétaire |
 | DM-05 | Taux TVA produits alimentaires | **DÉCIDÉ : 5,5% / 10% / 20% CGI** ⚠️ validation comptable requise | T5-01..T5-17 | Comptable |
 | DM-06 | Mentions obligatoires facture | **DÉCIDÉ : SIRET/TVA dans ENTREPRISE_* env** ⚠️ à renseigner avant prod | T5-02 | ~~Propriétaire + comptable~~ |
-| DM-07 | Politique de remboursement | Délais, conditions, partiel vs total | T4-02, T5-15 | Propriétaire |
+| DM-07 | Politique de remboursement | **DÉCIDÉ : remboursement manuel uniquement** (espèces rendues / virement émis / chèque annulé), tracé via `montant_rembourse` + `audit_log`, plus de remboursement Stripe (T4-07) | T5-15 | ~~Propriétaire~~ |
 | DM-08 | Durée conservation factures | 10 ans légal France (à confirmer) | T5-14 | Comptable |
 | DM-09 | Provider stockage images | **DÉCIDÉ : Cloudflare R2** | T0-02 | ~~Propriétaire (coût)~~ |
 
@@ -187,12 +192,10 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 
 | Environnement | État | Vérifiable | Non vérifiable |
 |---|---|---|---|
-| Local (Docker Compose) | CONFIGURÉ | docker-compose.yml complet, .env renseigné (R2 + Stripe + JWT) | Fonctionnement réel (lancer start-local.bat) |
+| Local (Docker Compose) | CONFIGURÉ | docker-compose.yml complet, .env renseigné (R2 + JWT) | Fonctionnement réel (lancer start-local.bat) |
 | Tests Jest backend | FONCTIONNEL | 101/101 tests passés (DB mockée) | Tests intégration testcontainers (Docker requis) |
 | Staging Railway | ABSENT — EN PAUSE | — | Plan Railway expiré, config prête dans RAILWAY_CONFIG_READY.md |
 | Production Railway | NON PRÊT | — | Plan Railway expiré |
-| Stripe test mode | CONFIGURÉ | Clés test en .env, Stripe CLI installé, whsec_ local obtenu | Webhook prod non configuré |
-| Stripe live mode | NON PRÊT | — | Clés live à récupérer, webhook prod à créer |
 | Cloudflare R2 | CONFIGURÉ | Bucket jana-products créé, endpoint EU, token en .env | Custom domain R2 (optionnel prod) |
 
 ---
@@ -205,19 +208,17 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 | `backend/scripts/init.sql` | Schéma DB complet (NE PAS exécuter en production) |
 | `backend/src/services/auth.service.js` | JWT, login, refresh, reset MDP |
 | `backend/src/middlewares/auth.middleware.js` | `authenticate`, `isAdmin`, `isOwnerOrAdmin` (`hasPermission` supprimé — T1-02) |
-| `backend/src/repositories/order.repository.js` | Transaction commande, stock, Stripe columns |
+| `backend/src/repositories/order.repository.js` | Transaction commande, stock, paiement/remboursement manuel |
 | `backend/src/services/order.service.js` | Logique commande, validation stock, livraison |
-| `backend/src/services/payment.service.js` | Stripe Checkout + webhook *(non commité)* |
+| `backend/src/routes/admin.order.routes.js` | Statut paiement manuel + remboursement manuel (ESPECES/VIREMENT/CHEQUE) |
 | `backend/src/services/settings.service.js` | Configuration, livraison FIXE/DISTANCE |
 | `backend/src/services/geocoding.service.js` | BAN API, Haversine *(non commité)* |
 | `backend/src/services/email.service.js` | Brevo REST API |
 | `backend/tests/setup.js` | Mocks DB et Redis — à ne PAS copier pour les tests d'intégration |
-| `frontend/src/pages/CheckoutPage.jsx` | Checkout multi-étapes, P0 bug ligne 347-362 |
-| `frontend/src/pages/PaymentSuccessPage.jsx` | Polling statut paiement *(non commité)* |
+| `frontend/src/pages/CheckoutPage.jsx` | Checkout multi-étapes (ESPECES/VIREMENT/CHEQUE uniquement) |
 | `frontend/src/App.jsx` | Routing React, routes admin |
 | `frontend/src/services/api.js` | Intercepteur Axios, refresh token auto |
-| `backend/src/routes/webhook.routes.js` | Webhook Stripe raw body *(non commité)* |
-| `backend/src/config/stripe.js` | Config Stripe *(non commité)* |
+| `backend/scripts/migrations/0009_remove_stripe.sql` | Migration retrait Stripe (T4-07) |
 
 ---
 
@@ -258,6 +259,7 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 | 2026-06-28 | T5-11 | MesFacturesPage.jsx créée, route /mes-factures (PrivateRoute), lien dans Navbar dropdown, getMesFactures + downloadFacturePDF dans api.js. | Build ✓ | DONE |
 | 2026-06-28 | T5-12 | invoice.routes.js : GET /admin avec ?commande_id=. adminService : getFactureByCommande + downloadFacturePDF. OrderDetailModal : bouton "Facture PDF" dans le header. | Build ✓ | DONE |
 | 2026-06-28 | T6-05 | PromotionsPage.jsx supprimé — confirmé orphelin (aucune référence dans App.jsx ni composants). | — | DONE |
+| 2026-07-02 | T4-07 | **Décision client : retrait complet de Stripe** (pas de paiement en ligne au MVP, ESPECES/VIREMENT/CHEQUE uniquement). Supprimé : payment.service.js, payment.controller.js, payment.routes.js, webhook.routes.js, config/stripe.js, paymentService.js, PaymentSuccessPage.jsx, PaymentCancelPage.jsx, webhook.stripe.test.js. Migration 0009 : colonnes stripe_session_id/stripe_payment_intent_id/stripe_refund_id supprimées, table stripe_event supprimée, ENUM mode_paiement recréé sans CARTE (montant_rembourse et statuts REMBOURSE/PARTIELLEMENT_REMBOURSE conservés pour le suivi manuel). admin.order.routes.js : payment-status et refund passent en logique manuelle. npm uninstall stripe (backend) + @stripe/stripe-js (frontend). T4-01..T4-06, T7-02, T9-01, T9-05 passés CANCELLED. | 6/6 suites, 101/101 ✓, build frontend ✓ | DONE |
 
 ---
 
@@ -276,5 +278,4 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 1. Créer bucket Cloudflare R2 + configurer R2_* dans Railway
 2. Renseigner ENTREPRISE_SIRET, ENTREPRISE_TVA_NUMERO, ENTREPRISE_ADRESSE
 3. ⚠️ Faire valider les taux TVA par un comptable pour chaque référence produit
-4. Configurer webhook Stripe prod (T4-06)
-5. Railway : activer sauvegardes PostgreSQL (T8-04)
+4. Railway : activer sauvegardes PostgreSQL (T8-04)
