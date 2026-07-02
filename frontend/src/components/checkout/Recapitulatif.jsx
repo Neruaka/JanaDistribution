@@ -4,16 +4,28 @@
  */
 
 import { Link } from 'react-router-dom';
-import { 
-  ShoppingCart, 
-  Package, 
-  Truck, 
-  CheckCircle, 
+import {
+  ShoppingCart,
+  Package,
+  Truck,
+  CheckCircle,
   AlertCircle,
   FileText,
-  Loader2
+  Loader2,
+  Tag,
+  X
 } from 'lucide-react';
 
+/**
+ * @param {string} codePromo - Valeur saisie dans le champ code promo
+ * @param {Object|null} codePromoValide - Données retournées par l'API si le code est validé
+ *   { code, type_rabais, valeur_rabais, montant_rabais, total_apres_rabais, message }
+ * @param {boolean} codePromoLoading - Appel de validation en cours
+ * @param {string} codePromoError - Message d'erreur de validation (vide si aucune erreur)
+ * @param {(value: string) => void} onCodePromoChange - Handler de saisie du champ
+ * @param {() => void} onAppliquerCodePromo - Handler du bouton "Appliquer"
+ * @param {() => void} onRetirerCodePromo - Handler du bouton "Retirer"
+ */
 const Recapitulatif = ({
   items,
   itemCount,
@@ -29,7 +41,14 @@ const Recapitulatif = ({
   errors,
   onChange,
   isSubmitting,
-  formatPrice
+  formatPrice,
+  codePromo = '',
+  codePromoValide = null,
+  codePromoLoading = false,
+  codePromoError = '',
+  onCodePromoChange = () => {},
+  onAppliquerCodePromo = () => {},
+  onRetirerCodePromo = () => {}
 }) => {
   return (
     <div className="lg:col-span-1">
@@ -67,6 +86,55 @@ const Recapitulatif = ({
               </p>
             </div>
           ))}
+        </div>
+
+        {/* Code promo */}
+        <div className="border-t border-gray-100 pt-4 mb-2">
+          <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+            <Tag className="w-4 h-4 text-gray-400" />
+            Code promo
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={codePromo}
+              onChange={(e) => onCodePromoChange(e.target.value.toUpperCase())}
+              disabled={!!codePromoValide || codePromoLoading}
+              placeholder="Ex: LCD-10"
+              className="flex-1 min-w-0 px-3 py-2 border border-gray-200 rounded-lg text-sm uppercase focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-50 disabled:text-gray-500"
+            />
+            {codePromoValide ? (
+              <button
+                type="button"
+                onClick={onRetirerCodePromo}
+                className="px-3 py-2 flex items-center gap-1 text-sm font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+              >
+                <X className="w-4 h-4" />
+                Retirer
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onAppliquerCodePromo}
+                disabled={!codePromo.trim() || codePromoLoading}
+                className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+              >
+                {codePromoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Appliquer'}
+              </button>
+            )}
+          </div>
+          {codePromoError && (
+            <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              {codePromoError}
+            </p>
+          )}
+          {codePromoValide && (
+            <div className="mt-2 flex items-start gap-2 p-2 bg-green-50 border border-green-100 rounded-lg text-sm text-green-700">
+              <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>{codePromoValide.message}</span>
+            </div>
+          )}
         </div>
 
         {/* Totaux */}
@@ -120,9 +188,17 @@ const Recapitulatif = ({
               Adresse non géolocalisée — tarif standard appliqué.
             </p>
           )}
+          {codePromoValide && (
+            <div className="flex justify-between text-green-600">
+              <span>Réduction ({codePromoValide.code})</span>
+              <span>-{formatPrice(codePromoValide.montant_rabais)}</span>
+            </div>
+          )}
           <div className="flex justify-between text-xl font-bold text-gray-800 pt-3 border-t border-gray-200">
-            <span>Total TTC</span>
-            <span className="text-green-600">{formatPrice(totalCommande)}</span>
+            <span>Total {codePromoValide ? 'après réduction' : 'TTC'}</span>
+            <span className="text-green-600">
+              {formatPrice(codePromoValide ? codePromoValide.total_apres_rabais : totalCommande)}
+            </span>
           </div>
         </div>
 

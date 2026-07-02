@@ -14,6 +14,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useSettings } from '../contexts/SettingsContext'; // ✅ AJOUT
 import { createOrder, MODES_PAIEMENT } from '../services/orderService';
 import { estimateShipping } from '../services/shippingService';
+import { validerCodePromo } from '../services/promoService';
 import toast from 'react-hot-toast';
 
 // Composants checkout
@@ -57,6 +58,12 @@ const CheckoutPage = () => {
   const [fraisLivraison, setFraisLivraison] = useState(fallbackFrais);
   const [shippingInfo, setShippingInfo] = useState(null);
   const [shippingLoading, setShippingLoading] = useState(false);
+
+  // Code promo
+  const [codePromo, setCodePromo] = useState('');
+  const [codePromoValide, setCodePromoValide] = useState(null); // { montant_rabais, total_apres_rabais, message, code, type_rabais, valeur_rabais }
+  const [codePromoLoading, setCodePromoLoading] = useState(false);
+  const [codePromoError, setCodePromoError] = useState('');
 
   // Formulaire
   const [formData, setFormData] = useState({
@@ -193,6 +200,48 @@ const CheckoutPage = () => {
   };
 
   // ==========================================
+  // CODE PROMO
+  // ==========================================
+
+  const handleCodePromoChange = (value) => {
+    setCodePromo(value.toUpperCase());
+    if (codePromoError) setCodePromoError('');
+  };
+
+  const handleAppliquerCodePromo = async () => {
+    const code = codePromo.trim();
+    if (!code) return;
+
+    setCodePromoLoading(true);
+    setCodePromoError('');
+
+    try {
+      const result = await validerCodePromo(code, totalCommande);
+
+      if (!result.success) {
+        setCodePromoError(result.message || 'Code promo invalide');
+        setCodePromoValide(null);
+        return;
+      }
+
+      setCodePromoValide(result.data);
+      toast.success(result.data?.message || 'Code promo appliqué');
+    } catch (error) {
+      const message = error.response?.data?.message || 'Code promo invalide ou expiré';
+      setCodePromoError(message);
+      setCodePromoValide(null);
+    } finally {
+      setCodePromoLoading(false);
+    }
+  };
+
+  const handleRetirerCodePromo = () => {
+    setCodePromo('');
+    setCodePromoValide(null);
+    setCodePromoError('');
+  };
+
+  // ==========================================
   // VALIDATION
   // ==========================================
 
@@ -252,8 +301,8 @@ const CheckoutPage = () => {
     setIsSubmitting(true);
 
     try {
-      // ✅ Passer les frais de livraison dynamiques à createOrder
-      const result = await createOrder(formData, fraisLivraison);
+      // ✅ Passer les frais de livraison dynamiques et le code promo validé à createOrder
+      const result = await createOrder(formData, fraisLivraison, codePromoValide?.code || null);
 
       if (!result.success) {
         toast.error(result.message || 'Erreur lors de la commande');
@@ -463,6 +512,13 @@ const CheckoutPage = () => {
               onChange={handleChange}
               isSubmitting={isSubmitting}
               formatPrice={formatPrice}
+              codePromo={codePromo}
+              codePromoValide={codePromoValide}
+              codePromoLoading={codePromoLoading}
+              codePromoError={codePromoError}
+              onCodePromoChange={handleCodePromoChange}
+              onAppliquerCodePromo={handleAppliquerCodePromo}
+              onRetirerCodePromo={handleRetirerCodePromo}
             />
           </div>
         </form>

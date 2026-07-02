@@ -58,9 +58,10 @@ export const canCancelOrder = (statut) => {
  * Créer une commande depuis le panier
  * @param {Object} orderData - Données de la commande
  * @param {number} fraisLivraison - Frais de livraison (depuis settings)
+ * @param {string|null} codePromo - Code promo validé (ou null si aucun) — le backend recalcule le rabais et fait foi
  * @returns {Promise<Object>} Commande créée
  */
-export const createOrder = async (orderData, fraisLivraison = DEFAULT_FRAIS_LIVRAISON) => {
+export const createOrder = async (orderData, fraisLivraison = DEFAULT_FRAIS_LIVRAISON, codePromo = null) => {
   // Construire l'adresse de livraison
   const adresseLivraison = {
     nom: orderData.nom,
@@ -100,7 +101,8 @@ export const createOrder = async (orderData, fraisLivraison = DEFAULT_FRAIS_LIVR
     adresseFacturation,
     modePaiement: orderData.modePaiement,
     fraisLivraison, // ✅ Utilise le paramètre au lieu de la constante
-    instructionsLivraison: orderData.instructions || null
+    instructionsLivraison: orderData.instructions || null,
+    code_promo: codePromo || null // le backend recalcule le rabais et fait foi
   });
   return response.data;
 };
