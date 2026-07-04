@@ -20,6 +20,7 @@ import { SettingsProvider } from './contexts/SettingsContext';
 import PrivateRoute from './components/PrivateRoute';
 import CartDrawer from './components/CartDrawer';
 import PublicLayout from './components/PublicLayout';
+import CookieBanner from './components/CookieBanner';
 
 // Pages publiques
 import HomePage from './pages/HomePage';
@@ -105,7 +106,10 @@ function App() {
           <AnimatePresence>
             <CartDrawer />
           </AnimatePresence>
-          
+
+          {/* Bandeau d'information cookies (CNIL - cookies techniques uniquement) */}
+          <CookieBanner />
+
           {/* Routes */}
           <Routes>
             {/* ==================== */}
