@@ -37,6 +37,7 @@ class EmailService {
   /**
    * Envoie un email via l'API REST Brevo
    * @param {Object} options - Options de l'email
+   * @param {Array} [options.attachment] - Pièces jointes Brevo : [{ name, content (base64) }]
    */
   async sendMail(options) {
     if (!this.apiKey) {
@@ -45,6 +46,14 @@ class EmailService {
     }
 
     try {
+      const body = {
+        sender: { name: this.senderName, email: this.senderEmail },
+        to: [{ email: options.to }],
+        subject: options.subject,
+        htmlContent: options.html
+      };
+      if (options.attachment) body.attachment = options.attachment;
+
       const response = await fetch('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',
         headers: {
@@ -52,12 +61,7 @@ class EmailService {
           'api-key': this.apiKey,
           'content-type': 'application/json'
         },
-        body: JSON.stringify({
-          sender: { name: this.senderName, email: this.senderEmail },
-          to: [{ email: options.to }],
-          subject: options.subject,
-          htmlContent: options.html
-        })
+        body: JSON.stringify(body)
       });
 
       const data = await response.json();
@@ -238,6 +242,60 @@ class EmailService {
       to: user.email,
       subject: `${statusInfo.icon} Commande ${order.numeroCommande} - ${statusInfo.label}`,
       html: this.getBaseTemplate(content)
+    });
+  }
+
+  // ==========================================
+  // EMAIL FACTURE
+  // ==========================================
+
+  /**
+   * Envoie la facture par email avec le PDF en pièce jointe
+   * @param {Object} params
+   * @param {string} params.destinataireEmail
+   * @param {string} params.destinataireNom
+   * @param {Object} params.facture - { numero, total_ttc, date_emission }
+   * @param {Buffer} params.pdfBuffer
+   */
+  async sendInvoiceEmail({ destinataireEmail, destinataireNom, facture, pdfBuffer }) {
+    const content = `
+      <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px;">
+        Votre facture est disponible
+      </h2>
+
+      <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+        Bonjour ${destinataireNom},
+      </p>
+
+      <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+        Veuillez trouver ci-joint votre facture <strong>${facture.numero}</strong>
+        d'un montant de <strong>${parseFloat(facture.total_ttc).toFixed(2)} €</strong>
+        émise le ${new Date(facture.date_emission).toLocaleDateString('fr-FR')}.
+      </p>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/mes-factures"
+           style="display: inline-block; background-color: #22C55E; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+          Voir mes factures
+        </a>
+      </div>
+
+      <p style="margin: 20px 0 0; color: #6b7280; font-size: 12px; text-align: center;">
+        Jana Distribution — SIRET ${process.env.ENTREPRISE_SIRET || '798787784'}<br>
+        Conservez cette facture 10 ans (obligation légale française).
+      </p>
+    `;
+
+    return this.sendMail({
+      to: destinataireEmail,
+      subject: `Votre facture ${facture.numero} - Jana Distribution`,
+      html: this.getBaseTemplate(content),
+      attachment: [
+        {
+          name: `${facture.numero}.pdf`,
+          content: pdfBuffer.toString('base64'),
+        },
+      ],
     });
   }
 

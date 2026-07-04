@@ -5,12 +5,14 @@
 const invoiceRepository = require('../repositories/invoice.repository');
 const { query } = require('../config/database');
 const logger = require('../config/logger');
+const { generateInvoicePDF } = require('./invoice-pdf.generator');
+const emailService = require('./email.service');
 
-// Snapshot données entreprise — ⚠️ À compléter avant mise en prod
+// Snapshot données entreprise — ⚠️ ENTREPRISE_ADRESSE reste à renseigner avant mise en prod
 const ENTREPRISE = {
   nom: process.env.ENTREPRISE_NOM || 'Jana Distribution',
-  siret: process.env.ENTREPRISE_SIRET || null,           // ⚠️ OBLIGATOIRE en prod
-  tvaNumero: process.env.ENTREPRISE_TVA_NUMERO || null,  // ⚠️ OBLIGATOIRE en prod
+  siret: process.env.ENTREPRISE_SIRET || '798787784',
+  tvaNumero: process.env.ENTREPRISE_TVA_NUMERO || 'FR92798787784',
   adresse: process.env.ENTREPRISE_ADRESSE || null,       // ⚠️ OBLIGATOIRE en prod
 };
 
@@ -95,6 +97,19 @@ class InvoiceService {
     }
 
     logger.info(`Facture ${numero} générée pour commande ${commandeId}`);
+
+    // Envoi du PDF par email — fire and forget, ne bloque pas la génération
+    invoiceRepository.findById(facture.id)
+      .then(factureComplete => generateInvoicePDF(factureComplete))
+      .then(pdfBuffer => emailService.sendInvoiceEmail({
+        destinataireEmail: commande.email,
+        destinataireNom: `${commande.prenom || ''} ${commande.client_nom_famille || ''}`.trim(),
+        facture,
+        pdfBuffer,
+      }))
+      .then(() => logger.info(`Email facture envoyé : ${numero}`))
+      .catch(err => logger.error(`Email facture échoué ${numero}:`, err.message));
+
     return facture;
   }
 }

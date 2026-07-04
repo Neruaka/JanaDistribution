@@ -14,6 +14,7 @@ const { query: dbQuery } = require('../config/database');
 const orderService = require('../services/order.service');
 const orderRepository = require('../repositories/order.repository');
 const auditRepository = require('../repositories/audit.repository');
+const invoiceService = require('../services/invoice.service');
 const logger = require('../config/logger');
 
 // Toutes les routes nécessitent d'être admin
@@ -409,6 +410,20 @@ router.patch('/:id/status',
         details: { nouveauStatut: statut, instructionsLivraison: instructionsLivraison || null },
         ipAddress: req.ip
       }).catch(err => logger.warn('Audit log non enregistré:', err.message));
+
+      // Génération automatique de facture (T5-08) — fire and forget
+      // VIREMENT/CHEQUE : facturé à la CONFIRMATION (l'admin confirme = paiement reçu/vérifié)
+      // ESPECES : facturé à la LIVRAISON (paiement à la livraison)
+      const modePaiement = result.order.modePaiement;
+      const doitGenererFacture =
+        (statut === 'CONFIRMEE' && ['VIREMENT', 'CHEQUE'].includes(modePaiement)) ||
+        (statut === 'LIVREE' && modePaiement === 'ESPECES');
+
+      if (doitGenererFacture) {
+        invoiceService.generateForOrder(id)
+          .then(f => logger.info(`Facture ${f.numero} générée pour commande ${id} (${modePaiement})`))
+          .catch(err => logger.error(`Génération facture échouée pour ${id}:`, err.message));
+      }
 
       res.json({
         success: true,

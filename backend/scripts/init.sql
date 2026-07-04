@@ -1,17 +1,26 @@
--- ============================================
--- DATABASE SETUP SCRIPT - Jana Distribution
--- ============================================
+-- ============================================================
+-- Jana Distribution — Schéma de référence
+-- VERSION : synchronisé avec migrations 0001 à 0010 (2026-07-04)
+-- USAGE : bootstrap d'un NOUVEL environnement dev uniquement
+-- NE PAS exécuter sur une DB déjà provisionnée (utiliser npm run migrate)
+-- ============================================================
 -- Exécuter avec: psql -U postgres -d jana_distribution -f init.sql
 -- Ou via Docker: docker exec -i postgres psql -U postgres -d jana_distribution < init.sql
--- ============================================
+-- ============================================================
 
 -- Extension pour les UUIDs
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- ============================================
+-- ============================================================
 -- SUPPRESSION DES TABLES EXISTANTES (reset)
--- ============================================
-DROP TABLE IF EXISTS stripe_event CASCADE;
+-- ============================================================
+DROP TABLE IF EXISTS code_promo_utilisation CASCADE;
+DROP TABLE IF EXISTS code_promo CASCADE;
+DROP TABLE IF EXISTS facture_ligne CASCADE;
+DROP TABLE IF EXISTS facture CASCADE;
+DROP TABLE IF EXISTS audit_log CASCADE;
+DROP TABLE IF EXISTS refresh_token CASCADE;
+DROP TABLE IF EXISTS commande_statut_historique CASCADE;
 DROP TABLE IF EXISTS ligne_commande CASCADE;
 DROP TABLE IF EXISTS commande CASCADE;
 DROP TABLE IF EXISTS ligne_panier CASCADE;
@@ -21,6 +30,7 @@ DROP TABLE IF EXISTS categorie CASCADE;
 DROP TABLE IF EXISTS adresse CASCADE;
 DROP TABLE IF EXISTS configuration CASCADE;
 DROP TABLE IF EXISTS utilisateur CASCADE;
+DROP TABLE IF EXISTS schema_migrations CASCADE;
 
 -- Suppression des types existants
 DROP TYPE IF EXISTS role_utilisateur CASCADE;
@@ -30,12 +40,13 @@ DROP TYPE IF EXISTS statut_paiement CASCADE;
 DROP TYPE IF EXISTS mode_paiement CASCADE;
 DROP TYPE IF EXISTS type_adresse CASCADE;
 
--- Suppression séquence
+-- Suppression séquences
 DROP SEQUENCE IF EXISTS commande_numero_seq;
+DROP SEQUENCE IF EXISTS facture_seq;
 
--- ============================================
+-- ============================================================
 -- ENUMS
--- ============================================
+-- ============================================================
 
 -- Rôles utilisateur
 CREATE TYPE role_utilisateur AS ENUM ('CLIENT', 'ADMIN');
@@ -43,18 +54,20 @@ CREATE TYPE role_utilisateur AS ENUM ('CLIENT', 'ADMIN');
 -- Types de client
 CREATE TYPE type_client AS ENUM ('PARTICULIER', 'PROFESSIONNEL');
 
--- Statuts de commande
+-- Statuts de commande (inclut les statuts de remboursement manuel — migration 0005)
 CREATE TYPE statut_commande AS ENUM (
   'EN_ATTENTE',
   'CONFIRMEE',
   'EN_PREPARATION',
   'EXPEDIEE',
   'LIVREE',
-  'ANNULEE'
+  'ANNULEE',
+  'PARTIELLEMENT_REMBOURSE',
+  'REMBOURSE'
 );
 
--- Modes de paiement
-CREATE TYPE mode_paiement AS ENUM ('CARTE', 'VIREMENT', 'ESPECES', 'CHEQUE');
+-- Modes de paiement — Stripe/CARTE retiré du MVP (migration 0009)
+CREATE TYPE mode_paiement AS ENUM ('ESPECES', 'VIREMENT', 'CHEQUE');
 
 -- Statut paiement
 CREATE TYPE statut_paiement AS ENUM (
@@ -68,9 +81,9 @@ CREATE TYPE statut_paiement AS ENUM (
 -- Types d'adresse
 CREATE TYPE type_adresse AS ENUM ('LIVRAISON', 'FACTURATION');
 
--- ============================================
+-- ============================================================
 -- TABLE: utilisateur
--- ============================================
+-- ============================================================
 CREATE TABLE utilisateur (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   email VARCHAR(255) NOT NULL UNIQUE,
@@ -102,9 +115,9 @@ CREATE INDEX idx_utilisateur_type_client ON utilisateur(type_client);
 CREATE INDEX idx_utilisateur_est_actif ON utilisateur(est_actif);
 CREATE INDEX idx_utilisateur_reset_token ON utilisateur(reset_token) WHERE reset_token IS NOT NULL;
 
--- ============================================
+-- ============================================================
 -- TABLE: adresse
--- ============================================
+-- ============================================================
 CREATE TABLE adresse (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   utilisateur_id UUID NOT NULL REFERENCES utilisateur(id) ON DELETE CASCADE,
@@ -125,9 +138,9 @@ CREATE TABLE adresse (
 CREATE INDEX idx_adresse_utilisateur_id ON adresse(utilisateur_id);
 CREATE INDEX idx_adresse_type ON adresse(type);
 
--- ============================================
+-- ============================================================
 -- TABLE: categorie
--- ============================================
+-- ============================================================
 CREATE TABLE categorie (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   nom VARCHAR(100) NOT NULL,
@@ -145,9 +158,9 @@ CREATE INDEX idx_categorie_slug ON categorie(slug);
 CREATE INDEX idx_categorie_est_actif ON categorie(est_actif);
 CREATE INDEX idx_categorie_ordre ON categorie(ordre);
 
--- ============================================
+-- ============================================================
 -- TABLE: produit
--- ============================================
+-- ============================================================
 CREATE TABLE produit (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   reference VARCHAR(50) NOT NULL UNIQUE,
@@ -156,7 +169,9 @@ CREATE TABLE produit (
   description TEXT,
   prix DECIMAL(10, 2) NOT NULL,
   prix_promo DECIMAL(10, 2),
-  taux_tva DECIMAL(5, 2) NOT NULL DEFAULT 20.00,
+  -- Taux légaux France : 5.5=alimentaire base, 10=transformé, 20=alcool/luxe (migration 0008)
+  -- ⚠️ Valider chaque référence produit avec un expert-comptable avant vente réelle (CGI art. 278 et suivants)
+  taux_tva NUMERIC(4, 2) NOT NULL DEFAULT 5.5,
   unite_mesure VARCHAR(20) NOT NULL DEFAULT 'piece',
   stock_quantite INTEGER NOT NULL DEFAULT 0,
   stock_min_alerte INTEGER NOT NULL DEFAULT 10,
@@ -170,6 +185,9 @@ CREATE TABLE produit (
   date_modification TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+COMMENT ON COLUMN produit.taux_tva IS
+  '⚠️ Taux TVA %. Légaux FR: 5.5=alimentaire base, 10=transformé, 20=alcool. Valider avec comptable.';
+
 -- Index produit
 CREATE INDEX idx_produit_reference ON produit(reference);
 CREATE INDEX idx_produit_slug ON produit(slug);
@@ -181,9 +199,9 @@ CREATE INDEX idx_produit_prix_promo ON produit(prix_promo) WHERE prix_promo IS N
 CREATE INDEX idx_produit_stock ON produit(stock_quantite);
 CREATE INDEX idx_produit_labels ON produit USING GIN(labels);
 
--- ============================================
+-- ============================================================
 -- TABLE: panier
--- ============================================
+-- ============================================================
 CREATE TABLE panier (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   utilisateur_id UUID REFERENCES utilisateur(id) ON DELETE CASCADE,
@@ -197,9 +215,9 @@ CREATE TABLE panier (
 -- Index panier
 CREATE INDEX idx_panier_session_id ON panier(session_id) WHERE session_id IS NOT NULL;
 
--- ============================================
+-- ============================================================
 -- TABLE: ligne_panier
--- ============================================
+-- ============================================================
 CREATE TABLE ligne_panier (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   panier_id UUID NOT NULL REFERENCES panier(id) ON DELETE CASCADE,
@@ -214,14 +232,37 @@ CREATE TABLE ligne_panier (
 CREATE INDEX idx_ligne_panier_panier_id ON ligne_panier(panier_id);
 CREATE INDEX idx_ligne_panier_produit_id ON ligne_panier(produit_id);
 
--- ============================================
+-- ============================================================
 -- SEQUENCE: numéro de commande
--- ============================================
+-- ============================================================
 CREATE SEQUENCE commande_numero_seq START 1;
 
--- ============================================
+-- ============================================================
+-- TABLE: code_promo (migration 0010)
+-- ============================================================
+CREATE TABLE code_promo (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  code VARCHAR(50) NOT NULL UNIQUE,
+  description TEXT,
+  type_rabais VARCHAR(20) NOT NULL CHECK (type_rabais IN ('POURCENTAGE', 'MONTANT_FIXE')),
+  valeur_rabais NUMERIC(10,2) NOT NULL CHECK (valeur_rabais > 0),
+  montant_minimum NUMERIC(10,2) NOT NULL DEFAULT 0,
+  max_utilisations_global INTEGER,
+  max_utilisations_par_client INTEGER DEFAULT 1,
+  date_debut TIMESTAMP WITH TIME ZONE,
+  date_fin TIMESTAMP WITH TIME ZONE,
+  actif BOOLEAN NOT NULL DEFAULT true,
+  created_by UUID REFERENCES utilisateur(id),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_code_promo_code ON code_promo(code);
+CREATE INDEX idx_code_promo_actif ON code_promo(actif, date_debut, date_fin);
+
+-- ============================================================
 -- TABLE: commande
--- ============================================
+-- ============================================================
 CREATE TABLE commande (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   numero_commande VARCHAR(20) NOT NULL UNIQUE,
@@ -233,13 +274,20 @@ CREATE TABLE commande (
   total_ttc DECIMAL(10, 2) NOT NULL DEFAULT 0,
   adresse_livraison JSONB NOT NULL,
   adresse_facturation JSONB,
-  mode_paiement mode_paiement NOT NULL DEFAULT 'CARTE',
+  mode_paiement mode_paiement NOT NULL DEFAULT 'ESPECES',
   frais_livraison DECIMAL(10, 2) NOT NULL DEFAULT 0,
   instructions_livraison TEXT,
-  stripe_session_id VARCHAR(255),
-  stripe_payment_intent_id VARCHAR(255),
   paiement_statut statut_paiement NOT NULL DEFAULT 'PENDING',
   paye_le TIMESTAMP NULL,
+  -- Remboursement manuel (migration 0005) — pas de canal Stripe (migration 0009)
+  montant_rembourse NUMERIC(10,2) NOT NULL DEFAULT 0,
+  -- Suivi expédition (migration 0007)
+  numero_colis VARCHAR(100),
+  date_expedition TIMESTAMP WITH TIME ZONE,
+  -- Codes promo (migration 0010)
+  code_promo_id UUID REFERENCES code_promo(id),
+  montant_rabais NUMERIC(10,2) DEFAULT 0,
+  total_avant_rabais NUMERIC(10,2),
   date_modification TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -248,27 +296,28 @@ CREATE INDEX idx_commande_numero ON commande(numero_commande);
 CREATE INDEX idx_commande_utilisateur_id ON commande(utilisateur_id);
 CREATE INDEX idx_commande_statut ON commande(statut);
 CREATE INDEX idx_commande_date ON commande(date_commande);
-CREATE INDEX idx_commande_stripe_session ON commande(stripe_session_id);
-CREATE INDEX idx_commande_stripe_intent ON commande(stripe_payment_intent_id);
 CREATE INDEX idx_commande_paiement_statut ON commande(paiement_statut);
 
--- ============================================
--- TABLE: stripe_event (idempotency webhooks)
--- IMPORTANT : init.sql est réservé au premier démarrage local.
--- Pour les bases déjà provisionnées, utiliser backend/migrations/001_remove_stripe_event_payload.sql
--- ============================================
-CREATE TABLE stripe_event (
+-- ============================================================
+-- TABLE: code_promo_utilisation (migration 0010)
+-- ============================================================
+CREATE TABLE code_promo_utilisation (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  event_id VARCHAR(255) NOT NULL UNIQUE,
-  type VARCHAR(100) NOT NULL,
-  processed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  code_promo_id UUID NOT NULL REFERENCES code_promo(id) ON DELETE RESTRICT,
+  commande_id UUID NOT NULL REFERENCES commande(id) ON DELETE CASCADE,
+  utilisateur_id UUID NOT NULL REFERENCES utilisateur(id) ON DELETE CASCADE,
+  montant_rabais_applique NUMERIC(10,2) NOT NULL,
+  total_avant_rabais NUMERIC(10,2) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE (code_promo_id, commande_id)
 );
 
-CREATE INDEX idx_stripe_event_type ON stripe_event(type);
+CREATE INDEX idx_cpu_code_promo ON code_promo_utilisation(code_promo_id);
+CREATE INDEX idx_cpu_utilisateur ON code_promo_utilisation(utilisateur_id, code_promo_id);
 
--- ============================================
+-- ============================================================
 -- TABLE: ligne_commande
--- ============================================
+-- ============================================================
 CREATE TABLE ligne_commande (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   commande_id UUID NOT NULL REFERENCES commande(id) ON DELETE CASCADE,
@@ -285,9 +334,115 @@ CREATE TABLE ligne_commande (
 CREATE INDEX idx_ligne_commande_commande_id ON ligne_commande(commande_id);
 CREATE INDEX idx_ligne_commande_produit_id ON ligne_commande(produit_id);
 
--- ============================================
+-- ============================================================
+-- TABLE: commande_statut_historique (migration 0002)
+-- ============================================================
+CREATE TABLE commande_statut_historique (
+  id             UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+  commande_id    UUID        NOT NULL REFERENCES commande(id) ON DELETE CASCADE,
+  ancien_statut  VARCHAR(50),
+  nouveau_statut VARCHAR(50) NOT NULL,
+  commentaire    TEXT,
+  created_at     TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_csh_commande    ON commande_statut_historique(commande_id);
+CREATE INDEX idx_csh_created_at  ON commande_statut_historique(created_at);
+
+-- ============================================================
+-- TABLE: refresh_token (migration 0003)
+-- ============================================================
+CREATE TABLE refresh_token (
+  id             UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+  token_hash     VARCHAR(64) NOT NULL UNIQUE,
+  utilisateur_id UUID        NOT NULL REFERENCES utilisateur(id) ON DELETE CASCADE,
+  expires_at     TIMESTAMP   NOT NULL,
+  revoked_at     TIMESTAMP   NULL,
+  created_at     TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_rt_token_hash   ON refresh_token(token_hash);
+CREATE INDEX idx_rt_utilisateur  ON refresh_token(utilisateur_id);
+CREATE INDEX idx_rt_expires_at   ON refresh_token(expires_at);
+
+-- ============================================================
+-- TABLE: audit_log (migration 0004)
+-- ============================================================
+CREATE TABLE audit_log (
+  id             UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+  action         VARCHAR(100) NOT NULL,
+  entite_type    VARCHAR(50),
+  entite_id      UUID,
+  utilisateur_id UUID        REFERENCES utilisateur(id) ON DELETE SET NULL,
+  details        JSONB,
+  ip_address     VARCHAR(45),
+  created_at     TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_al_utilisateur  ON audit_log(utilisateur_id);
+CREATE INDEX idx_al_entite       ON audit_log(entite_type, entite_id);
+CREATE INDEX idx_al_created_at   ON audit_log(created_at);
+
+-- ============================================================
+-- TABLE: facture / facture_ligne (migration 0008)
+-- ⚠️ Taux TVA conformes CGI 2024 — validation comptable requise
+-- avant première vente réelle (art. 278 et suivants CGI)
+-- ============================================================
+CREATE TABLE facture (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  numero VARCHAR(20) NOT NULL UNIQUE,
+  commande_id UUID NOT NULL REFERENCES commande(id),
+  utilisateur_id UUID NOT NULL REFERENCES utilisateur(id),
+
+  -- Snapshot données client (immuable après émission)
+  client_nom VARCHAR(255) NOT NULL,
+  client_email VARCHAR(255) NOT NULL,
+  client_adresse TEXT,
+
+  -- Snapshot données entreprise (immuable après émission)
+  entreprise_nom VARCHAR(255) NOT NULL DEFAULT 'Jana Distribution',
+  entreprise_siret VARCHAR(20),
+  entreprise_tva_numero VARCHAR(20),
+  entreprise_adresse TEXT,
+
+  -- Montants
+  total_ht NUMERIC(10,2) NOT NULL,
+  total_tva NUMERIC(10,2) NOT NULL,
+  total_ttc NUMERIC(10,2) NOT NULL,
+
+  -- Statut
+  statut VARCHAR(20) NOT NULL DEFAULT 'EMISE' CHECK (statut IN ('EMISE', 'ANNULEE')),
+  avoir_id UUID REFERENCES facture(id),
+
+  -- Dates
+  date_emission TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE facture_ligne (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  facture_id UUID NOT NULL REFERENCES facture(id) ON DELETE CASCADE,
+  produit_nom VARCHAR(255) NOT NULL,
+  produit_ref VARCHAR(100),
+  quantite INTEGER NOT NULL,
+  prix_unitaire_ht NUMERIC(10,2) NOT NULL,
+  taux_tva NUMERIC(4,2) NOT NULL,
+  montant_ht NUMERIC(10,2) NOT NULL,
+  montant_tva NUMERIC(10,2) NOT NULL,
+  montant_ttc NUMERIC(10,2) NOT NULL
+);
+
+-- Séquence de numérotation des factures
+CREATE SEQUENCE facture_seq START 1;
+
+CREATE INDEX idx_facture_commande ON facture(commande_id);
+CREATE INDEX idx_facture_utilisateur ON facture(utilisateur_id);
+CREATE INDEX idx_facture_numero ON facture(numero);
+CREATE INDEX idx_facture_date ON facture(date_emission DESC);
+
+-- ============================================================
 -- TABLE: configuration
--- ============================================
+-- ============================================================
 CREATE TABLE configuration (
   cle VARCHAR(100) PRIMARY KEY,
   valeur TEXT,
@@ -300,9 +455,19 @@ CREATE TABLE configuration (
 -- Index configuration
 CREATE INDEX idx_configuration_categorie ON configuration(categorie);
 
--- ============================================
+-- ============================================================
+-- TABLE: schema_migrations (runner de migrations — scripts/run-migrations.js)
+-- ============================================================
+CREATE TABLE schema_migrations (
+  id         SERIAL       PRIMARY KEY,
+  name       VARCHAR(255) NOT NULL UNIQUE,
+  checksum   VARCHAR(64)  NOT NULL,
+  applied_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ============================================================
 -- DONNÉES INITIALES: configuration
--- ============================================
+-- ============================================================
 INSERT INTO configuration (cle, valeur, type, categorie, description) VALUES
 -- Site
 ('site_nom', 'Jana Distribution', 'string', 'site', 'Nom du site'),
@@ -312,12 +477,17 @@ INSERT INTO configuration (cle, valeur, type, categorie, description) VALUES
 ('site_adresse', '123 Rue du Commerce', 'string', 'site', 'Adresse'),
 ('site_code_postal', '75001', 'string', 'site', 'Code postal'),
 ('site_ville', 'Paris', 'string', 'site', 'Ville'),
-('site_siret', '123 456 789 00012', 'string', 'site', 'Numéro SIRET'),
-('site_tva_intra', '', 'string', 'site', 'Numéro TVA Intracommunautaire'),
+('site_siret', '798787784', 'string', 'site', 'Numéro SIRET'),
+('site_tva_intra', 'FR92798787784', 'string', 'site', 'Numéro TVA Intracommunautaire'),
 
--- Livraison
-('livraison_frais_standard', '5.90', 'number', 'livraison', 'Frais de livraison standard'),
-('livraison_seuil_franco', '50', 'number', 'livraison', 'Montant minimum pour livraison gratuite'),
+-- Livraison (mode DISTANCE — décision propriétaire 2026-06-27, migration 0006)
+('livraison_mode', 'DISTANCE', 'string', 'livraison', 'Mode de calcul des frais de livraison'),
+('livraison_frais_base', '5.00', 'number', 'livraison', 'Frais de base en euros'),
+('livraison_tarif_km', '0.80', 'number', 'livraison', 'Tarif par kilomètre en euros'),
+('livraison_franco_seuil', '80.00', 'number', 'livraison', 'Montant au-delà duquel la livraison est gratuite'),
+('livraison_rayon_max_km', '80', 'number', 'livraison', 'Distance maximale de livraison en km (0 = illimitée)'),
+('livraison_frais_standard', '5.90', 'number', 'livraison', 'Frais de livraison standard (fallback)'),
+('livraison_seuil_franco', '50', 'number', 'livraison', 'Montant minimum pour livraison gratuite (fallback)'),
 ('livraison_delai_min', '2', 'number', 'livraison', 'Délai minimum de livraison (jours)'),
 ('livraison_delai_max', '5', 'number', 'livraison', 'Délai maximum de livraison (jours)'),
 ('livraison_zones', 'France métropolitaine', 'string', 'livraison', 'Zones de livraison'),
@@ -339,9 +509,9 @@ INSERT INTO configuration (cle, valeur, type, categorie, description) VALUES
 ('email_admin', 'admin@jana-distribution.fr', 'string', 'emails', 'Email admin pour copies'),
 ('email_signature', 'L équipe Jana Distribution', 'string', 'emails', 'Signature emails');
 
--- ============================================
+-- ============================================================
 -- FONCTIONS UTILITAIRES
--- ============================================
+-- ============================================================
 
 -- Fonction pour mettre à jour date_modification automatiquement
 CREATE OR REPLACE FUNCTION update_date_modification()
@@ -373,9 +543,9 @@ CREATE TRIGGER trigger_configuration_modification
   BEFORE UPDATE ON configuration
   FOR EACH ROW EXECUTE FUNCTION update_date_modification();
 
--- ============================================
+-- ============================================================
 -- MESSAGE DE FIN
--- ============================================
+-- ============================================================
 DO $$
 BEGIN
   RAISE NOTICE '';
@@ -384,13 +554,14 @@ BEGIN
   RAISE NOTICE '============================================';
   RAISE NOTICE '';
   RAISE NOTICE 'Tables créées:';
-  RAISE NOTICE '  • utilisateur';
-  RAISE NOTICE '  • adresse';
-  RAISE NOTICE '  • categorie';
-  RAISE NOTICE '  • produit';
+  RAISE NOTICE '  • utilisateur / adresse';
+  RAISE NOTICE '  • categorie / produit';
   RAISE NOTICE '  • panier / ligne_panier';
-  RAISE NOTICE '  • commande / ligne_commande';
-  RAISE NOTICE '  • configuration';
+  RAISE NOTICE '  • commande / ligne_commande / commande_statut_historique';
+  RAISE NOTICE '  • refresh_token / audit_log';
+  RAISE NOTICE '  • facture / facture_ligne';
+  RAISE NOTICE '  • code_promo / code_promo_utilisation';
+  RAISE NOTICE '  • configuration / schema_migrations';
   RAISE NOTICE '';
   RAISE NOTICE 'Prochaine étape: node scripts/seed.js';
   RAISE NOTICE '';
