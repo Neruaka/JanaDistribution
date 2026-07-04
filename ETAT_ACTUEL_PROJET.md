@@ -1,6 +1,6 @@
 # ÉTAT ACTUEL DU PROJET — Jana Distribution
 
-> Mise à jour : 2026-07-02. Source : inspection statique du code + git status.
+> Mise à jour : 2026-07-04. Source : inspection statique du code + git status.
 > Mettre à jour après chaque tâche DONE.
 
 ---
@@ -11,12 +11,12 @@
 |---|---|
 | Projet | Jana Distribution — e-commerce alimentaire B2C/B2B |
 | Branche active | `develop` |
-| Dernier commit | `58bf032` — `docs: log promo codes admin UI + backend/checkout commits in project state` |
-| Fichiers modifiés non commités | Aucun — working tree propre |
+| Dernier commit | `50bcc7e` — `fix(tests): make test:integration reach the new testcontainers suites` |
+| Fichiers modifiés non commités | `PROMPT_MASTER_SESSION.md` (édition manuelle en cours, hors périmètre de cette session) |
 | Phase active | Phase 8 — Staging Railway (en pause, plan expiré) |
-| Tâche active | Aucune — Session 2026-07-02 terminée (retrait Stripe + codes promo) |
+| Tâche active | Aucune — Session 2026-07-04 terminée (T5-08/T5-13 + tests intégration réels + init.sql resynchronisé + cookies + guides Brevo/domaine) |
 | Verdict | **NON PRÊT POUR LA PRODUCTION** |
-| Avancement estimé | ~96 % (50/80 tâches DONE) |
+| Avancement estimé | ~98 % (52/80 tâches DONE) |
 
 ---
 
@@ -24,7 +24,7 @@
 
 **NON PRÊT POUR LA PRODUCTION.**
 
-Phases 0-7 terminées. Tous les bloquants P0 résolus : images Cloudflare R2 (T0-02), facturation légale avec TVA (T5-02..T5-10), livraison DISTANCE configurée (T3-01..T3-04), tests d'intégration scaffolding (T7-01..T7-06). Il reste Phase 8 (staging Railway) et Phase 9 (go-live) avant mise en production. Avancement : ~92%. ⚠️ Validation comptable TVA et configuration variables Railway requises avant prod.
+Phases 0-7 terminées, y compris facturation légale complète (T5-01..T5-13 : génération auto VIREMENT/CHEQUE/ESPECES + envoi PDF par email) et tests d'intégration réels sur vraie base PostgreSQL via testcontainers (T7-01/T7-03/T7-06, nécessitent Docker localement). `backend/scripts/init.sql` resynchronisé avec les migrations 0001-0010. Il reste Phase 8 (staging Railway) et Phase 9 (go-live) avant mise en production. Avancement : ~98%. ⚠️ Validation comptable TVA et configuration variables Railway requises avant prod.
 
 ---
 
@@ -92,10 +92,10 @@ Navigateur
 | Paiement (ESPECES / VIREMENT / CHEQUE, pas de paiement en ligne) | FONCTIONNEL | Statut paiement positionné manuellement par un admin ; remboursement manuel tracé (montant_rembourse + audit_log). Stripe retiré (T4-07, 2026-07-02). | Code inspecté + committé |
 | Livraison (FIXE + DISTANCE Haversine) | FONCTIONNEL | Calcul serveur, franco de port, BAN API intégrée | Code inspecté |
 | Authentification (login, register, refresh) | FONCTIONNEL | JWT, bcrypt 12 rounds, reset MDP haché | Code inspecté |
-| Emails transactionnels (Brevo) | FONCTIONNEL | Bienvenue, statut commande, reset MDP | Code inspecté |
+| Emails transactionnels (Brevo) | FONCTIONNEL | Bienvenue, statut commande, reset MDP, facture (PDF joint) | Code inspecté |
 | Administration (produits, catégories, commandes, clients, paramètres) | FONCTIONNEL | Interface complète | Code inspecté |
-| Facturation | FONCTIONNEL | Tables facture/facture_ligne, invoice.service, PDFKit, routes client+admin, génération manuelle admin (POST /invoices/admin/generer/:commandeId) | Code inspecté |
-| Tests | PARTIEL | Jest backend (DB mockée), 1 test Vitest frontend | Code inspecté |
+| Facturation | FONCTIONNEL | Tables facture/facture_ligne, invoice.service, PDFKit, routes client+admin, génération manuelle admin + génération auto (T5-08 : VIREMENT/CHEQUE à CONFIRMEE, ESPECES à LIVREE) + envoi email PDF (T5-13) | Code inspecté |
+| Tests | PARTIEL | Jest backend (112 tests, DB mockée) + 3 suites d'intégration réelles (testcontainers, nécessitent Docker) ; 1 test Vitest frontend | Code inspecté |
 | Railway (déploiement) | PARTIEL | Health check OK, images éphémères, pas de staging | Non vérifiable Railway |
 | Stockage images | FONCTIONNEL | Cloudflare R2 (uploadToR2 middleware) + fallback disque local en dev | Code inspecté |
 | Refresh tokens révocables | FONCTIONNEL | Table refresh_token, login stocke le hash, logout révoque, rotation au refresh | Code modifié T2-03..T2-05 |
@@ -268,25 +268,30 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 | 2026-07-02 | T4-07 | **Décision client : retrait complet de Stripe** (pas de paiement en ligne au MVP, ESPECES/VIREMENT/CHEQUE uniquement). Supprimé : payment.service.js, payment.controller.js, payment.routes.js, webhook.routes.js, config/stripe.js, paymentService.js, PaymentSuccessPage.jsx, PaymentCancelPage.jsx, webhook.stripe.test.js. Migration 0009 : colonnes stripe_session_id/stripe_payment_intent_id/stripe_refund_id supprimées, table stripe_event supprimée, ENUM mode_paiement recréé sans CARTE (montant_rembourse et statuts REMBOURSE/PARTIELLEMENT_REMBOURSE conservés pour le suivi manuel). admin.order.routes.js : payment-status et refund passent en logique manuelle. npm uninstall stripe (backend) + @stripe/stripe-js (frontend). T4-01..T4-06, T7-02, T9-01, T9-05 passés CANCELLED. | 6/6 suites, 101/101 ✓, build frontend ✓ | DONE |
 | 2026-07-02 | Promo (backend+checkout) | Système de codes promo livré par un autre agent : migration + promo.repository.js + promo.service.js + routes.js (`/api/promo/valider` client, `/api/promo/admin*` CRUD+toggle+delete avec garde 409 si déjà utilisé), champ code promo intégré au CheckoutPage. | 6/6 suites, 112/112 ✓ | DONE |
 | 2026-07-02 | T-PROMO-ADMIN | Interface admin codes promo : adminService.js (getCodesPromo/getCodePromoById/createCodePromo/updateCodePromo/toggleCodePromo/deleteCodePromo), AdminPromoList.jsx (tableau + pagination + filtre actif/inactif + stats rapides + badge Actif/Inactif/Expiré + toggle + suppression protégée si nb_utilisations>0), PromoCodeModal.jsx (création/édition avec validation front alignée sur les règles backend ; le champ `code` est verrouillé en édition car absent de la whitelist PATCH). Route `/admin/promo` + lien sidebar "Codes promo" (AdminLayout.jsx). | build frontend ✓, 6/6 suites, 112/112 ✓ (non-régression backend) | DONE |
+| 2026-07-04 | Backend (SIRET/TVA + init.sql + T5-08 + T5-13) | invoice.service.js : fallback SIRET `798787784` / TVA `FR92798787784` (au lieu de `null`). `backend/scripts/init.sql` intégralement régénéré depuis les migrations 0001-0010 (retrait des artefacts Stripe/CARTE, ajout commande_statut_historique, refresh_token, audit_log, facture/facture_ligne/facture_seq, code_promo/code_promo_utilisation, schema_migrations, colonnes commande/produit post-migrations). admin.order.routes.js : génération auto facture sur PATCH statut (VIREMENT/CHEQUE → CONFIRMEE, ESPECES → LIVREE). email.service.js : sendMail supporte les pièces jointes Brevo base64, nouvelle méthode sendInvoiceEmail. invoice.service.js : envoi fire-and-forget du PDF par email après generateForOrder(). | 7/7 suites, 112/112 ✓, build frontend ✓ | DONE |
+| 2026-07-04 | Tests intégration réels (T7-01/T7-03/T7-06) | order.create.test.js (3 tests : décrément atomique stock, rollback stock insuffisant, rollback complet commande multi-lignes), auth.test.js (6 tests : bcrypt register/login, contrainte unique email, cycle de vie refresh_token), stock.concurrent.test.js (3 tests : achats concurrents sur dernier stock via SELECT...FOR UPDATE). Les 3 suites utilisent `@testcontainers/postgresql` + `backend/scripts/init.sql` comme schéma de référence. `test:integration` corrigé pour override le `testPathIgnorePatterns` de jest.config.js (qui excluait ces 3 fichiers de tout run, y compris le script dédié). | npm test (unitaire) 7/7 suites 112/112 ✓ inchangé ; npm run test:integration : collecte OK, exécution SKIP (Docker Desktop non démarré sur cette machine) | DONE |
+| 2026-07-04 | Bannière cookies RGPD | `frontend/src/components/CookieBanner.jsx` créé — cookies strictement techniques (JWT/session) uniquement, exemptés de consentement CNIL, informative + fermable, persistance via localStorage (`jana_cookie_banner_dismissed`), lien vers `/confidentialite`. Intégré dans App.jsx (visible sur toutes les routes). | build frontend ✓ | DONE |
+| 2026-07-04 | Guides Brevo + nom de domaine | `docs/GUIDE_BREVO_CONFIGURATION.md` (compte, clé API, sender, SPF/DKIM/DMARC, variables Railway réelles, test curl, tableau des emails envoyés) et `docs/GUIDE_NOM_DOMAINE.md` (achat OVH, types DNS, Custom Domain Railway front+back, propagation, HTTPS Let's Encrypt auto, variables CORS_ORIGIN/FRONTEND_URL/VITE_API_URL, checklist finale avec /api/health) — guides destinés au propriétaire non-développeur. | — | DONE |
 
 ---
 
 ## 13. Prochaine action recommandée
 
-**Session Stripe removal + Codes promo terminée (2026-07-02). Prochaine : T5-13 (email facture) ou Phase 8 Railway**
+**Session prérequis prod terminée (2026-07-04) : T5-08/T5-13 + tests intégration réels + init.sql resynchronisé + cookies + guides Brevo/domaine. Prochaine : Phase 8 Railway (réactiver le plan).**
 
 | Champ | Valeur |
 |---|---|
-| Option A | T5-13 — Envoi facture par email avec pièce jointe (Brevo base64) |
-| Option B | T8-01 — Staging Railway (nécessite réactivation plan Railway) |
-| Prérequis option A | Aucun — peut commencer immédiatement |
-| Prérequis option B | Accès Railway Dashboard + plan actif |
+| Option A | T8-01 — Créer les services Railway staging (nécessite réactivation plan Railway) |
+| Option B | T5-14 — Rendre les factures immuables (aucun endpoint UPDATE sur `facture`, correctif via avoir) |
+| Prérequis option A | Accès Railway Dashboard + plan actif — suivre `docs/GUIDE_NOM_DOMAINE.md` et `docs/GUIDE_BREVO_CONFIGURATION.md` |
+| Prérequis option B | Aucun — peut commencer immédiatement |
 
 **Actions externes requises avant prod :**
 1. Créer bucket Cloudflare R2 + configurer R2_* dans Railway
-2. Renseigner ENTREPRISE_SIRET, ENTREPRISE_TVA_NUMERO, ENTREPRISE_ADRESSE
+2. Renseigner ENTREPRISE_ADRESSE (SIRET et n° TVA déjà en place, cf. `backend/.env.example`)
 3. ⚠️ Faire valider les taux TVA par un comptable pour chaque référence produit
 4. Railway : activer sauvegardes PostgreSQL (T8-04)
+5. Acheter/configurer le nom de domaine et Brevo (SPF/DKIM/DMARC) — voir les deux guides dans `docs/`
+6. Démarrer Docker Desktop puis lancer `npm run test:integration` pour valider les 3 suites testcontainers avant tout déploiement (non exécutées faute de Docker sur la machine de développement actuelle)
 
-**Dette technique découverte (2026-07-02, agent Documentation) :**
-`backend/scripts/init.sql` n'est plus synchronisé avec les migrations versionnées : il référence encore des colonnes/tables Stripe supprimées (`stripe_event`, `CARTE` dans l'ENUM `mode_paiement`) et ne contient ni `refresh_token`, ni `audit_log`, ni `facture`/`facture_ligne`, ni `code_promo`/`code_promo_utilisation`. Les migrations font foi (convention confirmée dans `CLAUDE_WORKFLOW.md` §8), mais `init.sql` devrait être régénéré ou clairement marqué comme obsolète pour éviter toute confusion lors d'un futur bootstrap local. Détails dans `docs/CHANGEMENTS_MVP.md` et `docs/RESTE_A_FAIRE_PROD.md`.
+**Dette technique résolue (2026-07-04) :** `backend/scripts/init.sql` est désormais synchronisé avec les migrations 0001 à 0010 (voir journal §12). Toute nouvelle migration doit être répercutée manuellement dans ce fichier (pas de génération automatique).

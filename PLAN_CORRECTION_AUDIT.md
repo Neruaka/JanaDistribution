@@ -10,13 +10,13 @@
 | Indicateur | Valeur |
 |---|---|
 | Phase active | Phase 8 — Staging Railway |
-| Tâche active | Aucune — Session 2026-07-02 terminée (retrait Stripe + codes promo) |
+| Tâche active | Aucune — Session 2026-07-04 terminée (T5-08/T5-13 + tests intégration réels + init.sql + cookies + docs Brevo/domaine) |
 | Tâches totales | 80 |
 | READY | 0 |
 | IN_PROGRESS | 0 |
 | BLOCKED | 0 |
-| TODO | 21 |
-| DONE | 50 |
+| TODO | 19 |
+| DONE | 52 |
 | CANCELLED | 9 |
 | P0 restants | 0 |
 | P1 restants | 0 |
@@ -674,9 +674,9 @@ Voir détails comptables : `docs/audit-finalisation/09_FACTURATION.md`
 
 ### T5-08 — Gérer génération facture pour paiements non-CARTE (VIREMENT/CHEQUE)
 
-- **Statut :** BLOCKED | **Priorité :** P1 | **Catégorie :** CODE
+- **Statut :** DONE (2026-07-04) | **Priorité :** P1 | **Catégorie :** CODE
 - **Dépendances :** T5-04
-- **Fichiers :** `backend/src/services/order.service.js`, admin commandes (changement statut manuel)
+- **Fichiers :** `backend/src/routes/admin.order.routes.js` (PATCH /:id/status) — génération auto : VIREMENT/CHEQUE à la CONFIRMEE, ESPECES à la LIVREE
 
 ---
 
@@ -712,9 +712,9 @@ Voir détails comptables : `docs/audit-finalisation/09_FACTURATION.md`
 
 ### T5-13 — Envoi facture par email avec pièce jointe
 
-- **Statut :** BLOCKED | **Priorité :** P1 | **Catégorie :** CODE
+- **Statut :** DONE (2026-07-04) | **Priorité :** P1 | **Catégorie :** CODE
 - **Dépendances :** T5-06
-- **Fichiers :** `backend/src/services/email.service.js`
+- **Fichiers :** `backend/src/services/email.service.js` (sendMail supporte les pièces jointes + nouvelle méthode sendInvoiceEmail), `backend/src/services/invoice.service.js` (fire-and-forget après generateForOrder)
 - **Note :** Brevo supporte les pièces jointes base64 via son API REST
 
 ---
@@ -797,8 +797,8 @@ Détails : `docs/audit-finalisation/12_STRATEGIE_TESTS.md`
 
 ### T7-01 — Tests intégration création commande (vraie DB)
 
-- **Statut :** DONE (2026-06-27 — scaffolding testcontainers) | **Priorité :** P0 | **Catégorie :** CODE
-- **Fichiers :** `backend/tests/integration/order.create.test.js` — nécessite Docker
+- **Statut :** DONE (2026-07-04 — suite complète, 3 tests) | **Priorité :** P0 | **Catégorie :** CODE
+- **Fichiers :** `backend/tests/integration/order.create.test.js` — décrément atomique du stock, rollback stock insuffisant, rollback complet sur commande multi-lignes partiellement invalide — nécessite Docker (`npm run test:integration`)
 
 ---
 
@@ -812,8 +812,8 @@ Détails : `docs/audit-finalisation/12_STRATEGIE_TESTS.md`
 
 ### T7-03 — Tests intégration authentification
 
-- **Statut :** DONE (2026-06-27 — scaffolding testcontainers) | **Priorité :** P1 | **Catégorie :** CODE
-- **Fichiers :** `backend/tests/integration/auth.test.js` — nécessite Docker
+- **Statut :** DONE (2026-07-04 — suite complète, 6 tests) | **Priorité :** P1 | **Catégorie :** CODE
+- **Fichiers :** `backend/tests/integration/auth.test.js` — register/login bcrypt, contrainte unique email, cycle de vie refresh_token (émission, révocation, exclusion des tokens révoqués) — nécessite Docker (`npm run test:integration`)
 
 ---
 
@@ -832,8 +832,8 @@ Détails : `docs/audit-finalisation/12_STRATEGIE_TESTS.md`
 
 ### T7-06 — Tests race condition stock
 
-- **Statut :** DONE (2026-06-27 — scaffolding testcontainers) | **Priorité :** P2 | **Catégorie :** CODE
-- **Fichiers :** `backend/tests/integration/stock.concurrent.test.js` — nécessite Docker
+- **Statut :** DONE (2026-07-04 — suite complète, 3 tests) | **Priorité :** P2 | **Catégorie :** CODE
+- **Fichiers :** `backend/tests/integration/stock.concurrent.test.js` — 2/10/8 achats concurrents via `SELECT ... FOR UPDATE`, une seule réussite sur dernier stock — nécessite Docker (`npm run test:integration`)
 
 ---
 
@@ -915,6 +915,7 @@ Checklist complète : `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 
 - **Statut :** BLOCKED | **Priorité :** P0 | **Catégorie :** ACTION EXTERNE
 - **Blocage :** Validation juridique requise
+- **Note (2026-07-04) :** Bannière d'information cookies ajoutée (`frontend/src/components/CookieBanner.jsx`) — cookies strictement techniques uniquement (JWT/session), exemptés de consentement CNIL, fermable et persistante. Ne lève pas le blocage global (validation juridique CGV/mentions légales toujours requise).
 
 ---
 
