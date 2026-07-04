@@ -9,7 +9,7 @@
     "test": "jest --coverage --detectOpenHandles",
     "test:watch": "jest --watch",
     "test:unit": "jest tests/unit --coverage",
-    "test:integration": "jest tests/integration --coverage",
+    "test:integration": "jest --testPathPattern=tests/integration --runInBand --forceExit",
     "test:ci": "jest --ci --coverage --reporters=default --reporters=jest-junit",
     "lint": "eslint src/ --ext .js",
     "lint:fix": "eslint src/ --ext .js --fix",
