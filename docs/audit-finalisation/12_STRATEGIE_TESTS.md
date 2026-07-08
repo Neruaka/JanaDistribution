@@ -1,5 +1,7 @@
 # 12 — Stratégie de Tests
 
+> ⚠️ **Document historique (état figé au 2026-06-14)** — Rédigé lors de l'audit initial. Depuis, 3 suites de tests d'intégration réelles sur vraie PostgreSQL (testcontainers) ont été ajoutées (T7-01/T7-03/T7-06, DONE 2026-07-04) — les tests ne sont plus 100% mockés. Voir `ETAT_ACTUEL_PROJET.md` et `PLAN_CORRECTION_AUDIT.md` pour l'état réel à jour.
+
 ---
 
 ## Tests existants

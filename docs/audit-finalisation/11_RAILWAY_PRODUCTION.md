@@ -1,5 +1,7 @@
 # 11 — Railway et Production
 
+> ⚠️ **Document historique (état figé au 2026-06-14)** — Rédigé lors de l'audit initial, avant le retrait complet de Stripe (T4-07, 2026-07-02) et l'ajout de la facturation légale (Phase 5) et des tests d'intégration réels (Phase 7). Les références à Stripe, aux webhooks et aux tests 100% mockés ne reflètent plus l'état actuel du code. Voir `ETAT_ACTUEL_PROJET.md` et `PLAN_CORRECTION_AUDIT.md` pour l'état réel à jour.
+
 > Audit réalisé par inspection des fichiers de configuration locaux.
 > L'accès au tableau de bord Railway n'est pas disponible dans ce contexte.
 > Certains points sont donc marqués "Non vérifiable — accès Railway nécessaire".

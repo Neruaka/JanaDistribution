@@ -1,5 +1,7 @@
 # INDEX — Audit Jana Distribution
 
+> ⚠️ **Ensemble de documents historique (état figé au 2026-06-14)** — Cet audit initial et les 15 rapports qu'il référence ont été rédigés avant le retrait complet de Stripe (T4-07, 2026-07-02), l'ajout de la facturation légale (Phase 5) et des tests d'intégration réels (Phase 7). Ne pas s'y fier pour l'état actuel du projet (~98% DONE, Phase 8) — voir `ETAT_ACTUEL_PROJET.md` et `PLAN_CORRECTION_AUDIT.md`.
+
 > Point d'entrée de l'audit complet. Généré le 14 juin 2026.
 
 ---
