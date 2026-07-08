@@ -3,10 +3,12 @@
 
 ## CONTEXTE PROJET
 Jana Distribution est une plateforme e-commerce alimentaire B2C/B2B.
-Stack : React 18 / Vite / TailwindCSS 3.4 / Node.js + Express / PostgreSQL 15 / Redis 7 / Stripe Checkout Sessions / Brevo API.
+Stack : React 18 / Vite / TailwindCSS 3.4 / Node.js + Express / PostgreSQL 15 / Redis 7 / Gmail SMTP (nodemailer).
+Paiement en ligne (Stripe) retiré du MVP (T4-07, 2026-07-02) — ESPECES/VIREMENT/CHEQUE manuel uniquement.
+Email transactionnel migré de Brevo REST API vers Gmail SMTP (2026-07-08) — voir `docs/GUIDE_GMAIL_SMTP.md`.
 Déploiement : Railway (NIXPACKS backend, Dockerfile frontend).
-Avancement : ~68% — NON PRÊT PRODUCTION.
-Phase active : Phase 2 — Authentification, commandes et traçabilité.
+Avancement : ~98% (52/80 tâches DONE) — NON PRÊT PRODUCTION.
+Phase active : Phase 8 — Staging Railway (en pause, plan Railway expiré).
 
 ## FICHIERS OPÉRATIONNELS (à lire avant toute action)
 1. `CLAUDE_WORKFLOW.md` — méthode de travail absolue
@@ -38,20 +40,22 @@ Invoquer via `Task` avec le chemin du fichier agent correspondant :
 | Expert SEO | `.claude/agents/07_seo.md` | Meta tags, sitemap, perf Core Web Vitals |
 | Expert Marketing | `.claude/agents/08_marketing.md` | UX copywriting, emails transactionnels |
 | Expert Web Designer | `.claude/agents/09_designer.md` | Composants UI, cohérence visuelle |
+| Prompt Architect | `.claude/agents/prompt-architect.md` | Reformulation de demandes utilisateur en prompts structurés pour Claude Code |
 
-## ORDRE D'EXÉCUTION CE SOIR (chemin critique Phase 2)
+## ORDRE D'EXÉCUTION DU 2026-06-27 (historique — chemin critique Phase 2, toutes tâches closes)
 ```
-1. Backend (T2-01) → crée table commande_statut_historique
-2. Backend (T2-02) → enregistre transitions de statut
-3. Cybersécurité (T2-03) → crée table refresh_token
-4. Backend (T2-04) → stocke refresh token à la connexion
-5. Backend (T2-05) → révoque à la déconnexion
-6. E-commerce (T4-01) → remplace charge.refunded par refund.created
-7. E-commerce (T4-02) → gère remboursements partiels
-8. Full Stack (T4-03) → interface admin remboursement
-9. Backend (T2-06) → table audit_log
-10. Backend (T2-07) → logger actions admin sensibles
+1. Backend (T2-01) → crée table commande_statut_historique — DONE
+2. Backend (T2-02) → enregistre transitions de statut — DONE
+3. Cybersécurité (T2-03) → crée table refresh_token — DONE
+4. Backend (T2-04) → stocke refresh token à la connexion — DONE
+5. Backend (T2-05) → révoque à la déconnexion — DONE
+6. E-commerce (T4-01) → remplace charge.refunded par refund.created — CANCELLED (Stripe retiré, voir T4-07)
+7. E-commerce (T4-02) → gère remboursements partiels — CANCELLED (Stripe retiré, voir T4-07)
+8. Full Stack (T4-03) → interface admin remboursement — CANCELLED (remplacé par remboursement manuel, voir T4-07)
+9. Backend (T2-06) → table audit_log — DONE
+10. Backend (T2-07) → logger actions admin sensibles — DONE
 ```
+Voir `PLAN_CORRECTION_AUDIT.md` et `ETAT_ACTUEL_PROJET.md` pour l'état réel à jour et la prochaine tâche recommandée (Phase 8/9).
 
 ## FORMAT DE RAPPORT AGENT (obligatoire en fin de chaque tâche)
 ```

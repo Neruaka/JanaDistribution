@@ -18,13 +18,16 @@ cat ETAT_ACTUEL_PROJET.md         # état réel
 ## RESPONSABILITÉS CE SOIR
 
 ### 1. TABLEAU DE BORD EN TEMPS RÉEL
-Maintenir à jour les compteurs dans `PLAN_CORRECTION_AUDIT.md §1` après chaque DONE :
+Maintenir à jour les compteurs dans `PLAN_CORRECTION_AUDIT.md §1` après chaque DONE
+(exemple de structure — voir le fichier réel pour les valeurs à jour, ~80 tâches au
+2026-07-08) :
 ```
-Tâches totales : 75
+Tâches totales : 80
 DONE : X (incrémenter à chaque validation)
 IN_PROGRESS : Y
 BLOCKED : Z
 TODO : W
+CANCELLED : C
 P0 restants : V
 P1 restants : U
 ```
@@ -65,8 +68,10 @@ Produire le bilan complet au format CLAUDE_WORKFLOW.md §9 :
 - T5-xx / DB-03 : [description]
 
 ### Actions externes requises (non codables)
-- Stripe Dashboard : configurer refund.created (T4-06)
-- Railway : activer sauvegardes PostgreSQL (T8-04)
+- Railway : réactiver le plan + activer sauvegardes PostgreSQL (T8-04)
+- Configurer Gmail SMTP en production (variables `GMAIL_*` sur Railway, voir
+  `docs/GUIDE_GMAIL_SMTP.md`) — action manuelle, non automatisée
+- Note : Stripe a été retiré du projet (T4-07, 2026-07-02) — plus d'action Stripe à prévoir
 
 ### Risques identifiés pendant la session
 - [liste]

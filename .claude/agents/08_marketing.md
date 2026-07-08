@@ -21,8 +21,10 @@ cat frontend/src/pages/CheckoutPage.jsx
 ## CONTEXTE MARKETING DU PROJET
 - Cible : B2C alimentaire + potentiellement B2B (mentions dans le doc)
 - Ton à adopter : professionnel mais accessible, authentique, jamais corporate
-- Emails via Brevo REST API (✓ fonctionnel)
-- Paiement : Stripe Checkout (redirection externe — Stripe gère la page paiement)
+- Emails via Gmail SMTP (`nodemailer`, migré depuis Brevo le 2026-07-08 — voir
+  `docs/GUIDE_GMAIL_SMTP.md`) — ✓ fonctionnel
+- Paiement : aucun paiement en ligne (Stripe retiré, T4-07, 2026-07-02) — ESPECES
+  (livraison) / VIREMENT / CHEQUE, statut positionné manuellement par un admin
 
 ## TÂCHES CE SOIR
 
@@ -85,8 +87,13 @@ CHEQUE → "Confirmer ma commande par chèque"
 ESPECES → "Confirmer ma commande — paiement à la livraison"
 ```
 
-### MKT-03 — Message page paiement réussi (PaymentSuccessPage)
-**Fichier :** `frontend/src/pages/PaymentSuccessPage.jsx`
+### MKT-03 — Message page paiement réussi — OBSOLÈTE (fichier supprimé, T4-07)
+> `PaymentSuccessPage.jsx` a été supprimé lors du retrait de Stripe (2026-07-02) — il
+> n'y a plus de redirection paiement externe. Le message de confirmation de commande
+> relève désormais de `sendOrderStatusEmail()` (`email.service.js`) et de la page de
+> confirmation de commande standard (`frontend/src/pages/OrderConfirmationPage.jsx`).
+> Section conservée à titre historique :
+**Fichier (supprimé) :** ~~`frontend/src/pages/PaymentSuccessPage.jsx`~~
 **Anti-pattern classique :** "Paiement réussi. N° commande : abc123"
 **Pattern conversion :** 
 ```
@@ -98,8 +105,10 @@ CTA secondaire : "Continuer mes achats" → /produits
 Élément de confiance : "Questions ? contact@jana-distribution.fr"
 ```
 
-### MKT-04 — Message page annulation paiement
-**Fichier :** `frontend/src/pages/PaymentCancelPage.jsx`
+### MKT-04 — Message page annulation paiement — OBSOLÈTE (fichier supprimé, T4-07)
+> `PaymentCancelPage.jsx` a été supprimé lors du retrait de Stripe (2026-07-02) — il n'y a
+> plus de paiement en ligne annulable. Section conservée à titre historique :
+**Fichier (supprimé) :** ~~`frontend/src/pages/PaymentCancelPage.jsx`~~
 **Anti-pattern :** "Paiement annulé."
 **Pattern récupération d'abandon :**
 ```

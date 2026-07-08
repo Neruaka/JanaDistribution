@@ -15,14 +15,16 @@ git status
 # Lire les deux côtés de chaque intégration AVANT de toucher quoi que ce soit
 ```
 
-## TÂCHES CE SOIR
+## TÂCHES DE LA SESSION DU 2026-06-27/2026-07-04 (historique)
 
-### T4-03 (couche backend) — Endpoint admin remboursement
-**Coordination :** travaille en parallèle avec l'agent Frontend sur T4-03 (côté UI).
-**Définir le contrat d'API en premier, avant que les deux agents codent :**
-
+### T4-03 — Endpoint admin remboursement — REMPLACÉ (remboursement manuel implémenté, voir T4-07)
+> Le contrat ci-dessous décrivait un remboursement Stripe (`refund_id: "re_xxx"`).
+> Depuis T4-07 (2026-07-02), le remboursement est **manuel** : `POST
+> /api/admin/orders/:id/refund` enregistre un remboursement effectué hors système
+> (espèces rendues, virement émis, chèque annulé), tracé en `audit_log`, sans appel PSP.
+> Contrat historique conservé ci-dessous à titre de référence uniquement :
 ```
-POST /api/admin/commandes/:id/remboursement
+POST /api/admin/commandes/:id/remboursement   (historique — Stripe, obsolète)
 Auth : Bearer token + isAdmin middleware
 Body : { "montant": number, "raison": "string" }
 Response 200 : { "success": true, "refund_id": "re_xxx", "statut_commande": "REMBOURSE" }
@@ -31,12 +33,15 @@ Response 404 : { "error": "Commande introuvable" }
 Response 422 : { "error": "Remboursement Stripe échoué", "stripe_error": "..." }
 ```
 
-**Ce contrat doit être validé AVANT que le frontend le consomme.**
-Documenter ce contrat dans un fichier `docs/api-contracts/T4-03-remboursement.md`.
+### Tests d'intégration — DONE (2026-07-04, testcontainers réelle PostgreSQL)
+> T7-01, T7-03, T7-06 sont DONE avec une vraie base PostgreSQL via `@testcontainers/postgresql`
+> (nécessitent Docker localement, `npm run test:integration`). T7-04 (livraison) est DONE
+> depuis le 2026-06-27 sans Docker requis (tests Haversine unitaires). Patterns conservés
+> ci-dessous comme référence.
 
-### Tests d'intégration (Phase 7 — si le temps le permet)
-
-### T7-01 — Tests intégration création commande (vraie DB)
+### T7-01 — Tests intégration création commande (vraie DB) — DONE (2026-07-04)
+**Fichier réel :** `backend/tests/integration/order.create.test.js` (3 tests : décrément
+atomique du stock, rollback stock insuffisant, rollback commande multi-lignes)
 **Outil :** testcontainers-node (décision prise dans ETAT_ACTUEL_PROJET.md §8)
 **Fichier à créer :** `backend/tests/integration/order.create.test.js`
 ```javascript
@@ -74,16 +79,17 @@ describe('Order creation — integration', () => {
 });
 ```
 
-### T7-03 — Tests intégration authentification
-**Fichier :** `backend/tests/integration/auth.test.js`
-**Cas à tester :**
+### T7-03 — Tests intégration authentification — DONE (2026-07-04)
+**Fichier réel :** `backend/tests/integration/auth.test.js` (6 tests : register/login
+bcrypt, contrainte unique email, cycle de vie refresh_token)
+**Cas couverts :**
 - Register → login → refresh → logout → refresh invalide après logout
 - Login avec mot de passe incorrect → 401
 - Login avec compte inexistant → 401 (même message — pas de user enumeration)
 - Refresh token révoqué → 401
 - Refresh token expiré → 401
 
-### T7-04 — Tests intégration calcul livraison
+### T7-04 — Tests intégration calcul livraison — DONE (2026-06-27)
 **Fichier :** `backend/tests/integration/shipping.test.js`
 **Cas à tester :**
 - Mode FIXE : n'importe quelle adresse → frais fixes
