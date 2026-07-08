@@ -4,9 +4,11 @@ Ce guide explique, étape par étape et sans jargon technique inutile, comment a
 le nom de domaine `jana-distribution.fr` et le brancher sur les services déployés sur
 Railway (frontend + backend) pour que le site soit accessible à cette adresse, en HTTPS.
 
-Pour la configuration des emails (Brevo) qui utilise aussi des enregistrements DNS sur
-ce même domaine, voir `docs/GUIDE_BREVO_CONFIGURATION.md` — les deux configurations
-cohabitent dans la **même zone DNS**, il n'y a rien à séparer.
+Pour la configuration des emails, voir `docs/GUIDE_GMAIL_SMTP.md` (Gmail SMTP, migré
+depuis Brevo le 2026-07-08). Si vous utilisez un simple compte Gmail dédié (option A du
+guide), **aucun enregistrement DNS supplémentaire n'est nécessaire** pour l'email. Les
+enregistrements DNS SPF/DKIM/DMARC décrits plus bas ne s'appliquent que si vous choisissez
+l'option B (Google Workspace avec domaine `jana-distribution.fr` propre).
 
 ---
 
@@ -54,8 +56,8 @@ adresse serveur, une règle d'email, etc.). Voici les types que vous manipulerez
 |---|---|---|
 | **A** | Pointe un nom de domaine vers une **adresse IP** (un numéro identifiant un serveur). | Rarement utilisé directement avec Railway (qui préfère les CNAME), mais peut être requis pour la racine du domaine (`jana-distribution.fr` sans `www`). |
 | **CNAME** | Redirige un nom de domaine vers un **autre nom de domaine** (un alias). C'est ce que Railway utilise le plus souvent. | `www.jana-distribution.fr` → `xxxxx.up.railway.app` (le frontend Railway) |
-| **TXT** | Stocke du **texte libre**, utilisé pour des preuves de propriété ou des règles (SPF, DMARC, vérification de propriété d'un domaine). | Règles SPF/DMARC pour Brevo (voir `docs/GUIDE_BREVO_CONFIGURATION.md`). |
-| **MX** | Indique **quel serveur reçoit les emails** envoyés à `@jana-distribution.fr`. | Non nécessaire si vous n'avez pas de boîte mail `@jana-distribution.fr` à recevoir (Brevo n'en a pas besoin pour *envoyer* — MX ne concerne que la *réception*). |
+| **TXT** | Stocke du **texte libre**, utilisé pour des preuves de propriété ou des règles (SPF, DMARC, vérification de propriété d'un domaine). | Règles SPF/DMARC pour Gmail SMTP — uniquement si option B/Google Workspace (voir `docs/GUIDE_GMAIL_SMTP.md` §5). |
+| **MX** | Indique **quel serveur reçoit les emails** envoyés à `@jana-distribution.fr`. | Nécessaire uniquement si vous recevez des emails `@jana-distribution.fr` (ex. Google Workspace, option B). Pas requis pour un simple envoi via un compte Gmail dédié (option A) — MX ne concerne que la *réception*. |
 
 ---
 
@@ -159,7 +161,7 @@ au lieu des adresses `railway.app` par défaut :
 | Variable | Nouvelle valeur | Pourquoi (source : code) |
 |---|---|---|
 | `CORS_ORIGIN` | `https://jana-distribution.fr` | Le backend n'autorise que cette origine à appeler l'API (protection CORS) — voir `backend/.env.example`, valeur par défaut actuelle : `http://localhost:5173`. |
-| `FRONTEND_URL` | `https://jana-distribution.fr` | Utilisée pour construire les liens dans les emails envoyés (confirmation de commande, réinitialisation de mot de passe...) — voir `backend/src/services/email.service.js` et `docs/GUIDE_BREVO_CONFIGURATION.md`. |
+| `FRONTEND_URL` | `https://jana-distribution.fr` | Utilisée pour construire les liens dans les emails envoyés (confirmation de commande, réinitialisation de mot de passe...) — voir `backend/src/services/email.service.js` et `docs/GUIDE_GMAIL_SMTP.md`. |
 
 ### Sur le service **frontend** (onglet Variables) :
 
@@ -202,14 +204,19 @@ Une fois tout configuré, vérifiez dans cet ordre :
 
 ---
 
-## Rappel : DNS partagé avec la configuration email (Brevo)
+## Rappel : DNS partagé avec la configuration email (Gmail SMTP, option B uniquement)
 
-Le domaine `jana-distribution.fr` acheté ici sert **à la fois** :
+Si vous utilisez un simple compte Gmail dédié comme expéditeur (option A de
+`docs/GUIDE_GMAIL_SMTP.md`), **cette section ne s'applique pas** — aucun enregistrement
+DNS email n'est nécessaire.
+
+Si vous utilisez Google Workspace avec le domaine `jana-distribution.fr` (option B), le
+domaine acheté ici sert **à la fois** :
 - aux enregistrements **A/CNAME** pointant vers Railway (ce guide), et
-- aux enregistrements **TXT/CNAME** d'authentification email SPF/DKIM/DMARC pour Brevo
-  (voir `docs/GUIDE_BREVO_CONFIGURATION.md`, section 4).
+- aux enregistrements **TXT** d'authentification email SPF/DKIM/DMARC pour Google
+  (voir `docs/GUIDE_GMAIL_SMTP.md`, section 5).
 
 Ces enregistrements coexistent dans la **même zone DNS OVH**, sans conflit, tant que
 les noms d'hôtes ne se chevauchent pas (par exemple `@`/`www` pour Railway, `_dmarc` et
-`mail._domainkey` pour Brevo). Il est recommandé de configurer les deux à la suite,
-dans la même session sur l'interface OVH, pour éviter les allers-retours.
+`google._domainkey` pour Google Workspace). Il est recommandé de configurer les deux à la
+suite, dans la même session sur l'interface OVH, pour éviter les allers-retours.

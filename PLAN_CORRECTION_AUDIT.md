@@ -861,7 +861,7 @@ Détails : `docs/audit-finalisation/11_RAILWAY_PRODUCTION.md`
 
 - **Statut :** TODO | **Priorité :** P1 | **Catégorie :** CONFIGURATION
 - **Dépendances :** T8-01
-- **Action :** Clés Stripe test, DB séparée, Brevo test
+- **Action :** DB séparée, compte Gmail SMTP de test (Stripe non applicable — retiré du projet, voir T4-07)
 
 ---
 

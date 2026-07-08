@@ -1,6 +1,6 @@
 /**
  * Email Service
- * @description Gestion des emails avec Brevo (ex-Sendinblue) via API REST
+ * @description Gestion des emails via Gmail SMTP (nodemailer)
  *
  * Fonctionnalites :
  * - Notification changement statut commande
@@ -8,71 +8,71 @@
  * - Email de bienvenue
  */
 
+const nodemailer = require('nodemailer');
 const logger = require('../config/logger');
 
 class EmailService {
   constructor() {
-    this.apiKey = null;
+    this.transporter = null;
     this.senderEmail = null;
     this.senderName = null;
   }
 
   /**
-   * Initialise la config Brevo
+   * Initialise le transport SMTP Gmail
    */
   init() {
-    this.apiKey = process.env.BREVO_API_KEY;
+    this.senderEmail = process.env.GMAIL_SENDER_EMAIL;
+    const appPassword = process.env.GMAIL_APP_PASSWORD;
 
-    if (!this.apiKey) {
-      logger.warn('BREVO_API_KEY manquante - les emails ne seront pas envoyes');
+    if (!this.senderEmail || !appPassword) {
+      logger.warn('GMAIL_SENDER_EMAIL/GMAIL_APP_PASSWORD manquant(s) - les emails ne seront pas envoyes');
       return;
     }
 
-    this.senderEmail = process.env.BREVO_SENDER_EMAIL || 'noreply@jana-distribution.fr';
-    this.senderName = process.env.BREVO_SENDER_NAME || 'Jana Distribution';
+    this.senderName = process.env.GMAIL_SENDER_NAME || 'Jana Distribution';
 
-    logger.info(`Service email Brevo initialise (from: ${this.senderName} <${this.senderEmail}>)`);
+    this.transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: this.senderEmail,
+        pass: appPassword
+      }
+    });
+
+    logger.info(`Service email Gmail SMTP initialise (from: ${this.senderName} <${this.senderEmail}>)`);
   }
 
   /**
-   * Envoie un email via l'API REST Brevo
+   * Envoie un email via Gmail SMTP
    * @param {Object} options - Options de l'email
-   * @param {Array} [options.attachment] - Pièces jointes Brevo : [{ name, content (base64) }]
+   * @param {Array} [options.attachment] - Pièces jointes : [{ name, content (base64) }]
    */
   async sendMail(options) {
-    if (!this.apiKey) {
-      logger.warn(`Email non envoye - Brevo non configure: ${options.subject}`);
-      return { success: false, reason: 'Brevo non configure' };
+    if (!this.transporter) {
+      logger.warn(`Email non envoye - Gmail SMTP non configure: ${options.subject}`);
+      return { success: false, reason: 'Gmail SMTP non configure' };
     }
 
     try {
-      const body = {
-        sender: { name: this.senderName, email: this.senderEmail },
-        to: [{ email: options.to }],
+      const mailOptions = {
+        from: `"${this.senderName}" <${this.senderEmail}>`,
+        to: options.to,
         subject: options.subject,
-        htmlContent: options.html
+        html: options.html
       };
-      if (options.attachment) body.attachment = options.attachment;
-
-      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-        method: 'POST',
-        headers: {
-          'accept': 'application/json',
-          'api-key': this.apiKey,
-          'content-type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        logger.error(`Erreur envoi email a ${options.to}: ${data.message || JSON.stringify(data)}`);
-        return { success: false, error: data.message || 'Erreur Brevo' };
+      if (options.attachment) {
+        mailOptions.attachments = options.attachment.map((a) => ({
+          filename: a.name,
+          content: a.content,
+          encoding: 'base64'
+        }));
       }
 
-      logger.info(`Email envoye a ${options.to}: ${options.subject} (messageId: ${data.messageId})`);
-      return { success: true, messageId: data.messageId };
+      const info = await this.transporter.sendMail(mailOptions);
+
+      logger.info(`Email envoye a ${options.to}: ${options.subject} (messageId: ${info.messageId})`);
+      return { success: true, messageId: info.messageId };
     } catch (error) {
       logger.error(`Erreur envoi email a ${options.to}: ${error.message}`);
       return { success: false, error: error.message };

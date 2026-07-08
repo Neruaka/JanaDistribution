@@ -1,4 +1,6 @@
 # Checklist Test Local — Jana Distribution
+
+> ⚠️ **Sections Stripe obsolètes** — Stripe a été entièrement retiré du MVP (décision client T4-07, 2026-07-02). Les étapes/variables liées à Stripe (webhook, `STRIPE_SECRET_KEY`, cartes de test) mentionnées dans ce document ne s'appliquent plus. Paiement actuel : ESPECES/VIREMENT/CHEQUE, statut positionné manuellement par un admin. Voir `ETAT_ACTUEL_PROJET.md` pour l'état réel à jour.
 # À valider avant toute mise en production
 
 ## Prérequis
@@ -46,7 +48,7 @@
 - [ ] Commande créée en DB avec statut `PAYEE`
 - [ ] Stock décrémenté (vérifier via admin)
 - [ ] Panier vidé
-- [ ] Email confirmation envoyé (vérifier dans Brevo ou logs)
+- [ ] Email confirmation envoyé (vérifier réception ou logs applicatifs — Gmail SMTP)
 - [ ] Facture générée automatiquement (visible dans /api/invoices/mes-factures)
 
 ### Upload images (R2)
