@@ -16,17 +16,31 @@ cat docs/audit-finalisation/08_STRIPE_PAIEMENTS.md   # audit Stripe complet
 git status
 ```
 
-## CONTEXTE STRIPE DU PROJET
-- Stripe Checkout Sessions (conserver — décision figée)
-- Stripe SDK 22.0.2
-- Webhook endpoint : `/api/webhooks/stripe` (raw body middleware requis)
-- Idempotency via table `stripe_event` (event_id UNIQUE, payload supprimé en T0-04)
-- Événements déjà configurés : `checkout.session.completed`, `checkout.session.expired`, `payment_intent.payment_failed`
-- Événement MANQUANT : `refund.created` (actuellement `charge.refunded` — moins précis)
+## CONTEXTE PAIEMENT DU PROJET (mis à jour 2026-07-08)
 
-## TÂCHES CE SOIR
+> ⚠️ **Stripe a été entièrement retiré du projet** (décision client T4-07, 2026-07-02).
+> Toute la section ci-dessous (T4-01 à T4-06) est **historique** : ces tâches sont
+> `CANCELLED` dans `PLAN_CORRECTION_AUDIT.md`. Fichiers supprimés à cette occasion :
+> `payment.service.js`, `payment.controller.js`, `payment.routes.js`, `webhook.routes.js`,
+> `config/stripe.js`, `frontend/src/services/paymentService.js`,
+> `PaymentSuccessPage.jsx`, `PaymentCancelPage.jsx`. Package npm `stripe` désinstallé.
 
-### T4-01 — Remplacer charge.refunded par refund.created (PRIORITÉ 1)
+**État réel actuel :** aucun paiement en ligne au MVP. Modes acceptés : `ESPECES`
+(livraison), `VIREMENT`, `CHEQUE`. Le statut de paiement et les remboursements sont
+positionnés **manuellement par un admin** via `POST /api/admin/orders/:id/refund` et
+`PATCH .../payment-status` (`backend/src/routes/admin.order.routes.js`), tracés dans
+`audit_log` (colonnes `montant_rembourse` + statuts `REMBOURSE`/`PARTIELLEMENT_REMBOURSE`
+conservés sur `commande`, indépendamment de tout webhook). Voir `ETAT_ACTUEL_PROJET.md`
+DM-07 pour la décision produit complète.
+
+Si Stripe (ou un autre PSP) devait être réintroduit un jour, ce serait une **nouvelle
+décision produit explicite** — ne pas la supposer à partir du contenu historique ci-dessous.
+
+## TÂCHES DE LA SESSION DU 2026-06-27 — TOUTES CANCELLED (2026-07-02, voir T4-07)
+> Conservées uniquement comme référence historique des patterns webhook Stripe utilisés
+> avant le retrait. Ne pas les exécuter.
+
+### T4-01 — Remplacer charge.refunded par refund.created — CANCELLED (Stripe retiré, T4-07)
 **Fichier :** `backend/src/services/payment.service.js`
 
 **Pourquoi c'est important ?**
@@ -97,12 +111,12 @@ async _onRefundCreated(refund) {
 **Action externe requise :** configurer `refund.created` dans Stripe Dashboard
 → noter dans le bilan que c'est une action manuelle à faire.
 
-### T4-02 — Gérer les remboursements partiels (PRIORITÉ 2)
+### T4-02 — Gérer les remboursements partiels — CANCELLED (Stripe retiré, T4-07)
 **Dépendance :** T4-01 terminé.
 **Fichier :** `payment.service.js`, `order.repository.js`
 **Ajouter le statut `PARTIELLEMENT_REMBOURSE` :** vérifier la contrainte CHECK sur la colonne `statut` dans `init.sql` — si enum ou CHECK constraint, créer une migration pour ajouter le nouveau statut.
 
-### T4-03 — Interface admin initiation remboursement (PRIORITÉ 3)
+### T4-03 — Interface admin initiation remboursement — REMPLACÉ (remboursement manuel, voir T4-07)
 **Note :** tâche cross-layer — coordonner avec l'agent Frontend.
 **Backend :** `POST /api/admin/commandes/:id/remboursement`
 ```javascript
@@ -121,7 +135,7 @@ async initiateRefund(req, res) {
 - Statut commande doit être PAID, CONFIRMED, DELIVERED (pas déjà REMBOURSE)
 - Action loguée en audit_log avec montant, raison, admin_id
 
-### T4-04 — Stocker stripe_refund_id sur la commande (PRIORITÉ 4)
+### T4-04 — Stocker stripe_refund_id sur la commande — CANCELLED (colonne supprimée migration 0009, voir T4-07)
 **Migration :**
 ```sql
 -- backend/scripts/migrations/006_commande_stripe_refund.sql
@@ -129,7 +143,7 @@ ALTER TABLE commande ADD COLUMN IF NOT EXISTS stripe_refund_id VARCHAR(255);
 ALTER TABLE commande ADD COLUMN IF NOT EXISTS montant_rembourse NUMERIC(10,2) DEFAULT 0;
 ```
 
-### T4-05 — Enrichir métadonnées Stripe (PRIORITÉ 5 — optionnel ce soir)
+### T4-05 — Enrichir métadonnées Stripe — CANCELLED (Stripe retiré, T4-07)
 **Fichier :** `payment.service.js` section création Checkout Session
 ```javascript
 metadata: {
@@ -139,7 +153,7 @@ metadata: {
 }
 ```
 
-### T4-06 — Configurer webhook Stripe production (ACTION EXTERNE)
+### T4-06 — Configurer webhook Stripe production — CANCELLED (plus de webhook Stripe, voir T4-07)
 **Pas de code.** Documenter dans le bilan :
 ```
 ACTION EXTERNE REQUISE :
@@ -153,10 +167,11 @@ ACTION EXTERNE REQUISE :
 ## LOGIQUE MÉTIER E-COMMERCE (règles non négociables)
 1. Prix, taxes, stock, frais de livraison = recalculés côté SERVEUR à chaque commande
 2. Ne jamais faire confiance aux totaux envoyés par le frontend
-3. Un webhook doit être idempotent : double-envoi = une seule action
-4. Signature webhook vérifiée AVANT tout traitement : `stripe.webhooks.constructEvent()`
-5. Remboursement initié par STRIPE uniquement (via API) — jamais de UPDATE direct sur total
-6. Stock décrémenté dans la transaction de création commande (déjà fait en T1-01)
+3. Remboursement = action manuelle admin authentifiée (`isAdmin`), tracée en `audit_log`
+   avec montant, raison, admin_id — pas d'appel à un PSP externe (Stripe retiré, T4-07)
+4. Stock décrémenté dans la transaction de création commande (déjà fait en T1-01)
+5. Codes promo (ajoutés 2026-07-02, voir `docs/CHANGEMENTS_MVP.md`) : rabais toujours
+   recalculé côté serveur (`promo.service.js`), jamais confiance au total affiché client
 
 ## FORMAT DE RAPPORT
 ```

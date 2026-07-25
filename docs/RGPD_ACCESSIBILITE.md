@@ -29,21 +29,21 @@
 
 ### Ce qui manque
 
-- [ ] **Bannière de consentement cookies (opt-in actif)** — la page `/confidentialite` décrit une politique de cookies (nécessaires / performance / préférences), mais aucun composant `CookieBanner`/`CookieConsent` n'a été trouvé dans `frontend/src/components/` ni dans `App.jsx`. La politique est documentée, le mécanisme de consentement interactif ne l'est pas.
+- [x] ~~**Bannière de consentement cookies (opt-in actif)**~~ — **RÉSOLU (2026-07-04)** : `frontend/src/components/CookieBanner.jsx` créé et monté dans `App.jsx`. Les cookies utilisés étant strictement techniques (JWT/session), un bandeau d'information dismissible suffit — la CNIL n'exige pas de consentement actif pour les cookies exemptés.
 - [ ] **Droit d'accès / export des données personnelles** — aucun endpoint identifié (type `GET /api/auth/mes-donnees` ou export JSON/CSV). Le droit à l'effacement existe, pas le droit d'accès formalisé.
 - [ ] **Registre des traitements** — aucun document identifié listant formellement les traitements, bases légales et durées de conservation par catégorie de données.
 - [ ] **Politique de conservation explicite pour les logs applicatifs** (voir point Winston ci-dessous).
-- [ ] **Contrat DPA formalisé avec Brevo** (à vérifier — voir points ci-dessous, hors périmètre du code source).
+- [ ] **Conditions de traitement des données Google (Gmail SMTP)** formalisées (à vérifier — voir points ci-dessous, hors périmètre du code source). Migration depuis Brevo le 2026-07-08, voir `docs/GUIDE_GMAIL_SMTP.md`.
 
 ### Points à vérifier (hors code, ou nécessitant confirmation)
 
 | Point | État constaté | À faire |
 |---|---|---|
-| DPA (Data Processing Agreement) Brevo | Non vérifiable dans le code — Brevo est un sous-traitant RGPD (emails transactionnels, potentiellement newsletter) | Vérifier l'existence d'un DPA signé côté compte Brevo |
+| DPA (Data Processing Agreement) Google (Gmail SMTP) | Non vérifiable dans le code — Google (Gmail/Google Workspace) est désormais le sous-traitant RGPD pour les emails transactionnels depuis la migration Brevo → Gmail SMTP (2026-07-08, voir `docs/GUIDE_GMAIL_SMTP.md`) | Vérifier les termes de traitement des données Google Workspace/Gmail applicables au compte utilisé |
 | Localisation des données Cloudflare R2 | **Déjà en EU** d'après `ETAT_ACTUEL_PROJET.md` (endpoint EU configuré, bucket `jana-products`) | Confirmer le custom domain de prod reste bien sur la même région |
 | Durée de conservation des logs Winston | `backend/src/config/logger.js` : rotation par taille (5 Mo × 5 fichiers), **aucune purge par durée** trouvée dans la config | Définir une politique de rétention explicite (ex. purge après X mois) et la documenter |
 | Durée de conservation des factures | 10 ans (obligation légale France) mentionnée en décision (`DM-08`) mais **à confirmer formellement** par le comptable | Validation comptable |
-| Consentement newsletter | Champ `utilisateur.accepte_newsletter` existe en DB et est collecté à l'inscription — vérifier qu'il conditionne bien tout envoi marketing (actuellement Brevo n'est utilisé que pour les emails transactionnels d'après l'inspection) | Vérifier au moment de l'ajout d'une vraie newsletter marketing |
+| Consentement newsletter | Champ `utilisateur.accepte_newsletter` existe en DB et est collecté à l'inscription — vérifier qu'il conditionne bien tout envoi marketing (actuellement Gmail SMTP n'est utilisé que pour les emails transactionnels, migré depuis Brevo le 2026-07-08) | Vérifier au moment de l'ajout d'une vraie newsletter marketing |
 
 ---
 

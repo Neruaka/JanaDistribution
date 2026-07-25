@@ -30,13 +30,16 @@ frontend/src/pages/admin/AdminDashboard.jsx
 frontend/src/pages/admin/AdminOrdersList.jsx
 frontend/src/pages/admin/AdminProductsList.jsx
 frontend/src/services/api.js                  # intercepteur Axios
-frontend/src/services/paymentService.js
 frontend/src/services/shippingService.js
+# Note : frontend/src/services/paymentService.js n'existe plus (Stripe retiré, T4-07, 2026-07-02)
 ```
 
-## TÂCHES CE SOIR (Phase 6 — Finalisation administration)
+## TÂCHES DE LA SESSION DU 2026-06-27/28 (historique)
+> T6-01, T6-02, T6-03, T6-05 sont DONE (voir `PLAN_CORRECTION_AUDIT.md`). Seule T6-04
+> (validation import produits Excel côté backend) reste `TODO`. Ne pas re-exécuter les
+> tâches DONE — conservées ici comme référence des patterns utilisés.
 
-### T6-01 — Timeline historique statuts dans admin (PRIORITÉ 1)
+### T6-01 — Timeline historique statuts dans admin — DONE (2026-06-27)
 **Dépendance :** T2-01 (backend) ET T2-02 (backend) terminés — ne commencer qu'après.
 **Objectif :** afficher la timeline des transitions de statut dans la page de détail commande admin.
 **API à consommer :** `GET /api/admin/commandes/:id/historique`
@@ -52,7 +55,7 @@ const CommandeStatutTimeline = ({ commandeId }) => {
 ```
 **Fichiers à modifier :** `AdminOrdersList.jsx` (ou page détail commande si elle existe)
 
-### T6-02 — Dashboard graphiques CA par période (PRIORITÉ 2)
+### T6-02 — Dashboard graphiques CA par période — DONE (pré-existant, confirmé 2026-06-27)
 **API à créer côté backend :** `GET /api/admin/stats?periode=7j|30j|90j`
 **Librairie :** utiliser recharts (déjà installé dans le projet — vérifier `package.json`)
 **Métriques à afficher :**
@@ -62,7 +65,7 @@ const CommandeStatutTimeline = ({ commandeId }) => {
 **Composant :** `frontend/src/components/admin/DashboardStats.jsx`
 **Note :** si recharts n'est pas installé → `npm install recharts` + noter dans le rapport
 
-### T6-03 — Export commandes CSV (PRIORITÉ 3)
+### T6-03 — Export commandes CSV — DONE (2026-06-27)
 **Note :** ExcelJS est déjà installé dans le projet — vérifier dans `frontend/package.json`
 **Fonctionnalité :** bouton "Exporter CSV" dans AdminOrdersList avec filtre de date
 **Pattern :**
@@ -79,7 +82,7 @@ const CommandeStatutTimeline = ({ commandeId }) => {
 **Fichier backend :** `backend/src/routes/product.routes.js` — endpoint import existant ?
 **Vérifier d'abord :** `rg "import" frontend/src/pages/admin/AdminProductsList.jsx`
 
-### T6-05 — Supprimer PromotionsPage orpheline (PRIORITÉ BASSE)
+### T6-05 — Supprimer PromotionsPage orpheline — DONE (2026-06-28)
 ```bash
 # Vérifier qu'elle n'est référencée nulle part avant de supprimer
 rg "PromotionsPage" frontend/src/

@@ -1,5 +1,7 @@
 # 13 — Roadmap de Finalisation
 
+> ⚠️ **Document historique (état figé au 2026-06-14)** — Rédigé lors de l'audit initial, avant le retrait complet de Stripe (T4-07, 2026-07-02) et l'ajout de la facturation légale (Phase 5) et des tests d'intégration réels (Phase 7). Les estimations et priorités ne reflètent plus l'état actuel du projet (~98% DONE). Voir `ETAT_ACTUEL_PROJET.md` et `PLAN_CORRECTION_AUDIT.md` pour l'état réel à jour.
+
 > Durées estimées en jours-développeur. Les décisions métier (livraison, TVA, etc.) ne sont pas comptées.
 
 ---

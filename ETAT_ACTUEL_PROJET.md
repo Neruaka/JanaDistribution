@@ -12,7 +12,7 @@
 | Projet | Jana Distribution — e-commerce alimentaire B2C/B2B |
 | Branche active | `develop` |
 | Dernier commit | `50bcc7e` — `fix(tests): make test:integration reach the new testcontainers suites` |
-| Fichiers modifiés non commités | `PROMPT_MASTER_SESSION.md` (édition manuelle en cours, hors périmètre de cette session) |
+| Fichiers modifiés non commités | Aucun fichier tracké modifié — non trackés : `.claude/agents/prompt-architect.md`, `tools/star-office-ui/` (dashboard de supervision multi-agents, hors périmètre applicatif) |
 | Phase active | Phase 8 — Staging Railway (en pause, plan expiré) |
 | Tâche active | Aucune — Session 2026-07-04 terminée (T5-08/T5-13 + tests intégration réels + init.sql resynchronisé + cookies + guides Brevo/domaine) |
 | Verdict | **NON PRÊT POUR LA PRODUCTION** |
@@ -40,7 +40,7 @@ Phases 0-7 terminées, y compris facturation légale complète (T5-01..T5-13 : g
 | Base de données | PostgreSQL | 15 |
 | Cache | ioredis | 7 |
 | Auth | JWT access 7j + refresh 30j | jsonwebtoken 9 |
-| Email | Brevo REST API (`BREVO_API_KEY`) | — |
+| Email | Gmail SMTP (`nodemailer`) | ^9 |
 | Paiements | Pas de paiement en ligne (MVP) — ESPECES / VIREMENT / CHEQUE uniquement, Stripe retiré (T4-07, 2026-07-02) | — |
 | Géocodage livraison | BAN API adresse.data.gouv.fr | gratuit |
 | Upload fichiers | Multer → Cloudflare R2 (endpoint EU) | 1.4.5-lts.1 + @aws-sdk/client-s3 |
@@ -62,7 +62,7 @@ Navigateur
   → Backend Express (Railway)
       ├── PostgreSQL 15 (Railway)
       ├── Redis 7 / ioredis (Railway)
-      ├── Brevo REST API (externe — email)
+      ├── Gmail SMTP (externe — email)
       └── BAN API adresse.data.gouv.fr (externe — géocodage)
 ```
 
@@ -79,6 +79,7 @@ Navigateur
 | Géocodage BAN | `backend/src/services/geocoding.service.js` *(non commité)* |
 | Checkout frontend | `frontend/src/pages/CheckoutPage.jsx` |
 | Middleware auth + admin | `backend/src/middlewares/auth.middleware.js` |
+| Email (Gmail SMTP via nodemailer) | `backend/src/services/email.service.js` |
 
 ---
 
@@ -92,7 +93,7 @@ Navigateur
 | Paiement (ESPECES / VIREMENT / CHEQUE, pas de paiement en ligne) | FONCTIONNEL | Statut paiement positionné manuellement par un admin ; remboursement manuel tracé (montant_rembourse + audit_log). Stripe retiré (T4-07, 2026-07-02). | Code inspecté + committé |
 | Livraison (FIXE + DISTANCE Haversine) | FONCTIONNEL | Calcul serveur, franco de port, BAN API intégrée | Code inspecté |
 | Authentification (login, register, refresh) | FONCTIONNEL | JWT, bcrypt 12 rounds, reset MDP haché | Code inspecté |
-| Emails transactionnels (Brevo) | FONCTIONNEL | Bienvenue, statut commande, reset MDP, facture (PDF joint) | Code inspecté |
+| Emails transactionnels (Gmail SMTP) | FONCTIONNEL | Bienvenue, statut commande, reset MDP, facture (PDF joint) | Code inspecté + tests (112/112 ✓) |
 | Administration (produits, catégories, commandes, clients, paramètres) | FONCTIONNEL | Interface complète | Code inspecté |
 | Facturation | FONCTIONNEL | Tables facture/facture_ligne, invoice.service, PDFKit, routes client+admin, génération manuelle admin + génération auto (T5-08 : VIREMENT/CHEQUE à CONFIRMEE, ESPECES à LIVREE) + envoi email PDF (T5-13) | Code inspecté |
 | Tests | PARTIEL | Jest backend (112 tests, DB mockée) + 3 suites d'intégration réelles (testcontainers, nécessitent Docker) ; 1 test Vitest frontend | Code inspecté |
@@ -172,6 +173,7 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 | Architecture | DÉCIDÉ | Évolution progressive — pas de réécriture |
 | Refresh tokens | DÉCIDÉ ET IMPLÉMENTÉ | Table `refresh_token` créée et active |
 | Railway | EN PAUSE | Période d'essai expirée — déploiement différé, config prête dans RAILWAY_CONFIG_READY.md |
+| Email transactionnel | DÉCIDÉ ET IMPLÉMENTÉ (2026-07-08) | Migration Brevo REST API → Gmail SMTP (`nodemailer`), voir `docs/GUIDE_GMAIL_SMTP.md`. Bascule Railway (variables `GMAIL_*`, révocation `BREVO_API_KEY`) reste une action manuelle non appliquée automatiquement. |
 
 ---
 
@@ -216,7 +218,7 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 | `backend/src/routes/admin.order.routes.js` | Statut paiement manuel + remboursement manuel (ESPECES/VIREMENT/CHEQUE) |
 | `backend/src/services/settings.service.js` | Configuration, livraison FIXE/DISTANCE |
 | `backend/src/services/geocoding.service.js` | BAN API, Haversine *(non commité)* |
-| `backend/src/services/email.service.js` | Brevo REST API |
+| `backend/src/services/email.service.js` | Gmail SMTP (nodemailer) |
 | `backend/tests/setup.js` | Mocks DB et Redis — à ne PAS copier pour les tests d'intégration |
 | `frontend/src/pages/CheckoutPage.jsx` | Checkout multi-étapes (ESPECES/VIREMENT/CHEQUE uniquement) |
 | `frontend/src/App.jsx` | Routing React, routes admin |
@@ -272,6 +274,8 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 | 2026-07-04 | Tests intégration réels (T7-01/T7-03/T7-06) | order.create.test.js (3 tests : décrément atomique stock, rollback stock insuffisant, rollback complet commande multi-lignes), auth.test.js (6 tests : bcrypt register/login, contrainte unique email, cycle de vie refresh_token), stock.concurrent.test.js (3 tests : achats concurrents sur dernier stock via SELECT...FOR UPDATE). Les 3 suites utilisent `@testcontainers/postgresql` + `backend/scripts/init.sql` comme schéma de référence. `test:integration` corrigé pour override le `testPathIgnorePatterns` de jest.config.js (qui excluait ces 3 fichiers de tout run, y compris le script dédié). | npm test (unitaire) 7/7 suites 112/112 ✓ inchangé ; npm run test:integration : collecte OK, exécution SKIP (Docker Desktop non démarré sur cette machine) | DONE |
 | 2026-07-04 | Bannière cookies RGPD | `frontend/src/components/CookieBanner.jsx` créé — cookies strictement techniques (JWT/session) uniquement, exemptés de consentement CNIL, informative + fermable, persistance via localStorage (`jana_cookie_banner_dismissed`), lien vers `/confidentialite`. Intégré dans App.jsx (visible sur toutes les routes). | build frontend ✓ | DONE |
 | 2026-07-04 | Guides Brevo + nom de domaine | `docs/GUIDE_BREVO_CONFIGURATION.md` (compte, clé API, sender, SPF/DKIM/DMARC, variables Railway réelles, test curl, tableau des emails envoyés) et `docs/GUIDE_NOM_DOMAINE.md` (achat OVH, types DNS, Custom Domain Railway front+back, propagation, HTTPS Let's Encrypt auto, variables CORS_ORIGIN/FRONTEND_URL/VITE_API_URL, checklist finale avec /api/health) — guides destinés au propriétaire non-développeur. | — | DONE |
+| 2026-07-08 | Audit documentation vs code réel | Corrections : `CLAUDE.md` (état ~98%/Phase 8, retrait Stripe de la stack, ajout `prompt-architect.md` au tableau agents, plan "ce soir" marqué historique), `README.md` (retrait Joi résiduel), `CLAUDE_WORKFLOW.md` (refresh tokens révocables, Stripe retiré de la stack et de la règle §8), `docs/CHANGEMENTS_MVP.md` + `docs/RESTE_A_FAIRE_PROD.md` (statut init.sql resynchronisé, T5-08/T5-13 DONE), `docs/RGPD_ACCESSIBILITE.md` (CookieBanner résolu), bandeau d'obsolescence ajouté sur `docs/audit-finalisation/*` (16 fichiers) + `DEPLOY-RAILWAY.md`, `DEMARRAGE.md`, `docs/CHECKLIST_TEST_LOCAL.md`, `docs/RAILWAY_CONFIG_READY.md`. | — | DONE |
+| 2026-07-08 | Migration email Brevo → Gmail SMTP | `email.service.js` : transport `nodemailer` (Gmail SMTP) remplace l'appel REST Brevo ; `sendMail()` et toutes les méthodes publiques (`sendWelcomeEmail`, `sendOrderStatusEmail`, `sendInvoiceEmail`, `sendPasswordResetEmail`, `sendPasswordChangedEmail`) inchangées pour les appelants. `backend/package.json` : ajout `nodemailer` ^9.0.3. `backend/.env.example` : section Brevo remplacée par `GMAIL_SENDER_EMAIL`/`GMAIL_APP_PASSWORD`/`GMAIL_SENDER_NAME` (valeurs vides). `docs/GUIDE_GMAIL_SMTP.md` créé (remplace `docs/GUIDE_BREVO_CONFIGURATION.md`, conservé en pointeur historique). `CLAUDE_WORKFLOW.md` §1 mis à jour. Bascule Railway réelle (ajout variables `GMAIL_*`, révocation `BREVO_API_KEY`) non appliquée — action manuelle, hors scope automatique. | 7/7 suites, 112/112 ✓ (aucune régression) | DONE |
 
 ---
 

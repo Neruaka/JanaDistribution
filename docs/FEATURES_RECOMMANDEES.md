@@ -8,8 +8,8 @@
 
 ### Notifications SMS livraison
 
-- **Pourquoi :** Le suivi de commande existe déjà (`numero_colis`, `date_expedition` sur `commande`, historique de statuts via `commande_statut_historique`) mais la notification au client se limite aux emails Brevo. Un SMS au moment de l'expédition/livraison réduit fortement les appels au support et améliore la perception du service, particulièrement en B2B où la fenêtre de livraison compte.
-- **Stack suggérée :** Brevo propose aussi une API SMS transactionnelle (même compte, même clé `BREVO_API_KEY`) — intégration cohérente avec `email.service.js` existant, pas de nouveau fournisseur à gérer.
+- **Pourquoi :** Le suivi de commande existe déjà (`numero_colis`, `date_expedition` sur `commande`, historique de statuts via `commande_statut_historique`) mais la notification au client se limite aux emails (Gmail SMTP). Un SMS au moment de l'expédition/livraison réduit fortement les appels au support et améliore la perception du service, particulièrement en B2B où la fenêtre de livraison compte.
+- **Stack suggérée :** L'email étant désormais Gmail SMTP (migré depuis Brevo le 2026-07-08, voir `docs/GUIDE_GMAIL_SMTP.md`), l'argument « même compte, même clé » ne tient plus — un SMS transactionnel nécessiterait un nouveau fournisseur dédié (ex. OVH SMS, Twilio, Brevo SMS en tant que nouveau compte) à évaluer indépendamment de l'email.
 - **Effort estimé :** Faible à moyen (2-4 jours) — ajouter `sms.service.js` sur le modèle de `email.service.js`, déclencher sur les mêmes transitions de statut déjà loguées.
 
 ### Avis clients (reviews produits)
@@ -48,9 +48,9 @@
 
 ### Newsletter marketing (au-delà des emails transactionnels)
 
-- **Pourquoi :** Brevo est déjà intégré (`email.service.js`) mais uniquement pour les emails transactionnels (bienvenue, statut commande, reset mot de passe). Le champ `utilisateur.accepte_newsletter` existe déjà en base mais n'est pas exploité pour des campagnes marketing — opportunité à faible coût d'intégration.
-- **Stack suggérée :** Brevo Marketing (listes de contacts, campagnes) via la même API/clé — pas de nouveau fournisseur, juste extension de l'usage existant.
-- **Effort estimé :** Faible (quelques jours) côté technique — synchronisation des contacts opt-in vers une liste Brevo ; l'essentiel de l'effort est côté contenu marketing.
+- **Pourquoi :** Gmail SMTP est intégré (`email.service.js`, migré depuis Brevo le 2026-07-08) mais uniquement pour les emails transactionnels (bienvenue, statut commande, reset mot de passe) — Gmail SMTP n'est pas conçu pour l'envoi de campagnes en masse (quotas 500-2000/jour, pas d'outil de gestion de listes). Le champ `utilisateur.accepte_newsletter` existe déjà en base mais n'est pas exploité pour des campagnes marketing.
+- **Stack suggérée :** Contrairement à la situation avec Brevo, une vraie newsletter nécessiterait désormais d'introduire un **nouveau fournisseur marketing dédié** (Brevo Marketing, Mailchimp, etc.) — ce n'est plus une simple extension de l'usage existant.
+- **Effort estimé :** Faible à moyen (quelques jours à 1-2 semaines) — dépend du fournisseur choisi et de la synchronisation des contacts opt-in ; l'essentiel de l'effort reste côté contenu marketing.
 
 ### Gestion des retours / SAV
 

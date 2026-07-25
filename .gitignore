@@ -83,3 +83,10 @@ redis_data/
 # FICHIERS SCRTIPS
 # ==========================================
 scripts/
+
+# ==========================================
+# OUTILS LOCAUX (hors périmètre applicatif)
+# ==========================================
+# tools/star-office-ui : dashboard de supervision multi-agents, clone tiers avec son
+# propre historique git — non versionné dans ce dépôt. Voir tools/star-office-ui/README.md.
+/tools/

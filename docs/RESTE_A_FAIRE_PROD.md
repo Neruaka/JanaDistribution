@@ -27,14 +27,14 @@ Ces points ne peuvent pas être résolus par du code ; ils nécessitent une déc
 
 | ID | Tâche | Statut | Dépendance bloquante |
 |---|---|---|---|
-| T5-08 | Génération facture pour paiements VIREMENT/CHEQUE (hors CARTE) | BLOCKED | T5-04 |
-| T5-13 | Envoi facture par email (pièce jointe Brevo base64) | BLOCKED | T5-06 |
+| T5-08 | Génération facture pour paiements VIREMENT/CHEQUE (hors CARTE) | DONE (2026-07-04) | T5-04 |
+| T5-13 | Envoi facture par email (pièce jointe Brevo base64) | DONE (2026-07-04) | T5-06 |
 | T5-14 | Rendre les factures immuables (pas d'UPDATE, correctifs via avoir) | BLOCKED | T5-04 |
 | T5-15 | Générer un avoir après remboursement | BLOCKED | T5-04, ex-T4-01 (Stripe, obsolète — refaire en logique manuelle) |
 | T5-16 | Tests unitaires service facture | BLOCKED | T5-06 |
 | T5-17 | Tests intégration flux facture complet | BLOCKED | T5-07, T7-01 |
 
-Note : plusieurs dépendances (`T5-04`, `T5-06`, `T5-07`) sont marquées `DONE` dans le journal mais les tâches qui en dépendent restent `BLOCKED` dans le plan — à re-vérifier/déclencher en séance de triage, ce sont probablement des `READY` non recalculés.
+Note : T5-08 et T5-13 ont été confirmées `DONE` le 2026-07-04 (voir `PLAN_CORRECTION_AUDIT.md` et `ETAT_ACTUEL_PROJET.md` §12) — le doute exprimé initialement dans cette note est levé pour ces deux tâches.
 
 ### Livraison / Produits
 
@@ -70,7 +70,7 @@ Note : plusieurs dépendances (`T5-04`, `T5-06`, `T5-07`) sont marquées `DONE` 
 
 ### Dette technique constatée
 
-- `backend/scripts/init.sql` n'est pas synchronisé avec les migrations récentes (0009 retrait Stripe, et plus généralement 0002 à 0010 absentes du fichier de référence). Un nouvel environnement initialisé uniquement via `init.sql` recréerait un schéma incorrect (colonnes Stripe présentes, tables `refresh_token`/`audit_log`/`facture`/`code_promo`/`commande_statut_historique` absentes). À corriger avant tout nouveau provisionnement d'environnement de référence.
+- ~~`backend/scripts/init.sql` n'est pas synchronisé avec les migrations récentes...~~ **RÉSOLU (2026-07-04)** : `init.sql` a été régénéré depuis les migrations 0001 à 0010 (colonnes Stripe retirées, tables `refresh_token`/`audit_log`/`facture`/`code_promo`/`commande_statut_historique` incluses). Voir `ETAT_ACTUEL_PROJET.md` §12.
 
 ---
 

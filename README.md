@@ -63,7 +63,7 @@ Fonctionnalites admin:
 
 | Domaine | Technologies |
 |---|---|
-| Backend | Node.js, Express, pg, ioredis, JWT, bcrypt, Joi, express-validator |
+| Backend | Node.js, Express, pg, ioredis, JWT, bcrypt, express-validator |
 | Frontend | React 18, Vite, React Router v6, Axios, Tailwind CSS, Vitest |
 | Donnees | PostgreSQL 15, Redis 7 |
 | DevOps | Docker, Docker Compose, GitHub Actions |
@@ -189,7 +189,7 @@ Variables supportees par le code backend:
 - Auth: `JWT_SECRET`, `JWT_EXPIRES_IN`, `JWT_REFRESH_SECRET`, `JWT_REFRESH_EXPIRES_IN`, `BCRYPT_SALT_ROUNDS`
 - Rate limiting: `RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_MAX_REQUESTS`, `AUTH_RATE_LIMIT_WINDOW_MS`, `AUTH_RATE_LIMIT_MAX_REQUESTS`
 - CORS: `CORS_ORIGIN`
-- Email (Brevo): `BREVO_API_KEY`, `BREVO_SENDER_EMAIL`, `BREVO_SENDER_NAME`, `FRONTEND_URL`
+- Email (Gmail SMTP): `GMAIL_SENDER_EMAIL`, `GMAIL_APP_PASSWORD`, `GMAIL_SENDER_NAME`, `FRONTEND_URL`
 
 ### Frontend (`frontend/.env`)
 

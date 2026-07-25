@@ -1,4 +1,6 @@
 # Configuration Railway — Prête à appliquer
+
+> ⚠️ **Sections Stripe obsolètes** — Stripe a été entièrement retiré du MVP (décision client T4-07, 2026-07-02). Les variables liées à Stripe (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, etc.) mentionnées dans ce document ne s'appliquent plus. Paiement actuel : ESPECES/VIREMENT/CHEQUE, statut positionné manuellement par un admin. Voir `ETAT_ACTUEL_PROJET.md` pour l'état réel à jour.
 # À exécuter quand le plan Railway sera réactivé
 
 > Mise à jour : 2026-06-28. Toutes les valeurs non-secrètes sont pré-renseignées.
@@ -61,11 +63,11 @@ STRIPE_PUBLISHABLE_KEY=pk_live_<depuis Stripe Dashboard → Clés API>
 STRIPE_WEBHOOK_SECRET=whsec_<généré lors création webhook Railway — voir étape 8>
 ```
 
-### Brevo (Email)
+### Gmail SMTP (Email — migré depuis Brevo le 2026-07-08, voir `docs/GUIDE_GMAIL_SMTP.md`)
 ```
-BREVO_API_KEY=<depuis Brevo → Paramètres → Clés API>
-BREVO_SENDER_EMAIL=noreply@jana-distribution.fr
-BREVO_SENDER_NAME=Jana Distribution
+GMAIL_SENDER_EMAIL=<adresse Gmail dédiée>
+GMAIL_APP_PASSWORD=<mot de passe d'application Gmail, 16 caractères>
+GMAIL_SENDER_NAME=Jana Distribution
 FRONTEND_URL=https://<frontend>.up.railway.app
 ```
 

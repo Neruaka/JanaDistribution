@@ -1,5 +1,7 @@
 # Démarrage Jana Distribution
 
+> ⚠️ **Sections Stripe obsolètes** — Stripe a été entièrement retiré du MVP (décision client T4-07, 2026-07-02). Les étapes/variables liées à Stripe (webhook, `STRIPE_SECRET_KEY`, cartes de test) mentionnées dans ce document ne s'appliquent plus. Paiement actuel : ESPECES/VIREMENT/CHEQUE, statut positionné manuellement par un admin. Voir `ETAT_ACTUEL_PROJET.md` pour l'état réel à jour.
+
 ## Lancer l'environnement complet
 
 ```bash

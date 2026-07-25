@@ -30,15 +30,19 @@ backend/src/index.js
 backend/src/services/auth.service.js
 backend/src/repositories/order.repository.js
 backend/src/services/order.service.js
-backend/src/services/payment.service.js
+backend/src/services/email.service.js               # Gmail SMTP (nodemailer) depuis 2026-07-08
 backend/src/middlewares/auth.middleware.js
 backend/scripts/init.sql                    # référence schéma — NE PAS EXÉCUTER EN PROD
 backend/scripts/migrations/                 # créer les nouvelles migrations ICI
 ```
 
-## TÂCHES CE SOIR (Phase 2 — par ordre de priorité)
+## TÂCHES DE LA SESSION DU 2026-06-27 (historique — toutes DONE)
+> Ces tâches ont déjà été implémentées et validées (voir `PLAN_CORRECTION_AUDIT.md` et
+> `ETAT_ACTUEL_PROJET.md` §12). Ne pas les re-exécuter — conservées ici comme référence
+> des patterns utilisés. Pour la tâche active actuelle, consulter le tableau de bord
+> `PLAN_CORRECTION_AUDIT.md §1`.
 
-### T2-01 — Table commande_statut_historique (PRIORITÉ 1)
+### T2-01 — Table commande_statut_historique — DONE (2026-06-27)
 **Objectif :** tracer toutes les transitions de statut d'une commande.
 ```bash
 # Fichier à créer
@@ -63,7 +67,7 @@ GET /api/admin/commandes/:id/historique
 **Fichiers à modifier :** `order.repository.js`, `backend/src/routes/admin.order.routes.js` (ou équivalent)
 **Critères :** migration créée + runner l'exécute + endpoint retourne l'historique trié par date DESC
 
-### T2-02 — Enregistrer chaque transition de statut (PRIORITÉ 2)
+### T2-02 — Enregistrer chaque transition de statut — DONE (2026-06-27)
 **Dépendance :** T2-01 terminé.
 **Objectif :** chaque appel à `updateStatus()` dans `order.repository.js` insère une ligne dans `commande_statut_historique`.
 ```javascript
@@ -88,7 +92,7 @@ async updateStatus(commandeId, newStatus, options = {}) {
 ```
 **Fichiers à modifier :** `backend/src/repositories/order.repository.js`
 
-### T2-03 — Table refresh_token en DB (PRIORITÉ 3)
+### T2-03 — Table refresh_token en DB — DONE (2026-06-27)
 **Déléguer à l'agent Cybersécurité — NE PAS dupliquer le travail.**
 **Créer uniquement la migration SQL, l'agent cyber fait le reste.**
 ```sql
@@ -105,7 +109,7 @@ CREATE INDEX idx_rt_utilisateur_id ON refresh_token(utilisateur_id);
 CREATE INDEX idx_rt_token_hash ON refresh_token(token_hash);
 ```
 
-### T2-04 — Stocker refresh token à la connexion (PRIORITÉ 4)
+### T2-04 — Stocker refresh token à la connexion — DONE (2026-06-27)
 **Dépendance :** T2-03 terminé.
 **Fichier :** `backend/src/services/auth.service.js` méthode `login()`
 **Pattern :** après génération du refreshToken JWT, hasher en SHA-256 et INSERT dans `refresh_token`
@@ -119,12 +123,12 @@ await pool.query(
 );
 ```
 
-### T2-05 — Révoquer refresh token à la déconnexion (PRIORITÉ 5)
+### T2-05 — Révoquer refresh token à la déconnexion — DONE (2026-06-27)
 **Dépendance :** T2-04 terminé.
 **Fichier :** route logout + `auth.service.js` méthode `logout()`
 **Pattern :** UPDATE refresh_token SET revoked_at = NOW() WHERE token_hash = $1 AND revoked_at IS NULL
 
-### T2-06 — Table audit_log (PRIORITÉ 6)
+### T2-06 — Table audit_log — DONE (2026-06-27)
 ```sql
 -- backend/scripts/migrations/005_audit_log.sql
 CREATE TABLE audit_log (
@@ -141,7 +145,7 @@ CREATE INDEX idx_al_action ON audit_log(action);
 CREATE INDEX idx_al_created_at ON audit_log(created_at DESC);
 ```
 
-### T2-07 — Logger actions admin sensibles (PRIORITÉ 7)
+### T2-07 — Logger actions admin sensibles — DONE (2026-06-27)
 **Dépendance :** T2-06 terminé.
 **Actions à logger :** remboursement initié, statut commande changé, produit supprimé, client banni.
 **Fichiers :** `order.service.js`, `payment.service.js`, middleware admin

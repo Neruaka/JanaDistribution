@@ -56,6 +56,8 @@ Le 2026-07-02, une décision client a supprimé tout paiement en ligne du MVP : 
 
 **Constat d'inspection important :** `backend/scripts/init.sql` (schéma de référence pour un premier démarrage local) n'a **pas** été synchronisé avec la migration `0009` : il contient toujours la table `stripe_event`, les colonnes `stripe_session_id`/`stripe_payment_intent_id` sur `commande`, et le mode paiement par défaut `'CARTE'`. Un commentaire dans le fichier précise que `init.sql` est réservé au tout premier démarrage local et que les bases déjà provisionnées doivent utiliser les migrations — mais un nouvel environnement initialisé uniquement via `init.sql` recréerait un schéma avec Stripe. De même, les tables `refresh_token`, `audit_log`, `facture`, `code_promo`, `commande_statut_historique` n'existent que dans les migrations, pas dans `init.sql`. À corriger avant tout nouvel environnement de référence (voir `docs/RESTE_A_FAIRE_PROD.md`).
 
+> **Mise à jour 2026-07-04 :** `init.sql` a été régénéré et resynchronisé avec les migrations 0001 à 0010 (voir `ETAT_ACTUEL_PROJET.md` §12, entrée du 2026-07-04). Ce constat d'inspection est désormais historique.
+
 ## Modifications de sécurité pertinentes
 
 - Le calcul du rabais (codes promo) est entièrement recalculé côté serveur ; le frontend n'affiche qu'une estimation.

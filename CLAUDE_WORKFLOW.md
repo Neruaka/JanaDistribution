@@ -15,9 +15,9 @@
 | Backend | Node.js + Express | ≥18 / 4.18.2 | |
 | Base de données | PostgreSQL | 15 | uuid-ossp requis |
 | Cache | Redis | 7 | via ioredis (doublon avec `redis` à supprimer) |
-| Auth | JWT | jsonwebtoken 9 | access 7j + refresh 30j — non révocables (P1) |
-| Email | Brevo REST API | — | Pas nodemailer/SMTP |
-| Paiements | Stripe Checkout Sessions | 22.0.2 | côté serveur uniquement |
+| Auth | JWT | jsonwebtoken 9 | access 7j + refresh 30j — révocables (table `refresh_token`, rotation au refresh, révocation au logout) |
+| Email | Gmail SMTP | nodemailer ^9 | Voir `docs/GUIDE_GMAIL_SMTP.md` |
+| Paiements | Aucun paiement en ligne (MVP) | — | ESPECES/VIREMENT/CHEQUE, statut positionné manuellement par un admin ; Stripe retiré (T4-07, 2026-07-02) |
 | Géocodage | BAN API (adresse.data.gouv.fr) | gratuit | pour mode DISTANCE |
 | Déploiement | Railway | — | NIXPACKS backend, Dockerfile frontend |
 | Tests | Jest (backend) + Vitest (frontend) | — | DB mockée — P1 |
@@ -195,7 +195,7 @@ Une tâche ne passe à `DONE` que si :
 
 ## 8. Règles spécifiques à Jana Distribution
 
-- Conserver Stripe Checkout Sessions (sauf décision explicite contraire)
+- Stripe a été retiré du MVP (décision client T4-07, 2026-07-02) — paiement manuel ESPECES/VIREMENT/CHEQUE uniquement ; ne pas réintroduire Stripe sauf nouvelle décision explicite contraire
 - Conserver l'architecture `routes → controllers → services → repositories`
 - Privilégier une évolution progressive sans réécriture complète
 - Utiliser une vraie base PostgreSQL pour les tests d'intégration (pas de mocks)
