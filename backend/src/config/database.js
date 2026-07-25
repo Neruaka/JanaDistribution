@@ -40,10 +40,15 @@ if (shouldUseDatabaseUrl) {
   // PRODUCTION (Railway, Render, Heroku...)
   // ==========================================
   console.log('🌐 Mode Production détecté (DATABASE_URL)');
-  
+
+  // SSL requis sur Railway/Render (terminaison TLS gérée par la plateforme).
+  // Désactivable via DB_SSL_DISABLE=true pour un PostgreSQL auto-hébergé sans TLS
+  // (ex: conteneur Docker joint sur un réseau interne, comme sur le homeserver).
+  const disableSsl = getEnv('DB_SSL_DISABLE') === 'true';
+
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: {
+    ssl: disableSsl ? false : {
       rejectUnauthorized: false // Requis pour Railway/Render
     },
     max: 20,                    // Connexions max dans le pool
