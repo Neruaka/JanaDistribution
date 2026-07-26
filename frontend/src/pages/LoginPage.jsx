@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
-import { Mail, Lock, Eye, EyeOff, LogIn, UserCircle, ShoppingBag, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, LogIn, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const LoginPage = () => {
@@ -44,14 +44,6 @@ const LoginPage = () => {
       toast.error(err.message);
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const fillTestAccount = (type) => {
-    if (type === 'admin') {
-      setFormData({ email: 'admin@jana-distribution.fr', motDePasse: 'Admin123!' });
-    } else {
-      setFormData({ email: 'client@test.fr', motDePasse: 'Client123!' });
     }
   };
 
@@ -204,40 +196,6 @@ const LoginPage = () => {
                 </>
               )}
             </motion.button>
-
-            {/* Divider */}
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500">Comptes de démonstration</span>
-              </div>
-            </div>
-
-            {/* Test accounts */}
-            <div className="grid grid-cols-2 gap-4">
-              <motion.button
-                type="button"
-                onClick={() => fillTestAccount('admin')}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-gray-200 rounded-xl text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 hover:border-green-300 transition-all"
-              >
-                <UserCircle className="h-5 w-5 text-indigo-500" />
-                Admin
-              </motion.button>
-              <motion.button
-                type="button"
-                onClick={() => fillTestAccount('client')}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-gray-200 rounded-xl text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 hover:border-green-300 transition-all"
-              >
-                <ShoppingBag className="h-5 w-5 text-green-500" />
-                Client
-              </motion.button>
-            </div>
 
             {/* Sign up link */}
             <p className="text-center text-sm text-gray-600">
