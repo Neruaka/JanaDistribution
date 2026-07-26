@@ -173,7 +173,10 @@ CREATE TABLE produit (
   -- ⚠️ Valider chaque référence produit avec un expert-comptable avant vente réelle (CGI art. 278 et suivants)
   taux_tva NUMERIC(4, 2) NOT NULL DEFAULT 5.5,
   unite_mesure VARCHAR(20) NOT NULL DEFAULT 'piece',
-  stock_quantite INTEGER NOT NULL DEFAULT 0,
+  -- CHECK stock >= 0 (migration 0011) : filet de sécurité DB en complément du
+  -- décrément atomique applicatif (UPDATE ... WHERE stock_quantite >= qty)
+  stock_quantite INTEGER NOT NULL DEFAULT 0
+    CONSTRAINT produit_stock_quantite_non_negatif CHECK (stock_quantite >= 0),
   stock_min_alerte INTEGER NOT NULL DEFAULT 10,
   image_url VARCHAR(500),
   labels TEXT[] DEFAULT '{}',

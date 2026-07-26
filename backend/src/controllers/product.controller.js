@@ -10,6 +10,7 @@
  */
 
 const productService = require('../services/product.service');
+const auditRepository = require('../repositories/audit.repository');
 const logger = require('../config/logger');
 const { deleteImage } = require('../middlewares/upload.middleware');
 
@@ -286,6 +287,15 @@ class ProductController {
 
       logger.info(`Suppression en masse de ${result.success.length} produits par ${req.user?.email}`);
 
+      auditRepository.log({
+        action: 'PRODUCT_BULK_DELETE',
+        entiteType: 'produit',
+        entiteId: null,
+        utilisateurId: req.user?.id,
+        details: { ids, success: result.success, errors: result.errors },
+        ipAddress: req.ip
+      }).catch(err => logger.warn('Audit log non enregistré:', err.message));
+
       res.json({
         success: true,
         message: `${result.success.length} produit(s) supprimé(s)`,
@@ -305,6 +315,15 @@ class ProductController {
       const product = await productService.createProduct(req.body);
 
       logger.info(`Produit créé par ${req.user?.email}: ${product.nom}`);
+
+      auditRepository.log({
+        action: 'PRODUCT_CREATE',
+        entiteType: 'produit',
+        entiteId: product.id,
+        utilisateurId: req.user?.id,
+        details: { nom: product.nom, reference: product.reference },
+        ipAddress: req.ip
+      }).catch(err => logger.warn('Audit log non enregistré:', err.message));
 
       res.status(201).json({
         success: true,
@@ -339,6 +358,15 @@ class ProductController {
 
       logger.info(`Produit mis à jour par ${req.user?.email}: ${product.nom}`);
 
+      auditRepository.log({
+        action: 'PRODUCT_UPDATE',
+        entiteType: 'produit',
+        entiteId: product.id,
+        utilisateurId: req.user?.id,
+        details: { nom: product.nom, champsModifies: Object.keys(req.body) },
+        ipAddress: req.ip
+      }).catch(err => logger.warn('Audit log non enregistré:', err.message));
+
       res.json({
         success: true,
         message: 'Produit mis à jour avec succès',
@@ -372,6 +400,15 @@ class ProductController {
 
       logger.info(`Produit désactivé par ${req.user?.email}: ${req.params.id}`);
 
+      auditRepository.log({
+        action: 'PRODUCT_DELETE',
+        entiteType: 'produit',
+        entiteId: req.params.id,
+        utilisateurId: req.user?.id,
+        details: { nom: product.nom, type: 'soft' },
+        ipAddress: req.ip
+      }).catch(err => logger.warn('Audit log non enregistré:', err.message));
+
       res.json({
         success: true,
         message: 'Produit désactivé avec succès',
@@ -398,6 +435,15 @@ class ProductController {
       }
 
       logger.warn(`Produit supprimé définitivement par ${req.user?.email}: ${req.params.id}`);
+
+      auditRepository.log({
+        action: 'PRODUCT_HARD_DELETE',
+        entiteType: 'produit',
+        entiteId: req.params.id,
+        utilisateurId: req.user?.id,
+        details: { type: 'hard' },
+        ipAddress: req.ip
+      }).catch(err => logger.warn('Audit log non enregistré:', err.message));
 
       res.json({
         success: true,

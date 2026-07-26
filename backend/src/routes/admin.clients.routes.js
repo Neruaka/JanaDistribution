@@ -11,6 +11,7 @@ const { body, param, query } = require('express-validator');
 const { authenticate, isAdmin } = require('../middlewares/auth.middleware');
 const validate = require('../middlewares/validate.middleware');
 const { query: dbQuery, getClient } = require('../config/database');
+const auditRepository = require('../repositories/audit.repository');
 const logger = require('../config/logger');
 
 // Toutes les routes nécessitent d'être admin
@@ -369,6 +370,15 @@ router.patch('/:id',
         });
       }
 
+      auditRepository.log({
+        action: 'CLIENT_UPDATE',
+        entiteType: 'utilisateur',
+        entiteId: id,
+        utilisateurId: req.user.id,
+        details: { champsModifies: Object.keys(updates) },
+        ipAddress: req.ip
+      }).catch(err => logger.warn('Audit log non enregistré:', err.message));
+
       res.json({
         success: true,
         message: 'Client modifié avec succès',
@@ -413,6 +423,15 @@ router.patch('/:id/toggle-status',
       const action = client.est_actif ? 'activé' : 'bloqué';
 
       logger.info(`Client ${action}`, { clientId: id });
+
+      auditRepository.log({
+        action: 'CLIENT_TOGGLE_STATUS',
+        entiteType: 'utilisateur',
+        entiteId: id,
+        utilisateurId: req.user.id,
+        details: { estActif: client.est_actif },
+        ipAddress: req.ip
+      }).catch(err => logger.warn('Audit log non enregistré:', err.message));
 
       res.json({
         success: true,
@@ -500,6 +519,15 @@ router.delete('/:id',
       await client.query('COMMIT');
 
       logger.info('Client anonymisé (RGPD)', { clientId: id });
+
+      auditRepository.log({
+        action: 'CLIENT_DELETE_RGPD',
+        entiteType: 'utilisateur',
+        entiteId: id,
+        utilisateurId: req.user.id,
+        details: { emailOriginal: checkResult.rows[0].email },
+        ipAddress: req.ip
+      }).catch(err => logger.warn('Audit log non enregistré:', err.message));
 
       res.json({
         success: true,

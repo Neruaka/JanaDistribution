@@ -38,6 +38,13 @@ class AuthService {
     this.jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
     this.jwtRefreshExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN || '30d';
     this.resetTokenExpiry = 60 * 60 * 1000; // 1 heure en millisecondes
+
+    // Hash bcrypt factice utilisé pour égaliser le temps de réponse de login()
+    // quand l'email n'existe pas, afin d'empêcher l'énumération d'emails par
+    // timing attack (sans ce hash, l'absence d'appel à bcrypt.compare rendrait
+    // la réponse "email inconnu" mesurablement plus rapide que "mot de passe incorrect").
+    // Ce hash ne correspond à aucun mot de passe réel et n'est jamais utilisé pour authentifier qui que ce soit.
+    this._dummyPasswordHash = '$2b$12$k1GLYxblj6khiJt5xtxFE.RIEVccjVCU7S/mjCWg1fNZs2UtH5Dyu';
   }
 
   /**
@@ -166,6 +173,9 @@ class AuthService {
     const user = await userRepository.findByEmail(email.toLowerCase().trim());
 
     if (!user) {
+      // Comparaison factice pour égaliser le temps de réponse avec le cas
+      // "mot de passe incorrect" et empêcher l'énumération d'emails (timing attack).
+      await bcrypt.compare(motDePasse, this._dummyPasswordHash);
       throw ApiError.unauthorized('Email ou mot de passe incorrect');
     }
 

@@ -1,5 +1,7 @@
 # Reste à faire avant mise en production
 
+> ⚠️ **Document partiellement obsolète (état figé au 2026-07-02)** — antérieur à la migration Railway → homeserver (Phase 11, 2026-07-26) : le point « Réactiver Railway » ci-dessous ne s'applique plus, la cible de production est désormais le homeserver `tfredklab.dev`. `ETAT_ACTUEL_PROJET.md` (§13 « Prochaine action recommandée ») est l'unique source de vérité actuelle de l'état go-live — s'y référer en priorité.
+>
 > Généré par inspection statique du code au 2026-07-02 (`ETAT_ACTUEL_PROJET.md`, `PLAN_CORRECTION_AUDIT.md`, code source).
 > Avancement estimé au moment de l'inspection : ~92-95 %. Verdict actuel : **NON PRÊT PRODUCTION**.
 

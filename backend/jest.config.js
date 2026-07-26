@@ -23,6 +23,7 @@ module.exports = {
     'tests/integration/order.create.test.js',
     'tests/integration/auth.test.js',
     'tests/integration/stock.concurrent.test.js',
+    'tests/integration/order.idempotency.test.js',
   ],
 
   // Setup avant tous les tests

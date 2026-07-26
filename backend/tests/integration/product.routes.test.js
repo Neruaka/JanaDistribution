@@ -98,6 +98,9 @@ jest.mock('../../src/middlewares/validate.middleware', () => (req, res, next) =>
 // IMPORTS - Après les mocks
 // =============================================
 const productRoutes = require('../../src/routes/product.routes');
+// Référence au mock de la DB pour vérifier les écritures dans audit_log
+// (auditRepository.log() n'est pas mocké : on veut vérifier la couverture réelle — T12-09)
+const dbMock = require('../../src/config/database');
 
 // ErrorHandler simplifié pour les tests
 const testErrorHandler = (err, req, res, next) => {
@@ -346,6 +349,12 @@ describe('Product Routes - Integration Tests', () => {
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
       expect(response.body.data.nom).toBe(newProductData.nom);
+
+      // T12-09 : la création d'un produit doit être tracée dans audit_log
+      expect(dbMock.query).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT INTO audit_log'),
+        expect.arrayContaining(['PRODUCT_CREATE'])
+      );
     });
 
     it('devrait rejeter sans authentification (401)', async () => {
@@ -393,6 +402,12 @@ describe('Product Routes - Integration Tests', () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data.nom).toBe(updateData.nom);
+
+      // T12-09 : la modification d'un produit doit être tracée dans audit_log
+      expect(dbMock.query).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT INTO audit_log'),
+        expect.arrayContaining(['PRODUCT_UPDATE'])
+      );
     });
 
     it('devrait retourner 404 si le produit n\'existe pas', async () => {
@@ -437,6 +452,12 @@ describe('Product Routes - Integration Tests', () => {
       // Assert
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
+
+      // T12-09 : la suppression d'un produit doit être tracée dans audit_log
+      expect(dbMock.query).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT INTO audit_log'),
+        expect.arrayContaining(['PRODUCT_DELETE'])
+      );
     });
 
     it('devrait retourner 404 si le produit n\'existe pas', async () => {

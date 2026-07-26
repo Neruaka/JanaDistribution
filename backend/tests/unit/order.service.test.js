@@ -112,4 +112,93 @@ describe('OrderService — T1-01 : atomicité panier/commande', () => {
     expect(result.order).toEqual(mockOrder);
     expect(result.message).toContain(mockOrder.numeroCommande);
   });
+
+  it('ignore le fraisLivraison fourni par le client et ne fait pas confiance à un total client', async () => {
+    // Le client tente de forcer des frais de livraison à 0 alors que le
+    // serveur calcule 5.90 (mock settingsService.getFraisLivraison).
+    await orderService.createFromCart(USER_ID, { ...validOrderData, fraisLivraison: 0 });
+
+    const callArg = orderRepository.create.mock.calls[0][0];
+    expect(callArg.fraisLivraison).toBe(5.90);
+    // Le total transmis au repository = totalTTC panier serveur + frais serveur,
+    // jamais une valeur fournie par le client.
+    expect(callArg.totalTtc).toBeCloseTo(mockCart.summary.totalTTC + 5.90, 2);
+  });
+});
+
+describe('OrderService — T12-05 : transitions de statut (machine à états serveur)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const baseOrder = (statut) => ({
+    id: 'order-uuid-1',
+    numeroCommande: 'CMD-20260714-0001',
+    statut,
+    utilisateurId: USER_ID
+  });
+
+  it('rejette une transition invalide EN_ATTENTE → LIVREE (saut d\'étapes)', async () => {
+    orderRepository.findById.mockResolvedValue(baseOrder('EN_ATTENTE'));
+
+    await expect(orderService.updateStatus('order-uuid-1', 'LIVREE'))
+      .rejects.toThrow(/Transition de statut invalide/);
+
+    expect(orderRepository.updateStatus).not.toHaveBeenCalled();
+  });
+
+  it('rejette toute transition depuis un statut terminal (LIVREE → CONFIRMEE)', async () => {
+    orderRepository.findById.mockResolvedValue(baseOrder('LIVREE'));
+
+    await expect(orderService.updateStatus('order-uuid-1', 'CONFIRMEE'))
+      .rejects.toThrow(/Transition de statut invalide/);
+
+    expect(orderRepository.updateStatus).not.toHaveBeenCalled();
+  });
+
+  it('rejette toute transition depuis ANNULEE (statut terminal)', async () => {
+    orderRepository.findById.mockResolvedValue(baseOrder('ANNULEE'));
+
+    await expect(orderService.updateStatus('order-uuid-1', 'CONFIRMEE'))
+      .rejects.toThrow(/Transition de statut invalide/);
+
+    expect(orderRepository.updateStatus).not.toHaveBeenCalled();
+  });
+
+  it('accepte une transition valide EN_ATTENTE → CONFIRMEE', async () => {
+    orderRepository.findById.mockResolvedValue(baseOrder('EN_ATTENTE'));
+    orderRepository.updateStatus.mockResolvedValue(baseOrder('CONFIRMEE'));
+
+    const result = await orderService.updateStatus('order-uuid-1', 'CONFIRMEE');
+
+    expect(orderRepository.updateStatus).toHaveBeenCalledWith('order-uuid-1', 'CONFIRMEE', null);
+    expect(result.order.statut).toBe('CONFIRMEE');
+  });
+
+  it('un client ne peut annuler que ses commandes EN_ATTENTE (pas CONFIRMEE)', async () => {
+    orderRepository.findById.mockResolvedValue(baseOrder('CONFIRMEE'));
+
+    await expect(orderService.cancelOrder('order-uuid-1', USER_ID, false))
+      .rejects.toThrow(/annuler que les commandes en attente/);
+
+    expect(orderRepository.cancel).not.toHaveBeenCalled();
+  });
+
+  it('un admin ne peut pas annuler une commande déjà EXPEDIEE', async () => {
+    orderRepository.findById.mockResolvedValue(baseOrder('EXPEDIEE'));
+
+    await expect(orderService.cancelOrder('order-uuid-1', null, true))
+      .rejects.toThrow(/Impossible d'annuler/);
+
+    expect(orderRepository.cancel).not.toHaveBeenCalled();
+  });
+
+  it('un client ne peut pas annuler la commande d\'un autre utilisateur', async () => {
+    orderRepository.findById.mockResolvedValue(baseOrder('EN_ATTENTE'));
+
+    await expect(orderService.cancelOrder('order-uuid-1', 'autre-user-id', false))
+      .rejects.toThrow(/pas accès/);
+
+    expect(orderRepository.cancel).not.toHaveBeenCalled();
+  });
 });

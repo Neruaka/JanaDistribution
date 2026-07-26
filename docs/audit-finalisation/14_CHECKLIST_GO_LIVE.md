@@ -1,6 +1,6 @@
 # 14 — Checklist Go Live
 
-> ⚠️ **Document historique (état figé au 2026-06-14)** — Rédigé lors de l'audit initial, avant le retrait complet de Stripe (T4-07, 2026-07-02) et l'ajout de la facturation légale (Phase 5) et des tests d'intégration réels (Phase 7). Les références à Stripe ne s'appliquent plus. Voir `docs/RESTE_A_FAIRE_PROD.md` et `ETAT_ACTUEL_PROJET.md` pour la checklist et l'état réel à jour.
+> ⚠️ **Document historique FIGÉ (état au 2026-06-14) — ne plus mettre à jour.** Rédigé lors de l'audit initial, avant le retrait complet de Stripe (T4-07, 2026-07-02), l'ajout de la facturation légale (Phase 5), les tests d'intégration réels (Phase 7) et la migration Railway → homeserver (Phase 11). Les références à Stripe et à Railway comme cible de production ne s'appliquent plus. `docs/RESTE_A_FAIRE_PROD.md` est lui aussi partiellement obsolète (daté 2026-07-02, antérieur à la migration homeserver) — **`ETAT_ACTUEL_PROJET.md` (notamment §13 « Prochaine action recommandée ») est l'unique source de vérité actuelle de l'état go-live.** Ne pas créer de nouvelle checklist go-live parallèle : mettre à jour `ETAT_ACTUEL_PROJET.md` directement.
 
 > Valider chaque point avant toute mise en production.
 > `[ ]` = non fait · `[x]` = validé · `[~]` = partiel ou à surveiller

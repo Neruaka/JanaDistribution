@@ -37,8 +37,14 @@ class InvoiceService {
       return existing[0];
     }
 
+    // NOTE : on ne sélectionne QUE p.reference depuis produit — le taux de
+    // TVA facturé doit être celui figé sur la ligne de commande au moment de
+    // l'achat (lc.taux_tva), jamais le taux courant du produit (qui peut
+    // changer depuis). Sélectionner aussi p.taux_tva ici écraserait
+    // silencieusement lc.taux_tva (même nom de colonne) et ferait dériver la
+    // facture du prix réellement payé.
     const lignesResult = await query(
-      `SELECT lc.*, p.taux_tva, p.reference
+      `SELECT lc.*, p.reference
        FROM ligne_commande lc
        JOIN produit p ON p.id = lc.produit_id
        WHERE lc.commande_id = $1`,
@@ -48,20 +54,29 @@ class InvoiceService {
     let totalHt = 0;
     let totalTva = 0;
 
+    // Méthode d'arrondi retenue (identique panier / commande / facture) :
+    // arrondi ligne par ligne à 2 décimales AVANT sommation, puis un arrondi
+    // de sécurité sur les totaux (ré-arrondit un éventuel résidu binaire IEEE
+    // 754 issu de l'addition, sans changer la valeur déjà arrondie). Voir
+    // cart.repository.js#_mapCartItem et #_calculateSummary qui appliquent la
+    // même règle — évite tout écart de quelques centimes entre panier,
+    // commande et facture PDF.
     const lignesFacture = lignesResult.rows.map(ligne => {
-      // ⚠️ Prix stocké en TTC — reconversion HT selon taux TVA du produit
+      // lc.prix_unitaire_ht et lc.taux_tva sont figés à la création de la
+      // commande (order.repository.js) — la facture doit rester fidèle à ce
+      // qui a été réellement facturé au client, indépendamment de toute
+      // évolution ultérieure du prix ou du taux du produit.
       const tauxTva = parseFloat(ligne.taux_tva) || 5.5;
-      const prixTtc = parseFloat(ligne.prix_unitaire);
-      const prixHt = Math.round((prixTtc / (1 + tauxTva / 100)) * 100) / 100;
+      const prixHt = Math.round(parseFloat(ligne.prix_unitaire_ht) * 100) / 100;
       const montantHt = Math.round(prixHt * ligne.quantite * 100) / 100;
-      const montantTva = Math.round((prixTtc - prixHt) * ligne.quantite * 100) / 100;
-      const montantTtc = Math.round(prixTtc * ligne.quantite * 100) / 100;
+      const montantTva = Math.round(montantHt * (tauxTva / 100) * 100) / 100;
+      const montantTtc = Math.round((montantHt + montantTva) * 100) / 100;
 
       totalHt += montantHt;
       totalTva += montantTva;
 
       return {
-        nom: ligne.nom_produit || ligne.produit_nom,
+        nom: ligne.nom_produit,
         ref: ligne.reference || null,
         quantite: ligne.quantite,
         prixUnitaireHt: prixHt,

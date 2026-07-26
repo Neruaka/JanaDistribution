@@ -31,7 +31,10 @@ describe('Order creation — integration', () => {
     return result.rows[0];
   };
 
-  const uniqueNumeroCommande = () => `CMD-TEST-${uniqueSuffix()}`;
+  // numero_commande est VARCHAR(20) en DB (voir init.sql) — le format de production
+  // (CMD-YYYYMMDD-0001) tient largement dedans, donc ce helper de test doit rester
+  // court lui aussi plutôt que d'utiliser uniqueSuffix() (bien trop long pour la colonne).
+  const uniqueNumeroCommande = () => `CMD-${Date.now().toString(36)}${(++produitCounter).toString(36)}`;
 
   // Reproduit la logique de OrderRepository.create() : transaction unique,
   // décrément atomique du stock par ligne (verrou implicite via la clause

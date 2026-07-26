@@ -253,6 +253,33 @@ class OrderRepository {
     try {
       await client.query('BEGIN');
 
+      // Protection double-clic / double-soumission (T12-05) : on verrouille la
+      // ligne panier AVANT toute écriture. Si deux requêtes concurrentes
+      // arrivent pour le même panier (même utilisateur), la seconde est
+      // bloquée sur ce verrou jusqu'à la fin (COMMIT/ROLLBACK) de la
+      // première. Comme la première transaction vide le panier (DELETE
+      // ligne_panier) avant de committer, la seconde — une fois débloquée —
+      // constate un panier vide et est rejetée proprement, sans dupliquer
+      // la commande ni décrémenter le stock deux fois.
+      if (data.cartId) {
+        const cartLock = await client.query(
+          'SELECT id FROM panier WHERE id = $1 FOR UPDATE',
+          [data.cartId]
+        );
+        if (!cartLock.rows[0]) {
+          throw ApiError.badRequest('Panier introuvable');
+        }
+        const cartItemsCheck = await client.query(
+          'SELECT COUNT(*)::int AS count FROM ligne_panier WHERE panier_id = $1',
+          [data.cartId]
+        );
+        if (cartItemsCheck.rows[0].count === 0) {
+          throw ApiError.badRequest(
+            'Le panier est vide (commande déjà créée ou panier vidé entre-temps)'
+          );
+        }
+      }
+
       // Générer le numéro de commande
       const numeroCommande = await this._generateNumeroCommande(client);
 

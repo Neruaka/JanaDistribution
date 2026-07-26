@@ -9,17 +9,17 @@
 
 | Indicateur | Valeur |
 |---|---|
-| Phase active | Phase 11 — Migration Railway → Homeserver (remplace Phase 8) |
-| Tâche active | Session 2026-07-26 : T11-01..T11-08 + T11-10 (doc) traités, T11-09 (cutover final) reste à faire après validation flux commande |
-| Tâches totales | 90 (80 + 10 Phase 11) |
+| Phase active | Phase 12 — Tests, règles de gestion et audit pré-production (Phase 11 en parallèle, T11-09 toujours ouvert) |
+| Tâche active | Session 2026-07-26 : Phase 12 complète (T12-01..T12-13). Reste : décision propriétaire sur le secret git historique (P0, voir §3) avant tout commit/push. |
+| Tâches totales | 103 (90 + 13 Phase 12) |
 | READY | 0 |
 | IN_PROGRESS | 1 (T11-05) |
-| BLOCKED | 2 (T11-04, T11-07 — actions externes utilisateur) |
+| BLOCKED | 3 (T11-04, T11-07 — actions externes utilisateur ; DB-04 — décision propriétaire sur secret git historique, voir §3) |
 | TODO | 20 (19 + T11-09) |
-| DONE | 57 (52 + T11-01, T11-02, T11-03, T11-06, T11-08) |
+| DONE | 70 (57 + Phase 12 : T12-01..T12-13, 13 tâches) |
 | CANCELLED | 15 (9 + Phase 8 : T8-01..T8-06) |
-| P0 restants | 0 |
-| P1 restants | 0 |
+| P0 restants | 1 (DB-04 — secret réel dans l'historique git d'un dépôt GitHub public, voir §3) |
+| P1 restants | 2 (npm audit frontend react-router open redirect ; rotation SMTP_USER/SMTP_PASS legacy à confirmer — voir Phase 12 T12-10) |
 | Verdict | NON PRÊT POUR LA PRODUCTION |
 
 ---
@@ -65,6 +65,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 | DB-01 | Provider stockage images (S3 / Cloudflare R2 / Railway Volume) | Propriétaire (coût) | T0-02 | RÉSOLU — Cloudflare R2 |
 | DB-02 | Stratégie de livraison définitive (FIXE ou DISTANCE) + zones | Propriétaire | T3-01, T3-02 | RÉSOLU — MODE DISTANCE, rayon 80km, 5€+0.80/km, franco 80€ |
 | DB-03 | Validation TVA + règles facturation + durée conservation | Comptable | T5-01..T5-17 | RÉSOLU — taux 5.5/10/20% CGI implémentés (⚠️ validation comptable requise avant prod) |
+| DB-04 | **P0 — Secret réel (`backend/.env`) committé dans l'historique git (commit `79fccb1`, scrubé plus tard par `a3ce33d` mais jamais purgé), dépôt GitHub `Neruaka/JanaDistribution` confirmé **public** (vérifié via l'API GitHub, `"private": false`, 2026-07-26). Valeurs concernées : `JWT_SECRET`, `JWT_REFRESH_SECRET`, `DB_PASSWORD`, `SMTP_USER`, `SMTP_PASS` (valeurs non répétées ici, voir règle §7 CLAUDE_WORKFLOW.md). Rotation nécessaire pour tout secret encore en usage (DB_PASSWORD et SMTP_USER/SMTP_PASS legacy non confirmés comme déjà rotés ; JWT probablement déjà régénéré via T11-05 mais à confirmer). Purge de l'historique git (`git filter-repo`/BFG + force-push) = action destructive hors périmètre d'exécution automatique — décision et exécution réservées au propriétaire du dépôt. | Propriétaire | Tout commit/push ultérieur sur ce dépôt tant que la rotation n'est pas confirmée | **BLOCKED — action externe requise, voir T12-10** |
 
 ---
 
@@ -1077,6 +1078,99 @@ Checklist complète : `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 - **Détail :** tableau avec stats (utilisations, clients touchés, CA généré), toggle actif/inactif, suppression bloquée si déjà utilisé (suggère désactivation).
 - **Commits :** `dfaca2d`, `58bf032`
 - **Limite documentée :** cartes de stats rapides calculées sur la page chargée (pas d'agrégation globale serveur — hors contrat API actuel).
+
+---
+
+## Phase 12 — Tests, règles de gestion et audit pré-production (2026-07-26)
+
+> Session ouverte pour (1) exécuter enfin les tests d'intégration réels sur cette machine, (2) durcir les règles de gestion métier par domaine, (3) mener un audit de sécurité pré-prod, (4) mettre à jour la checklist de test manuel. Ne touche pas à l'infrastructure homeserver (Phase 11, T11-09 reste séparé).
+
+### T12-01 — Prérequis Docker Desktop
+- **Statut :** DONE (2026-07-26) | **Priorité :** P1 | **Catégorie :** INFRA
+- **Détail :** Docker Desktop démarré par l'utilisateur en cours de session ; `docker info` confirme l'engine actif. Débloque T12-03.
+
+### T12-02 — Suite Jest mockée (non-régression)
+- **Statut :** DONE (2026-07-26) | **Priorité :** P0 | **Catégorie :** TEST | **Domaine :** Backend
+- **Régression trouvée et corrigée :** `nodemailer` déclaré dans `backend/package.json` mais absent de `node_modules` (2/7 suites en échec de chargement au premier run). `npm install` a résolu le problème ; `package-lock.json` inchangé (pas un problème de lockfile, un environnement local désynchronisé).
+- **Tests :** 112/112 ✓ après correction.
+
+### T12-03 — Tests d'intégration réels (testcontainers)
+- **Statut :** DONE (2026-07-26) | **Priorité :** P0 | **Catégorie :** TEST | **Domaine :** Backend
+- **Bug de test trouvé et corrigé (pas un bug de production) :** `order.create.test.js#uniqueNumeroCommande()` générait une valeur dépassant `commande.numero_commande VARCHAR(20)` — le générateur de production (`order.repository.js#_generateNumeroCommande`, format `CMD-YYYYMMDD-0001`) était et reste conforme.
+- **Tests :** exécutées pour la première fois avec succès sur cette machine — 6/6 suites, 54/54 (avant durcissement Bloc 2 ; 9/9 suites, 70/70 après, voir T12-05/06).
+- **Environnement :** Docker Desktop local, pas encore automatisé en CI.
+
+### T12-04 — Documentation résultats tests d'intégration
+- **Statut :** DONE (2026-07-26) | **Priorité :** P2 | **Catégorie :** DOC
+- **Fichiers :** `ETAT_ACTUEL_PROJET.md`, `docs/audit-finalisation/12_STRATEGIE_TESTS.md`
+
+### T12-05 — Durcir les transitions de statut commande
+- **Statut :** DONE (2026-07-26) | **Priorité :** P0 | **Catégorie :** CODE | **Domaine :** E-commerce/Backend
+- **Fichiers :** `backend/src/repositories/order.repository.js`, `backend/tests/unit/order.service.test.js`, `backend/tests/integration/order.status.routes.test.js` (nouveau), `backend/tests/integration/order.idempotency.test.js` (nouveau)
+- **Détail :** machine à états déjà appliquée côté service (confirmé, pas seulement UI), panier vide déjà rejeté, recalcul serveur strict déjà en place (T1-01). Idempotence de la création de commande implémentée via verrou `SELECT ... FOR UPDATE` sur la ligne `panier` + recheck panier vide dans la transaction (pas de nouvelle colonne/clé d'idempotence nécessaire).
+- **Tests :** 19/19 unitaires/routes ; 70/70 en intégration Docker (avec T12-06).
+
+### T12-06 — Durcir les règles de stock
+- **Statut :** DONE (2026-07-26) | **Priorité :** P0 | **Catégorie :** CODE + DB | **Domaine :** E-commerce/Backend
+- **Fichiers :** `backend/scripts/migrations/0011_stock_check_constraint.sql` (nouveau), `backend/scripts/init.sql`, `backend/tests/integration/stock.concurrent.test.js`
+- **Impact DB :** nouvelle contrainte `CHECK (stock_quantite >= 0)` sur `produit` (migration 0011, idempotente, avec garde anti-données-négatives-existantes). **À exécuter sur le homeserver de prod** (`node backend/scripts/run-migrations.js`) avant le prochain déploiement.
+- **Détail :** décrémentation atomique déjà correcte côté applicatif (`UPDATE ... WHERE stock_quantite >= $1`), confirmée par test de concurrence réelle (déjà existant, pas un cas séquentiel déguisé) ; CHECK constraint ajoutée en filet de sécurité DB.
+
+### T12-07 — Audit arrondi TVA / facturation
+- **Statut :** DONE (2026-07-26) | **Priorité :** P0 | **Catégorie :** CODE | **Domaine :** Backend
+- **Fichiers :** `backend/src/services/invoice.service.js`, `backend/tests/unit/invoice.service.test.js` (nouveau)
+- **Bugs critiques trouvés et corrigés :**
+  1. `generateForOrder()` lisait une colonne inexistante (`ligne.prix_unitaire` au lieu de `prix_unitaire_ht`) et la traitait comme un TTC à reconvertir → **NaN sur tous les montants de facture**.
+  2. `SELECT lc.*, p.taux_tva, ...` : la colonne `taux_tva` du produit (JOIN) écrasait silencieusement `lc.taux_tva` (figé à la commande) — une facture émise pouvait hériter du taux TVA **courant** du produit au lieu du taux **facturé au client**, risque légal direct. Corrigé : seul `lc.taux_tva` (figé) est désormais utilisé.
+- **Arrondi unifié :** ligne par ligne à 2 décimales avant sommation, cohérent avec `cart.repository.js` — plus d'écart de centime possible panier/commande/facture.
+- **Immuabilité vérifiée :** aucune route PUT/PATCH/DELETE sur les factures — conforme, rien à corriger.
+- **Risque documenté (non corrigé, hors périmètre — nouvelle fonctionnalité) :** le mécanisme d'avoir n'existe pas encore côté code (schéma prêt : `facture.statut`, `facture.avoir_id`, mais aucun service/route ne le crée) — une facture émise ne peut aujourd'hui être corrigée par aucun mécanisme légal.
+- **Validation comptable des taux (DB-03) reste BLOCKED** — non levée par cette tâche, portée uniquement sur la cohérence technique.
+
+### T12-08 — Durcir les règles d'authentification
+- **Statut :** DONE (2026-07-26) | **Priorité :** P0 | **Catégorie :** SÉCURITÉ | **Domaine :** Cybersécurité
+- **Fichiers :** `backend/src/services/auth.service.js`, `backend/tests/unit/auth.service.test.js`
+- **Vulnérabilité trouvée et corrigée :** timing attack sur `login()` — quand l'email n'existait pas, `bcrypt.compare` n'était jamais appelé, rendant la réponse mesurablement plus rapide qu'un mauvais mot de passe → énumération d'emails possible. Corrigé par comparaison bcrypt factice systématique contre un hash bidon.
+- **Confirmé déjà conforme :** politique mot de passe backend infranchissable, expiration JWT réelle (7j/30j), révocation refresh token effective en DB (pas seulement signature JWT), 401 uniforme sur tokens révoqués/expirés y compris routes admin.
+- **Vecteur restant documenté (non corrigé, hors périmètre minimal) :** un compte désactivé renvoie 403 avec message distinct avant vérification du mot de passe → révèle qu'un email correspond à un compte désactivé. À réévaluer si le durcissement anti-énumération est jugé prioritaire.
+- **Tests :** 39/39 (suites auth).
+
+### T12-09 — Cloisonnement des rôles admin
+- **Statut :** DONE (2026-07-26) | **Priorité :** P0 | **Catégorie :** SÉCURITÉ | **Domaine :** Backend/Cybersécurité
+- **Fichiers :** `backend/src/controllers/product.controller.js`, `backend/src/routes/admin.clients.routes.js`, `backend/tests/integration/product.routes.test.js`, `backend/tests/integration/admin.clients.routes.test.js` (nouveau)
+- **Confirmé conforme :** les 3 fichiers `admin.*.routes.js` appliquent `router.use(authenticate, isAdmin)` en tête — 401 sans token, 403 non-admin, exhaustif, pas de route oubliée.
+- **Gap trouvé et corrigé :** `audit_log` n'était alimenté que par `admin.order.routes.js` et `promo.routes.js` — aucune trace pour la création/modification/suppression de produits ni les actions sensibles sur comptes clients (modification, blocage, suppression RGPD). Ajouté : `PRODUCT_CREATE/UPDATE/DELETE/HARD_DELETE/BULK_DELETE`, `CLIENT_UPDATE/TOGGLE_STATUS/DELETE_RGPD`.
+- **Reste hors périmètre (documenté, non corrigé) :** `updateStock`/`importProducts`/upload/suppression d'image produit et `settings.routes.js` (config site) n'écrivent pas encore dans `audit_log`.
+- **Tests :** suite complète après T12-08+T12-09 → 141/141 (sans Bloc E-commerce), 139/139 après consolidation des 3 chantiers parallèles (voir note ci-dessous).
+
+### T12-10 — Audit de sécurité pré-production
+- **Statut :** DONE (2026-07-26) | **Priorité :** P0 | **Catégorie :** SÉCURITÉ | **Domaine :** Cybersécurité
+- **Fichiers :** `backend/package-lock.json`, `frontend/package-lock.json` (`npm audit fix` sans `--force`, aucun changement applicatif)
+- **🔴 P0 CRITIQUE trouvé — voir DB-04 (§3) :** secret réel (`backend/.env`) committé dans l'historique git (commit `79fccb1`, scrubé plus tard par `a3ce33d` mais jamais purgé de l'historique) sur un dépôt GitHub **public** (`Neruaka/JanaDistribution`, confirmé via l'API GitHub). Valeurs concernées : `JWT_SECRET`, `JWT_REFRESH_SECRET`, `DB_PASSWORD`, `SMTP_USER`, `SMTP_PASS`. **BLOQUANT — décision et action propriétaire requises avant tout commit/push (rotation des secrets + décision sur purge d'historique).**
+- **SEC-07 (vidange panier hors transaction) ré-audité : désormais DONE** — le code a changé depuis l'audit historique, `DELETE FROM ligne_panier` se fait maintenant dans la même transaction SQL que la commande (rollback complet en cas d'échec).
+- **Confirmé toujours conformes (pas de régression) :** SEC-02 (R2), SEC-04 (JWT_REFRESH_SECRET distinct, fatal si absent), SEC-06 (hasPermission supprimé), SEC-08 (CORS restreint, pas de wildcard), SEC-09 (validation mdp robuste), Helmet actif, rate limiting (300/15min global + 20/15min auth + 5/15min reset mdp dédié, non documenté avant), bcrypt ≥12 rounds.
+- **npm audit backend :** 1 CVE moderate restante (`uuid` via `jest-junit`, devDependency uniquement) — P2, correctif nécessiterait `--force`/breaking.
+- **npm audit frontend :** 3 CVE de production restantes après fix non-breaking — `react-router` 6.0.0-7.17.0 (moderate, open redirect CVE-2025-68470) → **P1** ; `brace-expansion`/`uuid` via `exceljs` (export CSV/Excel admin T6-03, surface limitée à l'admin authentifié) → P2.
+- **Secrets logs/git (hors le point P0 ci-dessus) :** sondage ciblé sur les logs Winston auth/order — aucun secret en clair loggé.
+- **Tests :** 139/139 après `npm audit fix` (backend) — aucune régression.
+
+### T12-11 — Réécriture `docs/CHECKLIST_TEST_LOCAL.md`
+- **Statut :** DONE (2026-07-26) | **Priorité :** P2 | **Catégorie :** DOC
+- **Détail :** sections Stripe (webhook, Stripe CLI, cartes de test) supprimées, remplacées par le parcours réel (commande → statut positionné manuellement par un admin ESPECES/VIREMENT/CHEQUE → email → facture). Sections auth/panier/upload R2/livraison DISTANCE/admin conservées et enrichies des durcissements de cette session (idempotence, cloisonnement rôles, audit_log). Section tests d'intégration réels ajoutée.
+
+### T12-12 — Figer `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
+- **Statut :** DONE (2026-07-26) | **Priorité :** P2 | **Catégorie :** DOC
+- **Détail :** bandeau renforcé (« FIGÉ — ne plus mettre à jour »), pointe désormais uniquement vers `ETAT_ACTUEL_PROJET.md` comme source de vérité go-live. `docs/RESTE_A_FAIRE_PROD.md` (lui aussi partiellement obsolète, antérieur à la migration homeserver) a reçu le même bandeau pour éviter toute checklist go-live contradictoire.
+
+### T12-13 — Synchronisation documentaire finale Phase 12
+- **Statut :** DONE (2026-07-26) | **Priorité :** P1 | **Catégorie :** DOC
+- **Détail :** cette section, le tableau de bord (§1) et la décision bloquante DB-04 (§3) constituent la synchronisation finale. Voir `ETAT_ACTUEL_PROJET.md` pour le bilan de session complet et le §13 mis à jour.
+- **Points restés BLOCKED nécessitant une décision externe avant go-live final (T11-09) :**
+  1. **DB-04 (P0, nouveau)** — rotation des secrets exposés dans l'historique git + décision propriétaire sur la purge d'historique (voir §3).
+  2. **DB-03** — validation comptable définitive des taux de TVA (toujours ouverte, non traitée par cette session).
+  3. Mécanisme d'avoir pour factures émises — non implémenté (T12-07), nouvelle fonctionnalité hors périmètre de durcissement.
+  4. Rotation confirmée de `SMTP_USER`/`SMTP_PASS` legacy — à vérifier explicitement (T12-10).
+  5. T11-04, T11-07 — actions externes utilisateur déjà trackées en Phase 11, non dupliquées ici.
 
 ---
 

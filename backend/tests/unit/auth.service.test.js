@@ -240,6 +240,44 @@ describe('AuthService', () => {
         .toThrow('compte a été désactivé');
     });
 
+    it('devrait appeler bcrypt.compare même si l\'email est inconnu (mitigation timing attack, T12-08)', async () => {
+      // Arrange — email inconnu : sans mitigation, bcrypt.compare ne serait jamais
+      // appelé et la réponse serait mesurablement plus rapide, ce qui permettrait
+      // d'énumérer les emails existants par analyse du temps de réponse.
+      userRepository.findByEmail.mockResolvedValue(null);
+      bcrypt.compare.mockResolvedValue(false);
+
+      // Act & Assert
+      await expect(authService.login('inexistant@example.com', 'password'))
+        .rejects
+        .toThrow('Email ou mot de passe incorrect');
+
+      expect(bcrypt.compare).toHaveBeenCalledTimes(1);
+      // Le hash comparé doit être un hash factice, jamais celui d'un utilisateur réel
+      expect(bcrypt.compare).toHaveBeenCalledWith('password', expect.any(String));
+    });
+
+    it('devrait renvoyer le même message pour email inconnu et mot de passe incorrect (pas de fuite d\'info)', async () => {
+      userRepository.findByEmail.mockResolvedValue(null);
+      let unknownEmailMessage;
+      try {
+        await authService.login('inexistant@example.com', 'password');
+      } catch (err) {
+        unknownEmailMessage = err.message;
+      }
+
+      userRepository.findByEmail.mockResolvedValue(existingUser);
+      bcrypt.compare.mockResolvedValue(false);
+      let wrongPasswordMessage;
+      try {
+        await authService.login(validCredentials.email, 'wrongpassword');
+      } catch (err) {
+        wrongPasswordMessage = err.message;
+      }
+
+      expect(unknownEmailMessage).toBe(wrongPasswordMessage);
+    });
+
     it('devrait normaliser l\'email en minuscules lors de la connexion', async () => {
       // Arrange
       userRepository.findByEmail.mockResolvedValue(existingUser);

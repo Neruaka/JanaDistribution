@@ -122,4 +122,18 @@ describe('Stock — race conditions', () => {
     );
     expect(after.rows[0].stock_quantite).toBe(0);
   });
+
+  // T12-06 : filet de sécurité DB (migration 0011) — même si un futur bug
+  // applicatif oubliait la clause "WHERE stock_quantite >= $1", Postgres
+  // doit refuser toute écriture qui ferait passer le stock sous 0.
+  test('la contrainte CHECK stock_quantite >= 0 rejette un UPDATE qui rendrait le stock négatif', async () => {
+    const produit = await insertProduit({ stock: 1 });
+
+    await expect(
+      pool.query('UPDATE produit SET stock_quantite = stock_quantite - $1 WHERE id = $2', [2, produit.id])
+    ).rejects.toThrow(/violates check constraint/i);
+
+    const after = await pool.query('SELECT stock_quantite FROM produit WHERE id = $1', [produit.id]);
+    expect(after.rows[0].stock_quantite).toBe(1); // inchangé — l'UPDATE a été rejeté intégralement
+  });
 });

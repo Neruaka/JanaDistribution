@@ -99,7 +99,7 @@ Détails complets : `DEPLOY-HOMESERVER.md`. Railway (NIXPACKS backend, Dockerfil
 | Emails transactionnels (Gmail SMTP) | FONCTIONNEL | Bienvenue, statut commande, reset MDP, facture (PDF joint) | Code inspecté + tests (112/112 ✓) |
 | Administration (produits, catégories, commandes, clients, paramètres) | FONCTIONNEL | Interface complète | Code inspecté |
 | Facturation | FONCTIONNEL | Tables facture/facture_ligne, invoice.service, PDFKit, routes client+admin, génération manuelle admin + génération auto (T5-08 : VIREMENT/CHEQUE à CONFIRMEE, ESPECES à LIVREE) + envoi email PDF (T5-13) | Code inspecté |
-| Tests | PARTIEL | Jest backend (112 tests, DB mockée) + 3 suites d'intégration réelles (testcontainers, nécessitent Docker) ; 1 test Vitest frontend | Code inspecté |
+| Tests | FONCTIONNEL | Jest backend (139/139, DB mockée) + 9 suites d'intégration réelles testcontainers/vraie PostgreSQL exécutées avec succès le 2026-07-26 (70/70, dont order.create/order.idempotency/auth/stock.concurrent), voir `12_STRATEGIE_TESTS.md` ; 1 test Vitest frontend | Exécuté localement (Docker Desktop), pas encore automatisé en CI |
 | Railway (déploiement) | PARTIEL | Health check OK, images éphémères, pas de staging | Non vérifiable Railway |
 | Stockage images | FONCTIONNEL | Cloudflare R2 (uploadToR2 middleware) + fallback disque local en dev | Code inspecté |
 | Refresh tokens révocables | FONCTIONNEL | Table refresh_token, login stocke le hash, logout révoque, rotation au refresh | Code modifié T2-03..T2-05 |
@@ -201,7 +201,8 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 | Environnement | État | Vérifiable | Non vérifiable |
 |---|---|---|---|
 | Local (Docker Compose) | CONFIGURÉ | docker-compose.yml complet, .env renseigné (R2 + JWT) | Fonctionnement réel (lancer start-local.bat) |
-| Tests Jest backend | FONCTIONNEL | 112/112 tests passés (DB mockée) | Tests intégration testcontainers (Docker requis) |
+| Tests Jest backend | FONCTIONNEL | 112/112 tests passés (DB mockée) | — |
+| Tests intégration testcontainers | FONCTIONNEL (2026-07-26) | 9/9 suites, 70/70 tests passés en local (Docker Desktop) — order.create, order.idempotency, order.status.routes, auth, auth.routes, stock.concurrent, product.routes, admin.clients.routes, shipping | Automatisation CI (pas encore en place) |
 | Homeserver `tfredklab.dev` | DÉPLOYÉ (2026-07-26) | Stack Docker Compose up (4 conteneurs healthy), schéma DB initialisé (17 tables), Caddy proxy validé (`jana.tfredklab.dev` + `jana-api.tfredklab.dev` → 200/health OK), backup pg_dump + cron + restauration testée | Exposition publique réelle (Cloudflare Tunnel public hostnames non encore ajoutés — T11-04), emails (Gmail SMTP non configuré — T11-05), images (R2 token dédié non généré — T11-05) |
 | Staging Railway | CANCELLED — remplacé par le homeserver (Phase 11) | — | — |
 | Production Railway | EN PAUSE — gardé en parallèle jusqu'au cutover (T11-09) | — | Plan Railway expiré |
@@ -281,28 +282,37 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 | 2026-07-08 | Audit documentation vs code réel | Corrections : `CLAUDE.md` (état ~98%/Phase 8, retrait Stripe de la stack, ajout `prompt-architect.md` au tableau agents, plan "ce soir" marqué historique), `README.md` (retrait Joi résiduel), `CLAUDE_WORKFLOW.md` (refresh tokens révocables, Stripe retiré de la stack et de la règle §8), `docs/CHANGEMENTS_MVP.md` + `docs/RESTE_A_FAIRE_PROD.md` (statut init.sql resynchronisé, T5-08/T5-13 DONE), `docs/RGPD_ACCESSIBILITE.md` (CookieBanner résolu), bandeau d'obsolescence ajouté sur `docs/audit-finalisation/*` (16 fichiers) + `DEPLOY-RAILWAY.md`, `DEMARRAGE.md`, `docs/CHECKLIST_TEST_LOCAL.md`, `docs/RAILWAY_CONFIG_READY.md`. | — | DONE |
 | 2026-07-08 | Migration email Brevo → Gmail SMTP | `email.service.js` : transport `nodemailer` (Gmail SMTP) remplace l'appel REST Brevo ; `sendMail()` et toutes les méthodes publiques (`sendWelcomeEmail`, `sendOrderStatusEmail`, `sendInvoiceEmail`, `sendPasswordResetEmail`, `sendPasswordChangedEmail`) inchangées pour les appelants. `backend/package.json` : ajout `nodemailer` ^9.0.3. `backend/.env.example` : section Brevo remplacée par `GMAIL_SENDER_EMAIL`/`GMAIL_APP_PASSWORD`/`GMAIL_SENDER_NAME` (valeurs vides). `docs/GUIDE_GMAIL_SMTP.md` créé (remplace `docs/GUIDE_BREVO_CONFIGURATION.md`, conservé en pointeur historique). `CLAUDE_WORKFLOW.md` §1 mis à jour. Bascule Railway réelle (ajout variables `GMAIL_*`, révocation `BREVO_API_KEY`) non appliquée — action manuelle, hors scope automatique. | 7/7 suites, 112/112 ✓ (aucune régression) | DONE |
 | 2026-07-26 | Phase 11 — Migration Railway → Homeserver (T11-01..T11-08, T11-10) | Infrastructure Docker Compose créée sur `/opt/docker/jana/` (homeserver `tfredklab.dev`, hors dépôt git) : postgres/redis sans port publié, backend/frontend publiés sur 4001/4000. `backend/src/config/database.js` : ajout `DB_SSL_DISABLE=true` (SSL forcé incompatible avec Postgres auto-hébergé sans TLS). Schéma initialisé via `init.sql` (17 tables). Caddyfile homeserver : blocs `@jana`/`@jana_api` ajoutés sans régression sur les autres services. Backup `pg_dump` + cron + restauration testée. `.github/workflows/deploy.yml` simplifié (1 job, push `develop`, Tailscale + clé SSH à forced-command). `backend/railway.json` + `frontend/railway.json` supprimés ; `DEPLOY-HOMESERVER.md` créé ; `DEPLOY-RAILWAY.md` + `docs/RAILWAY_CONFIG_READY.md` marqués obsolètes. Reste bloqué sur 4 actions externes utilisateur (Cloudflare Tunnel, Gmail/R2/adresse entreprise, Uptime Kuma, secrets GitHub) avant cutover (T11-09). | 112/112 backend ✓ (après fix SSL), healthcheck prod `{"database":"up"}`, endpoints Caddy validés (200/health OK, pas de régression) | DONE (T11-01/02/03/06/08/10) — IN_PROGRESS (T11-05) — BLOCKED (T11-04, T11-07, actions externes) |
+| 2026-07-26 | Phase 12 — T12-01..T12-04 (tests) | T12-01 : Docker Desktop démarré par l'utilisateur, `docker info` OK. T12-02 : régression détectée et corrigée — `nodemailer` déclaré dans `package.json` mais absent de `node_modules` (2 suites en échec de chargement) ; `npm install` a résolu le problème sans toucher `package-lock.json`. T12-03 : les 3 suites testcontainers exécutées pour la première fois avec succès sur cette machine ; un bug de test (pas de production) trouvé et corrigé dans `order.create.test.js` (`uniqueNumeroCommande()` dépassait `VARCHAR(20)`). | npm test : 112/112 ✓ ; npm run test:integration : 6/6 suites, 54/54 ✓ | DONE |
+| 2026-07-26 | Phase 12 — T12-05..T12-10 (durcissement + audit sécurité) | **Commande/stock (T12-05/06)** : idempotence création commande via verrou `FOR UPDATE` sur `panier` ; contrainte `CHECK stock_quantite >= 0` ajoutée (migration 0011, pas encore appliquée en prod). **Facturation (T12-07)** : bug critique corrigé — génération facture produisait NaN sur tous les montants (mauvaise colonne lue) + fuite de taux TVA (le taux courant du produit écrasait silencieusement le taux figé à la commande, risque légal) ; arrondi unifié avec panier/commande. **Auth (T12-08)** : timing attack sur `login()` corrigé (énumération d'emails possible). **Admin (T12-09)** : trous `audit_log` comblés sur création/modification/suppression produit et actions clients sensibles. **Audit sécurité (T12-10)** : `npm audit fix` appliqué (non-breaking) ; **🔴 P0 trouvé — secret réel dans l'historique git (`backend/.env`, commit `79fccb1`) sur dépôt GitHub public, jamais purgé** — voir `PLAN_CORRECTION_AUDIT.md` DB-04, action propriétaire requise avant tout commit/push. SEC-07 (vidange panier hors transaction) ré-audité et confirmé résolu. | npm test : 139/139 ✓ ; npm run test:integration : 9/9 suites, 70/70 ✓ | DONE (BLOCKED sur DB-04 pour la suite) |
+| 2026-07-26 | Phase 12 — T12-11..T12-13 (documentation) | `docs/CHECKLIST_TEST_LOCAL.md` réécrit (Stripe retiré, parcours paiement manuel réaliste, section tests d'intégration ajoutée). `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md` et `docs/RESTE_A_FAIRE_PROD.md` marqués figés/obsolètes, pointant uniquement vers `ETAT_ACTUEL_PROJET.md` comme source de vérité go-live. `PLAN_CORRECTION_AUDIT.md` : Phase 12 ajoutée (13 tâches), tableau de bord et décisions bloquantes (DB-04) mis à jour. | — | DONE |
 
 ---
 
 ## 13. Prochaine action recommandée
 
-**Session migration homeserver (2026-07-26) : infrastructure Docker/Caddy déployée et validée de bout en bout sur `tfredklab.dev`. Prochaine : lever les blocages externes (T11-04, T11-05, T11-07, secrets GitHub T11-08), puis T11-09 (cutover).**
+**Session Phase 12 (2026-07-26) : tests d'intégration réels exécutés avec succès pour la première fois (9/9 suites, 70/70), règles de gestion durcies (commande/stock/facturation/auth/admin — plusieurs bugs réels corrigés, voir journal ci-dessous et `PLAN_CORRECTION_AUDIT.md` Phase 12), audit sécurité pré-prod mené.**
+
+**🔴 ACTION IMMÉDIATE REQUISE avant tout nouveau commit/push (P0, DB-04) :** l'audit sécurité (T12-10) a trouvé un secret réel (`backend/.env` — `JWT_SECRET`, `JWT_REFRESH_SECRET`, `DB_PASSWORD`, `SMTP_USER`, `SMTP_PASS`) committé dans l'historique git (commit `79fccb1`, scrubé plus tard par `a3ce33d` mais jamais purgé) sur le dépôt GitHub `Neruaka/JanaDistribution`, confirmé **public**. Propriétaire à prévenir en priorité : (1) confirmer/forcer la rotation de tous ces secrets partout où ils sont encore utilisés, (2) décider si l'historique git doit être purgé (`git filter-repo`/BFG + force-push — action destructive, décision et exécution réservées au propriétaire). Détail complet : `PLAN_CORRECTION_AUDIT.md` §3 DB-04 et Phase 12 T12-10.
 
 | Champ | Valeur |
 |---|---|
-| Option A | T11-04/T11-05/T11-07 — actions externes utilisateur (Cloudflare Tunnel, Gmail SMTP + R2 + adresse entreprise, Uptime Kuma) — voir `DEPLOY-HOMESERVER.md` §10 pour la liste complète |
-| Option B | T5-14 — Rendre les factures immuables (aucun endpoint UPDATE sur `facture`, correctif via avoir) — indépendant de la migration, peut démarrer immédiatement |
-| Prérequis option A | Accès dashboard Cloudflare Zero Trust + Google (Gmail app password) + GitHub repo Settings |
-| Prérequis option B | Aucun |
+| Option A | DB-04 (P0) — rotation secrets + décision purge historique git — voir ci-dessus |
+| Option B | T11-04/T11-05/T11-07 — actions externes utilisateur (Cloudflare Tunnel, Gmail SMTP + R2 + adresse entreprise, Uptime Kuma) — voir `DEPLOY-HOMESERVER.md` §10 |
+| Option C | Mécanisme d'avoir pour factures émises (trouvé manquant en T12-07 — schéma `facture.avoir_id` déjà prêt, aucun service/route ne le crée) |
+| Prérequis option A | Accès aux secrets actifs (homeserver, éventuellement Railway) + décision propriétaire sur la purge d'historique |
+| Prérequis option B | Accès dashboard Cloudflare Zero Trust + Google (Gmail app password) + GitHub repo Settings |
+| Prérequis option C | Aucun |
 
-**Actions externes requises avant prod (mises à jour post-migration) :**
-1. Ajouter les 2 public hostnames Cloudflare Tunnel (T11-04) — voir `DEPLOY-HOMESERVER.md`
-2. Générer un nouveau mot de passe d'application Gmail + nouveau token R2 dédié (ne jamais réutiliser les secrets Railway) et les renseigner dans `/opt/docker/jana/.env` sur le homeserver (T11-05)
-3. Renseigner ENTREPRISE_ADRESSE (SIRET et n° TVA déjà en place)
-4. ⚠️ Faire valider les taux TVA par un comptable pour chaque référence produit
-5. Ajouter les 2 moniteurs Uptime Kuma (T11-07)
-6. Créer les 4 secrets GitHub Actions pour le déploiement continu (T11-08)
-7. Valider le flux commande complet sur `jana.tfredklab.dev` avant cutover final (T11-09)
-8. Démarrer Docker Desktop puis lancer `npm run test:integration` pour valider les 3 suites testcontainers (non exécutées faute de Docker sur la machine de développement actuelle)
+**Actions externes requises avant prod (mises à jour Phase 12) :**
+1. **DB-04 (P0, nouveau)** — rotation secrets + décision purge historique git (voir ci-dessus)
+2. Ajouter les 2 public hostnames Cloudflare Tunnel (T11-04) — voir `DEPLOY-HOMESERVER.md`
+3. Générer un nouveau mot de passe d'application Gmail + nouveau token R2 dédié (ne jamais réutiliser les secrets Railway) et les renseigner dans `/opt/docker/jana/.env` sur le homeserver (T11-05)
+4. Renseigner ENTREPRISE_ADRESSE (SIRET et n° TVA déjà en place)
+5. ⚠️ Faire valider les taux TVA par un comptable pour chaque référence produit (DB-03, toujours ouverte)
+6. Ajouter les 2 moniteurs Uptime Kuma (T11-07)
+7. Créer les 4 secrets GitHub Actions pour le déploiement continu (T11-08)
+8. Exécuter la migration `0011_stock_check_constraint.sql` sur la base homeserver de prod (T12-06, pas encore appliquée en prod)
+9. Confirmer si `SMTP_USER`/`SMTP_PASS` legacy (exposés dans le commit `79fccb1`) sont encore actifs quelque part et les révoquer si oui (T12-10)
+10. Valider le flux commande complet sur `jana.tfredklab.dev` avant cutover final (T11-09)
 
-**Dette technique découverte (2026-07-26) :** `backend/scripts/run-migrations.js` et la migration `0001` ne sont pas committés dans le dépôt git (fichiers locaux uniquement) — `npm run migrate` est inutilisable sur un environnement propre. `backend/scripts/init.sql` (resynchronisé le 2026-07-04 avec les migrations 0001-0010) reste la seule source de schéma fiable pour un premier déploiement ; c'est ce qui a été utilisé pour initialiser la base sur le homeserver. À corriger : committer les fichiers manquants.
+**Dette technique découverte (2026-07-26) :** `backend/scripts/run-migrations.js` et la migration `0001` ne sont pas committés dans le dépôt git (fichiers locaux uniquement) — `npm run migrate` est inutilisable sur un environnement propre. `backend/scripts/init.sql` (resynchronisé le 2026-07-04 avec les migrations 0001-0010, puis avec 0011 le 2026-07-26) reste la seule source de schéma fiable pour un premier déploiement ; c'est ce qui a été utilisé pour initialiser la base sur le homeserver. À corriger : committer les fichiers manquants.
