@@ -3,7 +3,7 @@
 # ============================================================================
 # Déploie sur le homeserver (tfredklab.dev) après un push sur develop.
 # Un seul environnement (pas de staging Railway distinct — voir Phase 11,
-# docs/PLAN_CORRECTION_AUDIT.md). Le homeserver n'est joignable que via Tailscale
+# docs/workflow/PLAN_CORRECTION_AUDIT.md). Le homeserver n'est joignable que via Tailscale
 # (pas de port SSH ouvert publiquement), donc le runner GitHub rejoint le
 # tailnet avant de se connecter.
 # ============================================================================

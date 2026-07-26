@@ -65,7 +65,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 | DB-01 | Provider stockage images (S3 / Cloudflare R2 / Railway Volume) | Propriétaire (coût) | T0-02 | RÉSOLU — Cloudflare R2 |
 | DB-02 | Stratégie de livraison définitive (FIXE ou DISTANCE) + zones | Propriétaire | T3-01, T3-02 | RÉSOLU — MODE DISTANCE, rayon 80km, 5€+0.80/km, franco 80€ |
 | DB-03 | Validation TVA + règles facturation + durée conservation | Comptable | T5-01..T5-17 | RÉSOLU — taux 5.5/10/20% CGI implémentés (⚠️ validation comptable requise avant prod) |
-| DB-04 | **P0 — Secret réel (`backend/.env`) committé dans l'historique git (commit `79fccb1`, scrubé plus tard par `a3ce33d` mais jamais purgé), dépôt GitHub `Neruaka/JanaDistribution` confirmé **public** (vérifié via l'API GitHub, `"private": false`, 2026-07-26). Valeurs concernées : `JWT_SECRET`, `JWT_REFRESH_SECRET`, `DB_PASSWORD`, `SMTP_USER`, `SMTP_PASS` (valeurs non répétées ici, voir règle §7 docs/CLAUDE_WORKFLOW.md). Rotation nécessaire pour tout secret encore en usage (DB_PASSWORD et SMTP_USER/SMTP_PASS legacy non confirmés comme déjà rotés ; JWT probablement déjà régénéré via T11-05 mais à confirmer). Purge de l'historique git (`git filter-repo`/BFG + force-push) = action destructive hors périmètre d'exécution automatique — décision et exécution réservées au propriétaire du dépôt. | Propriétaire | Tout commit/push ultérieur sur ce dépôt tant que la rotation n'est pas confirmée | **BLOCKED — action externe requise, voir T12-10** |
+| DB-04 | **P0 — Secret réel (`backend/.env`) committé dans l'historique git (commit `79fccb1`, scrubé plus tard par `a3ce33d` mais jamais purgé), dépôt GitHub `Neruaka/JanaDistribution` confirmé **public** (vérifié via l'API GitHub, `"private": false`, 2026-07-26). Valeurs concernées : `JWT_SECRET`, `JWT_REFRESH_SECRET`, `DB_PASSWORD`, `SMTP_USER`, `SMTP_PASS` (valeurs non répétées ici, voir règle §7 docs/workflow/CLAUDE_WORKFLOW.md). Rotation nécessaire pour tout secret encore en usage (DB_PASSWORD et SMTP_USER/SMTP_PASS legacy non confirmés comme déjà rotés ; JWT probablement déjà régénéré via T11-05 mais à confirmer). Purge de l'historique git (`git filter-repo`/BFG + force-push) = action destructive hors périmètre d'exécution automatique — décision et exécution réservées au propriétaire du dépôt. | Propriétaire | Tout commit/push ultérieur sur ce dépôt tant que la rotation n'est pas confirmée | **BLOCKED — action externe requise, voir T12-10** |
 
 ---
 
@@ -132,8 +132,8 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
   - [ ] Vérification visuelle en développement local
 - **Rollback :** `git checkout frontend/src/pages/CheckoutPage.jsx`
 - **Mise à jour documentaire après réalisation :**
-  - [ ] `docs/PLAN_CORRECTION_AUDIT.md` — T0-01 → DONE, décrémenter P0
-  - [ ] `docs/ETAT_ACTUEL_PROJET.md` — P0-A résolu, mettre à jour journal
+  - [ ] `docs/workflow/PLAN_CORRECTION_AUDIT.md` — T0-01 → DONE, décrémenter P0
+  - [ ] `docs/workflow/ETAT_ACTUEL_PROJET.md` — P0-A résolu, mettre à jour journal
 
 ---
 
@@ -167,7 +167,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
   - [ ] URL correctement stockée en DB
   - [ ] Ancienne route `/uploads` désactivée ou sécurisée
 - **Mise à jour documentaire :**
-  - [ ] `docs/PLAN_CORRECTION_AUDIT.md`, `docs/ETAT_ACTUEL_PROJET.md`
+  - [ ] `docs/workflow/PLAN_CORRECTION_AUDIT.md`, `docs/workflow/ETAT_ACTUEL_PROJET.md`
 
 ---
 
@@ -194,7 +194,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
   - [ ] Démarrer le serveur sans `JWT_REFRESH_SECRET` → erreur attendue
   - [ ] `cd backend && npm test -- auth`
 - **Mise à jour documentaire :**
-  - [ ] `docs/PLAN_CORRECTION_AUDIT.md`, `docs/ETAT_ACTUEL_PROJET.md` — P1-01 résolu
+  - [ ] `docs/workflow/PLAN_CORRECTION_AUDIT.md`, `docs/workflow/ETAT_ACTUEL_PROJET.md` — P1-01 résolu
 
 ---
 
@@ -219,7 +219,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 - **Tests à exécuter :**
   - [ ] Test webhook double-envoi → un seul traitement
 - **Mise à jour documentaire :**
-  - [ ] `docs/PLAN_CORRECTION_AUDIT.md`, `docs/ETAT_ACTUEL_PROJET.md` — P1-03 résolu
+  - [ ] `docs/workflow/PLAN_CORRECTION_AUDIT.md`, `docs/workflow/ETAT_ACTUEL_PROJET.md` — P1-03 résolu
 
 ---
 
@@ -241,7 +241,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
   - [ ] Message d'erreur explicite retourné à l'API
   - [ ] Changement de mot de passe soumis aux mêmes règles
 - **Mise à jour documentaire :**
-  - [ ] `docs/PLAN_CORRECTION_AUDIT.md`, `docs/ETAT_ACTUEL_PROJET.md` — P1-06 résolu
+  - [ ] `docs/workflow/PLAN_CORRECTION_AUDIT.md`, `docs/workflow/ETAT_ACTUEL_PROJET.md` — P1-06 résolu
 
 ---
 
@@ -262,7 +262,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
   - [ ] Aucune séquence `Ã©`, `â‚¬`, `â€™` dans les fichiers source
   - [ ] Emails envoyés avec accents corrects
 - **Mise à jour documentaire :**
-  - [ ] `docs/PLAN_CORRECTION_AUDIT.md`, `docs/ETAT_ACTUEL_PROJET.md`
+  - [ ] `docs/workflow/PLAN_CORRECTION_AUDIT.md`, `docs/workflow/ETAT_ACTUEL_PROJET.md`
 
 ---
 
@@ -288,7 +288,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
   - [ ] Header `Access-Control-Allow-Origin` limité à `CORS_ORIGIN`
   - [ ] Images toujours accessibles depuis le frontend
 - **Mise à jour documentaire :**
-  - [ ] `docs/PLAN_CORRECTION_AUDIT.md`, `docs/ETAT_ACTUEL_PROJET.md` — P0-D résolu
+  - [ ] `docs/workflow/PLAN_CORRECTION_AUDIT.md`, `docs/workflow/ETAT_ACTUEL_PROJET.md` — P0-D résolu
 
 ---
 
@@ -314,7 +314,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
   - [ ] Si la commande est créée, le panier est toujours vide
   - [ ] Si la commande échoue, le panier reste intact
 - **Mise à jour documentaire :**
-  - [ ] `docs/PLAN_CORRECTION_AUDIT.md`, `docs/ETAT_ACTUEL_PROJET.md` — P1-05 résolu
+  - [ ] `docs/workflow/PLAN_CORRECTION_AUDIT.md`, `docs/workflow/ETAT_ACTUEL_PROJET.md` — P1-05 résolu
 
 ---
 
@@ -336,7 +336,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
   - [ ] Aucun middleware ne teste un champ inexistant en DB
   - [ ] Toutes les routes admin sont protégées par `isAdmin` (fonctionnel)
 - **Mise à jour documentaire :**
-  - [ ] `docs/PLAN_CORRECTION_AUDIT.md`, `docs/ETAT_ACTUEL_PROJET.md` — P1-04 résolu
+  - [ ] `docs/workflow/PLAN_CORRECTION_AUDIT.md`, `docs/workflow/ETAT_ACTUEL_PROJET.md` — P1-04 résolu
 
 ---
 
@@ -893,7 +893,7 @@ Détails : `docs/audit-finalisation/11_RAILWAY_PRODUCTION.md` *(obsolète)*
 
 > Remplace la Phase 8. Railway EN PAUSE (plan expiré) — hébergement auto-géré
 > sur le homeserver personnel de l'utilisateur (Debian 13, Docker Compose,
-> Caddy, Cloudflare Tunnel). Détails complets : `docs/DEPLOY-HOMESERVER.md`.
+> Caddy, Cloudflare Tunnel). Détails complets : `docs/deploiement/DEPLOY-HOMESERVER.md`.
 > Session du 2026-07-26.
 
 ---
@@ -975,7 +975,7 @@ Détails : `docs/audit-finalisation/11_RAILWAY_PRODUCTION.md` *(obsolète)*
 ### T11-10 — Synchronisation documentaire complète
 
 - **Statut :** DONE (2026-07-26) | **Priorité :** P1 | **Catégorie :** DOCUMENTATION
-- **Fichiers :** `backend/railway.json` + `frontend/railway.json` supprimés, `docs/DEPLOY-HOMESERVER.md` créé, `docs/DEPLOY-RAILWAY.md` + `docs/RAILWAY_CONFIG_READY.md` marqués obsolètes (bandeau, conservés en référence historique tant que Railway reste actif), `CLAUDE.md` mis à jour (déploiement homeserver, Phase 11), `docs/ETAT_ACTUEL_PROJET.md` et `docs/PLAN_CORRECTION_AUDIT.md` (ce fichier) mis à jour.
+- **Fichiers :** `backend/railway.json` + `frontend/railway.json` supprimés, `docs/deploiement/DEPLOY-HOMESERVER.md` créé, `docs/deploiement/DEPLOY-RAILWAY.md` + `docs/deploiement/RAILWAY_CONFIG_READY.md` marqués obsolètes (bandeau, conservés en référence historique tant que Railway reste actif), `CLAUDE.md` mis à jour (déploiement homeserver, Phase 11), `docs/workflow/ETAT_ACTUEL_PROJET.md` et `docs/workflow/PLAN_CORRECTION_AUDIT.md` (ce fichier) mis à jour.
 
 ---
 
@@ -1102,7 +1102,7 @@ Checklist complète : `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 
 ### T12-04 — Documentation résultats tests d'intégration
 - **Statut :** DONE (2026-07-26) | **Priorité :** P2 | **Catégorie :** DOC
-- **Fichiers :** `docs/ETAT_ACTUEL_PROJET.md`, `docs/audit-finalisation/12_STRATEGIE_TESTS.md`
+- **Fichiers :** `docs/workflow/ETAT_ACTUEL_PROJET.md`, `docs/audit-finalisation/12_STRATEGIE_TESTS.md`
 
 ### T12-05 — Durcir les transitions de statut commande
 - **Statut :** DONE (2026-07-26) | **Priorité :** P0 | **Catégorie :** CODE | **Domaine :** E-commerce/Backend
@@ -1154,17 +1154,17 @@ Checklist complète : `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 - **Secrets logs/git (hors le point P0 ci-dessus) :** sondage ciblé sur les logs Winston auth/order — aucun secret en clair loggé.
 - **Tests :** 139/139 après `npm audit fix` (backend) — aucune régression.
 
-### T12-11 — Réécriture `docs/CHECKLIST_TEST_LOCAL.md`
+### T12-11 — Réécriture `docs/checklists/CHECKLIST_TEST_LOCAL.md`
 - **Statut :** DONE (2026-07-26) | **Priorité :** P2 | **Catégorie :** DOC
 - **Détail :** sections Stripe (webhook, Stripe CLI, cartes de test) supprimées, remplacées par le parcours réel (commande → statut positionné manuellement par un admin ESPECES/VIREMENT/CHEQUE → email → facture). Sections auth/panier/upload R2/livraison DISTANCE/admin conservées et enrichies des durcissements de cette session (idempotence, cloisonnement rôles, audit_log). Section tests d'intégration réels ajoutée.
 
 ### T12-12 — Figer `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 - **Statut :** DONE (2026-07-26) | **Priorité :** P2 | **Catégorie :** DOC
-- **Détail :** bandeau renforcé (« FIGÉ — ne plus mettre à jour »), pointe désormais uniquement vers `docs/ETAT_ACTUEL_PROJET.md` comme source de vérité go-live. `docs/RESTE_A_FAIRE_PROD.md` (lui aussi partiellement obsolète, antérieur à la migration homeserver) a reçu le même bandeau pour éviter toute checklist go-live contradictoire.
+- **Détail :** bandeau renforcé (« FIGÉ — ne plus mettre à jour »), pointe désormais uniquement vers `docs/workflow/ETAT_ACTUEL_PROJET.md` comme source de vérité go-live. `docs/checklists/RESTE_A_FAIRE_PROD.md` (lui aussi partiellement obsolète, antérieur à la migration homeserver) a reçu le même bandeau pour éviter toute checklist go-live contradictoire.
 
 ### T12-13 — Synchronisation documentaire finale Phase 12
 - **Statut :** DONE (2026-07-26) | **Priorité :** P1 | **Catégorie :** DOC
-- **Détail :** cette section, le tableau de bord (§1) et la décision bloquante DB-04 (§3) constituent la synchronisation finale. Voir `docs/ETAT_ACTUEL_PROJET.md` pour le bilan de session complet et le §13 mis à jour.
+- **Détail :** cette section, le tableau de bord (§1) et la décision bloquante DB-04 (§3) constituent la synchronisation finale. Voir `docs/workflow/ETAT_ACTUEL_PROJET.md` pour le bilan de session complet et le §13 mis à jour.
 - **Points restés BLOCKED nécessitant une décision externe avant go-live final (T11-09) :**
   1. **DB-04 (P0, nouveau)** — rotation des secrets exposés dans l'historique git + décision propriétaire sur la purge d'historique (voir §3).
   2. **DB-03** — validation comptable définitive des taux de TVA (toujours ouverte, non traitée par cette session).

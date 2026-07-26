@@ -1,8 +1,8 @@
 # Configuration Railway — Prête à appliquer
 
-> ⚠️ **OBSOLÈTE (2026-07-26)** — Railway n'est plus le chemin critique vers la production ; migration en cours vers un homeserver auto-géré, voir `docs/DEPLOY-HOMESERVER.md` et Phase 11 de `docs/PLAN_CORRECTION_AUDIT.md`. Conservé comme référence tant que Railway reste actif en parallèle (T11-09).
+> ⚠️ **OBSOLÈTE (2026-07-26)** — Railway n'est plus le chemin critique vers la production ; migration en cours vers un homeserver auto-géré, voir `docs/deploiement/DEPLOY-HOMESERVER.md` et Phase 11 de `docs/workflow/PLAN_CORRECTION_AUDIT.md`. Conservé comme référence tant que Railway reste actif en parallèle (T11-09).
 >
-> ⚠️ **Sections Stripe obsolètes** — Stripe a été entièrement retiré du MVP (décision client T4-07, 2026-07-02). Les variables liées à Stripe (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, etc.) mentionnées dans ce document ne s'appliquent plus. Paiement actuel : ESPECES/VIREMENT/CHEQUE, statut positionné manuellement par un admin. Voir `docs/ETAT_ACTUEL_PROJET.md` pour l'état réel à jour.
+> ⚠️ **Sections Stripe obsolètes** — Stripe a été entièrement retiré du MVP (décision client T4-07, 2026-07-02). Les variables liées à Stripe (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, etc.) mentionnées dans ce document ne s'appliquent plus. Paiement actuel : ESPECES/VIREMENT/CHEQUE, statut positionné manuellement par un admin. Voir `docs/workflow/ETAT_ACTUEL_PROJET.md` pour l'état réel à jour.
 # À exécuter quand le plan Railway sera réactivé
 
 > Mise à jour : 2026-06-28. Toutes les valeurs non-secrètes sont pré-renseignées.
@@ -65,7 +65,7 @@ STRIPE_PUBLISHABLE_KEY=pk_live_<depuis Stripe Dashboard → Clés API>
 STRIPE_WEBHOOK_SECRET=whsec_<généré lors création webhook Railway — voir étape 8>
 ```
 
-### Gmail SMTP (Email — migré depuis Brevo le 2026-07-08, voir `docs/GUIDE_GMAIL_SMTP.md`)
+### Gmail SMTP (Email — migré depuis Brevo le 2026-07-08, voir `docs/guides/GUIDE_GMAIL_SMTP.md`)
 ```
 GMAIL_SENDER_EMAIL=<adresse Gmail dédiée>
 GMAIL_APP_PASSWORD=<mot de passe d'application Gmail, 16 caractères>

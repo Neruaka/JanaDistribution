@@ -111,11 +111,11 @@
 
 - [ ] **Cloudflare R2** : configurer un custom domain (ex: images.jana-distribution.fr) pour `R2_PUBLIC_URL` en prod
 - [ ] **Stripe** : passer en mode LIVE quand prêt — récupérer `sk_live_` + configurer webhook prod
-- [ ] **Railway** : réactiver le plan → appliquer `docs/RAILWAY_CONFIG_READY.md`
+- [ ] **Railway** : réactiver le plan → appliquer `docs/deploiement/RAILWAY_CONFIG_READY.md`
 - [ ] **Comptable** : valider taux TVA par catégorie produit avant première vente réelle
 - [ ] **Juridique** : rédiger CGV, mentions légales, politique RGPD (T9-03 BLOCKED)
 - [ ] **Entreprise** : renseigner `ENTREPRISE_SIRET` + `ENTREPRISE_TVA_NUMERO` + `ENTREPRISE_ADRESSE` dans les variables d'env
-- [ ] **Test local complet** : suivre `docs/CHECKLIST_TEST_LOCAL.md` avec `start-local.bat`
+- [ ] **Test local complet** : suivre `docs/checklists/CHECKLIST_TEST_LOCAL.md` avec `start-local.bat`
 
 ---
 
@@ -166,14 +166,14 @@
 - Anciens tokens R2 absents du code ✅
 - R2 endpoint EU **corrigé** dans `backend/src/config/r2.js` ✅
 - Stripe config lit correctement `process.env.STRIPE_SECRET_KEY` ✅
-- `docs/ETAT_ACTUEL_PROJET.md` mis à jour (environnements, décisions, working tree) ✅
+- `docs/workflow/ETAT_ACTUEL_PROJET.md` mis à jour (environnements, décisions, working tree) ✅
 
 ### Objectif 2 — CI/CD + scripts locaux : **DONE**
 - CI GitHub Actions déjà complet (4 jobs) — JWT_REFRESH_SECRET **fixé** ✅
 - `start-local.bat` créé (Windows) ✅
 - `start-local.sh` créé (Linux/Mac) ✅
-- `docs/CHECKLIST_TEST_LOCAL.md` créé ✅
-- `docs/RAILWAY_CONFIG_READY.md` créé ✅
+- `docs/checklists/CHECKLIST_TEST_LOCAL.md` créé ✅
+- `docs/deploiement/RAILWAY_CONFIG_READY.md` créé ✅
 
 ### Objectif 3 — Audit phases précédentes : **DONE** (ce document)
 

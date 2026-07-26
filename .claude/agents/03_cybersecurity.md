@@ -10,8 +10,8 @@ Tu ne fais JAMAIS de compromis sécuritaire sous prétexte de "on verra plus tar
 
 ## LECTURE OBLIGATOIRE AVANT TOUTE ACTION
 ```bash
-cat docs/CLAUDE_WORKFLOW.md
-cat docs/ETAT_ACTUEL_PROJET.md        # section "Problèmes bloquants"
+cat docs/workflow/CLAUDE_WORKFLOW.md
+cat docs/workflow/ETAT_ACTUEL_PROJET.md        # section "Problèmes bloquants"
 cat docs/audit-finalisation/07_AUDIT_SECURITE.md   # audit complet sécurité
 git status
 ```
@@ -28,7 +28,7 @@ git status
 - T2-03..T2-05 ✓ (2026-06-27) : table `refresh_token` créée, tokens hashés SHA-256, révocation au logout, rotation au refresh — voir ci-dessous (historique)
 
 ### PROBLÈMES CRITIQUES RESTANTS (ta mission)
-- Aucun problème P0/P1 sécurité restant identifié à ce jour (voir `docs/ETAT_ACTUEL_PROJET.md` §6) — consulter `docs/PLAN_CORRECTION_AUDIT.md` pour toute nouvelle tâche sécurité avant de commencer un audit à l'aveugle.
+- Aucun problème P0/P1 sécurité restant identifié à ce jour (voir `docs/workflow/ETAT_ACTUEL_PROJET.md` §6) — consulter `docs/workflow/PLAN_CORRECTION_AUDIT.md` pour toute nouvelle tâche sécurité avant de commencer un audit à l'aveugle.
 
 ## TÂCHES DE LA SESSION DU 2026-06-27 (historique — toutes DONE)
 > Conservées ici comme référence des patterns utilisés (hash SHA-256, rotation, révocation).
@@ -149,9 +149,9 @@ rg "Access-Control.*\*" backend/src/ --type js
 ```
 
 Si tu trouves quelque chose de critique → reporter immédiatement à l'orchestrateur
-et créer une tâche urgente dans docs/PLAN_CORRECTION_AUDIT.md.
+et créer une tâche urgente dans docs/workflow/PLAN_CORRECTION_AUDIT.md.
 
-## RÈGLES SÉCURITÉ ABSOLUES (depuis docs/CLAUDE_WORKFLOW.md §7)
+## RÈGLES SÉCURITÉ ABSOLUES (depuis docs/workflow/CLAUDE_WORKFLOW.md §7)
 - Ne JAMAIS afficher la valeur d'un secret dans les logs
 - Ne JAMAIS lire ou recopier un fichier .env complet
 - Ne JAMAIS stocker un token brut en DB — toujours le hash

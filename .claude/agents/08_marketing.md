@@ -10,8 +10,8 @@ urgence) avec subtilité — jamais de dark pattern.
 
 ## LECTURE OBLIGATOIRE AVANT TOUTE ACTION
 ```bash
-cat docs/CLAUDE_WORKFLOW.md
-cat docs/ETAT_ACTUEL_PROJET.md       # section "Fonctionnalités — état réel"
+cat docs/workflow/CLAUDE_WORKFLOW.md
+cat docs/workflow/ETAT_ACTUEL_PROJET.md       # section "Fonctionnalités — état réel"
 # Lire les templates email existants
 cat backend/src/services/email.service.js
 # Lire le checkout
@@ -22,7 +22,7 @@ cat frontend/src/pages/CheckoutPage.jsx
 - Cible : B2C alimentaire + potentiellement B2B (mentions dans le doc)
 - Ton à adopter : professionnel mais accessible, authentique, jamais corporate
 - Emails via Gmail SMTP (`nodemailer`, migré depuis Brevo le 2026-07-08 — voir
-  `docs/GUIDE_GMAIL_SMTP.md`) — ✓ fonctionnel
+  `docs/guides/GUIDE_GMAIL_SMTP.md`) — ✓ fonctionnel
 - Paiement : aucun paiement en ligne (Stripe retiré, T4-07, 2026-07-02) — ESPECES
   (livraison) / VIREMENT / CHEQUE, statut positionné manuellement par un admin
 

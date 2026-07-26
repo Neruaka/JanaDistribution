@@ -1,8 +1,8 @@
 # Déploiement Railway — Jana Distribution
 
-> ⚠️ **OBSOLÈTE (2026-07-26)** — Railway n'est plus le chemin critique vers la production. La migration vers un homeserver auto-géré (`tfredklab.dev`) est en cours (Phase 11, `docs/PLAN_CORRECTION_AUDIT.md`) — voir `docs/DEPLOY-HOMESERVER.md`. Ce document est conservé comme référence historique le temps que Railway reste actif en parallèle (T11-09, cutover non encore validé). Ne pas suivre cette procédure pour un nouveau déploiement.
+> ⚠️ **OBSOLÈTE (2026-07-26)** — Railway n'est plus le chemin critique vers la production. La migration vers un homeserver auto-géré (`tfredklab.dev`) est en cours (Phase 11, `docs/workflow/PLAN_CORRECTION_AUDIT.md`) — voir `docs/deploiement/DEPLOY-HOMESERVER.md`. Ce document est conservé comme référence historique le temps que Railway reste actif en parallèle (T11-09, cutover non encore validé). Ne pas suivre cette procédure pour un nouveau déploiement.
 >
-> ⚠️ **Sections Stripe obsolètes** — Stripe a été entièrement retiré du MVP (décision client T4-07, 2026-07-02). Les étapes/variables liées à Stripe (webhook, `STRIPE_SECRET_KEY`, cartes de test) mentionnées dans ce document ne s'appliquent plus. Paiement actuel : ESPECES/VIREMENT/CHEQUE, statut positionné manuellement par un admin. Voir `docs/ETAT_ACTUEL_PROJET.md` pour l'état réel à jour.
+> ⚠️ **Sections Stripe obsolètes** — Stripe a été entièrement retiré du MVP (décision client T4-07, 2026-07-02). Les étapes/variables liées à Stripe (webhook, `STRIPE_SECRET_KEY`, cartes de test) mentionnées dans ce document ne s'appliquent plus. Paiement actuel : ESPECES/VIREMENT/CHEQUE, statut positionné manuellement par un admin. Voir `docs/workflow/ETAT_ACTUEL_PROJET.md` pour l'état réel à jour.
 
 Procédure pas-à-pas pour mettre en ligne le backend Node + Postgres + Redis et le
 frontend React/Vite sur [Railway](https://railway.app).
@@ -64,7 +64,7 @@ Railway Project "jana-distribution"
 | `BCRYPT_SALT_ROUNDS` | `12` |
 | `CORS_ORIGIN` | URL publique du frontend Railway (ex `https://jana-frontend.up.railway.app`) |
 | `FRONTEND_URL` | Idem (utilisé pour les liens dans les emails transactionnels) |
-| `GMAIL_SENDER_EMAIL` | Adresse Gmail expéditeur (voir `docs/GUIDE_GMAIL_SMTP.md`) |
+| `GMAIL_SENDER_EMAIL` | Adresse Gmail expéditeur (voir `docs/guides/GUIDE_GMAIL_SMTP.md`) |
 | `GMAIL_APP_PASSWORD` | Mot de passe d'application Gmail (16 caractères) |
 | `GMAIL_SENDER_NAME` | `Jana Distribution` |
 | **`STRIPE_SECRET_KEY`** | `sk_live_…` |

@@ -6,7 +6,7 @@
 ```
 ton-repo/
 ├── CLAUDE.md                          ← copier ce fichier à la racine du projet
-├── docs/PROMPT_MASTER_SESSION.md           ← ton prompt de démarrage de session
+├── docs/sessions/PROMPT_MASTER_SESSION.md           ← ton prompt de démarrage de session
 └── .claude/
     └── agents/
         ├── 00_orchestrateur.md        ← agent orchestrateur
@@ -25,7 +25,7 @@ ton-repo/
 
 ### Option A — Prompt direct (recommandé pour démarrer vite)
 1. Ouvrir Claude Code dans le répertoire racine du projet Jana Distribution
-2. Copier-coller le contenu de `docs/PROMPT_MASTER_SESSION.md` dans le chat
+2. Copier-coller le contenu de `docs/sessions/PROMPT_MASTER_SESSION.md` dans le chat
 3. Claude Code lit `CLAUDE.md` automatiquement au démarrage
 4. L'orchestrateur va dispatcher les sous-agents via l'outil `Task`
 
@@ -34,7 +34,7 @@ ton-repo/
 cd /chemin/vers/jana-distribution
 claude  # lance Claude Code
 # Dans le chat, taper :
-> /task @.claude/agents/00_orchestrateur.md "Exécuter la session Phase 2 selon docs/PROMPT_MASTER_SESSION.md"
+> /task @.claude/agents/00_orchestrateur.md "Exécuter la session Phase 2 selon docs/sessions/PROMPT_MASTER_SESSION.md"
 ```
 
 ## COMMENT FONCTIONNE LE SYSTÈME
@@ -91,7 +91,7 @@ mettre à jour les contraintes après un changement d'architecture.
 
 ## APRÈS LA SESSION
 1. Le Chef de Projet produit le bilan → commit dans git
-2. Mettre à jour docs/ETAT_ACTUEL_PROJET.md avec le nouvel état
+2. Mettre à jour docs/workflow/ETAT_ACTUEL_PROJET.md avec le nouvel état
 3. La prochaine session repart de l'état mis à jour
 
 ## TROUBLESHOOTING

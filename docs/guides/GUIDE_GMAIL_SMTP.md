@@ -4,8 +4,8 @@ Ce guide explique, étape par étape, comment configurer **Gmail SMTP** (via `no
 pour que Jana Distribution puisse envoyer automatiquement ses emails : bienvenue,
 suivi de commande, factures, réinitialisation de mot de passe, etc.
 
-> Ce guide remplace `docs/GUIDE_BREVO_CONFIGURATION.md` — Brevo a été retiré du projet le
-> 2026-07-08 au profit de Gmail SMTP (voir `docs/ETAT_ACTUEL_PROJET.md`).
+> Ce guide remplace `docs/guides/GUIDE_BREVO_CONFIGURATION.md` — Brevo a été retiré du projet le
+> 2026-07-08 au profit de Gmail SMTP (voir `docs/workflow/ETAT_ACTUEL_PROJET.md`).
 
 Aucune compétence technique poussée n'est requise pour suivre ce guide — vous aurez
 seulement besoin d'un compte Gmail (ou Google Workspace) et de votre interface Railway.
@@ -127,7 +127,7 @@ serveurs Google à envoyer en son nom :
 1. **Apps → Google Workspace → Gmail → Authentifier l'email** → activer DKIM, copier
    l'enregistrement TXT fourni.
 2. Ajouter les enregistrements SPF/DKIM/DMARC chez votre registrar (OVH — voir
-   `docs/GUIDE_NOM_DOMAINE.md`).
+   `docs/guides/GUIDE_NOM_DOMAINE.md`).
 3. Vérifier la propagation (quelques minutes à 48h) puis valider dans Google Admin Console.
 
 Commencer le DMARC avec `p=none` (mode observation), durcir vers `p=quarantine` puis

@@ -1,8 +1,8 @@
 # Déploiement Homeserver — Jana Distribution
 
 > Remplace Railway comme chemin critique vers la production (Phase 11,
-> `docs/PLAN_CORRECTION_AUDIT.md`). Railway reste actif en parallèle jusqu'à
-> validation complète du cutover (T11-09) — voir `docs/DEPLOY-RAILWAY.md`
+> `docs/workflow/PLAN_CORRECTION_AUDIT.md`). Railway reste actif en parallèle jusqu'à
+> validation complète du cutover (T11-09) — voir `docs/deploiement/DEPLOY-RAILWAY.md`
 > (historique).
 
 Backend Node + PostgreSQL + Redis + frontend React/Vite, auto-hébergés en
@@ -129,7 +129,7 @@ spécifiques homeserver :
 | `DATABASE_URL` | recalculée par `docker-compose.yml` (`environment:`) à partir de `POSTGRES_*` |
 | `DB_SSL_DISABLE` | `true` |
 | `CORS_ORIGIN` / `FRONTEND_URL` | `https://jana.tfredklab.dev` |
-| `GMAIL_SENDER_EMAIL` / `GMAIL_APP_PASSWORD` | voir `docs/GUIDE_GMAIL_SMTP.md` — **à renseigner, jamais réutiliser un secret Railway** |
+| `GMAIL_SENDER_EMAIL` / `GMAIL_APP_PASSWORD` | voir `docs/guides/GUIDE_GMAIL_SMTP.md` — **à renseigner, jamais réutiliser un secret Railway** |
 | `R2_*` | **Non utilisées (2026-07-26)** — stockage d'images auto-hébergé sur disque local (voir §5bis), toutes les variables R2 retirées du `.env` |
 | `ENTREPRISE_ADRESSE` | à renseigner avant toute vente réelle (obligation légale facture) |
 

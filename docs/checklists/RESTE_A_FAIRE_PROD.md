@@ -1,8 +1,8 @@
 # Reste à faire avant mise en production
 
-> ⚠️ **Document partiellement obsolète (état figé au 2026-07-02)** — antérieur à la migration Railway → homeserver (Phase 11, 2026-07-26) : le point « Réactiver Railway » ci-dessous ne s'applique plus, la cible de production est désormais le homeserver `tfredklab.dev`. `docs/ETAT_ACTUEL_PROJET.md` (§13 « Prochaine action recommandée ») est l'unique source de vérité actuelle de l'état go-live — s'y référer en priorité.
+> ⚠️ **Document partiellement obsolète (état figé au 2026-07-02)** — antérieur à la migration Railway → homeserver (Phase 11, 2026-07-26) : le point « Réactiver Railway » ci-dessous ne s'applique plus, la cible de production est désormais le homeserver `tfredklab.dev`. `docs/workflow/ETAT_ACTUEL_PROJET.md` (§13 « Prochaine action recommandée ») est l'unique source de vérité actuelle de l'état go-live — s'y référer en priorité.
 >
-> Généré par inspection statique du code au 2026-07-02 (`docs/ETAT_ACTUEL_PROJET.md`, `docs/PLAN_CORRECTION_AUDIT.md`, code source).
+> Généré par inspection statique du code au 2026-07-02 (`docs/workflow/ETAT_ACTUEL_PROJET.md`, `docs/workflow/PLAN_CORRECTION_AUDIT.md`, code source).
 > Avancement estimé au moment de l'inspection : ~92-95 %. Verdict actuel : **NON PRÊT PRODUCTION**.
 
 ---
@@ -13,17 +13,17 @@ Ces points ne peuvent pas être résolus par du code ; ils nécessitent une déc
 
 | # | Action requise | Responsable | Détail |
 |---|---|---|---|
-| 1 | Réactiver Railway | Propriétaire | Plan Railway expiré — aucun environnement staging/production actif. Config prête dans `docs/RAILWAY_CONFIG_READY.md`. |
+| 1 | Réactiver Railway | Propriétaire | Plan Railway expiré — aucun environnement staging/production actif. Config prête dans `docs/deploiement/RAILWAY_CONFIG_READY.md`. |
 | 2 | Activer les sauvegardes PostgreSQL Railway | Propriétaire | Railway Dashboard → PostgreSQL → Backups (tâche `T8-04`, non vérifiable en local). |
 | 3 | Custom domain Cloudflare R2 en production | Propriétaire | R2 est configuré et fonctionnel (bucket `jana-products`, endpoint EU) mais un domaine personnalisé pour servir les images en prod reste optionnel/à valider. |
 | 4 | Renseigner SIRET / TVA / adresse entreprise | Propriétaire | Variables `ENTREPRISE_SIRET`, `ENTREPRISE_TVA_NUMERO`, `ENTREPRISE_ADRESSE` à renseigner dans Railway — actuellement absentes, les factures générées afficheraient des champs vides/factices. |
 | 5 | Validation comptable des taux de TVA | Comptable | Taux 5,5 % / 10 % / 20 % (CGI) implémentés par défaut sur chaque produit (`produit.taux_tva`) mais **non validés** — avertissement explicite dans le code (`0008_facturation.sql`). Ne pas vendre réellement avant validation. |
-| 6 | Paiement en ligne (Stripe) | N/A | **Retiré du MVP** (décision client, 2026-07-02). Aucune action requise sauf si le client souhaite le réintroduire plus tard (voir `docs/FEATURES_RECOMMANDEES.md`). |
+| 6 | Paiement en ligne (Stripe) | N/A | **Retiré du MVP** (décision client, 2026-07-02). Aucune action requise sauf si le client souhaite le réintroduire plus tard (voir `docs/produit/FEATURES_RECOMMANDEES.md`). |
 | 7 | Durée légale de conservation des factures | Comptable | 10 ans (droit français) à confirmer formellement — `DM-08` toujours ouvert. |
 
 ---
 
-## 2. Code restant — tâches TODO / BLOCKED réelles (`docs/PLAN_CORRECTION_AUDIT.md`)
+## 2. Code restant — tâches TODO / BLOCKED réelles (`docs/workflow/PLAN_CORRECTION_AUDIT.md`)
 
 ### Facturation (bloque la Phase 5 complète)
 
@@ -36,7 +36,7 @@ Ces points ne peuvent pas être résolus par du code ; ils nécessitent une déc
 | T5-16 | Tests unitaires service facture | BLOCKED | T5-06 |
 | T5-17 | Tests intégration flux facture complet | BLOCKED | T5-07, T7-01 |
 
-Note : T5-08 et T5-13 ont été confirmées `DONE` le 2026-07-04 (voir `docs/PLAN_CORRECTION_AUDIT.md` et `docs/ETAT_ACTUEL_PROJET.md` §12) — le doute exprimé initialement dans cette note est levé pour ces deux tâches.
+Note : T5-08 et T5-13 ont été confirmées `DONE` le 2026-07-04 (voir `docs/workflow/PLAN_CORRECTION_AUDIT.md` et `docs/workflow/ETAT_ACTUEL_PROJET.md` §12) — le doute exprimé initialement dans cette note est levé pour ces deux tâches.
 
 ### Livraison / Produits
 
@@ -72,7 +72,7 @@ Note : T5-08 et T5-13 ont été confirmées `DONE` le 2026-07-04 (voir `docs/PLA
 
 ### Dette technique constatée
 
-- ~~`backend/scripts/init.sql` n'est pas synchronisé avec les migrations récentes...~~ **RÉSOLU (2026-07-04)** : `init.sql` a été régénéré depuis les migrations 0001 à 0010 (colonnes Stripe retirées, tables `refresh_token`/`audit_log`/`facture`/`code_promo`/`commande_statut_historique` incluses). Voir `docs/ETAT_ACTUEL_PROJET.md` §12.
+- ~~`backend/scripts/init.sql` n'est pas synchronisé avec les migrations récentes...~~ **RÉSOLU (2026-07-04)** : `init.sql` a été régénéré depuis les migrations 0001 à 0010 (colonnes Stripe retirées, tables `refresh_token`/`audit_log`/`facture`/`code_promo`/`commande_statut_historique` incluses). Voir `docs/workflow/ETAT_ACTUEL_PROJET.md` §12.
 
 ---
 
@@ -90,8 +90,8 @@ Note : T5-08 et T5-13 ont été confirmées `DONE` le 2026-07-04 (voir `docs/PLA
 
 ## 4. Procédure de déploiement
 
-Voir `docs/RAILWAY_CONFIG_READY.md` (présent dans le dépôt) pour la configuration Railway prête à l'emploi (variables d'environnement, structure des services backend/frontend/PostgreSQL/Redis). Le déploiement est actuellement **en pause** faute de plan Railway actif.
+Voir `docs/deploiement/RAILWAY_CONFIG_READY.md` (présent dans le dépôt) pour la configuration Railway prête à l'emploi (variables d'environnement, structure des services backend/frontend/PostgreSQL/Redis). Le déploiement est actuellement **en pause** faute de plan Railway actif.
 
 ## 5. Checklist go-live
 
-Voir `docs/CHECKLIST_TEST_LOCAL.md` (présent dans le dépôt) pour la checklist de validation locale avant toute mise en ligne. Une checklist Go-Live plus large existe également dans `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md` (référencée dans `docs/PLAN_CORRECTION_AUDIT.md`, Phase 9).
+Voir `docs/checklists/CHECKLIST_TEST_LOCAL.md` (présent dans le dépôt) pour la checklist de validation locale avant toute mise en ligne. Une checklist Go-Live plus large existe également dans `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md` (référencée dans `docs/workflow/PLAN_CORRECTION_AUDIT.md`, Phase 9).

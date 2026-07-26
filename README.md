@@ -101,7 +101,7 @@ Versions recommandees:
 |       `-- utils/
 |-- .github/workflows/
 |-- docker-compose.yml
-|-- docs/README-CI-CD.md
+|-- docs/deploiement/README-CI-CD.md
 `-- README.md
 ```
 
@@ -318,10 +318,10 @@ Le script SQL cree aussi:
 Workflows GitHub Actions:
 - `ci.yml`: lint, tests backend, build frontend, audit securite npm.
 - `docker.yml`: build/push images backend/frontend et test compose.
-- `deploy.yml`: deploiement automatique sur le homeserver auto-gere `tfredklab.dev` (push sur `develop`), via Tailscale + SSH. Voir `docs/DEPLOY-HOMESERVER.md`.
+- `deploy.yml`: deploiement automatique sur le homeserver auto-gere `tfredklab.dev` (push sur `develop`), via Tailscale + SSH. Voir `docs/deploiement/DEPLOY-HOMESERVER.md`.
 
 Documentation detaillee CI/CD:
-- voir `docs/README-CI-CD.md`.
+- voir `docs/deploiement/README-CI-CD.md`.
 
 ## Depannage
 

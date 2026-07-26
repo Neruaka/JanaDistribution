@@ -1,7 +1,7 @@
 # CLAUDE_WORKFLOW — Jana Distribution
 
 > Lire ce fichier EN PREMIER au début de toute session travaillant sur Jana Distribution.
-> Il définit la méthode de travail. Il ne liste pas les tâches (voir `docs/PLAN_CORRECTION_AUDIT.md`).
+> Il définit la méthode de travail. Il ne liste pas les tâches (voir `docs/workflow/PLAN_CORRECTION_AUDIT.md`).
 
 ---
 
@@ -16,14 +16,14 @@
 | Base de données | PostgreSQL | 15 | uuid-ossp requis |
 | Cache | Redis | 7 | via ioredis (doublon avec `redis` à supprimer) |
 | Auth | JWT | jsonwebtoken 9 | access 7j + refresh 30j — révocables (table `refresh_token`, rotation au refresh, révocation au logout) |
-| Email | Gmail SMTP | nodemailer ^9 | Voir `docs/GUIDE_GMAIL_SMTP.md` |
+| Email | Gmail SMTP | nodemailer ^9 | Voir `docs/guides/GUIDE_GMAIL_SMTP.md` |
 | Paiements | Aucun paiement en ligne (MVP) | — | ESPECES/VIREMENT/CHEQUE, statut positionné manuellement par un admin ; Stripe retiré (T4-07, 2026-07-02) |
 | Géocodage | BAN API (adresse.data.gouv.fr) | gratuit | pour mode DISTANCE |
 | Déploiement | Railway | — | NIXPACKS backend, Dockerfile frontend |
 | Tests | Jest (backend) + Vitest (frontend) | — | DB mockée — P1 |
 
-Architecture détaillée : `docs/ETAT_ACTUEL_PROJET.md`
-Tâches et corrections : `docs/PLAN_CORRECTION_AUDIT.md`
+Architecture détaillée : `docs/workflow/ETAT_ACTUEL_PROJET.md`
+Tâches et corrections : `docs/workflow/PLAN_CORRECTION_AUDIT.md`
 Audits détaillés : `docs/audit-finalisation/`
 
 ---
@@ -31,9 +31,9 @@ Audits détaillés : `docs/audit-finalisation/`
 ## 2. Protocole de démarrage de session
 
 ```
-1. Lire docs/CLAUDE_WORKFLOW.md          (ce fichier — méthode)
-2. Lire docs/ETAT_ACTUEL_PROJET.md       (état réel du projet)
-3. Lire tableau de bord + phase active dans docs/PLAN_CORRECTION_AUDIT.md
+1. Lire docs/workflow/CLAUDE_WORKFLOW.md          (ce fichier — méthode)
+2. Lire docs/workflow/ETAT_ACTUEL_PROJET.md       (état réel du projet)
+3. Lire tableau de bord + phase active dans docs/workflow/PLAN_CORRECTION_AUDIT.md
 4. Lire uniquement la fiche de la tâche sélectionnée
 5. Lire les audits spécialisés liés à cette tâche (liens dans la fiche)
 6. Inspecter uniquement les fichiers applicatifs liés à la tâche
@@ -49,16 +49,16 @@ Audits détaillés : `docs/audit-finalisation/`
 
 | Domaine | Documents à lire | Audit détaillé |
 |---|---|---|
-| Frontend | `docs/ETAT_ACTUEL_PROJET.md` → fichiers clés | `docs/audit-finalisation/05_AUDIT_FRONTEND.md` |
-| Backend / API | `docs/ETAT_ACTUEL_PROJET.md` → points d'entrée | `docs/audit-finalisation/06_AUDIT_BACKEND_BDD.md` |
-| Sécurité | `docs/PLAN_CORRECTION_AUDIT.md` phase 0 + 2 | `docs/audit-finalisation/07_AUDIT_SECURITE.md` |
+| Frontend | `docs/workflow/ETAT_ACTUEL_PROJET.md` → fichiers clés | `docs/audit-finalisation/05_AUDIT_FRONTEND.md` |
+| Backend / API | `docs/workflow/ETAT_ACTUEL_PROJET.md` → points d'entrée | `docs/audit-finalisation/06_AUDIT_BACKEND_BDD.md` |
+| Sécurité | `docs/workflow/PLAN_CORRECTION_AUDIT.md` phase 0 + 2 | `docs/audit-finalisation/07_AUDIT_SECURITE.md` |
 | Stripe | Fiche tâche T4-xx | `docs/audit-finalisation/08_STRIPE_PAIEMENTS.md` |
 | Facturation | Fiche tâche T5-xx | `docs/audit-finalisation/09_FACTURATION.md` |
 | Livraison | Fiche tâche T3-xx | `docs/audit-finalisation/10_LIVRAISON.md` |
 | Railway | Fiche tâche T8-xx | `docs/audit-finalisation/11_RAILWAY_PRODUCTION.md` |
 | Tests | Fiche tâche T7-xx | `docs/audit-finalisation/12_STRATEGIE_TESTS.md` |
-| Base de données | `docs/ETAT_ACTUEL_PROJET.md` + `backend/scripts/init.sql` | `docs/audit-finalisation/06_AUDIT_BACKEND_BDD.md` |
-| Roadmap / priorisation | `docs/PLAN_CORRECTION_AUDIT.md` | `docs/audit-finalisation/13_ROADMAP_FINALISATION.md` |
+| Base de données | `docs/workflow/ETAT_ACTUEL_PROJET.md` + `backend/scripts/init.sql` | `docs/audit-finalisation/06_AUDIT_BACKEND_BDD.md` |
+| Roadmap / priorisation | `docs/workflow/PLAN_CORRECTION_AUDIT.md` | `docs/audit-finalisation/13_ROADMAP_FINALISATION.md` |
 
 ---
 
@@ -66,7 +66,7 @@ Audits détaillés : `docs/audit-finalisation/`
 
 ### A — Sélectionner
 
-- Prendre une tâche `READY` dans `docs/PLAN_CORRECTION_AUDIT.md`
+- Prendre une tâche `READY` dans `docs/workflow/PLAN_CORRECTION_AUDIT.md`
 - Vérifier ses dépendances (ne pas commencer si un prérequis est `TODO` ou `BLOCKED`)
 - Ne travailler que sur une tâche principale à la fois
 - Passer la tâche à `IN_PROGRESS` dans le plan
@@ -137,13 +137,13 @@ Comparer le résultat avec les critères d'acceptation de la fiche tâche.
 
 ### G — Synchronisation documentaire (obligatoire après chaque tâche)
 
-1. Passer le statut à `DONE` (ou `BLOCKED`) dans `docs/PLAN_CORRECTION_AUDIT.md`
+1. Passer le statut à `DONE` (ou `BLOCKED`) dans `docs/workflow/PLAN_CORRECTION_AUDIT.md`
 2. Mettre à jour les compteurs du tableau de bord
-3. Mettre à jour le domaine concerné dans `docs/ETAT_ACTUEL_PROJET.md`
+3. Mettre à jour le domaine concerné dans `docs/workflow/ETAT_ACTUEL_PROJET.md`
 4. Ajouter une entrée dans le journal récent
 5. Mettre à jour la prochaine tâche recommandée
 6. Documenter les éventuelles nouvelles dettes ou décisions découvertes
-7. Ne modifier `docs/CLAUDE_WORKFLOW.md` que si le processus de travail change
+7. Ne modifier `docs/workflow/CLAUDE_WORKFLOW.md` que si le processus de travail change
 
 ---
 
@@ -161,7 +161,7 @@ Comparer le résultat avec les critères d'acceptation de la fiche tâche.
 Une tâche ne passe à `DONE` que si :
 - Le code est implémenté et les critères d'acceptation vérifiés
 - Les tests demandés passent (ou sont documentés comme impossibles avec justification)
-- `docs/PLAN_CORRECTION_AUDIT.md` et `docs/ETAT_ACTUEL_PROJET.md` sont mis à jour
+- `docs/workflow/PLAN_CORRECTION_AUDIT.md` et `docs/workflow/ETAT_ACTUEL_PROJET.md` sont mis à jour
 
 ---
 

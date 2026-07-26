@@ -1,7 +1,7 @@
 # Changements MVP — Retrait Stripe & Codes Promo
 
 > Document généré par inspection statique du code au 2026-07-02.
-> Source : `git log`, `docs/ETAT_ACTUEL_PROJET.md`, `docs/PLAN_CORRECTION_AUDIT.md`, lecture directe des fichiers backend/frontend.
+> Source : `git log`, `docs/workflow/ETAT_ACTUEL_PROJET.md`, `docs/workflow/PLAN_CORRECTION_AUDIT.md`, lecture directe des fichiers backend/frontend.
 > ⚠️ Au moment de cette inspection, le retrait de Stripe est **committé et terminé** (commits `9ee63d0`, `7780e64`). Le système de codes promo est **en cours d'implémentation en parallèle** par d'autres agents — les fichiers listés ci-dessous existent au moment de l'inspection mais l'intégration (routes montées, UI admin) peut encore évoluer.
 
 ## Vue d'ensemble
@@ -54,9 +54,9 @@ Le 2026-07-02, une décision client a supprimé tout paiement en ligne du MVP : 
 | `0009_remove_stripe.sql` | Suppression colonnes `stripe_session_id`/`stripe_payment_intent_id`/`stripe_refund_id`, suppression table `stripe_event`, recréation de l'ENUM `mode_paiement` sans `CARTE` |
 | `0010_codes_promo.sql` | Tables `code_promo` et `code_promo_utilisation`, colonnes `code_promo_id`/`montant_rabais`/`total_avant_rabais` sur `commande` |
 
-**Constat d'inspection important :** `backend/scripts/init.sql` (schéma de référence pour un premier démarrage local) n'a **pas** été synchronisé avec la migration `0009` : il contient toujours la table `stripe_event`, les colonnes `stripe_session_id`/`stripe_payment_intent_id` sur `commande`, et le mode paiement par défaut `'CARTE'`. Un commentaire dans le fichier précise que `init.sql` est réservé au tout premier démarrage local et que les bases déjà provisionnées doivent utiliser les migrations — mais un nouvel environnement initialisé uniquement via `init.sql` recréerait un schéma avec Stripe. De même, les tables `refresh_token`, `audit_log`, `facture`, `code_promo`, `commande_statut_historique` n'existent que dans les migrations, pas dans `init.sql`. À corriger avant tout nouvel environnement de référence (voir `docs/RESTE_A_FAIRE_PROD.md`).
+**Constat d'inspection important :** `backend/scripts/init.sql` (schéma de référence pour un premier démarrage local) n'a **pas** été synchronisé avec la migration `0009` : il contient toujours la table `stripe_event`, les colonnes `stripe_session_id`/`stripe_payment_intent_id` sur `commande`, et le mode paiement par défaut `'CARTE'`. Un commentaire dans le fichier précise que `init.sql` est réservé au tout premier démarrage local et que les bases déjà provisionnées doivent utiliser les migrations — mais un nouvel environnement initialisé uniquement via `init.sql` recréerait un schéma avec Stripe. De même, les tables `refresh_token`, `audit_log`, `facture`, `code_promo`, `commande_statut_historique` n'existent que dans les migrations, pas dans `init.sql`. À corriger avant tout nouvel environnement de référence (voir `docs/checklists/RESTE_A_FAIRE_PROD.md`).
 
-> **Mise à jour 2026-07-04 :** `init.sql` a été régénéré et resynchronisé avec les migrations 0001 à 0010 (voir `docs/ETAT_ACTUEL_PROJET.md` §12, entrée du 2026-07-04). Ce constat d'inspection est désormais historique.
+> **Mise à jour 2026-07-04 :** `init.sql` a été régénéré et resynchronisé avec les migrations 0001 à 0010 (voir `docs/workflow/ETAT_ACTUEL_PROJET.md` §12, entrée du 2026-07-04). Ce constat d'inspection est désormais historique.
 
 ## Modifications de sécurité pertinentes
 
@@ -72,4 +72,4 @@ Le 2026-07-02, une décision client a supprimé tout paiement en ligne du MVP : 
 - Table DB : `stripe_event`
 - Dépendances npm : `stripe` (backend), `@stripe/stripe-js` (frontend)
 - Test d'intégration webhook Stripe (`webhook.stripe.test.js`, ajouté le 2026-06-28, supprimé le 2026-07-02)
-- Tâches du backlog `T4-01` à `T4-06`, `T9-01`, `T9-05` passées `CANCELLED` dans `docs/PLAN_CORRECTION_AUDIT.md`
+- Tâches du backlog `T4-01` à `T4-06`, `T9-01`, `T9-05` passées `CANCELLED` dans `docs/workflow/PLAN_CORRECTION_AUDIT.md`

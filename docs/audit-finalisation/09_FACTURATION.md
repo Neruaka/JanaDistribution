@@ -1,6 +1,6 @@
 # 09 — Facturation
 
-> ⚠️ **Document historique (état figé au 2026-06-14)** — Rédigé lors de l'audit initial, avant l'implémentation réelle de la facturation (Phase 5, DONE) et le retrait de Stripe (T4-07, 2026-07-02). Voir `docs/ETAT_ACTUEL_PROJET.md` et `docs/PLAN_CORRECTION_AUDIT.md` pour l'état réel à jour.
+> ⚠️ **Document historique (état figé au 2026-06-14)** — Rédigé lors de l'audit initial, avant l'implémentation réelle de la facturation (Phase 5, DONE) et le retrait de Stripe (T4-07, 2026-07-02). Voir `docs/workflow/ETAT_ACTUEL_PROJET.md` et `docs/workflow/PLAN_CORRECTION_AUDIT.md` pour l'état réel à jour.
 
 > ⚠️ Ce document contient des recommandations techniques. Les obligations légales et comptables
 > doivent être validées par un professionnel du droit et/ou un expert-comptable.

@@ -9,9 +9,9 @@ détecter les conflits, fusionner les résultats, maintenir la cohérence global
 ## LECTURE OBLIGATOIRE AU DÉMARRAGE
 ```bash
 # Exécuter dans cet ordre exact
-cat docs/CLAUDE_WORKFLOW.md
-cat docs/ETAT_ACTUEL_PROJET.md
-cat docs/PLAN_CORRECTION_AUDIT.md | head -100  # dashboard + chemin critique
+cat docs/workflow/CLAUDE_WORKFLOW.md
+cat docs/workflow/ETAT_ACTUEL_PROJET.md
+cat docs/workflow/PLAN_CORRECTION_AUDIT.md | head -100  # dashboard + chemin critique
 git status
 git log --oneline -5
 ```
@@ -52,8 +52,8 @@ Après chaque rapport d'agent :
 
 ### 5. SYNCHRONISATION DOCUMENTAIRE
 Après chaque lot de tâches DONE :
-- Mettre à jour les compteurs dans docs/PLAN_CORRECTION_AUDIT.md
-- Mettre à jour docs/ETAT_ACTUEL_PROJET.md (journal des changements)
+- Mettre à jour les compteurs dans docs/workflow/PLAN_CORRECTION_AUDIT.md
+- Mettre à jour docs/workflow/ETAT_ACTUEL_PROJET.md (journal des changements)
 - Commit atomique avec message conventionnel : `feat(scope): description`
 
 ## RÈGLES DE DISPATCH — état au 2026-07-08
@@ -61,7 +61,7 @@ Après chaque lot de tâches DONE :
 > La session du 2026-06-14/28 (T2-xx, T4-xx, T6-xx, T7-xx ci-dessous) est **historique** :
 > toutes ces tâches sont DONE ou CANCELLED (Stripe retiré, T4-07, 2026-07-02). Les patterns
 > de séquencement/parallélisation restent valables comme référence méthodologique pour de
-> futures tâches similaires. Toujours repartir de `docs/PLAN_CORRECTION_AUDIT.md §1` (tableau de
+> futures tâches similaires. Toujours repartir de `docs/workflow/PLAN_CORRECTION_AUDIT.md §1` (tableau de
 > bord) pour identifier les tâches réellement `READY` aujourd'hui.
 
 ### Parallélisable (pas de conflit de fichiers) — exemple historique
@@ -76,9 +76,9 @@ Après chaque lot de tâches DONE :
 ### Décisions bloquantes — état réel au 2026-07-08
 - T0-02 : RÉSOLU (Cloudflare R2 décidé et configuré)
 - T3-01 : RÉSOLU (mode DISTANCE décidé)
-- T5-01..T5-13 : DONE (taux TVA implémentés, ⚠️ validation comptable formelle toujours requise avant vente réelle) ; T5-14..T5-17 restent BLOCKED (dépendances techniques, voir `docs/PLAN_CORRECTION_AUDIT.md`)
+- T5-01..T5-13 : DONE (taux TVA implémentés, ⚠️ validation comptable formelle toujours requise avant vente réelle) ; T5-14..T5-17 restent BLOCKED (dépendances techniques, voir `docs/workflow/PLAN_CORRECTION_AUDIT.md`)
 - T9-03 : toujours BLOCKED (validation juridique CGV/mentions légales requise — la bannière cookies ajoutée le 2026-07-04 ne lève pas ce blocage)
-- Email : migration Brevo → Gmail SMTP DONE (2026-07-08, voir `docs/GUIDE_GMAIL_SMTP.md`) ; bascule Railway réelle non appliquée (action manuelle)
+- Email : migration Brevo → Gmail SMTP DONE (2026-07-08, voir `docs/guides/GUIDE_GMAIL_SMTP.md`) ; bascule Railway réelle non appliquée (action manuelle)
 
 ## VÉRIFICATION FINALE (avant de rendre la main)
 ```bash

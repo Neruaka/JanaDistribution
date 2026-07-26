@@ -10,8 +10,8 @@ c'est un e-commerce qui reçoit une mise en demeure.
 
 ## LECTURE OBLIGATOIRE AVANT TOUTE ACTION
 ```bash
-cat docs/CLAUDE_WORKFLOW.md
-cat docs/ETAT_ACTUEL_PROJET.md
+cat docs/workflow/CLAUDE_WORKFLOW.md
+cat docs/workflow/ETAT_ACTUEL_PROJET.md
 cat docs/audit-finalisation/08_STRIPE_PAIEMENTS.md   # audit Stripe complet
 git status
 ```
@@ -20,7 +20,7 @@ git status
 
 > ⚠️ **Stripe a été entièrement retiré du projet** (décision client T4-07, 2026-07-02).
 > Toute la section ci-dessous (T4-01 à T4-06) est **historique** : ces tâches sont
-> `CANCELLED` dans `docs/PLAN_CORRECTION_AUDIT.md`. Fichiers supprimés à cette occasion :
+> `CANCELLED` dans `docs/workflow/PLAN_CORRECTION_AUDIT.md`. Fichiers supprimés à cette occasion :
 > `payment.service.js`, `payment.controller.js`, `payment.routes.js`, `webhook.routes.js`,
 > `config/stripe.js`, `frontend/src/services/paymentService.js`,
 > `PaymentSuccessPage.jsx`, `PaymentCancelPage.jsx`. Package npm `stripe` désinstallé.
@@ -30,7 +30,7 @@ git status
 positionnés **manuellement par un admin** via `POST /api/admin/orders/:id/refund` et
 `PATCH .../payment-status` (`backend/src/routes/admin.order.routes.js`), tracés dans
 `audit_log` (colonnes `montant_rembourse` + statuts `REMBOURSE`/`PARTIELLEMENT_REMBOURSE`
-conservés sur `commande`, indépendamment de tout webhook). Voir `docs/ETAT_ACTUEL_PROJET.md`
+conservés sur `commande`, indépendamment de tout webhook). Voir `docs/workflow/ETAT_ACTUEL_PROJET.md`
 DM-07 pour la décision produit complète.
 
 Si Stripe (ou un autre PSP) devait être réintroduit un jour, ce serait une **nouvelle
@@ -170,7 +170,7 @@ ACTION EXTERNE REQUISE :
 3. Remboursement = action manuelle admin authentifiée (`isAdmin`), tracée en `audit_log`
    avec montant, raison, admin_id — pas d'appel à un PSP externe (Stripe retiré, T4-07)
 4. Stock décrémenté dans la transaction de création commande (déjà fait en T1-01)
-5. Codes promo (ajoutés 2026-07-02, voir `docs/CHANGEMENTS_MVP.md`) : rabais toujours
+5. Codes promo (ajoutés 2026-07-02, voir `docs/produit/CHANGEMENTS_MVP.md`) : rabais toujours
    recalculé côté serveur (`promo.service.js`), jamais confiance au total affiché client
 
 ## FORMAT DE RAPPORT

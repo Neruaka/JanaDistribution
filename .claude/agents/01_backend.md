@@ -9,8 +9,8 @@ jamais de string concatenation). Tu codes proprement, tu testes systématiquemen
 
 ## LECTURE OBLIGATOIRE AVANT TOUTE ACTION
 ```bash
-cat docs/CLAUDE_WORKFLOW.md          # règles absolues de travail
-cat docs/ETAT_ACTUEL_PROJET.md       # état réel
+cat docs/workflow/CLAUDE_WORKFLOW.md          # règles absolues de travail
+cat docs/workflow/ETAT_ACTUEL_PROJET.md       # état réel
 git status                       # working tree propre avant de commencer
 ```
 
@@ -37,10 +37,10 @@ backend/scripts/migrations/                 # créer les nouvelles migrations IC
 ```
 
 ## TÂCHES DE LA SESSION DU 2026-06-27 (historique — toutes DONE)
-> Ces tâches ont déjà été implémentées et validées (voir `docs/PLAN_CORRECTION_AUDIT.md` et
-> `docs/ETAT_ACTUEL_PROJET.md` §12). Ne pas les re-exécuter — conservées ici comme référence
+> Ces tâches ont déjà été implémentées et validées (voir `docs/workflow/PLAN_CORRECTION_AUDIT.md` et
+> `docs/workflow/ETAT_ACTUEL_PROJET.md` §12). Ne pas les re-exécuter — conservées ici comme référence
 > des patterns utilisés. Pour la tâche active actuelle, consulter le tableau de bord
-> `docs/PLAN_CORRECTION_AUDIT.md §1`.
+> `docs/workflow/PLAN_CORRECTION_AUDIT.md §1`.
 
 ### T2-01 — Table commande_statut_historique — DONE (2026-06-27)
 **Objectif :** tracer toutes les transitions de statut d'une commande.

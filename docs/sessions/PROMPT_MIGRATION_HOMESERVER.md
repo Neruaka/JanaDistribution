@@ -10,9 +10,9 @@ critique vers la mise en production, à la place de la Phase 8 (`T8-01..T8-06`).
 ## ÉTAPE 0 — LECTURE OBLIGATOIRE (avant tout)
 
 ```bash
-cat docs/CLAUDE_WORKFLOW.md
-cat docs/ETAT_ACTUEL_PROJET.md
-cat docs/PLAN_CORRECTION_AUDIT.md
+cat docs/workflow/CLAUDE_WORKFLOW.md
+cat docs/workflow/ETAT_ACTUEL_PROJET.md
+cat docs/workflow/PLAN_CORRECTION_AUDIT.md
 git status
 git log --oneline -5
 cat docker-compose.yml
@@ -69,9 +69,9 @@ c'est déjà tranché.
 - Ne pas décommissionner Railway avant d'avoir validé un cutover complet (voir T11-09) —
   garder les deux en parallèle le temps de la validation.
 
-## PLAN DE TÂCHES (nouvelle Phase 11 — remplace Phase 8 dans docs/PLAN_CORRECTION_AUDIT.md)
+## PLAN DE TÂCHES (nouvelle Phase 11 — remplace Phase 8 dans docs/workflow/PLAN_CORRECTION_AUDIT.md)
 
-Respecter le cycle de tâche de `docs/CLAUDE_WORKFLOW.md §4` (préanalyse → plan → implémentation →
+Respecter le cycle de tâche de `docs/workflow/CLAUDE_WORKFLOW.md §4` (préanalyse → plan → implémentation →
 validation → synchronisation doc) pour chacune. Séquence recommandée :
 
 ### BLOC 1 — Infrastructure Docker (agent Full Stack)
@@ -124,26 +124,26 @@ validation → synchronisation doc) pour chacune. Séquence recommandée :
 ### BLOC 4 — Cutover et documentation (agent Chef de Projet)
 
 9. **T11-09** — Cutover : Railway reste actif jusqu'à validation complète du flux commande
-   sur `jana.tfredklab.dev` (voir `docs/CHECKLIST_TEST_LOCAL.md` comme base, adapter les URLs).
+   sur `jana.tfredklab.dev` (voir `docs/checklists/CHECKLIST_TEST_LOCAL.md` comme base, adapter les URLs).
    Une fois validé, bascule DNS finale et décommission Railway (arrêt des services, pas
    suppression immédiate du projet Railway — garder un filet de sécurité quelques jours).
 10. **T11-10** — Synchronisation documentaire complète :
     - Supprimer `backend/railway.json`, `frontend/railway.json`
-    - Remplacer `docs/DEPLOY-RAILWAY.md` par `docs/DEPLOY-HOMESERVER.md` (procédure homeserver)
-    - Archiver ou réécrire `docs/RAILWAY_CONFIG_READY.md` (⚠️ il mentionne encore Stripe,
+    - Remplacer `docs/deploiement/DEPLOY-RAILWAY.md` par `docs/deploiement/DEPLOY-HOMESERVER.md` (procédure homeserver)
+    - Archiver ou réécrire `docs/deploiement/RAILWAY_CONFIG_READY.md` (⚠️ il mentionne encore Stripe,
       déjà retiré du projet — corriger au passage)
     - Mettre à jour `CLAUDE.md` (ligne Déploiement : Railway → Homeserver `tfredklab.dev`
       / Docker Compose / Caddy / Cloudflare Tunnel ; corriger aussi le `~68%` et la mention
       Stripe déjà obsolètes constatés lors de la session précédente)
-    - Mettre à jour `docs/ETAT_ACTUEL_PROJET.md` (§3 stack, §4 architecture, §10 environnements,
-      §13 prochaine action) et `docs/PLAN_CORRECTION_AUDIT.md` (Phase 8 → statut CANCELLED avec
+    - Mettre à jour `docs/workflow/ETAT_ACTUEL_PROJET.md` (§3 stack, §4 architecture, §10 environnements,
+      §13 prochaine action) et `docs/workflow/PLAN_CORRECTION_AUDIT.md` (Phase 8 → statut CANCELLED avec
       renvoi vers la nouvelle Phase 11 ; ajouter la Phase 11 avec T11-01..T11-10)
-    - Mettre à jour `README.md` (section déploiement) et `docs/README-CI-CD.md` si le workflow
+    - Mettre à jour `README.md` (section déploiement) et `docs/deploiement/README-CI-CD.md` si le workflow
       `deploy.yml` change de forme
 
 ## RÈGLES D'ORCHESTRATION
 
-- Respecter `docs/CLAUDE_WORKFLOW.md §7` (règles de sécurité absolues) : ne jamais afficher un
+- Respecter `docs/workflow/CLAUDE_WORKFLOW.md §7` (règles de sécurité absolues) : ne jamais afficher un
   secret, ne jamais committer `.env`, toujours vérifier `git diff | grep -iE
   "sk_live|jwt_secret|whsec_|BEGIN.*PRIVATE KEY"` avant tout commit.
 - Les actions qui modifient le homeserver lui-même (Caddyfile, docker-compose, Cloudflare
@@ -156,8 +156,8 @@ validation → synchronisation doc) pour chacune. Séquence recommandée :
 
 ## BILAN FINAL OBLIGATOIRE
 
-Format `docs/CLAUDE_WORKFLOW.md §9`, puis mise à jour de `docs/PLAN_CORRECTION_AUDIT.md` et
-`docs/ETAT_ACTUEL_PROJET.md`, commit final : `chore(infra): migration Railway vers homeserver [DATE]`.
+Format `docs/workflow/CLAUDE_WORKFLOW.md §9`, puis mise à jour de `docs/workflow/PLAN_CORRECTION_AUDIT.md` et
+`docs/workflow/ETAT_ACTUEL_PROJET.md`, commit final : `chore(infra): migration Railway vers homeserver [DATE]`.
 
 ---
 

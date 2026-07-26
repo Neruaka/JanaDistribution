@@ -2,7 +2,7 @@
 
 > Mise à jour 2026-07-26 (T12-11, Phase 12) — Stripe entièrement retiré de ce document
 > (décision client T4-07, 2026-07-02). Paiement actuel : ESPECES/VIREMENT/CHEQUE,
-> statut positionné manuellement par un admin. Voir `docs/ETAT_ACTUEL_PROJET.md` pour
+> statut positionné manuellement par un admin. Voir `docs/workflow/ETAT_ACTUEL_PROJET.md` pour
 > l'état réel à jour du projet.
 
 # À valider avant toute mise en production
@@ -23,7 +23,7 @@
 ```bash
 cd backend && npm test
 ```
-- [ ] 112/112 tests passés (référence de base — peut être plus élevé si des tests ont été ajoutés depuis, voir `docs/PLAN_CORRECTION_AUDIT.md` pour le dernier total connu)
+- [ ] 112/112 tests passés (référence de base — peut être plus élevé si des tests ont été ajoutés depuis, voir `docs/workflow/PLAN_CORRECTION_AUDIT.md` pour le dernier total connu)
 
 ### Suite d'intégration réelle (vraie PostgreSQL via testcontainers, Docker Desktop requis)
 ```bash
@@ -122,6 +122,6 @@ cd ../frontend && npm audit --production --audit-level=high
 | Temps démarrage backend | ___ ms |
 | Temps build frontend | ___ s |
 | Taille bundle JS | ~1.2 MB (warning non bloquant) |
-| Tests backend (mockés) | voir `docs/PLAN_CORRECTION_AUDIT.md` pour le dernier total connu |
+| Tests backend (mockés) | voir `docs/workflow/PLAN_CORRECTION_AUDIT.md` pour le dernier total connu |
 | Tests backend (intégration réelle) | voir `docs/audit-finalisation/12_STRATEGIE_TESTS.md` |
 | Tests frontend | ___ |

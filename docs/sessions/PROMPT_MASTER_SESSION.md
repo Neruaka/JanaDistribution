@@ -2,9 +2,9 @@ Tu es l'orchestrateur principal de Jana Distribution.
 
 ## ÉTAPE 0 — LECTURE OBLIGATOIRE (avant tout)
 ```bash
-cat docs/CLAUDE_WORKFLOW.md
-cat docs/ETAT_ACTUEL_PROJET.md
-cat docs/PLAN_CORRECTION_AUDIT.md
+cat docs/workflow/CLAUDE_WORKFLOW.md
+cat docs/workflow/ETAT_ACTUEL_PROJET.md
+cat docs/workflow/PLAN_CORRECTION_AUDIT.md
 git status
 git log --oneline -5
 ```
@@ -15,7 +15,7 @@ git log --oneline -5
 - Tests backend : 5/5 suites, 97/97 tests
 - Build frontend : PASS
 - Phase active : Phase 2 — Authentification, commandes et traçabilité
-- Tâche suivante recommandée dans docs/ETAT_ACTUEL_PROJET.md : T2-01
+- Tâche suivante recommandée dans docs/workflow/ETAT_ACTUEL_PROJET.md : T2-01
 
 ## MISSION DE CE SOIR
 Exécuter un maximum de tâches des Phases 2, 4, 6, et SEO/UX.
@@ -86,9 +86,9 @@ Invoquer chaque agent via l'outil `Task` avec :
 
 ## BILAN FINAL OBLIGATOIRE
 En fin de session, l'agent Chef de Projet produit un bilan complet
-au format docs/CLAUDE_WORKFLOW.md §9 et met à jour :
-1. docs/PLAN_CORRECTION_AUDIT.md (compteurs + statuts)
-2. docs/ETAT_ACTUEL_PROJET.md (journal + prochaine action)
+au format docs/workflow/CLAUDE_WORKFLOW.md §9 et met à jour :
+1. docs/workflow/PLAN_CORRECTION_AUDIT.md (compteurs + statuts)
+2. docs/workflow/ETAT_ACTUEL_PROJET.md (journal + prochaine action)
 3. Commit final : `chore(docs): session bilan [DATE]`
 
 ---

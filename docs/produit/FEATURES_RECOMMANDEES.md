@@ -9,7 +9,7 @@
 ### Notifications SMS livraison
 
 - **Pourquoi :** Le suivi de commande existe déjà (`numero_colis`, `date_expedition` sur `commande`, historique de statuts via `commande_statut_historique`) mais la notification au client se limite aux emails (Gmail SMTP). Un SMS au moment de l'expédition/livraison réduit fortement les appels au support et améliore la perception du service, particulièrement en B2B où la fenêtre de livraison compte.
-- **Stack suggérée :** L'email étant désormais Gmail SMTP (migré depuis Brevo le 2026-07-08, voir `docs/GUIDE_GMAIL_SMTP.md`), l'argument « même compte, même clé » ne tient plus — un SMS transactionnel nécessiterait un nouveau fournisseur dédié (ex. OVH SMS, Twilio, Brevo SMS en tant que nouveau compte) à évaluer indépendamment de l'email.
+- **Stack suggérée :** L'email étant désormais Gmail SMTP (migré depuis Brevo le 2026-07-08, voir `docs/guides/GUIDE_GMAIL_SMTP.md`), l'argument « même compte, même clé » ne tient plus — un SMS transactionnel nécessiterait un nouveau fournisseur dédié (ex. OVH SMS, Twilio, Brevo SMS en tant que nouveau compte) à évaluer indépendamment de l'email.
 - **Effort estimé :** Faible à moyen (2-4 jours) — ajouter `sms.service.js` sur le modèle de `email.service.js`, déclencher sur les mêmes transitions de statut déjà loguées.
 
 ### Avis clients (reviews produits)
@@ -42,7 +42,7 @@
 
 ### Ré-intégration d'un paiement en ligne
 
-- **Pourquoi :** Stripe a été retiré du MVP par décision client (2026-07-02, voir `docs/CHANGEMENTS_MVP.md`) au profit de paiements manuels. Si le client change d'avis (volume de commandes en ligne insuffisant sans carte, ou demande client final), la réintroduction reste possible : les statuts `paiement_statut`, `montant_rembourse`, et la structure de commande n'ont pas été fondamentalement changés, seule la couche d'intégration Stripe a été retirée.
+- **Pourquoi :** Stripe a été retiré du MVP par décision client (2026-07-02, voir `docs/produit/CHANGEMENTS_MVP.md`) au profit de paiements manuels. Si le client change d'avis (volume de commandes en ligne insuffisant sans carte, ou demande client final), la réintroduction reste possible : les statuts `paiement_statut`, `montant_rembourse`, et la structure de commande n'ont pas été fondamentalement changés, seule la couche d'intégration Stripe a été retirée.
 - **Stack suggérée :** Stripe Checkout Sessions (déjà éprouvé dans l'historique git du projet — cf. commits antérieurs à `9ee63d0`), à réimplémenter en s'inspirant de l'ancienne architecture (`payment.service.js`, webhooks signés) plutôt que la reconstruire from scratch.
 - **Effort estimé :** Moyen (1-2 semaines) si réintroduit rapidement après retrait (logique connue), plus élevé si le schéma DB a divergé entre-temps.
 
