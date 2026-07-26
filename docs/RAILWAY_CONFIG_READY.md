@@ -1,5 +1,7 @@
 # Configuration Railway — Prête à appliquer
 
+> ⚠️ **OBSOLÈTE (2026-07-26)** — Railway n'est plus le chemin critique vers la production ; migration en cours vers un homeserver auto-géré, voir `DEPLOY-HOMESERVER.md` et Phase 11 de `PLAN_CORRECTION_AUDIT.md`. Conservé comme référence tant que Railway reste actif en parallèle (T11-09).
+>
 > ⚠️ **Sections Stripe obsolètes** — Stripe a été entièrement retiré du MVP (décision client T4-07, 2026-07-02). Les variables liées à Stripe (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, etc.) mentionnées dans ce document ne s'appliquent plus. Paiement actuel : ESPECES/VIREMENT/CHEQUE, statut positionné manuellement par un admin. Voir `ETAT_ACTUEL_PROJET.md` pour l'état réel à jour.
 # À exécuter quand le plan Railway sera réactivé
 

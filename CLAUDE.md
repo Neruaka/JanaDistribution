@@ -6,9 +6,9 @@ Jana Distribution est une plateforme e-commerce alimentaire B2C/B2B.
 Stack : React 18 / Vite / TailwindCSS 3.4 / Node.js + Express / PostgreSQL 15 / Redis 7 / Gmail SMTP (nodemailer).
 Paiement en ligne (Stripe) retiré du MVP (T4-07, 2026-07-02) — ESPECES/VIREMENT/CHEQUE manuel uniquement.
 Email transactionnel migré de Brevo REST API vers Gmail SMTP (2026-07-08) — voir `docs/GUIDE_GMAIL_SMTP.md`.
-Déploiement : Railway (NIXPACKS backend, Dockerfile frontend).
+Déploiement : Homeserver auto-géré `tfredklab.dev` (Docker Compose + Caddy + Cloudflare Tunnel) — Railway abandonné (plan expiré), migration Phase 11.
 Avancement : ~98% (52/80 tâches DONE) — NON PRÊT PRODUCTION.
-Phase active : Phase 8 — Staging Railway (en pause, plan Railway expiré).
+Phase active : Phase 11 — Migration Railway → Homeserver (remplace Phase 8, voir PLAN_CORRECTION_AUDIT.md).
 
 ## FICHIERS OPÉRATIONNELS (à lire avant toute action)
 1. `CLAUDE_WORKFLOW.md` — méthode de travail absolue

@@ -318,7 +318,7 @@ Le script SQL cree aussi:
 Workflows GitHub Actions:
 - `ci.yml`: lint, tests backend, build frontend, audit securite npm.
 - `docker.yml`: build/push images backend/frontend et test compose.
-- `deploy.yml`: pipeline de deploiement (staging/production) a completer selon votre infra.
+- `deploy.yml`: deploiement automatique sur le homeserver auto-gere `tfredklab.dev` (push sur `develop`), via Tailscale + SSH. Voir `DEPLOY-HOMESERVER.md`.
 
 Documentation detaillee CI/CD:
 - voir `README-CI-CD.md`.

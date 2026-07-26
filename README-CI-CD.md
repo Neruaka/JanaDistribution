@@ -78,22 +78,31 @@ ghcr.io/<username>/jana-distribution/frontend:latest
 
 ## 🚀 Deploy Pipeline (`deploy.yml`)
 
-### Déclencheurs
-- **Push** sur `main`
-- **Manuel** avec choix de l'environnement
+> Mis à jour 2026-07-26 (Phase 11, migration Railway → homeserver auto-géré `tfredklab.dev`). Voir `DEPLOY-HOMESERVER.md` pour l'infrastructure cible.
 
-### Environnements
+### Déclencheurs
+- **Push** sur `develop` (branche réellement déployée — pas de staging Railway distinct)
+- **Manuel** (`workflow_dispatch`)
+
+### Environnement unique
 
 | Environnement | URL | Déploiement |
 |---------------|-----|-------------|
-| Staging | https://staging.jana-distribution.fr | Automatique |
-| Production | https://jana-distribution.fr | Manuel (approbation requise) |
+| Production (homeserver) | https://jana.tfredklab.dev | Automatique sur push `develop` |
 
 ### Workflow de déploiement
 
 ```
-Push main → CI ✓ → Docker Build ✓ → Deploy Staging → [Approbation] → Deploy Production
+Push develop → Checkout → Connexion Tailscale (tailscale/github-action) → SSH vers le homeserver
+             → (forced command côté serveur) git pull && docker compose build && docker compose up -d
+             → Smoke test (/api/health + /)
 ```
+
+Le homeserver n'a pas de port SSH ouvert publiquement (accès Tailscale
+uniquement) : le runner GitHub rejoint le tailnet avant de se connecter. La
+clé SSH utilisée est restreinte côté serveur à une seule commande forcée
+(`authorized_keys` : `command="..."`) — même en cas de fuite du secret, elle
+ne peut exécuter que ce pipeline précis.
 
 ---
 
@@ -106,6 +115,10 @@ Aller dans **Settings > Secrets and variables > Actions** :
 | Secret | Description | Requis |
 |--------|-------------|--------|
 | `GITHUB_TOKEN` | Fourni automatiquement | ✅ Auto |
+| `TS_AUTHKEY` | Clé Tailscale éphémère (générée sur [login.tailscale.com/admin/settings/keys](https://login.tailscale.com/admin/settings/keys)) pour que le runner rejoigne le tailnet | ✅ |
+| `HOMESERVER_TAILSCALE_IP` | IP Tailscale du homeserver (`100.100.203.0`) | ✅ |
+| `HOMESERVER_SSH_USER` | Utilisateur SSH du homeserver | ✅ |
+| `HOMESERVER_SSH_KEY` | Clé privée SSH dédiée CI (restreinte côté serveur à une forced command) | ✅ |
 | `DOCKERHUB_USERNAME` | (optionnel) Username Docker Hub | ❌ |
 | `DOCKERHUB_TOKEN` | (optionnel) Token Docker Hub | ❌ |
 
@@ -113,10 +126,8 @@ Aller dans **Settings > Secrets and variables > Actions** :
 
 Aller dans **Settings > Environments** :
 
-1. Créer l'environnement `staging`
-2. Créer l'environnement `production`
-   - Ajouter **Required reviewers** (approbateurs)
-   - Ajouter **Wait timer** (optionnel, ex: 5 min)
+1. Créer l'environnement `production` (pointant vers le homeserver — un seul environnement, pas de staging Railway distinct)
+   - Ajouter **Required reviewers** (approbateurs), optionnel
 
 ### 3. Structure du projet requise
 
@@ -169,11 +180,11 @@ gh workflow run ci.yml --ref main
 ### Déclencher un déploiement
 
 ```bash
-# Déploiement staging (automatique sur push main)
-git push origin main
+# Déploiement homeserver (automatique sur push develop)
+git push origin develop
 
-# Déploiement production (manuel)
-gh workflow run deploy.yml -f environment=production
+# Déploiement manuel
+gh workflow run deploy.yml
 ```
 
 ---

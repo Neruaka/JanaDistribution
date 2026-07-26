@@ -1,170 +1,64 @@
 # ============================================================================
 # Deployment Pipeline - Jana Distribution
 # ============================================================================
-# Ce workflow déploie l'application après validation CI
-# S'exécute uniquement sur push vers main
+# Déploie sur le homeserver (tfredklab.dev) après un push sur develop.
+# Un seul environnement (pas de staging Railway distinct — voir Phase 11,
+# PLAN_CORRECTION_AUDIT.md). Le homeserver n'est joignable que via Tailscale
+# (pas de port SSH ouvert publiquement), donc le runner GitHub rejoint le
+# tailnet avant de se connecter.
 # ============================================================================
 
 name: 🚀 Deploy
 
 on:
   push:
-    branches: [main]
+    branches: [develop]
   workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Environment to deploy to'
-        required: true
-        default: 'staging'
-        type: choice
-        options:
-          - staging
-          - production
-
-env:
-  NODE_VERSION: '20'
 
 jobs:
-  # ============================================================================
-  # JOB 1: Vérification pré-déploiement
-  # ============================================================================
-  pre-deploy-check:
-    name: ✅ Pre-Deploy Checks
+  deploy:
+    name: 🚀 Deploy to homeserver
     runs-on: ubuntu-latest
-    outputs:
-      should_deploy: ${{ steps.check.outputs.should_deploy }}
-
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-
-      - name: 🔍 Check for deployable changes
-        id: check
-        run: |
-          # Vérifier si des fichiers importants ont changé
-          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
-          
-          if echo "$CHANGED_FILES" | grep -qE '^(backend|frontend)/'; then
-            echo "should_deploy=true" >> $GITHUB_OUTPUT
-            echo "✅ Deployable changes detected"
-          else
-            echo "should_deploy=false" >> $GITHUB_OUTPUT
-            echo "⏭️ No deployable changes"
-          fi
-
-  # ============================================================================
-  # JOB 2: Déploiement Staging
-  # ============================================================================
-  deploy-staging:
-    name: 🎭 Deploy to Staging
-    runs-on: ubuntu-latest
-    needs: pre-deploy-check
-    if: needs.pre-deploy-check.outputs.should_deploy == 'true' || github.event_name == 'workflow_dispatch'
-    environment:
-      name: staging
-      url: https://staging.jana-distribution.fr
-
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-
-      - name: 📦 Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-build
-          path: ./frontend/dist
-        continue-on-error: true
-
-      - name: 🚀 Deploy to Staging
-        run: |
-          echo "## 🎭 Staging Deployment" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Deploying to staging environment..." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # ============================================
-          # INSTRUCTIONS DE DÉPLOIEMENT
-          # ============================================
-          # Remplacez cette section par vos commandes de déploiement
-          # Exemples :
-          #
-          # Option 1: SSH vers le serveur
-          # ssh user@staging.server 'cd /app && docker compose pull && docker compose up -d'
-          #
-          # Option 2: Kubernetes
-          # kubectl apply -f k8s/staging/
-          #
-          # Option 3: Cloud Provider (AWS ECS, Google Cloud Run, etc.)
-          # aws ecs update-service --cluster staging --service jana --force-new-deployment
-          # ============================================
-          
-          echo "✅ Staging deployment completed!" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**URL:** https://staging.jana-distribution.fr" >> $GITHUB_STEP_SUMMARY
-
-      - name: 🧪 Run smoke tests
-        run: |
-          echo "Running smoke tests on staging..."
-          # Ajouter vos tests de smoke ici
-          # curl -f https://staging.jana-distribution.fr/api/health || exit 1
-          echo "✅ Smoke tests passed!"
-
-  # ============================================================================
-  # JOB 3: Déploiement Production (manuel)
-  # ============================================================================
-  deploy-production:
-    name: 🌐 Deploy to Production
-    runs-on: ubuntu-latest
-    needs: deploy-staging
-    if: github.event.inputs.environment == 'production'
     environment:
       name: production
-      url: https://jana-distribution.fr
+      url: https://jana.tfredklab.dev
 
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: 🚀 Deploy to Production
+      - name: 🔒 Connect to Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          authkey: ${{ secrets.TS_AUTHKEY }}
+          tags: tag:ci
+
+      - name: 🚀 Deploy via SSH
+        # La clé SSH utilisée ici est restreinte côté serveur à une seule
+        # commande forcée (authorized_keys: command="...") — le pipeline
+        # exécuté est fixe (git pull && docker compose build && up -d),
+        # quel que soit le contenu de `script:` ci-dessous.
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.HOMESERVER_TAILSCALE_IP }}
+          username: ${{ secrets.HOMESERVER_SSH_USER }}
+          key: ${{ secrets.HOMESERVER_SSH_KEY }}
+          script: echo "déploiement déclenché — la commande réelle est forcée côté serveur"
+
+      - name: 🧪 Smoke test
         run: |
-          echo "## 🌐 Production Deployment" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Deploying to production environment..." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Mêmes instructions que staging, adaptées pour la production
-          
-          echo "✅ Production deployment completed!" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**URL:** https://jana-distribution.fr" >> $GITHUB_STEP_SUMMARY
+          sleep 10
+          curl -f https://jana-api.tfredklab.dev/api/health || exit 1
+          curl -f https://jana.tfredklab.dev/ || exit 1
+          echo "✅ Smoke tests passed!"
 
-      - name: 📢 Notify deployment
-        run: |
-          echo "Sending deployment notification..."
-          # Ajouter notifications (Slack, Discord, email, etc.)
-
-  # ============================================================================
-  # JOB 4: Résumé du déploiement
-  # ============================================================================
-  deployment-summary:
-    name: 📊 Deployment Summary
-    runs-on: ubuntu-latest
-    needs: [deploy-staging, deploy-production]
-    if: always()
-
-    steps:
-      - name: 📋 Generate Summary
+      - name: 📊 Summary
+        if: always()
         run: |
           echo "# 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Environment | Status | URL |" >> $GITHUB_STEP_SUMMARY
-          echo "|-------------|--------|-----|" >> $GITHUB_STEP_SUMMARY
-          echo "| Staging | ${{ needs.deploy-staging.result == 'success' && '✅ Deployed' || needs.deploy-staging.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} | https://staging.jana-distribution.fr |" >> $GITHUB_STEP_SUMMARY
-          echo "| Production | ${{ needs.deploy-production.result == 'success' && '✅ Deployed' || needs.deploy-production.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} | https://jana-distribution.fr |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "---" >> $GITHUB_STEP_SUMMARY
-          echo "*Deployed by: @${{ github.actor }}*" >> $GITHUB_STEP_SUMMARY
-          echo "*Commit: ${{ github.sha }}*" >> $GITHUB_STEP_SUMMARY
-          echo "*Date: $(date)*" >> $GITHUB_STEP_SUMMARY
+          echo "**Cible :** homeserver (tfredklab.dev)" >> $GITHUB_STEP_SUMMARY
+          echo "**Frontend :** https://jana.tfredklab.dev" >> $GITHUB_STEP_SUMMARY
+          echo "**API :** https://jana-api.tfredklab.dev" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit :** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Déployé par :** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY

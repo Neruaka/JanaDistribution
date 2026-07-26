@@ -1,6 +1,6 @@
 # ÉTAT ACTUEL DU PROJET — Jana Distribution
 
-> Mise à jour : 2026-07-04. Source : inspection statique du code + git status.
+> Mise à jour : 2026-07-26. Source : inspection statique du code + git status + session de migration homeserver.
 > Mettre à jour après chaque tâche DONE.
 
 ---
@@ -11,12 +11,12 @@
 |---|---|
 | Projet | Jana Distribution — e-commerce alimentaire B2C/B2B |
 | Branche active | `develop` |
-| Dernier commit | `50bcc7e` — `fix(tests): make test:integration reach the new testcontainers suites` |
-| Fichiers modifiés non commités | Aucun fichier tracké modifié — non trackés : `.claude/agents/prompt-architect.md`, `tools/star-office-ui/` (dashboard de supervision multi-agents, hors périmètre applicatif) |
-| Phase active | Phase 8 — Staging Railway (en pause, plan expiré) |
-| Tâche active | Aucune — Session 2026-07-04 terminée (T5-08/T5-13 + tests intégration réels + init.sql resynchronisé + cookies + guides Brevo/domaine) |
+| Dernier commit | `2cadd42` — merge develop (migration Gmail SMTP + fix `DB_SSL_DISABLE`) |
+| Fichiers modifiés non commités | `DEPLOY-HOMESERVER.md` (nouveau), `DEPLOY-RAILWAY.md`/`docs/RAILWAY_CONFIG_READY.md` (bandeau obsolescence), `CLAUDE.md`/`ETAT_ACTUEL_PROJET.md`/`PLAN_CORRECTION_AUDIT.md` (Phase 11), `.github/workflows/deploy.yml`, suppression `backend/railway.json` + `frontend/railway.json` |
+| Phase active | Phase 11 — Migration Railway → Homeserver (remplace Phase 8) |
+| Tâche active | Session 2026-07-26 : premier déploiement homeserver validé de bout en bout (T11-01..T11-03, T11-06, T11-08 DONE) ; T11-04/T11-07 en attente d'action externe utilisateur ; T11-05 partiel (secrets JWT/Postgres générés, Gmail/R2/adresse entreprise à renseigner) ; T11-09 (cutover) après validation flux commande |
 | Verdict | **NON PRÊT POUR LA PRODUCTION** |
-| Avancement estimé | ~98 % (52/80 tâches DONE) |
+| Avancement estimé | ~98 % (52/80 tâches DONE, hors Phase 11) |
 
 ---
 
@@ -24,7 +24,7 @@
 
 **NON PRÊT POUR LA PRODUCTION.**
 
-Phases 0-7 terminées, y compris facturation légale complète (T5-01..T5-13 : génération auto VIREMENT/CHEQUE/ESPECES + envoi PDF par email) et tests d'intégration réels sur vraie base PostgreSQL via testcontainers (T7-01/T7-03/T7-06, nécessitent Docker localement). `backend/scripts/init.sql` resynchronisé avec les migrations 0001-0010. Il reste Phase 8 (staging Railway) et Phase 9 (go-live) avant mise en production. Avancement : ~98%. ⚠️ Validation comptable TVA et configuration variables Railway requises avant prod.
+Phases 0-7 terminées, y compris facturation légale complète (T5-01..T5-13 : génération auto VIREMENT/CHEQUE/ESPECES + envoi PDF par email) et tests d'intégration réels sur vraie base PostgreSQL via testcontainers (T7-01/T7-03/T7-06, nécessitent Docker localement). `backend/scripts/init.sql` resynchronisé avec les migrations 0001-0010. Railway abandonné comme chemin critique (plan expiré) — migration vers un homeserver auto-géré en cours (Phase 11, voir `DEPLOY-HOMESERVER.md`) : infrastructure Docker/Caddy déployée et validée le 2026-07-26, reste la configuration des secrets externes (Cloudflare Tunnel, Gmail SMTP, R2, GitHub Actions) et le cutover final (T11-09). Avancement : ~98%. ⚠️ Validation comptable TVA toujours requise avant prod.
 
 ---
 
@@ -44,7 +44,7 @@ Phases 0-7 terminées, y compris facturation légale complète (T5-01..T5-13 : g
 | Paiements | Pas de paiement en ligne (MVP) — ESPECES / VIREMENT / CHEQUE uniquement, Stripe retiré (T4-07, 2026-07-02) | — |
 | Géocodage livraison | BAN API adresse.data.gouv.fr | gratuit |
 | Upload fichiers | Multer → Cloudflare R2 (endpoint EU) | 1.4.5-lts.1 + @aws-sdk/client-s3 |
-| Déploiement | Railway (NIXPACKS backend, Dockerfile frontend) | — |
+| Déploiement | Homeserver auto-géré `tfredklab.dev` (Docker Compose + Caddy + Cloudflare Tunnel) — Railway EN PAUSE, gardé en parallèle jusqu'au cutover T11-09 | — |
 | CI/CD | GitHub Actions | — |
 | Validation | express-validator | — |
 | Logs | Winston | 3.11.0 |
@@ -57,14 +57,17 @@ Phases 0-7 terminées, y compris facturation légale complète (T5-01..T5-13 : g
 
 ```
 Navigateur
-  → Frontend React/Vite → Nginx (Railway)
-      ↓ HTTPS
-  → Backend Express (Railway)
-      ├── PostgreSQL 15 (Railway)
-      ├── Redis 7 / ioredis (Railway)
-      ├── Gmail SMTP (externe — email)
-      └── BAN API adresse.data.gouv.fr (externe — géocodage)
+  → Cloudflare Tunnel "homeserver" (cloudflared, pas de port ouvert)
+      → Caddy :80 (matchers Host, TLS via Cloudflare)
+          ├── jana.tfredklab.dev     → jana-frontend (Nginx, port hôte 4000)
+          └── jana-api.tfredklab.dev → jana-backend (Express, port hôte 4001)
+                ├── PostgreSQL 15 (conteneur jana-postgres, réseau interne uniquement)
+                ├── Redis 7 / ioredis (conteneur jana-redis, réseau interne uniquement)
+                ├── Gmail SMTP (externe — email)
+                └── BAN API adresse.data.gouv.fr (externe — géocodage)
 ```
+
+Détails complets : `DEPLOY-HOMESERVER.md`. Railway (NIXPACKS backend, Dockerfile frontend) reste actif en parallèle jusqu'au cutover (T11-09), voir `DEPLOY-RAILWAY.md` (obsolète, référence historique).
 
 **Points d'entrée principaux :**
 
@@ -198,10 +201,11 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 | Environnement | État | Vérifiable | Non vérifiable |
 |---|---|---|---|
 | Local (Docker Compose) | CONFIGURÉ | docker-compose.yml complet, .env renseigné (R2 + JWT) | Fonctionnement réel (lancer start-local.bat) |
-| Tests Jest backend | FONCTIONNEL | 101/101 tests passés (DB mockée) | Tests intégration testcontainers (Docker requis) |
-| Staging Railway | ABSENT — EN PAUSE | — | Plan Railway expiré, config prête dans RAILWAY_CONFIG_READY.md |
-| Production Railway | NON PRÊT | — | Plan Railway expiré |
-| Cloudflare R2 | CONFIGURÉ | Bucket jana-products créé, endpoint EU, token en .env | Custom domain R2 (optionnel prod) |
+| Tests Jest backend | FONCTIONNEL | 112/112 tests passés (DB mockée) | Tests intégration testcontainers (Docker requis) |
+| Homeserver `tfredklab.dev` | DÉPLOYÉ (2026-07-26) | Stack Docker Compose up (4 conteneurs healthy), schéma DB initialisé (17 tables), Caddy proxy validé (`jana.tfredklab.dev` + `jana-api.tfredklab.dev` → 200/health OK), backup pg_dump + cron + restauration testée | Exposition publique réelle (Cloudflare Tunnel public hostnames non encore ajoutés — T11-04), emails (Gmail SMTP non configuré — T11-05), images (R2 token dédié non généré — T11-05) |
+| Staging Railway | CANCELLED — remplacé par le homeserver (Phase 11) | — | — |
+| Production Railway | EN PAUSE — gardé en parallèle jusqu'au cutover (T11-09) | — | Plan Railway expiré |
+| Cloudflare R2 | CONFIGURÉ (bucket existant) | Bucket jana-products créé, endpoint EU | Nouveau token R2 dédié homeserver à générer (ne pas réutiliser celui de Railway) |
 
 ---
 
@@ -276,26 +280,29 @@ L'`INDEX.md` (P0-04) et le `00_RESUME_EXECUTIF.md` (P1-4) classifient différemm
 | 2026-07-04 | Guides Brevo + nom de domaine | `docs/GUIDE_BREVO_CONFIGURATION.md` (compte, clé API, sender, SPF/DKIM/DMARC, variables Railway réelles, test curl, tableau des emails envoyés) et `docs/GUIDE_NOM_DOMAINE.md` (achat OVH, types DNS, Custom Domain Railway front+back, propagation, HTTPS Let's Encrypt auto, variables CORS_ORIGIN/FRONTEND_URL/VITE_API_URL, checklist finale avec /api/health) — guides destinés au propriétaire non-développeur. | — | DONE |
 | 2026-07-08 | Audit documentation vs code réel | Corrections : `CLAUDE.md` (état ~98%/Phase 8, retrait Stripe de la stack, ajout `prompt-architect.md` au tableau agents, plan "ce soir" marqué historique), `README.md` (retrait Joi résiduel), `CLAUDE_WORKFLOW.md` (refresh tokens révocables, Stripe retiré de la stack et de la règle §8), `docs/CHANGEMENTS_MVP.md` + `docs/RESTE_A_FAIRE_PROD.md` (statut init.sql resynchronisé, T5-08/T5-13 DONE), `docs/RGPD_ACCESSIBILITE.md` (CookieBanner résolu), bandeau d'obsolescence ajouté sur `docs/audit-finalisation/*` (16 fichiers) + `DEPLOY-RAILWAY.md`, `DEMARRAGE.md`, `docs/CHECKLIST_TEST_LOCAL.md`, `docs/RAILWAY_CONFIG_READY.md`. | — | DONE |
 | 2026-07-08 | Migration email Brevo → Gmail SMTP | `email.service.js` : transport `nodemailer` (Gmail SMTP) remplace l'appel REST Brevo ; `sendMail()` et toutes les méthodes publiques (`sendWelcomeEmail`, `sendOrderStatusEmail`, `sendInvoiceEmail`, `sendPasswordResetEmail`, `sendPasswordChangedEmail`) inchangées pour les appelants. `backend/package.json` : ajout `nodemailer` ^9.0.3. `backend/.env.example` : section Brevo remplacée par `GMAIL_SENDER_EMAIL`/`GMAIL_APP_PASSWORD`/`GMAIL_SENDER_NAME` (valeurs vides). `docs/GUIDE_GMAIL_SMTP.md` créé (remplace `docs/GUIDE_BREVO_CONFIGURATION.md`, conservé en pointeur historique). `CLAUDE_WORKFLOW.md` §1 mis à jour. Bascule Railway réelle (ajout variables `GMAIL_*`, révocation `BREVO_API_KEY`) non appliquée — action manuelle, hors scope automatique. | 7/7 suites, 112/112 ✓ (aucune régression) | DONE |
+| 2026-07-26 | Phase 11 — Migration Railway → Homeserver (T11-01..T11-08, T11-10) | Infrastructure Docker Compose créée sur `/opt/docker/jana/` (homeserver `tfredklab.dev`, hors dépôt git) : postgres/redis sans port publié, backend/frontend publiés sur 4001/4000. `backend/src/config/database.js` : ajout `DB_SSL_DISABLE=true` (SSL forcé incompatible avec Postgres auto-hébergé sans TLS). Schéma initialisé via `init.sql` (17 tables). Caddyfile homeserver : blocs `@jana`/`@jana_api` ajoutés sans régression sur les autres services. Backup `pg_dump` + cron + restauration testée. `.github/workflows/deploy.yml` simplifié (1 job, push `develop`, Tailscale + clé SSH à forced-command). `backend/railway.json` + `frontend/railway.json` supprimés ; `DEPLOY-HOMESERVER.md` créé ; `DEPLOY-RAILWAY.md` + `docs/RAILWAY_CONFIG_READY.md` marqués obsolètes. Reste bloqué sur 4 actions externes utilisateur (Cloudflare Tunnel, Gmail/R2/adresse entreprise, Uptime Kuma, secrets GitHub) avant cutover (T11-09). | 112/112 backend ✓ (après fix SSL), healthcheck prod `{"database":"up"}`, endpoints Caddy validés (200/health OK, pas de régression) | DONE (T11-01/02/03/06/08/10) — IN_PROGRESS (T11-05) — BLOCKED (T11-04, T11-07, actions externes) |
 
 ---
 
 ## 13. Prochaine action recommandée
 
-**Session prérequis prod terminée (2026-07-04) : T5-08/T5-13 + tests intégration réels + init.sql resynchronisé + cookies + guides Brevo/domaine. Prochaine : Phase 8 Railway (réactiver le plan).**
+**Session migration homeserver (2026-07-26) : infrastructure Docker/Caddy déployée et validée de bout en bout sur `tfredklab.dev`. Prochaine : lever les blocages externes (T11-04, T11-05, T11-07, secrets GitHub T11-08), puis T11-09 (cutover).**
 
 | Champ | Valeur |
 |---|---|
-| Option A | T8-01 — Créer les services Railway staging (nécessite réactivation plan Railway) |
-| Option B | T5-14 — Rendre les factures immuables (aucun endpoint UPDATE sur `facture`, correctif via avoir) |
-| Prérequis option A | Accès Railway Dashboard + plan actif — suivre `docs/GUIDE_NOM_DOMAINE.md` et `docs/GUIDE_BREVO_CONFIGURATION.md` |
-| Prérequis option B | Aucun — peut commencer immédiatement |
+| Option A | T11-04/T11-05/T11-07 — actions externes utilisateur (Cloudflare Tunnel, Gmail SMTP + R2 + adresse entreprise, Uptime Kuma) — voir `DEPLOY-HOMESERVER.md` §10 pour la liste complète |
+| Option B | T5-14 — Rendre les factures immuables (aucun endpoint UPDATE sur `facture`, correctif via avoir) — indépendant de la migration, peut démarrer immédiatement |
+| Prérequis option A | Accès dashboard Cloudflare Zero Trust + Google (Gmail app password) + GitHub repo Settings |
+| Prérequis option B | Aucun |
 
-**Actions externes requises avant prod :**
-1. Créer bucket Cloudflare R2 + configurer R2_* dans Railway
-2. Renseigner ENTREPRISE_ADRESSE (SIRET et n° TVA déjà en place, cf. `backend/.env.example`)
-3. ⚠️ Faire valider les taux TVA par un comptable pour chaque référence produit
-4. Railway : activer sauvegardes PostgreSQL (T8-04)
-5. Acheter/configurer le nom de domaine et Brevo (SPF/DKIM/DMARC) — voir les deux guides dans `docs/`
-6. Démarrer Docker Desktop puis lancer `npm run test:integration` pour valider les 3 suites testcontainers avant tout déploiement (non exécutées faute de Docker sur la machine de développement actuelle)
+**Actions externes requises avant prod (mises à jour post-migration) :**
+1. Ajouter les 2 public hostnames Cloudflare Tunnel (T11-04) — voir `DEPLOY-HOMESERVER.md`
+2. Générer un nouveau mot de passe d'application Gmail + nouveau token R2 dédié (ne jamais réutiliser les secrets Railway) et les renseigner dans `/opt/docker/jana/.env` sur le homeserver (T11-05)
+3. Renseigner ENTREPRISE_ADRESSE (SIRET et n° TVA déjà en place)
+4. ⚠️ Faire valider les taux TVA par un comptable pour chaque référence produit
+5. Ajouter les 2 moniteurs Uptime Kuma (T11-07)
+6. Créer les 4 secrets GitHub Actions pour le déploiement continu (T11-08)
+7. Valider le flux commande complet sur `jana.tfredklab.dev` avant cutover final (T11-09)
+8. Démarrer Docker Desktop puis lancer `npm run test:integration` pour valider les 3 suites testcontainers (non exécutées faute de Docker sur la machine de développement actuelle)
 
-**Dette technique résolue (2026-07-04) :** `backend/scripts/init.sql` est désormais synchronisé avec les migrations 0001 à 0010 (voir journal §12). Toute nouvelle migration doit être répercutée manuellement dans ce fichier (pas de génération automatique).
+**Dette technique découverte (2026-07-26) :** `backend/scripts/run-migrations.js` et la migration `0001` ne sont pas committés dans le dépôt git (fichiers locaux uniquement) — `npm run migrate` est inutilisable sur un environnement propre. `backend/scripts/init.sql` (resynchronisé le 2026-07-04 avec les migrations 0001-0010) reste la seule source de schéma fiable pour un premier déploiement ; c'est ce qui a été utilisé pour initialiser la base sur le homeserver. À corriger : committer les fichiers manquants.

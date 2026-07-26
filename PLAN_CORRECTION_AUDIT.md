@@ -9,15 +9,15 @@
 
 | Indicateur | Valeur |
 |---|---|
-| Phase active | Phase 8 — Staging Railway |
-| Tâche active | Aucune — Session 2026-07-04 terminée (T5-08/T5-13 + tests intégration réels + init.sql + cookies + docs Brevo/domaine) |
-| Tâches totales | 80 |
+| Phase active | Phase 11 — Migration Railway → Homeserver (remplace Phase 8) |
+| Tâche active | Session 2026-07-26 : T11-01..T11-08 + T11-10 (doc) traités, T11-09 (cutover final) reste à faire après validation flux commande |
+| Tâches totales | 90 (80 + 10 Phase 11) |
 | READY | 0 |
-| IN_PROGRESS | 0 |
-| BLOCKED | 0 |
-| TODO | 19 |
-| DONE | 52 |
-| CANCELLED | 9 |
+| IN_PROGRESS | 1 (T11-05) |
+| BLOCKED | 2 (T11-04, T11-07 — actions externes utilisateur) |
+| TODO | 20 (19 + T11-09) |
+| DONE | 57 (52 + T11-01, T11-02, T11-03, T11-06, T11-08) |
+| CANCELLED | 15 (9 + Phase 8 : T8-01..T8-06) |
 | P0 restants | 0 |
 | P1 restants | 0 |
 | Verdict | NON PRÊT POUR LA PRODUCTION |
@@ -846,50 +846,135 @@ Détails : `docs/audit-finalisation/12_STRATEGIE_TESTS.md`
 
 ### Phase 8 — Staging Railway
 
-Détails : `docs/audit-finalisation/11_RAILWAY_PRODUCTION.md`
+- **Statut : CANCELLED (2026-07-26)** — Railway abandonné comme chemin critique vers la production (plan expiré, décision de migrer vers un homeserver auto-géré). Remplacée par la **Phase 11 — Migration Railway → Homeserver**, voir plus bas.
+
+Détails : `docs/audit-finalisation/11_RAILWAY_PRODUCTION.md` *(obsolète)*
 
 ---
 
 ### T8-01 — Créer services Railway staging
 
-- **Statut :** TODO | **Priorité :** P1 | **Catégorie :** ACTION EXTERNE
-- **Action :** Railway Dashboard → créer backend-staging et frontend-staging
+- **Statut :** CANCELLED (2026-07-26) — voir Phase 11 | **Priorité :** P1 | **Catégorie :** ACTION EXTERNE
 
 ---
 
 ### T8-02 — Configurer variables d'environnement staging
 
-- **Statut :** TODO | **Priorité :** P1 | **Catégorie :** CONFIGURATION
-- **Dépendances :** T8-01
-- **Action :** DB séparée, compte Gmail SMTP de test (Stripe non applicable — retiré du projet, voir T4-07)
+- **Statut :** CANCELLED (2026-07-26) — voir Phase 11 | **Priorité :** P1 | **Catégorie :** CONFIGURATION
 
 ---
 
 ### T8-03 — Branching strategy staging → staging / main → prod
 
-- **Statut :** TODO | **Priorité :** P1 | **Catégorie :** CONFIGURATION
-- **Fichiers :** `.github/workflows/deploy.yml`
+- **Statut :** CANCELLED (2026-07-26) — remplacé par T11-08 (déploiement CI/CD vers le homeserver, déclenché sur push `develop`) | **Priorité :** P1 | **Catégorie :** CONFIGURATION
 
 ---
 
 ### T8-04 — Activer sauvegardes PostgreSQL en production
 
-- **Statut :** TODO | **Priorité :** P1 | **Catégorie :** ACTION EXTERNE
-- **Action :** Railway Dashboard → PostgreSQL → Backups → activer
+- **Statut :** CANCELLED (2026-07-26) — remplacé par T11-06 (script `pg_dump` + cron sur le homeserver, DONE) | **Priorité :** P1 | **Catégorie :** ACTION EXTERNE
 
 ---
 
 ### T8-05 — Configurer monitoring
 
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** ACTION EXTERNE
-- **Action :** Better Uptime ou UptimeRobot → surveiller `/api/health`
+- **Statut :** CANCELLED (2026-07-26) — remplacé par T11-07 (moniteurs Uptime Kuma, déjà instance existante sur le homeserver) | **Priorité :** P2 | **Catégorie :** ACTION EXTERNE
 
 ---
 
 ### T8-06 — Configurer stockage images persistant en prod
 
-- **Statut :** TODO | **Priorité :** P0 | **Catégorie :** CONFIGURATION
-- **Dépendances :** T0-02
+- **Statut :** CANCELLED (2026-07-26) — Cloudflare R2 déjà configuré et indépendant de Railway (voir T11-05, nouveau token R2 dédié à générer) | **Priorité :** P0 | **Catégorie :** CONFIGURATION
+
+---
+
+## Phase 11 — Migration Railway → Homeserver (`tfredklab.dev`)
+
+> Remplace la Phase 8. Railway EN PAUSE (plan expiré) — hébergement auto-géré
+> sur le homeserver personnel de l'utilisateur (Debian 13, Docker Compose,
+> Caddy, Cloudflare Tunnel). Détails complets : `DEPLOY-HOMESERVER.md`.
+> Session du 2026-07-26.
+
+---
+
+### T11-01 — Confirmer sous-domaines et vérifier collisions de ports
+
+- **Statut :** DONE (2026-07-26) | **Priorité :** P0 | **Catégorie :** CONFIGURATION
+- **Résultat :** `jana.tfredklab.dev` (frontend) / `jana-api.tfredklab.dev` (backend) confirmés. Ports hôte `4000`/`4001` retenus (aucune collision avec 80/443/3000/53/3001/5055/8000/8080/8096/9000/3030/8081 déjà utilisés par les autres services du homeserver).
+
+---
+
+### T11-02 — Créer docker-compose.yml prod sur le homeserver
+
+- **Statut :** DONE (2026-07-26) | **Priorité :** P0 | **Catégorie :** CODE + CONFIGURATION
+- **Fichiers (hors dépôt git, sur le homeserver) :** `/opt/docker/jana/docker-compose.yml`, `/opt/docker/jana/.env`
+- **Fichier modifié dans le dépôt :** `backend/src/config/database.js` — ajout du flag `DB_SSL_DISABLE=true` (SSL forcé par défaut pour Railway/Render, incompatible avec un Postgres auto-hébergé sans TLS)
+- **Impact DB :** Schéma initialisé via `backend/scripts/init.sql` (17 tables). ⚠️ `run-migrations.js` et la migration `0001` ne sont pas committés dans le dépôt — dette à corriger.
+- **Tests :** 112/112 (backend, suite à jour après le fix SSL), healthcheck `/api/health` → `{"database":"up"}`, build + démarrage validés de bout en bout sur le homeserver.
+- **Commit :** `9116e15` (fix SSL)
+
+---
+
+### T11-03 — Ajouter blocs Caddy jana + jana-api
+
+- **Statut :** DONE (2026-07-26) | **Priorité :** P0 | **Catégorie :** CONFIGURATION
+- **Fichier modifié (hors dépôt git) :** `/opt/docker/caddy/Caddyfile` — blocs `@jana`/`@jana_api` → `reverse_proxy 172.17.0.1:4000`/`4001`
+- **Validation :** `jana.tfredklab.dev` → 200, `jana-api.tfredklab.dev/api/health` → succès, aucune régression sur les services déjà proxyfiés (status, media testés).
+- **Risque documenté :** un bind-mount fichier Docker reste attaché à l'inode d'origine — un `mv` pour remplacer le Caddyfile ne suffit pas, un `docker restart caddy` a été nécessaire (quelques secondes d'interruption pour tous les services proxyfiés).
+
+---
+
+### T11-04 — Cloudflare Tunnel public hostnames
+
+- **Statut :** BLOCKED (action externe utilisateur) | **Priorité :** P0 | **Catégorie :** ACTION EXTERNE
+- **Action :** Zero Trust → Networks → Tunnels → "homeserver" → Public Hostname → ajouter `jana.tfredklab.dev` et `jana-api.tfredklab.dev` → `localhost:80`. Tunnel géré à distance via token (pas de config.yml local éditable par SSH).
+
+---
+
+### T11-05 — Générer secrets prod + .env homeserver
+
+- **Statut :** IN_PROGRESS | **Priorité :** P0 | **Catégorie :** CONFIGURATION + ACTION EXTERNE
+- **Fait :** `JWT_SECRET`, `JWT_REFRESH_SECRET`, `POSTGRES_PASSWORD` générés directement sur le homeserver (`openssl rand -hex 32/24`, jamais transités par ce poste ni affichés). `.env` aligné sur Gmail SMTP (le code a migré de Brevo vers Gmail SMTP le 2026-07-08, indépendamment de cette session — variables `BREVO_*` mortes retirées).
+- **Reste à renseigner (action externe utilisateur) :** `GMAIL_SENDER_EMAIL`/`GMAIL_APP_PASSWORD` (nouveau mot de passe d'application, pas celui de Railway), `R2_ACCESS_KEY_ID`/`R2_SECRET_ACCESS_KEY` (nouveau token R2 dédié), `ENTREPRISE_ADRESSE`.
+
+---
+
+### T11-06 — Script sauvegarde PostgreSQL + test restauration
+
+- **Statut :** DONE (2026-07-26) | **Priorité :** P1 | **Catégorie :** CODE + CONFIGURATION
+- **Fichier (hors dépôt git) :** `/opt/docker/jana/backup-postgres.sh` — `pg_dump` + gzip, rotation 14 jours, cron `0 3 * * *`
+- **Test :** Restauration validée dans une base temporaire (17 tables restaurées avec succès, puis nettoyée).
+
+---
+
+### T11-07 — Monitoring Uptime Kuma
+
+- **Statut :** BLOCKED (action externe utilisateur) | **Priorité :** P2 | **Catégorie :** ACTION EXTERNE
+- **Action :** Ajouter 2 moniteurs HTTP(s) dans `status.tfredklab.dev` : `https://jana.tfredklab.dev` et `https://jana-api.tfredklab.dev/api/health`. Pas d'API REST stable en Uptime Kuma v1 pour automatiser sans session authentifiée.
+
+---
+
+### T11-08 — Déploiement CI/CD réel
+
+- **Statut :** DONE (2026-07-26) — décision utilisateur : clé SSH dédiée en secret GitHub (transport via Tailscale) | **Priorité :** P1 | **Catégorie :** CODE + CONFIGURATION
+- **Fichier modifié :** `.github/workflows/deploy.yml` — simplifié à un seul job (déclenché sur push `develop`, plus de split staging/production factice), étapes : connexion Tailscale (`tailscale/github-action`) puis SSH vers le homeserver.
+- **Sécurité :** clé SSH dédiée installée dans `authorized_keys` du homeserver avec **forced command** (`command="..."`) restreignant son usage au seul pipeline de déploiement, aucun accès shell interactif même en cas de fuite.
+- **Reste à faire (action externe utilisateur) :** créer les 4 secrets GitHub (`TS_AUTHKEY`, `HOMESERVER_TAILSCALE_IP`, `HOMESERVER_SSH_USER`, `HOMESERVER_SSH_KEY`).
+
+---
+
+### T11-09 — Cutover final Railway → homeserver
+
+- **Statut :** TODO | **Priorité :** P0 | **Catégorie :** VALIDATION
+- **Dépendances :** T11-04, T11-05 (secrets externes complets)
+- **Objectif :** Valider le flux commande complet sur `jana.tfredklab.dev`, puis bascule DNS finale et arrêt (pas suppression) de Railway.
+
+---
+
+### T11-10 — Synchronisation documentaire complète
+
+- **Statut :** DONE (2026-07-26) | **Priorité :** P1 | **Catégorie :** DOCUMENTATION
+- **Fichiers :** `backend/railway.json` + `frontend/railway.json` supprimés, `DEPLOY-HOMESERVER.md` créé, `DEPLOY-RAILWAY.md` + `docs/RAILWAY_CONFIG_READY.md` marqués obsolètes (bandeau, conservés en référence historique tant que Railway reste actif), `CLAUDE.md` mis à jour (déploiement homeserver, Phase 11), `ETAT_ACTUEL_PROJET.md` et `PLAN_CORRECTION_AUDIT.md` (ce fichier) mis à jour.
 
 ---
 
