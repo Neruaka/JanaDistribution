@@ -22,7 +22,7 @@
 
 - **Mots de passe :** hachés avec bcrypt (12 rounds, `auth.service.js`), jamais stockés en clair.
 - **JWT :** access token à durée limitée (7 jours par défaut, configurable via `JWT_EXPIRES_IN`), refresh token distinct (30 jours).
-- **Refresh tokens révocables :** table `refresh_token` dédiée — stockage du hash SHA-256 (pas le token en clair), révocation possible individuellement (déconnexion) et rotation à chaque refresh (implémenté T2-03..T2-05, confirmé dans `ETAT_ACTUEL_PROJET.md`).
+- **Refresh tokens révocables :** table `refresh_token` dédiée — stockage du hash SHA-256 (pas le token en clair), révocation possible individuellement (déconnexion) et rotation à chaque refresh (implémenté T2-03..T2-05, confirmé dans `docs/ETAT_ACTUEL_PROJET.md`).
 - **CORS restreint :** `backend/src/index.js` configure `cors()` avec `origin: process.env.CORS_ORIGIN || 'http://localhost:5173'` (plus de wildcard `*`, corrigé T0-07 — anciennement un problème P0 sur `/uploads`).
 - **Droit à l'effacement (déjà codé) :** `DELETE /api/auth/account` → `authService.deleteAccount()` → anonymisation du compte (`userRepository.anonymize()`), avec protection empêchant la suppression d'un compte ADMIN par cette voie. L'historique de commandes est conservé (nécessaire pour la facturation légale) mais le compte est anonymisé plutôt que supprimé physiquement.
 - **Pages légales déjà rédigées et routées** (`frontend/src/App.jsx`) : `/cgv` (CGVPage.jsx), `/confidentialite` (ConfidentialitePage.jsx, inclut une section Cookies), `/mentions-legales` (MentionsLegalesPage.jsx), `/accessibilite` (AccessibilitePage.jsx). Ces pages existent avec un contenu substantiel (300+ lignes chacune) — contrairement à une hypothèse de document manquant, elles sont présentes au moment de l'inspection.
@@ -40,7 +40,7 @@
 | Point | État constaté | À faire |
 |---|---|---|
 | DPA (Data Processing Agreement) Google (Gmail SMTP) | Non vérifiable dans le code — Google (Gmail/Google Workspace) est désormais le sous-traitant RGPD pour les emails transactionnels depuis la migration Brevo → Gmail SMTP (2026-07-08, voir `docs/GUIDE_GMAIL_SMTP.md`) | Vérifier les termes de traitement des données Google Workspace/Gmail applicables au compte utilisé |
-| Localisation des données Cloudflare R2 | **Déjà en EU** d'après `ETAT_ACTUEL_PROJET.md` (endpoint EU configuré, bucket `jana-products`) | Confirmer le custom domain de prod reste bien sur la même région |
+| Localisation des données Cloudflare R2 | **Déjà en EU** d'après `docs/ETAT_ACTUEL_PROJET.md` (endpoint EU configuré, bucket `jana-products`) | Confirmer le custom domain de prod reste bien sur la même région |
 | Durée de conservation des logs Winston | `backend/src/config/logger.js` : rotation par taille (5 Mo × 5 fichiers), **aucune purge par durée** trouvée dans la config | Définir une politique de rétention explicite (ex. purge après X mois) et la documenter |
 | Durée de conservation des factures | 10 ans (obligation légale France) mentionnée en décision (`DM-08`) mais **à confirmer formellement** par le comptable | Validation comptable |
 | Consentement newsletter | Champ `utilisateur.accepte_newsletter` existe en DB et est collecté à l'inscription — vérifier qu'il conditionne bien tout envoi marketing (actuellement Gmail SMTP n'est utilisé que pour les emails transactionnels, migré depuis Brevo le 2026-07-08) | Vérifier au moment de l'ajout d'une vraie newsletter marketing |

@@ -9,8 +9,8 @@ Tu es le glue code vivant entre les couches. Tu ne laisses pas de surface d'inco
 
 ## LECTURE OBLIGATOIRE AVANT TOUTE ACTION
 ```bash
-cat CLAUDE_WORKFLOW.md
-cat ETAT_ACTUEL_PROJET.md
+cat docs/CLAUDE_WORKFLOW.md
+cat docs/ETAT_ACTUEL_PROJET.md
 git status
 # Lire les deux côtés de chaque intégration AVANT de toucher quoi que ce soit
 ```
@@ -42,7 +42,7 @@ Response 422 : { "error": "Remboursement Stripe échoué", "stripe_error": "..."
 ### T7-01 — Tests intégration création commande (vraie DB) — DONE (2026-07-04)
 **Fichier réel :** `backend/tests/integration/order.create.test.js` (3 tests : décrément
 atomique du stock, rollback stock insuffisant, rollback commande multi-lignes)
-**Outil :** testcontainers-node (décision prise dans ETAT_ACTUEL_PROJET.md §8)
+**Outil :** testcontainers-node (décision prise dans docs/ETAT_ACTUEL_PROJET.md §8)
 **Fichier à créer :** `backend/tests/integration/order.create.test.js`
 ```javascript
 // Pattern testcontainers

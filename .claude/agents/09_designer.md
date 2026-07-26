@@ -10,7 +10,7 @@ Tu checkes l'accessibilité (contraste, focus visible, aria-label) automatiqueme
 
 ## LECTURE OBLIGATOIRE AVANT TOUTE ACTION
 ```bash
-cat CLAUDE_WORKFLOW.md
+cat docs/CLAUDE_WORKFLOW.md
 # Analyser la charte visuelle existante
 cat frontend/tailwind.config.js      # couleurs custom, typographie
 cat frontend/src/index.css           # variables CSS globales

@@ -1,6 +1,6 @@
 # 01 — Inventaire du Projet
 
-> ⚠️ **Document historique (état figé au 2026-06-14)** — Rédigé lors de l'audit initial, avant le retrait complet de Stripe (T4-07, 2026-07-02) et l'ajout de la facturation légale (Phase 5) et des tests d'intégration réels (Phase 7). Les références à Stripe, aux webhooks et aux tests 100% mockés ne reflètent plus l'état actuel du code. Voir `ETAT_ACTUEL_PROJET.md` et `PLAN_CORRECTION_AUDIT.md` pour l'état réel à jour.
+> ⚠️ **Document historique (état figé au 2026-06-14)** — Rédigé lors de l'audit initial, avant le retrait complet de Stripe (T4-07, 2026-07-02) et l'ajout de la facturation légale (Phase 5) et des tests d'intégration réels (Phase 7). Les références à Stripe, aux webhooks et aux tests 100% mockés ne reflètent plus l'état actuel du code. Voir `docs/ETAT_ACTUEL_PROJET.md` et `docs/PLAN_CORRECTION_AUDIT.md` pour l'état réel à jour.
 
 > Audit réalisé le 2026-06-14 par inspection statique.
 
@@ -181,8 +181,8 @@ JanaDistribution/
 ├── docker-compose.yml
 ├── .github/workflows/
 ├── README.md
-├── README-CI-CD.md
-├── DEPLOY-RAILWAY.md
+├── docs/README-CI-CD.md
+├── docs/DEPLOY-RAILWAY.md
 └── .env.example             — Variables d'env racine
 ```
 
@@ -291,8 +291,8 @@ Git non initialisé dans le répertoire de travail inspecté (pas de dossier `.g
 | Fichier | Contenu |
 |---|---|
 | `README.md` | Documentation générale du projet |
-| `README-CI-CD.md` | Documentation CI/CD GitHub Actions |
-| `DEPLOY-RAILWAY.md` | Guide de déploiement Railway |
+| `docs/README-CI-CD.md` | Documentation CI/CD GitHub Actions |
+| `docs/DEPLOY-RAILWAY.md` | Guide de déploiement Railway |
 
 ---
 

@@ -8,12 +8,12 @@ Paiement en ligne (Stripe) retiré du MVP (T4-07, 2026-07-02) — ESPECES/VIREME
 Email transactionnel migré de Brevo REST API vers Gmail SMTP (2026-07-08) — voir `docs/GUIDE_GMAIL_SMTP.md`.
 Déploiement : Homeserver auto-géré `tfredklab.dev` (Docker Compose + Caddy + Cloudflare Tunnel) — Railway abandonné (plan expiré), migration Phase 11.
 Avancement : ~98% (52/80 tâches DONE) — NON PRÊT PRODUCTION.
-Phase active : Phase 11 — Migration Railway → Homeserver (remplace Phase 8, voir PLAN_CORRECTION_AUDIT.md).
+Phase active : Phase 11 — Migration Railway → Homeserver (remplace Phase 8, voir docs/PLAN_CORRECTION_AUDIT.md).
 
 ## FICHIERS OPÉRATIONNELS (à lire avant toute action)
-1. `CLAUDE_WORKFLOW.md` — méthode de travail absolue
-2. `ETAT_ACTUEL_PROJET.md` — état réel du code
-3. `PLAN_CORRECTION_AUDIT.md` — backlog officiel avec statuts
+1. `docs/CLAUDE_WORKFLOW.md` — méthode de travail absolue
+2. `docs/ETAT_ACTUEL_PROJET.md` — état réel du code
+3. `docs/PLAN_CORRECTION_AUDIT.md` — backlog officiel avec statuts
 
 ## RÈGLES ABSOLUES POUR TOUS LES AGENTS
 - NE JAMAIS modifier une migration déjà exécutée en prod — créer une nouvelle
@@ -22,8 +22,8 @@ Phase active : Phase 11 — Migration Railway → Homeserver (remplace Phase 8, 
 - NE JAMAIS sortir de l'architecture routes → controllers → services → repositories
 - NE JAMAIS faire de réécriture complète — évolution progressive UNIQUEMENT
 - TOUJOURS vérifier `git status` avant toute modification
-- TOUJOURS mettre à jour PLAN_CORRECTION_AUDIT.md + ETAT_ACTUEL_PROJET.md après chaque tâche DONE
-- TOUJOURS produire un bilan de session au format défini dans CLAUDE_WORKFLOW.md §9
+- TOUJOURS mettre à jour docs/PLAN_CORRECTION_AUDIT.md + docs/ETAT_ACTUEL_PROJET.md après chaque tâche DONE
+- TOUJOURS produire un bilan de session au format défini dans docs/CLAUDE_WORKFLOW.md §9
 
 ## AGENTS DISPONIBLES
 Invoquer via `Task` avec le chemin du fichier agent correspondant :
@@ -55,7 +55,7 @@ Invoquer via `Task` avec le chemin du fichier agent correspondant :
 9. Backend (T2-06) → table audit_log — DONE
 10. Backend (T2-07) → logger actions admin sensibles — DONE
 ```
-Voir `PLAN_CORRECTION_AUDIT.md` et `ETAT_ACTUEL_PROJET.md` pour l'état réel à jour et la prochaine tâche recommandée (Phase 8/9).
+Voir `docs/PLAN_CORRECTION_AUDIT.md` et `docs/ETAT_ACTUEL_PROJET.md` pour l'état réel à jour et la prochaine tâche recommandée (Phase 8/9).
 
 ## FORMAT DE RAPPORT AGENT (obligatoire en fin de chaque tâche)
 ```

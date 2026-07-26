@@ -1,8 +1,8 @@
 # Reste à faire avant mise en production
 
-> ⚠️ **Document partiellement obsolète (état figé au 2026-07-02)** — antérieur à la migration Railway → homeserver (Phase 11, 2026-07-26) : le point « Réactiver Railway » ci-dessous ne s'applique plus, la cible de production est désormais le homeserver `tfredklab.dev`. `ETAT_ACTUEL_PROJET.md` (§13 « Prochaine action recommandée ») est l'unique source de vérité actuelle de l'état go-live — s'y référer en priorité.
+> ⚠️ **Document partiellement obsolète (état figé au 2026-07-02)** — antérieur à la migration Railway → homeserver (Phase 11, 2026-07-26) : le point « Réactiver Railway » ci-dessous ne s'applique plus, la cible de production est désormais le homeserver `tfredklab.dev`. `docs/ETAT_ACTUEL_PROJET.md` (§13 « Prochaine action recommandée ») est l'unique source de vérité actuelle de l'état go-live — s'y référer en priorité.
 >
-> Généré par inspection statique du code au 2026-07-02 (`ETAT_ACTUEL_PROJET.md`, `PLAN_CORRECTION_AUDIT.md`, code source).
+> Généré par inspection statique du code au 2026-07-02 (`docs/ETAT_ACTUEL_PROJET.md`, `docs/PLAN_CORRECTION_AUDIT.md`, code source).
 > Avancement estimé au moment de l'inspection : ~92-95 %. Verdict actuel : **NON PRÊT PRODUCTION**.
 
 ---
@@ -23,7 +23,7 @@ Ces points ne peuvent pas être résolus par du code ; ils nécessitent une déc
 
 ---
 
-## 2. Code restant — tâches TODO / BLOCKED réelles (`PLAN_CORRECTION_AUDIT.md`)
+## 2. Code restant — tâches TODO / BLOCKED réelles (`docs/PLAN_CORRECTION_AUDIT.md`)
 
 ### Facturation (bloque la Phase 5 complète)
 
@@ -36,7 +36,7 @@ Ces points ne peuvent pas être résolus par du code ; ils nécessitent une déc
 | T5-16 | Tests unitaires service facture | BLOCKED | T5-06 |
 | T5-17 | Tests intégration flux facture complet | BLOCKED | T5-07, T7-01 |
 
-Note : T5-08 et T5-13 ont été confirmées `DONE` le 2026-07-04 (voir `PLAN_CORRECTION_AUDIT.md` et `ETAT_ACTUEL_PROJET.md` §12) — le doute exprimé initialement dans cette note est levé pour ces deux tâches.
+Note : T5-08 et T5-13 ont été confirmées `DONE` le 2026-07-04 (voir `docs/PLAN_CORRECTION_AUDIT.md` et `docs/ETAT_ACTUEL_PROJET.md` §12) — le doute exprimé initialement dans cette note est levé pour ces deux tâches.
 
 ### Livraison / Produits
 
@@ -72,7 +72,7 @@ Note : T5-08 et T5-13 ont été confirmées `DONE` le 2026-07-04 (voir `PLAN_COR
 
 ### Dette technique constatée
 
-- ~~`backend/scripts/init.sql` n'est pas synchronisé avec les migrations récentes...~~ **RÉSOLU (2026-07-04)** : `init.sql` a été régénéré depuis les migrations 0001 à 0010 (colonnes Stripe retirées, tables `refresh_token`/`audit_log`/`facture`/`code_promo`/`commande_statut_historique` incluses). Voir `ETAT_ACTUEL_PROJET.md` §12.
+- ~~`backend/scripts/init.sql` n'est pas synchronisé avec les migrations récentes...~~ **RÉSOLU (2026-07-04)** : `init.sql` a été régénéré depuis les migrations 0001 à 0010 (colonnes Stripe retirées, tables `refresh_token`/`audit_log`/`facture`/`code_promo`/`commande_statut_historique` incluses). Voir `docs/ETAT_ACTUEL_PROJET.md` §12.
 
 ---
 
@@ -94,4 +94,4 @@ Voir `docs/RAILWAY_CONFIG_READY.md` (présent dans le dépôt) pour la configura
 
 ## 5. Checklist go-live
 
-Voir `docs/CHECKLIST_TEST_LOCAL.md` (présent dans le dépôt) pour la checklist de validation locale avant toute mise en ligne. Une checklist Go-Live plus large existe également dans `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md` (référencée dans `PLAN_CORRECTION_AUDIT.md`, Phase 9).
+Voir `docs/CHECKLIST_TEST_LOCAL.md` (présent dans le dépôt) pour la checklist de validation locale avant toute mise en ligne. Une checklist Go-Live plus large existe également dans `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md` (référencée dans `docs/PLAN_CORRECTION_AUDIT.md`, Phase 9).

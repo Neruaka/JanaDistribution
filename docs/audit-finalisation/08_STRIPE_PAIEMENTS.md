@@ -1,6 +1,6 @@
 # 08 — Stripe et Paiements
 
-> ⚠️ **Document historique et OBSOLÈTE (état figé au 2026-06-14)** — Stripe a été entièrement retiré du MVP (décision client T4-07, 2026-07-02). Ce rapport ne décrit plus le système de paiement actuel (ESPECES/VIREMENT/CHEQUE, statut positionné manuellement par un admin). Voir `ETAT_ACTUEL_PROJET.md` et `PLAN_CORRECTION_AUDIT.md` (T4-07) pour l'état réel.
+> ⚠️ **Document historique et OBSOLÈTE (état figé au 2026-06-14)** — Stripe a été entièrement retiré du MVP (décision client T4-07, 2026-07-02). Ce rapport ne décrit plus le système de paiement actuel (ESPECES/VIREMENT/CHEQUE, statut positionné manuellement par un admin). Voir `docs/ETAT_ACTUEL_PROJET.md` et `docs/PLAN_CORRECTION_AUDIT.md` (T4-07) pour l'état réel.
 
 ---
 

@@ -166,7 +166,7 @@
 - Anciens tokens R2 absents du code ✅
 - R2 endpoint EU **corrigé** dans `backend/src/config/r2.js` ✅
 - Stripe config lit correctement `process.env.STRIPE_SECRET_KEY` ✅
-- `ETAT_ACTUEL_PROJET.md` mis à jour (environnements, décisions, working tree) ✅
+- `docs/ETAT_ACTUEL_PROJET.md` mis à jour (environnements, décisions, working tree) ✅
 
 ### Objectif 2 — CI/CD + scripts locaux : **DONE**
 - CI GitHub Actions déjà complet (4 jobs) — JWT_REFRESH_SECRET **fixé** ✅

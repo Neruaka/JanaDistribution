@@ -10,15 +10,15 @@ dans un état flou après une session de travail.
 
 ## LECTURE OBLIGATOIRE AVANT TOUTE ACTION
 ```bash
-cat CLAUDE_WORKFLOW.md            # processus de travail
-cat PLAN_CORRECTION_AUDIT.md      # backlog officiel
-cat ETAT_ACTUEL_PROJET.md         # état réel
+cat docs/CLAUDE_WORKFLOW.md            # processus de travail
+cat docs/PLAN_CORRECTION_AUDIT.md      # backlog officiel
+cat docs/ETAT_ACTUEL_PROJET.md         # état réel
 ```
 
 ## RESPONSABILITÉS CE SOIR
 
 ### 1. TABLEAU DE BORD EN TEMPS RÉEL
-Maintenir à jour les compteurs dans `PLAN_CORRECTION_AUDIT.md §1` après chaque DONE
+Maintenir à jour les compteurs dans `docs/PLAN_CORRECTION_AUDIT.md §1` après chaque DONE
 (exemple de structure — voir le fichier réel pour les valeurs à jour, ~80 tâches au
 2026-07-08) :
 ```
@@ -32,7 +32,7 @@ P0 restants : V
 P1 restants : U
 ```
 
-### 2. MISE À JOUR JOURNAL — ETAT_ACTUEL_PROJET.md §12
+### 2. MISE À JOUR JOURNAL — docs/ETAT_ACTUEL_PROJET.md §12
 Format de chaque entrée :
 ```
 | [DATE] | [TÂCHE ID] | [Description du changement] | [Tests] | DONE |
@@ -46,7 +46,7 @@ Scanner les tâches en cours et alerter l'orchestrateur si :
 - Une décision métier est nécessaire avant de continuer
 
 ### 4. BILAN DE SESSION FINAL (ta tâche principale en fin de soirée)
-Produire le bilan complet au format CLAUDE_WORKFLOW.md §9 :
+Produire le bilan complet au format docs/CLAUDE_WORKFLOW.md §9 :
 ```markdown
 ## Bilan de session — [DATE CE SOIR]
 
@@ -81,17 +81,17 @@ Priorité 1 : [tâche + raison]
 Priorité 2 : [tâche + raison]
 
 ### Documents mis à jour
-- PLAN_CORRECTION_AUDIT.md ✓
-- ETAT_ACTUEL_PROJET.md ✓
-- CLAUDE_WORKFLOW.md : non modifié (processus inchangé)
+- docs/PLAN_CORRECTION_AUDIT.md ✓
+- docs/ETAT_ACTUEL_PROJET.md ✓
+- docs/CLAUDE_WORKFLOW.md : non modifié (processus inchangé)
 ```
 
 ### 5. MAINTENANCE DES STATUTS TÂCHES
 Après confirmation d'un DONE par un agent :
-1. Passer la tâche de IN_PROGRESS → DONE dans `PLAN_CORRECTION_AUDIT.md`
+1. Passer la tâche de IN_PROGRESS → DONE dans `docs/PLAN_CORRECTION_AUDIT.md`
 2. Décrémenter le compteur de la priorité concernée (P0, P1, P2...)
 3. Identifier quelle tâche suivante devient READY (dépendances satisfaites)
-4. Mettre à jour "Prochaine action recommandée" dans `ETAT_ACTUEL_PROJET.md §13`
+4. Mettre à jour "Prochaine action recommandée" dans `docs/ETAT_ACTUEL_PROJET.md §13`
 
 ## TEMPLATE DÉCISION BLOQUANTE
 Si une décision externe est nécessaire (propriétaire, comptable, juridique) :
@@ -108,7 +108,7 @@ Si une décision externe est nécessaire (propriétaire, comptable, juridique) :
 ```
 
 ## RÈGLES DOCUMENTAIRES
-- Ne modifier CLAUDE_WORKFLOW.md que si le processus de travail change réellement
+- Ne modifier docs/CLAUDE_WORKFLOW.md que si le processus de travail change réellement
 - Chaque DONE doit avoir des tests qui passent OU une justification documentée
 - Une tâche sans critères d'acceptation vérifiés n'est PAS DONE — c'est IN_PROGRESS
 

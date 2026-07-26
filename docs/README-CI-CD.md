@@ -78,7 +78,7 @@ ghcr.io/<username>/jana-distribution/frontend:latest
 
 ## 🚀 Deploy Pipeline (`deploy.yml`)
 
-> Mis à jour 2026-07-26 (Phase 11, migration Railway → homeserver auto-géré `tfredklab.dev`). Voir `DEPLOY-HOMESERVER.md` pour l'infrastructure cible.
+> Mis à jour 2026-07-26 (Phase 11, migration Railway → homeserver auto-géré `tfredklab.dev`). Voir `docs/DEPLOY-HOMESERVER.md` pour l'infrastructure cible.
 
 ### Déclencheurs
 - **Push** sur `develop` (branche réellement déployée — pas de staging Railway distinct)

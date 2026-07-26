@@ -1,8 +1,8 @@
 # Déploiement Homeserver — Jana Distribution
 
 > Remplace Railway comme chemin critique vers la production (Phase 11,
-> `PLAN_CORRECTION_AUDIT.md`). Railway reste actif en parallèle jusqu'à
-> validation complète du cutover (T11-09) — voir `DEPLOY-RAILWAY.md`
+> `docs/PLAN_CORRECTION_AUDIT.md`). Railway reste actif en parallèle jusqu'à
+> validation complète du cutover (T11-09) — voir `docs/DEPLOY-RAILWAY.md`
 > (historique).
 
 Backend Node + PostgreSQL + Redis + frontend React/Vite, auto-hébergés en
@@ -89,6 +89,36 @@ par défaut est inchangé.
 
 ---
 
+## 5bis. Stockage images — auto-hébergé sur disque (pas de R2)
+
+`backend/src/middlewares/upload.middleware.js` fait un no-op R2 dès que
+`R2_ACCOUNT_ID`/`R2_ACCESS_KEY_ID` sont absents du `.env` — le fichier reste
+alors sur le disque local du conteneur (`/app/uploads/products`). Railway
+avait un filesystem éphémère (raison d'être de R2 à l'origine, DM-09) ; le
+homeserver a un disque persistant, donc R2 n'est plus nécessaire pour
+l'instant. Variables `R2_*` retirées du `.env` (2026-07-26).
+
+`docker-compose.yml` monte un volume bind dédié sur le service `backend` :
+
+```yaml
+volumes:
+  - ./uploads:/app/uploads
+```
+
+⚠️ Le conteneur backend tourne en non-root (`nodejs`, uid 1001 — voir
+`backend/Dockerfile`). Le dossier hôte `/opt/docker/jana/uploads` doit lui
+appartenir, sinon `EACCES` à l'upload :
+
+```bash
+docker run --rm -v /opt/docker/jana/uploads:/data alpine chown -R 1001:1001 /data
+```
+
+Pour revenir à R2 plus tard : générer un nouveau token R2 dédié (ne jamais
+réutiliser celui de Railway), renseigner les 5 variables `R2_*` dans `.env`,
+`docker compose up -d backend`.
+
+---
+
 ## 5. Variables d'environnement (`/opt/docker/jana/.env`)
 
 Voir `backend/.env.example` pour la liste de référence. Différences
@@ -100,7 +130,7 @@ spécifiques homeserver :
 | `DB_SSL_DISABLE` | `true` |
 | `CORS_ORIGIN` / `FRONTEND_URL` | `https://jana.tfredklab.dev` |
 | `GMAIL_SENDER_EMAIL` / `GMAIL_APP_PASSWORD` | voir `docs/GUIDE_GMAIL_SMTP.md` — **à renseigner, jamais réutiliser un secret Railway** |
-| `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | nouveau token R2 dédié — **ne pas réutiliser celui de Railway** |
+| `R2_*` | **Non utilisées (2026-07-26)** — stockage d'images auto-hébergé sur disque local (voir §5bis), toutes les variables R2 retirées du `.env` |
 | `ENTREPRISE_ADRESSE` | à renseigner avant toute vente réelle (obligation légale facture) |
 
 `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD` sont lus à la fois par
@@ -183,7 +213,7 @@ proxyfiés, mais garantit la reprise du fichier actuel).
    et `jana-api.tfredklab.dev` → `localhost:80`.
 2. Renseigner `GMAIL_SENDER_EMAIL` / `GMAIL_APP_PASSWORD` (nouveau mot de
    passe d'application, pas celui de Railway) dans `.env`.
-3. Générer un nouveau token R2 dédié (ne pas réutiliser celui de Railway).
+3. ~~Générer un nouveau token R2 dédié~~ — non nécessaire (stockage local, voir §5bis).
 4. Renseigner `ENTREPRISE_ADRESSE`.
 5. Ajouter les moniteurs Uptime Kuma (section 7).
 6. Configurer les 4 secrets GitHub Actions (section 8).

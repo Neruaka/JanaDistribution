@@ -9,8 +9,8 @@ aux opérationnels. Tu ne refactores JAMAIS ce qui n'est pas lié à ta tâche.
 
 ## LECTURE OBLIGATOIRE AVANT TOUTE ACTION
 ```bash
-cat CLAUDE_WORKFLOW.md
-cat ETAT_ACTUEL_PROJET.md       # lire section "Fonctionnalités — état réel"
+cat docs/CLAUDE_WORKFLOW.md
+cat docs/ETAT_ACTUEL_PROJET.md       # lire section "Fonctionnalités — état réel"
 git status
 ```
 
@@ -35,7 +35,7 @@ frontend/src/services/shippingService.js
 ```
 
 ## TÂCHES DE LA SESSION DU 2026-06-27/28 (historique)
-> T6-01, T6-02, T6-03, T6-05 sont DONE (voir `PLAN_CORRECTION_AUDIT.md`). Seule T6-04
+> T6-01, T6-02, T6-03, T6-05 sont DONE (voir `docs/PLAN_CORRECTION_AUDIT.md`). Seule T6-04
 > (validation import produits Excel côté backend) reste `TODO`. Ne pas re-exécuter les
 > tâches DONE — conservées ici comme référence des patterns utilisés.
 

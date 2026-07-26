@@ -10,8 +10,8 @@ c'est un e-commerce qui reçoit une mise en demeure.
 
 ## LECTURE OBLIGATOIRE AVANT TOUTE ACTION
 ```bash
-cat CLAUDE_WORKFLOW.md
-cat ETAT_ACTUEL_PROJET.md
+cat docs/CLAUDE_WORKFLOW.md
+cat docs/ETAT_ACTUEL_PROJET.md
 cat docs/audit-finalisation/08_STRIPE_PAIEMENTS.md   # audit Stripe complet
 git status
 ```
@@ -20,7 +20,7 @@ git status
 
 > ⚠️ **Stripe a été entièrement retiré du projet** (décision client T4-07, 2026-07-02).
 > Toute la section ci-dessous (T4-01 à T4-06) est **historique** : ces tâches sont
-> `CANCELLED` dans `PLAN_CORRECTION_AUDIT.md`. Fichiers supprimés à cette occasion :
+> `CANCELLED` dans `docs/PLAN_CORRECTION_AUDIT.md`. Fichiers supprimés à cette occasion :
 > `payment.service.js`, `payment.controller.js`, `payment.routes.js`, `webhook.routes.js`,
 > `config/stripe.js`, `frontend/src/services/paymentService.js`,
 > `PaymentSuccessPage.jsx`, `PaymentCancelPage.jsx`. Package npm `stripe` désinstallé.
@@ -30,7 +30,7 @@ git status
 positionnés **manuellement par un admin** via `POST /api/admin/orders/:id/refund` et
 `PATCH .../payment-status` (`backend/src/routes/admin.order.routes.js`), tracés dans
 `audit_log` (colonnes `montant_rembourse` + statuts `REMBOURSE`/`PARTIELLEMENT_REMBOURSE`
-conservés sur `commande`, indépendamment de tout webhook). Voir `ETAT_ACTUEL_PROJET.md`
+conservés sur `commande`, indépendamment de tout webhook). Voir `docs/ETAT_ACTUEL_PROJET.md`
 DM-07 pour la décision produit complète.
 
 Si Stripe (ou un autre PSP) devait être réintroduit un jour, ce serait une **nouvelle

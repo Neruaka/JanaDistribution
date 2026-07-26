@@ -12,4 +12,4 @@
 > elle-même reste correcte si ce service devait être réintroduit un jour) mais ne doit
 > plus être suivi pour la configuration actuelle du projet.
 
-Voir `ETAT_ACTUEL_PROJET.md` et `PLAN_CORRECTION_AUDIT.md` pour l'état réel à jour.
+Voir `docs/ETAT_ACTUEL_PROJET.md` et `docs/PLAN_CORRECTION_AUDIT.md` pour l'état réel à jour.

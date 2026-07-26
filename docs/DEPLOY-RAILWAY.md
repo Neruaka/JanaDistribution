@@ -1,8 +1,8 @@
 # Déploiement Railway — Jana Distribution
 
-> ⚠️ **OBSOLÈTE (2026-07-26)** — Railway n'est plus le chemin critique vers la production. La migration vers un homeserver auto-géré (`tfredklab.dev`) est en cours (Phase 11, `PLAN_CORRECTION_AUDIT.md`) — voir `DEPLOY-HOMESERVER.md`. Ce document est conservé comme référence historique le temps que Railway reste actif en parallèle (T11-09, cutover non encore validé). Ne pas suivre cette procédure pour un nouveau déploiement.
+> ⚠️ **OBSOLÈTE (2026-07-26)** — Railway n'est plus le chemin critique vers la production. La migration vers un homeserver auto-géré (`tfredklab.dev`) est en cours (Phase 11, `docs/PLAN_CORRECTION_AUDIT.md`) — voir `docs/DEPLOY-HOMESERVER.md`. Ce document est conservé comme référence historique le temps que Railway reste actif en parallèle (T11-09, cutover non encore validé). Ne pas suivre cette procédure pour un nouveau déploiement.
 >
-> ⚠️ **Sections Stripe obsolètes** — Stripe a été entièrement retiré du MVP (décision client T4-07, 2026-07-02). Les étapes/variables liées à Stripe (webhook, `STRIPE_SECRET_KEY`, cartes de test) mentionnées dans ce document ne s'appliquent plus. Paiement actuel : ESPECES/VIREMENT/CHEQUE, statut positionné manuellement par un admin. Voir `ETAT_ACTUEL_PROJET.md` pour l'état réel à jour.
+> ⚠️ **Sections Stripe obsolètes** — Stripe a été entièrement retiré du MVP (décision client T4-07, 2026-07-02). Les étapes/variables liées à Stripe (webhook, `STRIPE_SECRET_KEY`, cartes de test) mentionnées dans ce document ne s'appliquent plus. Paiement actuel : ESPECES/VIREMENT/CHEQUE, statut positionné manuellement par un admin. Voir `docs/ETAT_ACTUEL_PROJET.md` pour l'état réel à jour.
 
 Procédure pas-à-pas pour mettre en ligne le backend Node + Postgres + Redis et le
 frontend React/Vite sur [Railway](https://railway.app).

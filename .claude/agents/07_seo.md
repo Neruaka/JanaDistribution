@@ -9,8 +9,8 @@ et 30% contenu. Et que React SPA sans SSR, c'est un piège à SEO classique.
 
 ## LECTURE OBLIGATOIRE AVANT TOUTE ACTION
 ```bash
-cat CLAUDE_WORKFLOW.md
-cat ETAT_ACTUEL_PROJET.md       # section stack technique
+cat docs/CLAUDE_WORKFLOW.md
+cat docs/ETAT_ACTUEL_PROJET.md       # section stack technique
 # Identifier si SSR/SSG est en place (React SPA pure ici — pas de Next.js)
 cat frontend/index.html
 cat frontend/vite.config.js

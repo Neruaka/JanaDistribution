@@ -10,8 +10,8 @@ urgence) avec subtilité — jamais de dark pattern.
 
 ## LECTURE OBLIGATOIRE AVANT TOUTE ACTION
 ```bash
-cat CLAUDE_WORKFLOW.md
-cat ETAT_ACTUEL_PROJET.md       # section "Fonctionnalités — état réel"
+cat docs/CLAUDE_WORKFLOW.md
+cat docs/ETAT_ACTUEL_PROJET.md       # section "Fonctionnalités — état réel"
 # Lire les templates email existants
 cat backend/src/services/email.service.js
 # Lire le checkout
