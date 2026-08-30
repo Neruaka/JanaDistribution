@@ -230,14 +230,16 @@ class OrderService {
    * @returns {Object} Liste des commandes avec pagination
    */
   async getUserOrders(userId, options = {}) {
-    const { page = 1, limit = 10, statut } = options;
-    
+    const { page = 1, limit = 10, statut, dateDebut, dateFin, orderBy = 'createdAt', orderDir = 'DESC' } = options;
+
     const result = await orderRepository.findByUser(userId, {
       page,
       limit,
       statut,
-      orderBy: 'createdAt',
-      orderDir: 'DESC'
+      dateDebut,
+      dateFin,
+      orderBy,
+      orderDir
     });
     
     return result;

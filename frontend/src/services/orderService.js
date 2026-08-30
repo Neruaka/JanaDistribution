@@ -118,6 +118,8 @@ export const getUserOrders = async (options = {}) => {
   if (options.page) params.append('page', options.page);
   if (options.limit) params.append('limit', options.limit);
   if (options.statut) params.append('statut', options.statut);
+  if (options.dateDebut) params.append('dateDebut', options.dateDebut);
+  if (options.dateFin) params.append('dateFin', options.dateFin);
   if (options.orderBy) params.append('orderBy', options.orderBy);
   if (options.orderDir) params.append('orderDir', options.orderDir);
 

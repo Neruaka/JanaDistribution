@@ -48,12 +48,16 @@ const createOrder = async (req, res, next) => {
 const getUserOrders = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const { page, limit, statut } = req.query;
-    
+    const { page, limit, statut, dateDebut, dateFin, orderBy, orderDir } = req.query;
+
     const result = await orderService.getUserOrders(userId, {
       page: parseInt(page) || 1,
       limit: parseInt(limit) || 10,
-      statut
+      statut,
+      dateDebut,
+      dateFin,
+      orderBy,
+      orderDir
     });
     
     res.json({
