@@ -27,6 +27,7 @@ const productService = {
       maxPrice,
       enStock,
       estActif,
+      estMisEnAvant,
       orderBy = 'createdAt',
       orderDir = 'DESC',
       labels
@@ -36,13 +37,14 @@ const productService = {
     const queryParams = new URLSearchParams();
     queryParams.append('page', page);
     queryParams.append('limit', limit);
-    
+
     if (categorieId) queryParams.append('categorieId', categorieId);
     if (search) queryParams.append('search', search);
     if (minPrice) queryParams.append('minPrice', minPrice);
     if (maxPrice) queryParams.append('maxPrice', maxPrice);
     if (enStock !== undefined) queryParams.append('enStock', enStock);
     if (estActif !== undefined) queryParams.append('estActif', estActif);
+    if (estMisEnAvant !== undefined) queryParams.append('estMisEnAvant', estMisEnAvant);
     if (orderBy) queryParams.append('orderBy', orderBy);
     if (orderDir) queryParams.append('orderDir', orderDir);
     if (labels) queryParams.append('labels', labels);
