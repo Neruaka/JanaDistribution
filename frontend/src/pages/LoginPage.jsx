@@ -1,41 +1,44 @@
-﻿/**
- * Page de Connexion - Version modernisée avec animations et améliorations UX
- * @description Formulaire de connexion avec animations
- * @location frontend/src/pages/LoginPage.jsx
- * @description Formulaire de connexion avec animations
+/**
+ * Page de connexion
+ * @description Écran 06 — Connexion / Inscription (état "Se connecter")
+ * @see design_handoff_jana_refonte/README.md
  */
 
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { motion } from 'framer-motion';
-import { Mail, Lock, Eye, EyeOff, LogIn, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Checkbox from '../components/Checkbox';
+
+const ARGS_COMPTE = [
+  { titre: 'Mêmes prix pour tous', desc: 'Particuliers et professionnels achètent aux mêmes tarifs, sans carte de grossiste.' },
+  { titre: 'Livraison 24–48 h', desc: 'En Île-de-France, du lundi au samedi.' },
+  { titre: 'Devis, sans paiement en ligne', desc: 'Réglé à la livraison — aucune carte bancaire requise pour commander.' },
+  { titre: 'Compte professionnel', desc: 'Facturation mensuelle et paiement à 30 jours, sur validation du SIRET.' }
+];
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, error, clearError } = useAuth();
 
-  const [formData, setFormData] = useState({
-    email: '',
-    motDePasse: ''
-  });
+  const [formData, setFormData] = useState({ email: '', motDePasse: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const from = location.state?.from?.pathname || '/';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (error) clearError();
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
       await login(formData.email, formData.motDePasse);
       toast.success('Connexion réussie !');
@@ -48,216 +51,125 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left side - Form */}
-      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-white">
-        <motion.div 
-          className="max-w-md w-full space-y-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          {/* Header */}
-          <div className="text-center">
-            <Link to="/" className="inline-flex items-center gap-2 text-2xl font-bold text-green-600 hover:text-green-700 transition-colors">
-              <span className="text-3xl">🥬</span>
-              Jana Distribution
-            </Link>
-            <motion.h2 
-              className="mt-8 text-3xl font-bold text-gray-900"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-            >
-              Bon retour !
-            </motion.h2>
-            <motion.p 
-              className="mt-2 text-gray-600"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              Connectez-vous pour accéder à votre compte
-            </motion.p>
-          </div>
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 font-sans">
+      {/* Gauche — formulaire */}
+      <div className="bg-white flex flex-col justify-center px-6 sm:px-10 lg:px-[72px] py-14 gap-[22px]">
+        <div className="max-w-[420px] w-full mx-auto lg:mx-0">
+          <Link to="/" className="flex items-center gap-[11px] mb-7">
+            <div className="w-8 h-8 rounded-6 bg-green-700 flex items-center justify-center text-white font-display font-extrabold text-[16px]">J</div>
+            <span className="font-display font-extrabold text-[18px] tracking-tight text-ink-900">JANA DISTRIBUTION</span>
+          </Link>
 
-          {/* Form */}
-          <motion.form 
-            className="mt-8 space-y-6" 
-            onSubmit={handleSubmit}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            <div className="space-y-5">
-              {/* Email */}
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Adresse email
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:border-green-400"
-                    placeholder="vous@exemple.fr"
-                  />
-                </div>
+          <h1 className="font-display text-[32px] font-extrabold tracking-tighter text-ink-900">Se connecter</h1>
+          <p className="text-[14.5px] text-graphite-600 mt-1.5 mb-6">Retrouvez vos listes, vos tarifs et l'historique de vos commandes.</p>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="email" className="text-[12.5px] text-graphite-600">Adresse email</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="vous@exemple.fr"
+                className="border border-sand-250 rounded-6 h-12 px-3.5 text-[14.5px] text-ink-900 placeholder:text-graphite-200 focus:outline-none focus:border-ink-900 transition-colors"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <div className="flex justify-between">
+                <label htmlFor="motDePasse" className="text-[12.5px] text-graphite-600">Mot de passe</label>
+                <Link to="/mot-de-passe-oublie" className="text-[12.5px] text-green-700 hover:text-green-800">Oublié ?</Link>
               </div>
-
-              {/* Password */}
-              <div>
-                <label htmlFor="motDePasse" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Mot de passe
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="motDePasse"
-                    name="motDePasse"
-                    type={showPassword ? 'text' : 'password'}
-                    autoComplete="current-password"
-                    required
-                    value={formData.motDePasse}
-                    onChange={handleChange}
-                    className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:border-green-400"
-                    placeholder="******************"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
-                    aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
-                  >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
+              <div className="relative">
+                <input
+                  id="motDePasse"
+                  name="motDePasse"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  required
+                  value={formData.motDePasse}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  className="w-full border border-sand-250 rounded-6 h-12 pl-3.5 pr-11 text-[16px] tracking-[0.18em] text-ink-900 placeholder:text-graphite-200 focus:outline-none focus:border-ink-900 transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-graphite-300 hover:text-graphite-600"
+                  aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                >
+                  {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
+                </button>
               </div>
             </div>
 
-            {/* Error message */}
             {error && (
-              <motion.div 
-                className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
+              <div className="bg-danger-bg border border-danger-border text-danger-text px-3.5 py-2.5 rounded-6 text-[13px]">
                 {error}
-              </motion.div>
+              </div>
             )}
 
-            {/* Options */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded transition-colors"
-                />
-                <span className="ml-2 text-sm text-gray-600">Se souvenir de moi</span>
-              </label>
-              <Link to="/mot-de-passe-oublie" className="text-sm font-medium text-green-600 hover:text-green-500 transition-colors">
-                Mot de passe oublié ?
-              </Link>
-            </div>
+            <button type="button" onClick={() => setRememberMe((v) => !v)} className="flex items-center gap-2.5 text-left">
+              <Checkbox checked={rememberMe} />
+              <span className="text-[13.5px] text-graphite-700">Rester connecté sur cet appareil</span>
+            </button>
 
-            {/* Submit button */}
-            <motion.button
+            <button
               type="submit"
               disabled={isSubmitting}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              className={`group w-full flex items-center justify-center gap-2 py-3.5 px-4 border border-transparent rounded-xl text-base font-semibold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 shadow-lg hover:shadow-xl ${
-                isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
-              }`}
+              className="h-[50px] bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white rounded-6 text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
             >
-              {isSubmitting ? (
-                <>
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Connexion...
-                </>
-              ) : (
-                <>
-                  <LogIn className="h-5 w-5" />
-                  Se connecter
-                  <ArrowRight className="h-5 w-5 opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all" />
-                </>
-              )}
-            </motion.button>
+              {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+              Se connecter
+            </button>
 
-            {/* Sign up link */}
-            <p className="text-center text-sm text-gray-600">
+            <p className="text-center text-[13.5px] text-graphite-600">
               Pas encore de compte ?{' '}
-              <Link to="/register" className="font-semibold text-green-600 hover:text-green-500 transition-colors">
-                Créer un compte
-              </Link>
+              <Link to="/register" className="font-semibold text-green-700 hover:text-green-800">Créer un compte</Link>
             </p>
-          </motion.form>
-        </motion.div>
+          </form>
+        </div>
       </div>
 
-      {/* Right side - Illustration */}
-      <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-green-600 via-green-700 to-emerald-800 relative overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute inset-0">
-          <div className="absolute top-20 right-20 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 left-20 w-72 h-72 bg-emerald-500/20 rounded-full blur-3xl" />
+      {/* Droite — argumentaire compte */}
+      <div className="bg-ink-900 flex flex-col justify-center px-6 sm:px-10 lg:px-[72px] py-14 gap-[26px]">
+        <div>
+          <span className="font-mono text-[11.5px] tracking-wider text-accent-light">CRÉER UN COMPTE</span>
+          <h2 className="font-display text-[26px] sm:text-[30px] font-extrabold tracking-tighter text-white mt-3 leading-[1.15]">
+            Particulier ou professionnel,<br />les mêmes prix.
+          </h2>
         </div>
-        
-        <div className="relative flex items-center justify-center w-full p-12">
-          <motion.div 
-            className="text-center text-white"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-          >
-            <div className="mb-8">
-              <div className="inline-flex items-center justify-center w-24 h-24 bg-white/10 backdrop-blur rounded-3xl mb-6">
-                <span className="text-6xl">🧬</span>
+
+        <div className="flex flex-col gap-px bg-ink-600 border border-ink-600 rounded-8 overflow-hidden">
+          {ARGS_COMPTE.map((arg, index) => (
+            <div key={arg.titre} className="bg-ink-800 px-[18px] py-4 flex gap-3.5 items-start">
+              <span className="font-mono text-[12px] text-accent-light mt-0.5">{index + 1}</span>
+              <div>
+                <div className="text-[14.5px] font-semibold text-white">{arg.titre}</div>
+                <div className="text-[13px] text-mist-2 mt-1 leading-[1.5]">{arg.desc}</div>
               </div>
-              <h3 className="text-3xl font-bold mb-4">Votre grossiste de confiance</h3>
-              <p className="text-green-100 text-lg max-w-md mx-auto">
-                Accédez à des milliers de produits frais et de qualité pour votre commerce ou votre foyer.
-              </p>
             </div>
-            
-            <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
-              {[
-                { icon: '📦', text: '+500 produits' },
-                { icon: '🚚', text: 'Livraison 24h' },
-                { icon: '💰', text: 'Prix grossiste' },
-                { icon: '✅', text: 'Qualité garantie' },
-              ].map((item, i) => (
-                <motion.div
-                  key={i}
-                  className="bg-white/10 backdrop-blur rounded-xl p-4"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 + i * 0.1 }}
-                >
-                  <span className="text-2xl block mb-1">{item.icon}</span>
-                  <span className="text-sm font-medium">{item.text}</span>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
+          ))}
         </div>
+
+        <div className="flex gap-2.5 flex-wrap">
+          <Link to="/register?type=PARTICULIER" className="bg-green-700 hover:bg-green-800 text-white text-[14.5px] font-semibold px-[22px] py-[13px] rounded-6 transition-colors">
+            Compte particulier
+          </Link>
+          <Link to="/register?type=PROFESSIONNEL" className="border border-ink-500 hover:bg-white/5 text-white text-[14.5px] font-semibold px-[22px] py-[13px] rounded-6 transition-colors">
+            Compte professionnel
+          </Link>
+        </div>
+        <p className="text-[12.5px] text-mist-4 leading-[1.6]">
+          Compte pro : SIRET requis, facturation mensuelle et paiement à 30 jours après validation par notre équipe.
+        </p>
       </div>
     </div>
   );
 };
 
 export default LoginPage;
-
