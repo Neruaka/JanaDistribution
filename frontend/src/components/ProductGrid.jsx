@@ -1,94 +1,60 @@
 /**
  * Composant ProductGrid
- * @description Grille responsive de produits avec états loading/empty
+ * @description Grille responsive de produits (ProductCard) avec états loading/vide
  */
 
-import { motion } from 'framer-motion';
 import ProductCard from './ProductCard';
 
-const ProductGrid = ({ 
-  products = [], 
-  loading = false, 
-  onAddToCart,
-  emptyMessage = "Aucun produit trouvé",
-  columns = 4 // 2, 3, 4 ou 5
-}) => {
-  // Classes de grille selon le nombre de colonnes
-  const gridCols = {
-    2: 'grid-cols-1 sm:grid-cols-2',
-    3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
-    4: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
-    5: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
-  };
+const gridColsClass = {
+  2: 'grid-cols-1 sm:grid-cols-2',
+  3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+  4: 'grid-cols-2 lg:grid-cols-4',
+  5: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5'
+};
 
-  // Skeleton loader
-  const SkeletonCard = () => (
-    <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100 animate-pulse">
-      <div className="aspect-square bg-gray-200" />
-      <div className="p-4 space-y-3">
-        <div className="h-3 bg-gray-200 rounded w-1/3" />
-        <div className="h-5 bg-gray-200 rounded w-3/4" />
-        <div className="h-4 bg-gray-200 rounded w-full" />
-        <div className="flex justify-between items-center mt-4">
-          <div className="h-6 bg-gray-200 rounded w-1/3" />
-          <div className="h-10 w-10 bg-gray-200 rounded-xl" />
-        </div>
-      </div>
+const SkeletonCard = ({ imageHeight }) => (
+  <div className="bg-white border border-sand-200 rounded-8 overflow-hidden animate-pulse">
+    <div className="bg-sand-100" style={{ height: imageHeight }} />
+    <div className="px-[13px] py-3 space-y-2">
+      <div className="h-2.5 w-1/3 bg-sand-100 rounded" />
+      <div className="h-4 w-3/4 bg-sand-100 rounded" />
+      <div className="h-5 w-1/2 bg-sand-100 rounded mt-2" />
     </div>
-  );
+  </div>
+);
 
-  // État loading
+const ProductGrid = ({
+  products = [],
+  loading = false,
+  emptyMessage = 'Aucun produit trouvé',
+  columns = 4,
+  imageHeight = 150
+}) => {
   if (loading) {
     return (
-      <div className={`grid ${gridCols[columns]} gap-6`}>
-        {Array.from({ length: 8 }).map((_, index) => (
-          <SkeletonCard key={index} />
+      <div className={`grid ${gridColsClass[columns]} gap-[14px]`}>
+        {Array.from({ length: columns * 2 }).map((_, index) => (
+          <SkeletonCard key={index} imageHeight={imageHeight} />
         ))}
       </div>
     );
   }
 
-  // État vide
   if (products.length === 0) {
     return (
-      <motion.div 
-        className="flex flex-col items-center justify-center py-16 text-center"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <div className="text-6xl mb-4">🔍</div>
-        <h3 className="text-xl font-semibold text-gray-700 mb-2">
-          {emptyMessage}
-        </h3>
-        <p className="text-gray-500 max-w-md">
-          Essayez de modifier vos filtres ou d'effectuer une nouvelle recherche.
-        </p>
-      </motion.div>
+      <div className="flex flex-col items-center justify-center py-16 text-center bg-white border border-sand-200 rounded-8">
+        <p className="text-[15px] font-semibold text-ink-900 mb-1">{emptyMessage}</p>
+        <p className="text-[13px] text-graphite-500">Essayez de modifier vos filtres ou votre recherche.</p>
+      </div>
     );
   }
 
-  // Affichage de la grille
   return (
-    <motion.div 
-      className={`grid ${gridCols[columns]} gap-6`}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-    >
-      {products.map((product, index) => (
-        <motion.div
-          key={product.id}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.05, duration: 0.3 }}
-        >
-          <ProductCard 
-            product={product} 
-            onAddToCart={onAddToCart}
-          />
-        </motion.div>
+    <div className={`grid ${gridColsClass[columns]} gap-[14px]`}>
+      {products.map((product) => (
+        <ProductCard key={product.id} product={product} imageHeight={imageHeight} />
       ))}
-    </motion.div>
+    </div>
   );
 };
 
