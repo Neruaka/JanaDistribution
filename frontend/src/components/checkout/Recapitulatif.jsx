@@ -1,38 +1,19 @@
 /**
- * Composant Recapitulatif
- * Sidebar du checkout - Récapitulatif panier, CGV et validation
+ * Récapitulatif — colonne droite du checkout ("Votre commande")
+ * Le code promo est appliqué sur la page panier ; ici on ne fait que refléter le
+ * rabais déjà validé (pas de second champ de saisie, absent de la maquette).
+ * @see design_handoff_jana_refonte/README.md ("05 — Checkout")
  */
 
-import { Link } from 'react-router-dom';
-import {
-  ShoppingCart,
-  Package,
-  Truck,
-  CheckCircle,
-  AlertCircle,
-  FileText,
-  Loader2,
-  Tag,
-  X
-} from 'lucide-react';
+import { AlertCircle, Loader2, FileText } from 'lucide-react';
+import Checkbox from '../Checkbox';
+import { getImageUrl } from '../../utils/imageUtils';
+import { formatAmount } from '../../utils/priceUtils';
 
-/**
- * @param {string} codePromo - Valeur saisie dans le champ code promo
- * @param {Object|null} codePromoValide - Données retournées par l'API si le code est validé
- *   { code, type_rabais, valeur_rabais, montant_rabais, total_apres_rabais, message }
- * @param {boolean} codePromoLoading - Appel de validation en cours
- * @param {string} codePromoError - Message d'erreur de validation (vide si aucune erreur)
- * @param {(value: string) => void} onCodePromoChange - Handler de saisie du champ
- * @param {() => void} onAppliquerCodePromo - Handler du bouton "Appliquer"
- * @param {() => void} onRetirerCodePromo - Handler du bouton "Retirer"
- */
 const Recapitulatif = ({
   items,
-  itemCount,
   subtotalHT,
   totalTVA,
-  totalTTC,
-  savings,
   fraisLivraison,
   shippingInfo,
   shippingLoading,
@@ -41,234 +22,100 @@ const Recapitulatif = ({
   errors,
   onChange,
   isSubmitting,
-  formatPrice,
-  codePromo = '',
-  codePromoValide = null,
-  codePromoLoading = false,
-  codePromoError = '',
-  onCodePromoChange = () => {},
-  onAppliquerCodePromo = () => {},
-  onRetirerCodePromo = () => {}
+  codePromoValide
 }) => {
+  const totalFinal = codePromoValide ? codePromoValide.total_apres_rabais : totalCommande;
+
   return (
-    <div className="lg:col-span-1">
-      <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-24">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <ShoppingCart className="w-5 h-5 text-gray-400" />
-          Récapitulatif ({itemCount} article{itemCount > 1 ? 's' : ''})
-        </h2>
+    <div className="bg-white border border-sand-200 rounded-8 p-[18px]">
+      <div className="font-display text-[16px] font-bold text-ink-900 mb-3.5">Votre commande</div>
 
-        {/* Liste produits */}
-        <div className="space-y-3 max-h-64 overflow-y-auto mb-4 pr-2">
-          {items.map((item) => (
-            <div key={item.id} className="flex gap-3">
-              <div className="w-12 h-12 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
-                {item.product?.image ? (
-                  <img 
-                    src={item.product.image} 
-                    alt={item.product?.name || 'Produit'} 
-                    className="w-full h-full object-cover" 
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Package className="w-5 h-5 text-gray-400" />
-                  </div>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-800 truncate">
-                  {item.product?.name || 'Produit'}
-                </p>
-                <p className="text-xs text-gray-500">Qté: {item.quantity}</p>
-              </div>
-              <p className="text-sm font-semibold text-gray-800">
-                {formatPrice(item.subtotal || (item.effectivePrice * item.quantity) || 0)}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {/* Code promo */}
-        <div className="border-t border-gray-100 pt-4 mb-2">
-          <label className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-            <Tag className="w-4 h-4 text-gray-400" />
-            Code promo
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={codePromo}
-              onChange={(e) => onCodePromoChange(e.target.value.toUpperCase())}
-              disabled={!!codePromoValide || codePromoLoading}
-              placeholder="Ex: LCD-10"
-              className="flex-1 min-w-0 px-3 py-2 border border-gray-200 rounded-lg text-sm uppercase focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-50 disabled:text-gray-500"
-            />
-            {codePromoValide ? (
-              <button
-                type="button"
-                onClick={onRetirerCodePromo}
-                className="px-3 py-2 flex items-center gap-1 text-sm font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
-              >
-                <X className="w-4 h-4" />
-                Retirer
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={onAppliquerCodePromo}
-                disabled={!codePromo.trim() || codePromoLoading}
-                className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
-              >
-                {codePromoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Appliquer'}
-              </button>
-            )}
-          </div>
-          {codePromoError && (
-            <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              {codePromoError}
-            </p>
-          )}
-          {codePromoValide && (
-            <div className="mt-2 flex items-start gap-2 p-2 bg-green-50 border border-green-100 rounded-lg text-sm text-green-700">
-              <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <span>{codePromoValide.message}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Totaux */}
-        <div className="space-y-2 border-t border-gray-100 pt-4">
-          <div className="flex justify-between text-gray-600">
-            <span>Sous-total HT</span>
-            <span>{formatPrice(subtotalHT)}</span>
-          </div>
-          <div className="flex justify-between text-gray-600">
-            <span>TVA</span>
-            <span>{formatPrice(totalTVA)}</span>
-          </div>
-          {savings > 0 && (
-            <div className="flex justify-between text-green-600">
-              <span>Économies</span>
-              <span>-{formatPrice(savings)}</span>
-            </div>
-          )}
-          <div className="flex justify-between text-gray-600">
-            <span className="flex items-center gap-1">
-              <Truck className="w-4 h-4" />
-              Livraison
-              {shippingInfo?.distanceKm != null && !shippingInfo?.horsZone && (
-                <span className="ml-1 text-xs text-gray-400">
-                  ({shippingInfo.distanceKm} km)
-                </span>
+      <div className="max-h-64 overflow-y-auto -mx-1 px-1">
+        {items.map((item) => (
+          <div key={item.id} className="flex gap-2.5 py-2.5 border-b border-[#F0EEE7] last:border-b-0 items-center">
+            <div className="w-11 h-11 rounded-4 flex-shrink-0 overflow-hidden placeholder-stripe">
+              {getImageUrl(item.product?.image) && (
+                <img src={getImageUrl(item.product.image)} alt="" className="w-full h-full object-cover" />
               )}
-            </span>
-            <span>
-              {shippingLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin inline" />
-              ) : shippingInfo?.francoAtteint ? (
-                <span className="text-green-600">Offerte</span>
-              ) : (
-                formatPrice(fraisLivraison)
-              )}
-            </span>
-          </div>
-          {shippingInfo?.horsZone && (
-            <div className="flex items-start gap-2 p-2 bg-red-50 border border-red-100 rounded-lg text-xs text-red-700">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <span>
-                Adresse hors zone de livraison
-                (distance &gt; {shippingInfo.distanceMaxKm} km).
-              </span>
             </div>
-          )}
-          {shippingInfo?.geocodageEchoue && (
-            <p className="text-xs text-amber-600 flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" />
-              Adresse non géolocalisée — tarif standard appliqué.
-            </p>
-          )}
-          {codePromoValide && (
-            <div className="flex justify-between text-green-600">
-              <span>Réduction ({codePromoValide.code})</span>
-              <span>-{formatPrice(codePromoValide.montant_rabais)}</span>
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-semibold text-ink-900 leading-[1.3] truncate">{item.product?.name}</div>
+              <div className="font-mono text-[11.5px] text-graphite-300">{item.product?.reference} · ×{item.quantity}</div>
             </div>
-          )}
-          <div className="flex justify-between text-xl font-bold text-gray-800 pt-3 border-t border-gray-200">
-            <span>Total {codePromoValide ? 'après réduction' : 'TTC'}</span>
-            <span className="text-green-600">
-              {formatPrice(codePromoValide ? codePromoValide.total_apres_rabais : totalCommande)}
-            </span>
+            <span className="font-mono text-[13px] text-ink-900 flex-shrink-0">{formatAmount(item.subtotal)}</span>
           </div>
-        </div>
-
-        {/* CGV et bouton (desktop) */}
-        <div className="hidden lg:block mt-6 pt-6 border-t border-gray-100">
-          {/* CGV */}
-          <div className={`mb-4 ${errors.acceptCGV ? 'error-field' : ''}`}>
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.acceptCGV}
-                onChange={(e) => onChange('acceptCGV', e.target.checked)}
-                className="w-5 h-5 text-green-600 rounded focus:ring-green-500 mt-0.5"
-              />
-              <span className="text-sm text-gray-600">
-                J'accepte les{' '}
-                <Link to="/cgv" className="text-green-600 hover:underline" target="_blank" rel="noopener noreferrer">
-                  CGV
-                </Link>{' '}
-                et la{' '}
-                <Link to="/confidentialite" className="text-green-600 hover:underline" target="_blank" rel="noopener noreferrer">
-                  politique de confidentialité
-                </Link>
-                . <span className="text-red-500">*</span>
-              </span>
-            </label>
-            {errors.acceptCGV && (
-              <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                <AlertCircle className="w-4 h-4" />
-                {errors.acceptCGV}
-              </p>
-            )}
-          </div>
-
-          {/* Bouton validation */}
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Traitement...
-              </>
-            ) : (
-              <>
-                <FileText className="w-5 h-5" />
-                Valider ma commande
-              </>
-            )}
-          </button>
-
-          <p className="text-xs text-gray-500 text-center mt-3">
-            Un devis vous sera envoyé par email
-          </p>
-        </div>
-
-        {/* Info sécurité */}
-        <div className="mt-4 pt-4 border-t border-gray-100">
-          <div className="flex items-center gap-2 text-gray-500 text-xs">
-            <CheckCircle className="w-4 h-4 text-green-500" />
-            <span>Données sécurisées</span>
-          </div>
-          <div className="flex items-center gap-2 text-gray-500 text-xs mt-1">
-            <CheckCircle className="w-4 h-4 text-green-500" />
-            <span>Paiement selon le mode choisi</span>
-          </div>
-        </div>
+        ))}
       </div>
+
+      <div className="flex justify-between pt-2.5 text-[13.5px]">
+        <span className="text-graphite-600">Sous-total HT</span>
+        <span className="font-mono text-ink-900">{formatAmount(subtotalHT)}</span>
+      </div>
+      <div className="flex justify-between py-1.5 text-[13.5px]">
+        <span className="text-graphite-600">TVA</span>
+        <span className="font-mono text-ink-900">{formatAmount(totalTVA)}</span>
+      </div>
+      {codePromoValide && (
+        <div className="flex justify-between py-1.5 text-[13.5px]">
+          <span className="text-graphite-600">Remise ({codePromoValide.code})</span>
+          <span className="font-mono text-green-700">−{formatAmount(codePromoValide.montant_rabais)}</span>
+        </div>
+      )}
+      <div className="flex justify-between py-1.5 text-[13.5px] border-b border-[#F0EEE7]">
+        <span className="text-graphite-600 flex items-center gap-1">
+          Livraison
+          {shippingInfo?.distanceKm != null && !shippingInfo?.horsZone && (
+            <span className="text-[11px] text-graphite-300">({shippingInfo.distanceKm} km)</span>
+          )}
+        </span>
+        <span className="font-mono text-ink-900">
+          {shippingLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : shippingInfo?.francoAtteint ? <span className="text-green-700">Offerte</span> : formatAmount(fraisLivraison)}
+        </span>
+      </div>
+
+      {shippingInfo?.horsZone && (
+        <div className="flex items-start gap-2 mt-2 p-2.5 bg-danger-bg border border-danger-border rounded-5 text-[12px] text-danger-text">
+          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+          <span>Adresse hors zone de livraison (max {shippingInfo.distanceMaxKm} km).</span>
+        </div>
+      )}
+      {shippingInfo?.geocodageEchoue && (
+        <p className="text-[11.5px] text-warning-text mt-1.5 flex items-center gap-1">
+          <AlertCircle className="w-3 h-3" /> Adresse non géolocalisée — tarif standard appliqué.
+        </p>
+      )}
+
+      <div className="flex justify-between items-baseline pt-3.5">
+        <span className="font-display text-[16px] font-bold text-ink-900">Total à régler</span>
+        <span className="font-mono text-[25px] font-semibold text-ink-900">{formatAmount(totalFinal)}</span>
+      </div>
+
+      <button
+        type="button"
+        aria-label="Accepter les CGV et la politique de confidentialité"
+        aria-pressed={formData.acceptCGV}
+        onClick={() => onChange('acceptCGV', !formData.acceptCGV)}
+        className={`flex items-start gap-2.5 mt-3.5 text-left ${errors.acceptCGV ? 'error-field' : ''}`}
+      >
+        <Checkbox checked={formData.acceptCGV} className="mt-0.5" />
+        <span className="text-[12.5px] text-graphite-600 leading-[1.5]">
+          J'accepte les <a href="/cgv" target="_blank" rel="noopener noreferrer" className="text-green-700 hover:text-green-800" onClick={(e) => e.stopPropagation()}>CGV</a> et la{' '}
+          <a href="/confidentialite" target="_blank" rel="noopener noreferrer" className="text-green-700 hover:text-green-800" onClick={(e) => e.stopPropagation()}>politique de confidentialité</a>.
+        </span>
+      </button>
+      {errors.acceptCGV && (
+        <p className="text-[12px] text-danger-text flex items-center gap-1 mt-1.5"><AlertCircle className="w-3.5 h-3.5" /> {errors.acceptCGV}</p>
+      )}
+
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full mt-3 h-[50px] bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white rounded-6 text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
+      >
+        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+        Recevoir mon devis
+      </button>
+      <p className="text-[12px] text-graphite-300 text-center mt-2">Sans engagement — vous confirmez après réception du devis</p>
     </div>
   );
 };

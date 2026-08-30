@@ -1,90 +1,36 @@
 /**
- * Composant MoyenPaiement
- * Section 4 du checkout - Mode de paiement prévu
+ * Règlement à la livraison — étape du checkout
+ * Pas de paiement en ligne (Stripe retiré du MVP) : ESPECES / VIREMENT / CHEQUE uniquement.
+ * @see design_handoff_jana_refonte/README.md ("05 — Checkout")
  */
 
-import { motion } from 'framer-motion';
-import {
-  Banknote,
-  CreditCard,
-  Building2,
-  Receipt,
-  CheckCircle
-} from 'lucide-react';
+import Instructions from './Instructions';
 
-// Icônes pour les modes de paiement
-const PAIEMENT_ICONS = {
-  ESPECES: Banknote,
-  VIREMENT: Building2,
-  CHEQUE: Receipt
-};
+const MoyenPaiement = ({ formData, onChange, modesPaiement }) => (
+  <div className="bg-white border border-sand-200 rounded-8 p-5">
+    <div className="font-display text-[16px] font-bold text-ink-900 mb-1">Règlement à la livraison</div>
+    <p className="text-[13px] text-graphite-500 mb-3.5">Indiquez le mode prévu, aucun débit maintenant.</p>
 
-const MoyenPaiement = ({ 
-  formData, 
-  onChange, 
-  modesPaiement,
-  stepNumber = 4 
-}) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 }}
-      className="bg-white rounded-2xl shadow-sm p-6"
-    >
-      <h2 className="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
-        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-          <span className="text-green-600 font-bold text-sm">{stepNumber}</span>
-        </div>
-        <Banknote className="w-5 h-5 text-gray-400" />
-        Mode de paiement prévu
-      </h2>
-      <p className="text-sm text-gray-500 mb-4 ml-10">
-        Indiquez comment vous souhaitez régler à la livraison
-      </p>
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+      {modesPaiement.map((mode) => {
+        const selected = formData.modePaiement === mode.id;
+        return (
+          <label
+            key={mode.id}
+            className={`rounded-6 p-3.5 cursor-pointer transition-colors ${
+              selected ? 'border-[1.5px] border-green-700 bg-selection-bg' : 'border border-sand-200 hover:border-sand-250'
+            }`}
+          >
+            <input type="radio" name="modePaiement" value={mode.id} checked={selected} onChange={(e) => onChange('modePaiement', e.target.value)} className="sr-only" />
+            <div className="text-[13.5px] font-semibold text-ink-900">{mode.label}</div>
+            <div className="text-[12px] text-graphite-600 mt-0.5">{mode.description}</div>
+          </label>
+        );
+      })}
+    </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {modesPaiement.map((mode) => {
-          const Icon = PAIEMENT_ICONS[mode.id] || CreditCard;
-          const isSelected = formData.modePaiement === mode.id;
-          
-          return (
-            <label
-              key={mode.id}
-              className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                isSelected
-                  ? 'border-green-500 bg-green-50'
-                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              <input
-                type="radio"
-                name="modePaiement"
-                value={mode.id}
-                checked={isSelected}
-                onChange={(e) => onChange('modePaiement', e.target.value)}
-                className="sr-only"
-              />
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                isSelected ? 'bg-green-100' : 'bg-gray-100'
-              }`}>
-                <Icon className={`w-5 h-5 ${isSelected ? 'text-green-600' : 'text-gray-500'}`} />
-              </div>
-              <div className="flex-1">
-                <p className={`font-medium ${isSelected ? 'text-green-700' : 'text-gray-800'}`}>
-                  {mode.label}
-                </p>
-                <p className="text-xs text-gray-500">{mode.description}</p>
-              </div>
-              {isSelected && (
-                <CheckCircle className="w-5 h-5 text-green-600" />
-              )}
-            </label>
-          );
-        })}
-      </div>
-    </motion.div>
-  );
-};
+    <Instructions formData={formData} onChange={onChange} />
+  </div>
+);
 
 export default MoyenPaiement;

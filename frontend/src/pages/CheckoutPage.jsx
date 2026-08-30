@@ -1,102 +1,53 @@
 /**
- * Page Checkout - Version B2B Devis
- * @description Processus de commande simplifié en une page
- * 
- * ✅ CORRECTION: Utilise useSettings pour les frais de livraison dynamiques
+ * Page Checkout — devis, sans paiement en ligne
+ * @description Écran 05 — Checkout
+ * @see design_handoff_jana_refonte/README.md
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Info, FileText, Loader2, AlertCircle } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
-import { useSettings } from '../contexts/SettingsContext'; // ✅ AJOUT
+import { useSettings } from '../contexts/SettingsContext';
 import { createOrder, MODES_PAIEMENT } from '../services/orderService';
 import { estimateShipping } from '../services/shippingService';
 import { validerCodePromo } from '../services/promoService';
 import toast from 'react-hot-toast';
 
-// Composants checkout
-import {
-  InfosContact,
-  AdresseLivraison,
-  AdresseFacturation,
-  MoyenPaiement,
-  Instructions,
-  Recapitulatif
-} from '../components/checkout';
+import { InfosContact, AdresseLivraison, CreneauLivraison, MoyenPaiement, Recapitulatif } from '../components/checkout';
 
-// ==========================================
-// COMPOSANT PRINCIPAL
-// ==========================================
+const PROMO_STORAGE_KEY = 'jana_promo_code';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const {
-    items,
-    itemCount,
-    subtotalHT,
-    totalTVA,
-    totalTTC,
-    savings,
-    isEmpty,
-    resetCartLocal
-  } = useCart();
+  const { items, subtotalHT, totalTVA, totalTTC, isEmpty, resetCartLocal } = useCart();
+  const { getFraisLivraison, telephoneSite, loading: settingsLoading } = useSettings();
 
-  // ✅ AJOUT: Récupérer les settings pour les frais de livraison
-  const { getFraisLivraison, seuilFrancoPort, loading: settingsLoading } = useSettings();
+  const today = useMemo(() => new Date(), []);
 
-  // États
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+  const [creneauIndex, setCreneauIndex] = useState(null);
+  const [selectedCreneau, setSelectedCreneau] = useState(null);
 
-  // Frais de livraison : commencer avec le fallback statique, puis affiner via l'API
-  // dès que l'adresse est complète (mode DISTANCE).
   const fallbackFrais = getFraisLivraison(totalTTC);
   const [fraisLivraison, setFraisLivraison] = useState(fallbackFrais);
   const [shippingInfo, setShippingInfo] = useState(null);
   const [shippingLoading, setShippingLoading] = useState(false);
 
-  // Code promo
-  const [codePromo, setCodePromo] = useState('');
-  const [codePromoValide, setCodePromoValide] = useState(null); // { montant_rabais, total_apres_rabais, message, code, type_rabais, valeur_rabais }
-  const [codePromoLoading, setCodePromoLoading] = useState(false);
-  const [codePromoError, setCodePromoError] = useState('');
+  const [codePromoValide, setCodePromoValide] = useState(null);
 
-  // Formulaire
   const [formData, setFormData] = useState({
-    // Infos contact
-    prenom: '',
-    nom: '',
-    entreprise: '',
-    telephone: '',
-    
-    // Adresse livraison
-    adresse: '',
-    complement: '',
-    codePostal: '',
-    ville: '',
-    
-    // Adresse facturation
-    adresseFacturation: '',
-    complementFacturation: '',
-    codePostalFacturation: '',
-    villeFacturation: '',
-    
-    // Options
-    modePaiement: 'ESPECES',
-    instructions: '',
-    
-    // CGV
-    acceptCGV: false
+    prenom: '', nom: '', entreprise: '', telephone: '',
+    adresse: '', complement: '', codePostal: '', ville: '',
+    adresseFacturation: '', complementFacturation: '', codePostalFacturation: '', villeFacturation: '',
+    modePaiement: 'ESPECES', instructions: '', acceptCGV: false
   });
 
-  // Pré-remplir avec les infos utilisateur
   useEffect(() => {
     if (user) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         prenom: user.prenom || '',
         nom: user.nom || '',
@@ -106,14 +57,10 @@ const CheckoutPage = () => {
     }
   }, [user]);
 
-  // Rediriger si panier vide
   useEffect(() => {
-    if (isEmpty) {
-      navigate('/panier');
-    }
+    if (isEmpty) navigate('/panier');
   }, [isEmpty, navigate]);
 
-  // Rediriger si non connecté
   useEffect(() => {
     if (!user) {
       toast.error('Veuillez vous connecter pour passer commande');
@@ -121,15 +68,25 @@ const CheckoutPage = () => {
     }
   }, [user, navigate]);
 
+  // Code promo appliqué sur la page panier : on le reprend silencieusement ici
+  // (pas de second champ de saisie — absent de la maquette checkout).
+  useEffect(() => {
+    const storedCode = sessionStorage.getItem(PROMO_STORAGE_KEY);
+    if (!storedCode || totalTTC <= 0) return;
+    validerCodePromo(storedCode, totalTTC).then((result) => {
+      if (result.success) setCodePromoValide(result.data);
+      else sessionStorage.removeItem(PROMO_STORAGE_KEY);
+    }).catch(() => sessionStorage.removeItem(PROMO_STORAGE_KEY));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalTTC > 0]);
+
   // Estimation dynamique des frais de livraison dès que l'adresse est complète.
-  // Debounce 500 ms pour limiter les appels pendant la saisie.
   useEffect(() => {
     const cp = (formData.codePostal || '').trim();
     const ville = (formData.ville || '').trim();
     const adresse = (formData.adresse || '').trim();
 
     if (!/^\d{5}$/.test(cp) || !ville) {
-      // Adresse incomplète → fallback franco/fixe
       setFraisLivraison(getFraisLivraison(totalTTC));
       setShippingInfo(null);
       return;
@@ -138,20 +95,11 @@ const CheckoutPage = () => {
     const t = setTimeout(async () => {
       setShippingLoading(true);
       try {
-        const data = await estimateShipping({
-          montant: totalTTC,
-          adresse,
-          codePostal: cp,
-          ville
-        });
+        const data = await estimateShipping({ montant: totalTTC, adresse, codePostal: cp, ville });
         setShippingInfo(data);
         setFraisLivraison(Number(data.frais) || 0);
-
         if (data.horsZone) {
-          toast.error(
-            `Adresse hors zone de livraison (max ${data.distanceMaxKm} km)`,
-            { id: 'shipping-hors-zone' }
-          );
+          toast.error(`Adresse hors zone de livraison (max ${data.distanceMaxKm} km)`, { id: 'shipping-hors-zone' });
         }
       } catch (err) {
         console.error('Erreur estimation frais:', err);
@@ -165,90 +113,21 @@ const CheckoutPage = () => {
     return () => clearTimeout(t);
   }, [formData.codePostal, formData.ville, formData.adresse, totalTTC, getFraisLivraison]);
 
-  // ==========================================
-  // CALCULS - ✅ Utilise fraisLivraison dynamiques
-  // ==========================================
-
   const totalCommande = totalTTC + fraisLivraison;
 
-  // ==========================================
-  // FORMATAGE
-  // ==========================================
-
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(price);
-  };
-
-  // ==========================================
-  // HANDLERS
-  // ==========================================
-
   const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
-    // Effacer l'erreur du champ
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[field];
-        return newErrors;
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
       });
     }
   };
 
-  // ==========================================
-  // CODE PROMO
-  // ==========================================
-
-  const handleCodePromoChange = (value) => {
-    setCodePromo(value.toUpperCase());
-    if (codePromoError) setCodePromoError('');
-  };
-
-  const handleAppliquerCodePromo = async () => {
-    const code = codePromo.trim();
-    if (!code) return;
-
-    setCodePromoLoading(true);
-    setCodePromoError('');
-
-    try {
-      const result = await validerCodePromo(code, totalCommande);
-
-      if (!result.success) {
-        setCodePromoError(result.message || 'Code promo invalide');
-        setCodePromoValide(null);
-        return;
-      }
-
-      setCodePromoValide(result.data);
-      toast.success(result.data?.message || 'Code promo appliqué');
-    } catch (error) {
-      const message = error.response?.data?.message || 'Code promo invalide ou expiré';
-      setCodePromoError(message);
-      setCodePromoValide(null);
-    } finally {
-      setCodePromoLoading(false);
-    }
-  };
-
-  const handleRetirerCodePromo = () => {
-    setCodePromo('');
-    setCodePromoValide(null);
-    setCodePromoError('');
-  };
-
-  // ==========================================
-  // VALIDATION
-  // ==========================================
-
   const validateForm = () => {
     const newErrors = {};
-
-    // Infos contact
     if (!formData.prenom.trim()) newErrors.prenom = 'Prénom requis';
     if (!formData.nom.trim()) newErrors.nom = 'Nom requis';
     if (!formData.telephone.trim()) {
@@ -256,8 +135,6 @@ const CheckoutPage = () => {
     } else if (!/^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$/.test(formData.telephone.replace(/\s/g, ''))) {
       newErrors.telephone = 'Numéro de téléphone invalide';
     }
-
-    // Adresse livraison
     if (!formData.adresse.trim()) newErrors.adresse = 'Adresse requise';
     if (!formData.codePostal.trim()) {
       newErrors.codePostal = 'Code postal requis';
@@ -265,19 +142,11 @@ const CheckoutPage = () => {
       newErrors.codePostal = 'Code postal invalide (5 chiffres)';
     }
     if (!formData.ville.trim()) newErrors.ville = 'Ville requise';
-
-    // CGV
-    if (!formData.acceptCGV) {
-      newErrors.acceptCGV = 'Vous devez accepter les conditions générales de vente';
-    }
+    if (!formData.acceptCGV) newErrors.acceptCGV = 'Vous devez accepter les conditions générales de vente';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
-  // ==========================================
-  // SOUMISSION - ✅ Passe fraisLivraison à createOrder
-  // ==========================================
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -285,37 +154,31 @@ const CheckoutPage = () => {
     if (!validateForm()) {
       toast.error('Veuillez corriger les erreurs du formulaire');
       const firstError = document.querySelector('.error-field');
-      if (firstError) {
-        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+      if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
     if (shippingInfo?.horsZone) {
-      toast.error(
-        `Désolé, votre adresse est hors zone de livraison (max ${shippingInfo.distanceMaxKm} km).`
-      );
+      toast.error(`Désolé, votre adresse est hors zone de livraison (max ${shippingInfo.distanceMaxKm} km).`);
       return;
     }
 
     setIsSubmitting(true);
-
     try {
-      // ✅ Passer les frais de livraison dynamiques et le code promo validé à createOrder
-      const result = await createOrder(formData, fraisLivraison, codePromoValide?.code || null);
+      const instructionsAvecCreneau = selectedCreneau
+        ? `Créneau souhaité : ${selectedCreneau.jour}, ${selectedCreneau.heure}\n${formData.instructions}`.trim()
+        : formData.instructions;
+
+      const result = await createOrder({ ...formData, instructions: instructionsAvecCreneau }, fraisLivraison, codePromoValide?.code || null);
 
       if (!result.success) {
         toast.error(result.message || 'Erreur lors de la commande');
         return;
       }
 
-      const orderId = result.data.id;
-
-      // Aucun paiement en ligne : flux devis (VIREMENT / CHEQUE / ESPECES)
+      sessionStorage.removeItem(PROMO_STORAGE_KEY);
       resetCartLocal();
-      navigate(`/commande/confirmation/${orderId}`, {
-        state: { order: result.data, fromCheckout: true }
-      });
+      navigate(`/commande/confirmation/${result.data.id}`, { state: { order: result.data, fromCheckout: true } });
       toast.success('Commande enregistrée avec succès !');
     } catch (error) {
       console.error('Erreur commande:', error);
@@ -325,204 +188,59 @@ const CheckoutPage = () => {
     }
   };
 
-  // ==========================================
-  // RENDER - Attendre les settings
-  // ==========================================
-
-  if (!user || isEmpty) {
-    return null;
-  }
-
-  if (settingsLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-green-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Chargement...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Adresse livraison pour le composant facturation
-  const adresseLivraison = {
-    adresse: formData.adresse,
-    complement: formData.complement,
-    codePostal: formData.codePostal,
-    ville: formData.ville
-  };
+  if (!user || isEmpty || settingsLoading) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-6xl mx-auto px-4">
+    <div className="bg-sand-50 min-h-screen font-sans">
+      {/* En-tête dédié checkout — pas de nav rayons, pas de footer */}
+      <div className="bg-white border-b border-sand-200 px-4 md:px-10 py-4 flex flex-wrap items-center gap-6 md:gap-9">
+        <Link to="/" className="flex items-center gap-2.5 flex-shrink-0">
+          <div className="w-8 h-8 rounded-6 bg-green-700 flex items-center justify-center text-white font-display font-extrabold text-[16px]">J</div>
+          <span className="font-display font-extrabold text-[18px] tracking-tight text-ink-900">JANA DISTRIBUTION</span>
+        </Link>
+        <div className="flex items-center gap-3.5 text-[13.5px]">
+          <Link to="/panier" className="text-green-700 font-semibold hover:text-green-800">1. Panier</Link>
+          <span className="text-[#C3CBC6]">—</span>
+          <span className="text-ink-900 font-semibold">2. Livraison &amp; paiement</span>
+          <span className="text-[#C3CBC6]">—</span>
+          <span className="text-graphite-200">3. Confirmation</span>
+        </div>
+        <div className="ml-auto text-[13px] text-graphite-500">
+          Besoin d'aide ? <span className="font-mono text-ink-900">{telephoneSite}</span>
+        </div>
+      </div>
 
-        {/* Header */}
-        <div className="mb-8">
-          <Link
-            to="/panier"
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Retour au panier
-          </Link>
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-[22px] px-4 md:px-10 py-6 pb-10">
+        <div className="flex flex-col gap-3.5 min-w-0">
+          <div className="bg-success-bg border border-success-border rounded-8 px-[18px] py-3.5 text-[13.5px] text-[#254534] leading-[1.6]">
+            <strong className="text-ink-900">Commande sans paiement en ligne.</strong> Vous recevez un devis par email dans la minute. Notre équipe confirme la disponibilité et le créneau, puis vous réglez à la livraison.
+          </div>
 
-          <h1 className="text-3xl font-bold text-gray-800">
-            Finaliser ma commande
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Remplissez les informations ci-dessous pour recevoir votre devis par email
-          </p>
+          <InfosContact formData={formData} errors={errors} onChange={handleChange} />
+          <AdresseLivraison formData={formData} errors={errors} onChange={handleChange} userId={user?.id} />
+          <CreneauLivraison
+            today={today}
+            selectedIndex={creneauIndex}
+            onSelect={(index, slot) => { setCreneauIndex(index); setSelectedCreneau(slot); }}
+          />
+          <MoyenPaiement formData={formData} onChange={handleChange} modesPaiement={MODES_PAIEMENT} />
         </div>
 
-        {/* Bandeau info */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-start gap-3"
-        >
-          <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-blue-800 font-medium">Comment ça marche ?</p>
-            <p className="text-blue-700 text-sm mt-1">
-              Après validation, vous recevrez un <strong>devis par email</strong> récapitulant votre commande.
-              Notre équipe vous contactera pour confirmer la livraison.
-              Le paiement s'effectue selon le mode choisi.
-            </p>
-          </div>
-        </motion.div>
-
-        <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            {/* Colonne principale - Formulaire */}
-            <div className="lg:col-span-2 space-y-6">
-              
-              {/* 1. Infos Contact */}
-              <InfosContact
-                formData={formData}
-                errors={errors}
-                onChange={handleChange}
-                stepNumber={1}
-              />
-
-              {/* 2. Adresse Livraison */}
-              <AdresseLivraison
-                formData={formData}
-                errors={errors}
-                onChange={handleChange}
-                userId={user?.id}
-                stepNumber={2}
-              />
-
-              {/* 3. Adresse Facturation */}
-              <AdresseFacturation
-                formData={formData}
-                errors={errors}
-                onChange={handleChange}
-                adresseLivraison={adresseLivraison}
-                stepNumber={3}
-              />
-
-              {/* 4. Mode de Paiement */}
-              <MoyenPaiement
-                formData={formData}
-                onChange={handleChange}
-                modesPaiement={MODES_PAIEMENT}
-                stepNumber={4}
-              />
-
-              {/* 5. Instructions */}
-              <Instructions
-                formData={formData}
-                onChange={handleChange}
-                stepNumber={5}
-              />
-
-              {/* CGV et bouton validation (mobile) */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="bg-white rounded-2xl shadow-sm p-6 lg:hidden"
-              >
-                {/* CGV */}
-                <div className={`mb-6 ${errors.acceptCGV ? 'error-field' : ''}`}>
-                  <label className="flex items-start gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.acceptCGV}
-                      onChange={(e) => handleChange('acceptCGV', e.target.checked)}
-                      className="w-5 h-5 text-green-600 rounded focus:ring-green-500 mt-0.5"
-                    />
-                    <span className="text-sm text-gray-600">
-                      J'accepte les{' '}
-                      <Link to="/cgv" className="text-green-600 hover:underline" target="_blank" rel="noopener noreferrer">
-                        conditions générales de vente
-                      </Link>{' '}
-                      et la{' '}
-                      <Link to="/confidentialite" className="text-green-600 hover:underline" target="_blank" rel="noopener noreferrer">
-                        politique de confidentialité
-                      </Link>
-                      . <span className="text-red-500">*</span>
-                    </span>
-                  </label>
-                  {errors.acceptCGV && (
-                    <p className="mt-2 text-sm text-red-600 flex items-center gap-1 ml-8">
-                      <AlertCircle className="w-4 h-4" />
-                      {errors.acceptCGV}
-                    </p>
-                  )}
-                </div>
-
-                {/* Bouton validation */}
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Traitement en cours...
-                    </>
-                  ) : (
-                    <>
-                      <FileText className="w-5 h-5" />
-                      Valider et recevoir mon devis
-                    </>
-                  )}
-                </button>
-              </motion.div>
-            </div>
-
-            {/* Colonne latérale - Récapitulatif */}
-            <Recapitulatif
-              items={items}
-              itemCount={itemCount}
-              subtotalHT={subtotalHT}
-              totalTVA={totalTVA}
-              totalTTC={totalTTC}
-              savings={savings}
-              fraisLivraison={fraisLivraison}
-              shippingInfo={shippingInfo}
-              shippingLoading={shippingLoading}
-              totalCommande={totalCommande}
-              formData={formData}
-              errors={errors}
-              onChange={handleChange}
-              isSubmitting={isSubmitting}
-              formatPrice={formatPrice}
-              codePromo={codePromo}
-              codePromoValide={codePromoValide}
-              codePromoLoading={codePromoLoading}
-              codePromoError={codePromoError}
-              onCodePromoChange={handleCodePromoChange}
-              onAppliquerCodePromo={handleAppliquerCodePromo}
-              onRetirerCodePromo={handleRetirerCodePromo}
-            />
-          </div>
-        </form>
-      </div>
+        <Recapitulatif
+          items={items}
+          subtotalHT={subtotalHT}
+          totalTVA={totalTVA}
+          fraisLivraison={fraisLivraison}
+          shippingInfo={shippingInfo}
+          shippingLoading={shippingLoading}
+          totalCommande={totalCommande}
+          formData={formData}
+          errors={errors}
+          onChange={handleChange}
+          isSubmitting={isSubmitting}
+          codePromoValide={codePromoValide}
+        />
+      </form>
     </div>
   );
 };

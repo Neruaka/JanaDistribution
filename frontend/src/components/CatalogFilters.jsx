@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import Checkbox from './Checkbox';
 
 const AVAILABLE_LABELS = [
   { value: 'BIO', label: 'Bio' },
@@ -14,20 +15,6 @@ const AVAILABLE_LABELS = [
   { value: 'AOC', label: 'AOC' },
   { value: 'LABEL_ROUGE', label: 'Label Rouge' }
 ];
-
-const Checkbox = ({ checked }) => (
-  <span
-    className={`w-[15px] h-[15px] rounded-3 border-[1.5px] flex-shrink-0 flex items-center justify-center ${
-      checked ? 'bg-green-700 border-green-700' : 'border-[#CFCBC0]'
-    }`}
-  >
-    {checked && (
-      <svg viewBox="0 0 12 12" className="w-2.5 h-2.5 text-white" fill="none">
-        <path d="M2.5 6.5L4.8 8.8L9.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    )}
-  </span>
-);
 
 const FilterGroup = ({ title, expanded, onToggle, children }) => (
   <div className="px-4 py-3.5 border-b border-[#F0EEE7] last:border-b-0">

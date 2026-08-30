@@ -227,7 +227,7 @@ export function CartProvider({ children }) {
     isEmpty: !cart?.items || cart.items.length === 0,
     
     // Computed totaux (pour checkout)
-    subtotalHT: cart?.summary?.totalHT || 0,
+    subtotalHT: cart?.summary?.subtotalHT || 0,
     totalTVA: cart?.summary?.totalTVA || 0,
     totalTTC: cart?.summary?.totalTTC || 0,
     savings: cart?.summary?.economies || 0,

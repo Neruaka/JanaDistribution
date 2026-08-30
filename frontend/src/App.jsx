@@ -139,13 +139,11 @@ function App() {
             <Route path="/reset-password" element={<ResetPasswordPage />} />
 
             {/* ==================== */}
-            {/* Checkout (protégé) */}
+            {/* Checkout (protégé) — en-tête dédié, pas de PublicLayout (voir écran 05) */}
             {/* ==================== */}
             <Route path="/checkout" element={
               <PrivateRoute>
-                <PublicLayout>
-                  <CheckoutPage />
-                </PublicLayout>
+                <CheckoutPage />
               </PrivateRoute>
             } />
 
