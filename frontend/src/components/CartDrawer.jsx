@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import CartItem from './CartItem';
+import { formatAmount } from '../utils/priceUtils';
 
 export default function CartDrawer() {
   const { 
@@ -50,22 +51,22 @@ export default function CartDrawer() {
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white shadow-xl flex flex-col"
+        className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white shadow-xl flex flex-col font-sans"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
-          <div className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-            <ShoppingCart className="w-5 h-5 text-green-600" />
-            Mon Panier
+        <div className="flex items-center justify-between px-4 py-4 border-b border-sand-200">
+          <div className="flex items-center gap-2 font-display text-[17px] font-bold text-ink-900">
+            <ShoppingCart className="w-5 h-5 text-green-700" />
+            Mon panier
             {!isEmpty && (
-              <span className="ml-1 px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+              <span className="ml-1 px-2 py-0.5 text-[11px] font-mono font-medium bg-success-bg text-success-text rounded-full">
                 {summary?.totalQuantity || 0}
               </span>
             )}
           </div>
           <button
             onClick={closeDrawer}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 text-graphite-300 hover:text-ink-900 hover:bg-sand-50 rounded-6 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -82,19 +83,19 @@ export default function CartDrawer() {
           ) : isEmpty ? (
             // Panier vide
             <div className="flex flex-col items-center justify-center h-full py-12 px-4">
-              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <ShoppingBag className="w-12 h-12 text-gray-400" />
+              <div className="w-24 h-24 bg-sand-100 rounded-full flex items-center justify-center mb-4">
+                <ShoppingBag className="w-12 h-12 text-graphite-300" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-1">
+              <h3 className="font-display text-[17px] font-bold text-ink-900 mb-1">
                 Votre panier est vide
               </h3>
-              <p className="text-gray-500 text-center mb-6">
+              <p className="text-[13.5px] text-graphite-500 text-center mb-6">
                 Découvrez nos produits et commencez vos achats !
               </p>
               <Link
                 to="/catalogue"
                 onClick={closeDrawer}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-green-700 text-white rounded-6 text-[13.5px] font-semibold hover:bg-green-800 transition-colors"
               >
                 Voir le catalogue
                 <ArrowRight className="w-4 h-4" />
@@ -105,12 +106,12 @@ export default function CartDrawer() {
             <div className="p-4 space-y-3">
               {/* Warnings globaux */}
               {warnings && warnings.length > 0 && (
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                  <div className="flex items-center gap-2 text-amber-800 mb-2">
+                <div className="p-3 bg-warning-bg border border-warning-border rounded-6">
+                  <div className="flex items-center gap-2 text-warning-text mb-2">
                     <AlertTriangle className="w-4 h-4" />
-                    <span className="font-medium text-sm">Attention</span>
+                    <span className="font-medium text-[13px]">Attention</span>
                   </div>
-                  <ul className="text-xs text-amber-700 space-y-1">
+                  <ul className="text-[12px] text-warning-text space-y-1">
                     {warnings.map((warning, index) => (
                       <li key={index}>• {warning.message}</li>
                     ))}
@@ -134,20 +135,20 @@ export default function CartDrawer() {
 
         {/* Footer avec totaux */}
         {!isEmpty && !isLoading && (
-          <div className="border-t border-gray-200 p-4 space-y-4">
+          <div className="border-t border-sand-200 p-4 space-y-4">
             {/* Résumé */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm text-gray-600">
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-[13px] text-graphite-600">
                 <span>Sous-total HT</span>
-                <span>{summary?.subtotalHT?.toFixed(2) || '0.00'}€</span>
+                <span className="font-mono text-ink-900">{formatAmount(summary?.subtotalHT)}</span>
               </div>
-              <div className="flex justify-between text-sm text-gray-600">
-                <span>TVA (20%)</span>
-                <span>{summary?.totalTVA?.toFixed(2) || '0.00'}€</span>
+              <div className="flex justify-between text-[13px] text-graphite-600">
+                <span>TVA</span>
+                <span className="font-mono text-ink-900">{formatAmount(summary?.totalTVA)}</span>
               </div>
-              <div className="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t border-gray-100">
-                <span>Total TTC</span>
-                <span>{summary?.totalTTC?.toFixed(2) || '0.00'}€</span>
+              <div className="flex justify-between items-baseline pt-2 border-t border-[#F0EEE7]">
+                <span className="font-display text-[15px] font-bold text-ink-900">Total TTC</span>
+                <span className="font-mono text-[19px] font-semibold text-ink-900">{formatAmount(summary?.totalTTC)}</span>
               </div>
             </div>
 
@@ -156,15 +157,15 @@ export default function CartDrawer() {
               <Link
                 to="/panier"
                 onClick={closeDrawer}
-                className="flex items-center justify-center gap-2 w-full py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
+                className="flex items-center justify-center gap-2 w-full py-3 bg-green-700 text-white font-semibold rounded-6 hover:bg-green-800 transition-colors text-[13.5px]"
               >
                 Voir le panier
                 <ArrowRight className="w-4 h-4" />
               </Link>
-              
+
               <button
                 onClick={clearCart}
-                className="flex items-center justify-center gap-2 w-full py-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm"
+                className="flex items-center justify-center gap-2 w-full py-2 text-graphite-400 hover:text-danger-text hover:bg-danger-bg rounded-6 transition-colors text-[12.5px]"
               >
                 <Trash2 className="w-4 h-4" />
                 Vider le panier

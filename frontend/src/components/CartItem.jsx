@@ -1,70 +1,45 @@
 /**
- * CartItem Component - VERSION CORRIGÉE
- * Affiche une ligne de produit dans le panier
+ * CartItem — ligne de panier
+ * @description Version tableau (page panier) et version compacte (drawer)
  * @location frontend/src/components/CartItem.jsx
- * 
- * ✅ CORRECTIONS:
- * - Ajout React.forwardRef pour éviter le warning
- * - Utilise getImageUrl pour les images locales
+ * @see design_handoff_jana_refonte/README.md ("04 — Panier")
  */
 
-import React, { useState, forwardRef } from 'react';
+import { forwardRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Trash2, 
-  Plus, 
-  Minus, 
-  AlertTriangle,
-  Loader2,
-  Tag
-} from 'lucide-react';
+import { motion } from 'framer-motion';
+import { X, AlertTriangle, Loader2 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
-import { getImageUrl } from '../utils/imageUtils'; // ✅ AJOUT
+import { getImageUrl } from '../utils/imageUtils';
+import { formatAmount } from '../utils/priceUtils';
+
+const UNIT_LABELS = { kg: '/kg', litre: '/L', piece: '/pièce', unite: '/unité' };
 
 const CartItem = forwardRef(function CartItem({ item, compact = false }, ref) {
   const { updateQuantity, removeItem } = useCart();
   const [isUpdating, setIsUpdating] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
 
-  const {
-    id,
-    quantity,
-    effectivePrice,
-    subtotal,
-    isOnSale,
-    product
-  } = item;
-
-  // ✅ CORRECTION: Construire l'URL complète de l'image
+  const { id, quantity, effectivePrice, subtotal, isOnSale, product } = item;
   const fullImageUrl = getImageUrl(product.image);
-
-  // Vérifier les problèmes de stock
   const hasStockIssue = product.stock < quantity;
   const isOutOfStock = product.stock === 0;
   const isInactive = !product.isActive;
+  const hasIssue = hasStockIssue || isInactive;
+  const unitLabel = UNIT_LABELS[product.unit] || '';
 
-  /**
-   * Modifier la quantité
-   */
   const handleQuantityChange = async (newQuantity) => {
     if (newQuantity < 1 || newQuantity > product.stock || isUpdating) return;
-    
     setIsUpdating(true);
     await updateQuantity(id, newQuantity);
     setIsUpdating(false);
   };
 
-  /**
-   * Supprimer l'item
-   */
   const handleRemove = async () => {
     setIsRemoving(true);
     await removeItem(id);
-    // Pas besoin de setIsRemoving(false) car le composant sera démonté
   };
 
-  // Version compacte pour le drawer
   if (compact) {
     return (
       <motion.div
@@ -73,245 +48,97 @@ const CartItem = forwardRef(function CartItem({ item, compact = false }, ref) {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 20 }}
-        className={`flex gap-3 p-3 rounded-lg ${
-          hasStockIssue || isInactive 
-            ? 'bg-red-50 border border-red-200' 
-            : 'bg-gray-50'
-        }`}
+        className={`flex gap-3 p-3 rounded-6 ${hasIssue ? 'bg-danger-bg border border-danger-border' : 'bg-sand-50'}`}
       >
-        {/* Image - ✅ CORRECTION */}
-        <Link 
-          to={`/produit/${product.slug}`}
-          className="flex-shrink-0"
-        >
-          <img
-            src={fullImageUrl || '/placeholder-product.svg'}
-            alt={product.name}
-            className="w-16 h-16 object-cover rounded-md"
-          />
+        <Link to={`/produit/${product.slug}`} className="flex-shrink-0 w-16 h-16 rounded-5 overflow-hidden placeholder-stripe">
+          {fullImageUrl && <img src={fullImageUrl} alt={product.name} className="w-full h-full object-cover" />}
         </Link>
 
-        {/* Infos */}
         <div className="flex-1 min-w-0">
-          <Link 
-            to={`/produit/${product.slug}`}
-            className="font-medium text-gray-900 hover:text-primary-600 line-clamp-1"
-          >
+          <Link to={`/produit/${product.slug}`} className="text-[13.5px] font-semibold text-ink-900 hover:text-green-800 line-clamp-1">
             {product.name}
           </Link>
 
-          {/* Prix */}
-          <div className="flex items-center gap-2 mt-1">
-            {isOnSale && (
-              <span className="text-xs text-gray-400 line-through">
-                {product.currentPrice.toFixed(2)}€
-              </span>
-            )}
-            <span className={`text-sm font-semibold ${isOnSale ? 'text-red-600' : 'text-gray-900'}`}>
-              {effectivePrice.toFixed(2)}€
-            </span>
-            <span className="text-xs text-gray-500">/ {product.unit}</span>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            {isOnSale && <span className="font-mono text-[11px] text-graphite-300 line-through">{formatAmount(product.currentPrice)}</span>}
+            <span className="font-mono text-[13px] font-semibold text-ink-900">{formatAmount(effectivePrice)}</span>
+            <span className="text-[11px] text-graphite-500">{unitLabel}</span>
           </div>
 
-          {/* Warning stock */}
-          {(hasStockIssue || isInactive) && (
-            <div className="flex items-center gap-1 mt-1 text-xs text-red-600">
+          {hasIssue && (
+            <div className="flex items-center gap-1 mt-1 text-[11px] text-danger-text">
               <AlertTriangle className="w-3 h-3" />
-              {isInactive ? 'Indisponible' : `Stock: ${product.stock}`}
+              {isInactive ? 'Indisponible' : `Stock : ${product.stock}`}
             </div>
           )}
 
-          {/* Quantité + sous-total */}
           <div className="flex items-center justify-between mt-2">
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => handleQuantityChange(quantity - 1)}
-                disabled={quantity <= 1 || isUpdating}
-                className="p-1 rounded bg-white border border-gray-200 hover:bg-gray-100 disabled:opacity-50"
-              >
-                <Minus className="w-3 h-3" />
-              </button>
-              
-              <span className="w-8 text-center text-sm font-medium">
-                {isUpdating ? (
-                  <Loader2 className="w-3 h-3 mx-auto animate-spin" />
-                ) : (
-                  quantity
-                )}
+            <div className="flex items-center border border-sand-250 rounded-5 h-7">
+              <button onClick={() => handleQuantityChange(quantity - 1)} disabled={quantity <= 1 || isUpdating} className="w-6 text-graphite-500 text-[13px] disabled:opacity-30">–</button>
+              <span className="w-7 text-center font-mono text-[12px] text-ink-900">
+                {isUpdating ? <Loader2 className="w-3 h-3 mx-auto animate-spin" /> : quantity}
               </span>
-              
-              <button
-                onClick={() => handleQuantityChange(quantity + 1)}
-                disabled={quantity >= product.stock || isUpdating}
-                className="p-1 rounded bg-white border border-gray-200 hover:bg-gray-100 disabled:opacity-50"
-              >
-                <Plus className="w-3 h-3" />
-              </button>
+              <button onClick={() => handleQuantityChange(quantity + 1)} disabled={quantity >= product.stock || isUpdating} className="w-6 text-graphite-500 text-[13px] disabled:opacity-30">+</button>
             </div>
-
-            <span className="font-semibold text-gray-900">
-              {subtotal.toFixed(2)}€
-            </span>
+            <span className="font-mono text-[13px] font-semibold text-ink-900">{formatAmount(subtotal)}</span>
           </div>
         </div>
 
-        {/* Bouton supprimer */}
-        <button
-          onClick={handleRemove}
-          disabled={isRemoving}
-          className="flex-shrink-0 p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-        >
-          {isRemoving ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Trash2 className="w-4 h-4" />
-          )}
+        <button onClick={handleRemove} disabled={isRemoving} className="flex-shrink-0 text-graphite-300 hover:text-danger-text transition-colors" aria-label="Retirer">
+          {isRemoving ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
         </button>
       </motion.div>
     );
   }
 
-  // Version complète pour la page panier
   return (
     <motion.div
       ref={ref}
       layout
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className={`flex gap-4 p-4 rounded-xl border ${
-        hasStockIssue || isInactive 
-          ? 'bg-red-50 border-red-200' 
-          : 'bg-white border-gray-200'
-      }`}
+      exit={{ opacity: 0, y: -10 }}
+      className={`grid items-center gap-3.5 px-[18px] py-4 border-b border-[#F0EEE7] last:border-b-0 ${hasIssue ? 'bg-danger-bg' : ''}`}
+      style={{ gridTemplateColumns: '64px 1fr 130px 150px 110px 40px' }}
     >
-      {/* Image - ✅ CORRECTION */}
-      <Link 
-        to={`/produit/${product.slug}`}
-        className="flex-shrink-0"
-      >
-        <img
-          src={fullImageUrl || '/placeholder-product.svg'}
-          alt={product.name}
-          className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-lg"
-        />
+      <Link to={`/produit/${product.slug}`} className="w-16 h-16 rounded-5 overflow-hidden placeholder-stripe flex-shrink-0">
+        {fullImageUrl && <img src={fullImageUrl} alt={product.name} className="w-full h-full object-cover" />}
       </Link>
 
-      {/* Contenu principal */}
-      <div className="flex-1 min-w-0">
-        {/* En-tête */}
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <Link 
-              to={`/produit/${product.slug}`}
-              className="text-lg font-semibold text-gray-900 hover:text-primary-600 transition-colors line-clamp-2"
-            >
-              {product.name}
-            </Link>
-            <p className="text-sm text-gray-500 mt-0.5">
-              Réf: {product.reference}
-            </p>
-          </div>
-
-          {/* Badge promo */}
-          {isOnSale && (
-            <span className="flex-shrink-0 inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">
-              <Tag className="w-3 h-3" />
-              Promo
-            </span>
-          )}
-        </div>
-
-        {/* Prix */}
-        <div className="flex items-baseline gap-2 mt-2">
-          <span className={`text-xl font-bold ${isOnSale ? 'text-red-600' : 'text-gray-900'}`}>
-            {effectivePrice.toFixed(2)}€
+      <div className="flex flex-col gap-0.5 min-w-0">
+        {product.reference && <span className="font-mono text-[10.5px] text-graphite-300">{product.reference}</span>}
+        <Link to={`/produit/${product.slug}`} className="text-[14px] font-semibold text-ink-900 hover:text-green-800 truncate">
+          {product.name}
+        </Link>
+        {hasIssue && (
+          <span className="flex items-center gap-1 text-[11.5px] text-danger-text">
+            <AlertTriangle className="w-3 h-3" />
+            {isInactive ? 'Ce produit n\'est plus disponible' : isOutOfStock ? 'Rupture de stock' : `Stock insuffisant (${product.stock} dispo.)`}
           </span>
-          {isOnSale && (
-            <span className="text-sm text-gray-400 line-through">
-              {product.currentPrice.toFixed(2)}€
-            </span>
-          )}
-          <span className="text-sm text-gray-500">/ {product.unit}</span>
-        </div>
-
-        {/* Warning */}
-        {(hasStockIssue || isInactive) && (
-          <div className="flex items-center gap-2 mt-2 p-2 bg-red-100 rounded-lg">
-            <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0" />
-            <span className="text-sm text-red-700">
-              {isInactive 
-                ? 'Ce produit n\'est plus disponible' 
-                : isOutOfStock
-                  ? 'Rupture de stock'
-                  : `Stock insuffisant (${product.stock} disponible)`
-              }
-            </span>
-          </div>
         )}
-
-        {/* Actions */}
-        <div className="flex items-center justify-between mt-4">
-          {/* Sélecteur quantité */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Quantité:</span>
-            <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
-              <button
-                onClick={() => handleQuantityChange(quantity - 1)}
-                disabled={quantity <= 1 || isUpdating}
-                className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <Minus className="w-4 h-4" />
-              </button>
-              
-              <span className="w-12 text-center font-medium">
-                {isUpdating ? (
-                  <Loader2 className="w-4 h-4 mx-auto animate-spin" />
-                ) : (
-                  quantity
-                )}
-              </span>
-              
-              <button
-                onClick={() => handleQuantityChange(quantity + 1)}
-                disabled={quantity >= product.stock || isUpdating}
-                className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-
-            {product.stock <= 10 && product.stock > 0 && !hasStockIssue && (
-              <span className="text-xs text-amber-600">
-                Plus que {product.stock} en stock
-              </span>
-            )}
-          </div>
-
-          {/* Sous-total + supprimer */}
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-sm text-gray-500">Sous-total</p>
-              <p className="text-xl font-bold text-gray-900">
-                {subtotal.toFixed(2)}€
-              </p>
-            </div>
-
-            <button
-              onClick={handleRemove}
-              disabled={isRemoving}
-              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-              title="Supprimer du panier"
-            >
-              {isRemoving ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Trash2 className="w-5 h-5" />
-              )}
-            </button>
-          </div>
-        </div>
       </div>
+
+      <div className="flex flex-col">
+        <span className="font-mono text-[14px] text-ink-900">{formatAmount(effectivePrice)}</span>
+        <span className="text-[11.5px] text-graphite-300">
+          {isOnSale && <span className="line-through mr-1">{formatAmount(product.currentPrice)}</span>}
+          {unitLabel}
+        </span>
+      </div>
+
+      <div className="flex items-center border border-sand-250 rounded-5 h-[38px] w-[118px]">
+        <button onClick={() => handleQuantityChange(quantity - 1)} disabled={quantity <= 1 || isUpdating} className="w-9 text-center text-graphite-500 text-[16px] disabled:opacity-30">–</button>
+        <span className="flex-1 text-center font-mono text-[14px] text-ink-900">
+          {isUpdating ? <Loader2 className="w-3.5 h-3.5 mx-auto animate-spin" /> : quantity}
+        </span>
+        <button onClick={() => handleQuantityChange(quantity + 1)} disabled={quantity >= product.stock || isUpdating} className="w-9 text-center text-graphite-500 text-[16px] disabled:opacity-30">+</button>
+      </div>
+
+      <span className="font-mono text-[15px] text-ink-900 text-right">{formatAmount(subtotal)}</span>
+
+      <button onClick={handleRemove} disabled={isRemoving} className="text-[#B0B8B3] hover:text-danger-text text-center transition-colors" aria-label="Retirer du panier">
+        {isRemoving ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : <X className="w-4 h-4 mx-auto" />}
+      </button>
     </motion.div>
   );
 });
