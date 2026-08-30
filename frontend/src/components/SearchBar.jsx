@@ -1,14 +1,16 @@
 /**
  * Composant SearchBar
- * @description Barre de recherche avec autocomplete produits et catégories
+ * @description Barre de recherche scopée avec autocomplete produits et catégories
+ * @see design_handoff_jana_refonte/JanaHeader.dc.html
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Package, FolderOpen, X, Loader2 } from 'lucide-react';
+import { Package, FolderOpen, X, Loader2 } from 'lucide-react';
 import productService from '../services/productService';
 import categoryService from '../services/categoryService';
 import { getImageUrl } from '../utils/imageUtils';
+import { formatAmount } from '../utils/priceUtils';
 
 // Debounce hook
 const useDebounce = (value, delay) => {
@@ -32,6 +34,8 @@ const SearchBar = ({ className = '' }) => {
 
   // États
   const [query, setQuery] = useState('');
+  const [scope, setScope] = useState('');
+  const [categories, setCategories] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState({
@@ -42,6 +46,16 @@ const SearchBar = ({ className = '' }) => {
 
   // Debounce la recherche
   const debouncedQuery = useDebounce(query, 300);
+
+  useEffect(() => {
+    let mounted = true;
+    categoryService.getAll().then((response) => {
+      if (mounted && response.success && Array.isArray(response.data)) {
+        setCategories(response.data.filter((c) => c.estActif !== false));
+      }
+    }).catch(() => {});
+    return () => { mounted = false; };
+  }, []);
 
   // Recherche
   const search = useCallback(async (searchQuery) => {
@@ -55,14 +69,14 @@ const SearchBar = ({ className = '' }) => {
     try {
       // Recherche parallèle produits et catégories
       const [productsResponse, categoriesResponse] = await Promise.all([
-        productService.getAll({ search: searchQuery, limit: 5 }),
+        productService.getAll({ search: searchQuery, limit: 5, categorieId: scope || undefined }),
         categoryService.getAll({ includeProductCount: true })
       ]);
 
       // Filtrer les catégories côté client (car pas d'endpoint de recherche)
       const filteredCategories = categoriesResponse.success
         ? categoriesResponse.data
-            .filter(cat => 
+            .filter(cat =>
               cat.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
               (cat.description && cat.description.toLowerCase().includes(searchQuery.toLowerCase()))
             )
@@ -79,7 +93,7 @@ const SearchBar = ({ className = '' }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [scope]);
 
   // Effectuer la recherche quand le query change
   useEffect(() => {
@@ -97,7 +111,7 @@ const SearchBar = ({ className = '' }) => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
-        dropdownRef.current && 
+        dropdownRef.current &&
         !dropdownRef.current.contains(event.target) &&
         !inputRef.current.contains(event.target)
       ) {
@@ -161,7 +175,9 @@ const SearchBar = ({ className = '' }) => {
   const handleSearchSubmit = () => {
     if (query.length >= 2) {
       setIsOpen(false);
-      navigate(`/catalogue?q=${encodeURIComponent(query)}`);
+      const params = new URLSearchParams({ q: query });
+      if (scope) params.set('categorie', scope);
+      navigate(`/catalogue?${params.toString()}`);
       setQuery('');
     }
   };
@@ -179,51 +195,71 @@ const SearchBar = ({ className = '' }) => {
   };
 
   return (
-    <div className={`relative ${className}`}>
-      {/* Input */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input
-          ref={inputRef}
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onFocus={() => {
-            if (results.products.length > 0 || results.categories.length > 0) {
-              setIsOpen(true);
-            }
-          }}
-          placeholder="Rechercher produits, catégories..."
-          className="w-full pl-10 pr-10 py-2 text-sm border border-gray-200 rounded-full bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-400 transition-all"
-        />
-        
-        {/* Loading / Clear button */}
-        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+    <div className={`relative font-sans ${className}`}>
+      {/* Chrome de la barre : scope + input + bouton */}
+      <div className="flex h-11 border-[1.5px] border-ink-900 rounded-6 overflow-hidden bg-white">
+        <div className="hidden sm:flex items-center border-r border-sand-200 bg-sand-50 relative">
+          <select
+            value={scope}
+            onChange={(e) => setScope(e.target.value)}
+            className="appearance-none bg-transparent pl-[14px] pr-7 h-full text-[13.5px] text-graphite-700 focus:outline-none cursor-pointer max-w-[180px]"
+          >
+            <option value="">Tout le catalogue</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>{c.nom}</option>
+            ))}
+          </select>
+          <span className="pointer-events-none absolute right-2 text-[9px] text-graphite-500">▼</span>
+        </div>
+
+        <div className="relative flex-1 flex items-center">
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onFocus={() => {
+              if (results.products.length > 0 || results.categories.length > 0) {
+                setIsOpen(true);
+              }
+            }}
+            placeholder="Référence, produit, marque…"
+            className="w-full h-full pl-[14px] pr-9 text-[14px] text-ink-900 placeholder:text-graphite-100 focus:outline-none"
+          />
           {loading ? (
-            <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
+            <Loader2 className="absolute right-3 w-4 h-4 text-graphite-400 animate-spin" />
           ) : query.length > 0 ? (
             <button
               onClick={handleClear}
-              className="p-0.5 hover:bg-gray-200 rounded-full transition-colors"
+              className="absolute right-3 p-0.5 hover:bg-sand-100 rounded-full transition-colors"
+              aria-label="Effacer"
             >
-              <X className="w-4 h-4 text-gray-400" />
+              <X className="w-4 h-4 text-graphite-400" />
             </button>
           ) : null}
         </div>
+
+        <button
+          type="button"
+          onClick={handleSearchSubmit}
+          className="hidden sm:block bg-ink-900 text-white px-[22px] text-[13.5px] font-semibold hover:bg-ink-800 transition-colors"
+        >
+          Rechercher
+        </button>
       </div>
 
       {/* Dropdown résultats */}
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50 max-h-96 overflow-y-auto"
+          className="absolute top-full left-0 right-0 mt-2 bg-white rounded-8 border border-sand-200 overflow-hidden z-50 max-h-96 overflow-y-auto"
         >
           {/* Catégories */}
           {results.categories.length > 0 && (
             <div>
-              <div className="px-3 py-2 bg-gray-50 border-b border-gray-100">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <div className="px-3 py-2 bg-sand-100 border-b border-sand-200">
+                <span className="text-[11px] font-semibold text-graphite-500 uppercase tracking-wide">
                   Catégories
                 </span>
               </div>
@@ -231,20 +267,20 @@ const SearchBar = ({ className = '' }) => {
                 <button
                   key={category.id}
                   onClick={() => handleSelectCategory(category)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
-                    selectedIndex === getItemIndex('category', index) ? 'bg-green-50' : ''
+                  className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-sand-50 transition-colors ${
+                    selectedIndex === getItemIndex('category', index) ? 'bg-success-bg' : ''
                   }`}
                 >
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <FolderOpen className="w-5 h-5 text-green-600" />
+                  <div className="w-10 h-10 bg-success-bg rounded-6 flex items-center justify-center flex-shrink-0">
+                    <FolderOpen className="w-5 h-5 text-green-700" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-800 truncate">{category.nom}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-[13.5px] font-medium text-ink-900 truncate">{category.nom}</p>
+                    <p className="text-[11.5px] text-graphite-500">
                       {category.productCount || 0} produit{(category.productCount || 0) > 1 ? 's' : ''}
                     </p>
                   </div>
-                  <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
+                  <span className="text-[11px] text-green-700 bg-success-bg px-2 py-1 rounded-full">
                     Catégorie
                   </span>
                 </button>
@@ -255,8 +291,8 @@ const SearchBar = ({ className = '' }) => {
           {/* Produits */}
           {results.products.length > 0 && (
             <div>
-              <div className="px-3 py-2 bg-gray-50 border-b border-gray-100">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <div className="px-3 py-2 bg-sand-100 border-b border-sand-200">
+                <span className="text-[11px] font-semibold text-graphite-500 uppercase tracking-wide">
                   Produits
                 </span>
               </div>
@@ -264,35 +300,35 @@ const SearchBar = ({ className = '' }) => {
                 <button
                   key={product.id}
                   onClick={() => handleSelectProduct(product)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
-                    selectedIndex === getItemIndex('product', index) ? 'bg-green-50' : ''
+                  className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-sand-50 transition-colors ${
+                    selectedIndex === getItemIndex('product', index) ? 'bg-success-bg' : ''
                   }`}
                 >
-                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <div className="w-10 h-10 bg-sand-100 rounded-6 flex items-center justify-center flex-shrink-0 overflow-hidden placeholder-stripe">
                     {product.imageUrl ? (
-                      <img 
-                        src={getImageUrl(product.imageUrl)} 
-                        alt={product.nom} 
+                      <img
+                        src={getImageUrl(product.imageUrl)}
+                        alt={product.nom}
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <Package className="w-5 h-5 text-gray-400" />
+                      <Package className="w-5 h-5 text-graphite-300" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-800 truncate">{product.nom}</p>
-                    <p className="text-xs text-gray-500 truncate">
+                    <p className="text-[13.5px] font-medium text-ink-900 truncate">{product.nom}</p>
+                    <p className="text-[11.5px] text-graphite-500 truncate">
                       {product.categorie?.nom || 'Sans catégorie'}
                     </p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right font-mono">
                     {product.prixPromo ? (
                       <>
-                        <p className="font-semibold text-green-600">{product.prixPromo.toFixed(2)} €</p>
-                        <p className="text-xs text-gray-400 line-through">{product.prix.toFixed(2)} €</p>
+                        <p className="text-[13.5px] font-semibold text-green-700">{formatAmount(product.prixPromo)}</p>
+                        <p className="text-[11px] text-graphite-300 line-through">{formatAmount(product.prix)}</p>
                       </>
                     ) : (
-                      <p className="font-semibold text-gray-800">{product.prix?.toFixed(2)} €</p>
+                      <p className="text-[13.5px] font-semibold text-ink-900">{formatAmount(product.prix)}</p>
                     )}
                   </div>
                 </button>
@@ -304,7 +340,7 @@ const SearchBar = ({ className = '' }) => {
           {(results.products.length > 0 || results.categories.length > 0) && (
             <button
               onClick={handleSearchSubmit}
-              className="w-full px-4 py-3 text-center text-sm text-green-600 hover:bg-green-50 border-t border-gray-100 font-medium transition-colors"
+              className="w-full px-4 py-3 text-center text-[13.5px] text-green-700 hover:bg-success-bg border-t border-sand-200 font-semibold transition-colors"
             >
               Voir tous les résultats pour "{query}"
             </button>
@@ -313,9 +349,9 @@ const SearchBar = ({ className = '' }) => {
           {/* Aucun résultat */}
           {!loading && query.length >= 2 && results.products.length === 0 && results.categories.length === 0 && (
             <div className="px-4 py-6 text-center">
-              <Package className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-              <p className="text-gray-500">Aucun résultat pour "{query}"</p>
-              <p className="text-xs text-gray-400 mt-1">Essayez avec d'autres termes</p>
+              <Package className="w-10 h-10 text-graphite-200 mx-auto mb-2" />
+              <p className="text-graphite-500">Aucun résultat pour "{query}"</p>
+              <p className="text-[12px] text-graphite-400 mt-1">Essayez avec d'autres termes</p>
             </div>
           )}
         </div>

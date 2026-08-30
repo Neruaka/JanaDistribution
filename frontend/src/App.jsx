@@ -15,6 +15,7 @@ import { AnimatePresence } from 'framer-motion';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import { SettingsProvider } from './contexts/SettingsContext';
+import { PriceModeProvider } from './contexts/PriceModeContext';
 
 // Components
 import PrivateRoute from './components/PrivateRoute';
@@ -78,6 +79,7 @@ function App() {
     <SettingsProvider>
       <AuthProvider>
         <CartProvider>
+        <PriceModeProvider>
           {/* Notifications toast */}
           <Toaster 
             position="top-right"
@@ -228,6 +230,7 @@ function App() {
             {/* ==================== */}
             <Route path="*" element={<PublicLayout><NotFoundPage /></PublicLayout>} />
           </Routes>
+        </PriceModeProvider>
         </CartProvider>
       </AuthProvider>
     </SettingsProvider>

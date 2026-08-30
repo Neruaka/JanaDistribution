@@ -1,162 +1,117 @@
 /**
  * Composant Footer Dynamique
- * @description Footer du site avec informations depuis les settings
+ * @description Pied de page public — fond encre, 5 colonnes
  * @location frontend/src/components/Footer.jsx
- * 
- * ✅ Utilise SettingsContext pour les données dynamiques
+ * @see design_handoff_jana_refonte/JanaFooter.dc.html
  */
 
 import { Link } from 'react-router-dom';
-import { MapPin, Phone, Mail, Clock } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 
-const Footer = () => {
-  const { site, livraison, loading } = useSettings();
+const FooterLink = ({ to, children }) => (
+  <Link to={to} className="text-[13.5px] text-mist hover:text-white transition-colors">
+    {children}
+  </Link>
+);
 
-  // Année courante
+// Libellé du design sans page correspondante dans le dépôt — affiché mais inerte
+const FooterStub = ({ children }) => (
+  <span className="text-[13.5px] text-mist-3 cursor-default">{children}</span>
+);
+
+const Footer = () => {
+  const { site, loading } = useSettings();
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gray-900 text-gray-400">
-      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          
-          {/* Colonne 1: Logo et description */}
-          <div>
-            <div className="flex items-center gap-2 text-white text-lg font-bold mb-4">
-              <span className="text-2xl">🥬</span>
-              {loading ? (
-                <span className="h-6 w-32 bg-gray-700 rounded animate-pulse"></span>
-              ) : (
-                site.nom
-              )}
+    <footer className="bg-ink-900 text-mist font-sans">
+      <div className="px-4 md:px-10 pt-10 md:pt-12 pb-6 max-w-[1440px] mx-auto">
+        <div className="grid grid-cols-2 md:grid-cols-[1.4fr_1fr_1fr_1fr_1.2fr] gap-8 md:gap-11">
+
+          {/* Colonne 1 : marque */}
+          <div className="col-span-2 md:col-span-1 flex flex-col gap-3.5">
+            <div className="flex items-center gap-[11px]">
+              <div className="w-[30px] h-[30px] rounded-6 bg-green-700 flex items-center justify-center text-white font-display font-extrabold text-[15px]">
+                J
+              </div>
+              <div className="flex flex-col leading-none">
+                <span className="font-display font-extrabold text-[17px] text-white tracking-tight">JANA</span>
+                <span className="text-[9px] tracking-widest text-mist-3 mt-[3px]">DISTRIBUTION</span>
+              </div>
             </div>
-            <p className="text-sm leading-relaxed">
+            <p className="text-[13px] leading-relaxed text-mist-2 max-w-[280px]">
               {loading ? (
-                <span className="h-16 block bg-gray-700 rounded animate-pulse"></span>
+                <span className="h-16 block bg-ink-800 rounded animate-pulse" />
               ) : (
-                site.description || 'Votre partenaire alimentaire de confiance. Produits frais et de qualité pour tous.'
+                site.description || 'Grossiste alimentaire multi-rayons. Nous livrons restaurateurs, commerces et particuliers en Île-de-France depuis notre entrepôt de Rungis.'
               )}
             </p>
-            
-            {/* Infos livraison */}
-            <div className="mt-4 p-3 bg-gray-800 rounded-lg">
-              <div className="flex items-center gap-2 text-green-400 text-sm font-medium">
-                <Clock className="w-4 h-4" />
-                Livraison {livraison.delaiMin}-{livraison.delaiMax} jours
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Gratuite dès {livraison.seuilFranco}€ d'achat
-              </p>
+            <div className="flex gap-2 flex-wrap">
+              <span className="border border-[#2C4A3B] rounded-4 px-[10px] py-[5px] text-[11.5px] font-mono">Agrément CE FR-94-046</span>
+              <span className="border border-[#2C4A3B] rounded-4 px-[10px] py-[5px] text-[11.5px] font-mono">HACCP</span>
             </div>
           </div>
-          
-          {/* Colonne 2: Navigation */}
-          <div>
-            <h4 className="text-white font-semibold mb-4">Navigation</h4>
-            <ul className="space-y-3 text-sm">
-              <li>
-                <Link to="/catalogue" className="hover:text-white transition-colors">
-                  Catalogue
-                </Link>
-              </li>
-              <li>
-                <Link to="/catalogue" className="hover:text-white transition-colors">
-                  Catégories
-                </Link>
-              </li>
-              <li>
-                <Link to="/catalogue?labels=PROMO" className="hover:text-white transition-colors">
-                  Promotions
-                </Link>
-              </li>
-            </ul>
+
+          {/* Colonne 2 : Acheter */}
+          <div className="flex flex-col gap-[11px]">
+            <div className="text-[11px] tracking-wide text-mist-4 uppercase">Acheter</div>
+            <FooterLink to="/catalogue">Tout le catalogue</FooterLink>
+            <FooterLink to="/catalogue?orderBy=createdAt&orderDir=DESC">Arrivages du jour</FooterLink>
+            <FooterLink to="/catalogue?labels=PROMO">Promotions</FooterLink>
+            <FooterStub>Commande express</FooterStub>
           </div>
-          
-          {/* Colonne 3: Mon compte */}
-          <div>
-            <h4 className="text-white font-semibold mb-4">Mon compte</h4>
-            <ul className="space-y-3 text-sm">
-              <li>
-                <Link to="/login" className="hover:text-white transition-colors">
-                  Connexion
-                </Link>
-              </li>
-              <li>
-                <Link to="/register" className="hover:text-white transition-colors">
-                  Inscription
-                </Link>
-              </li>
-              <li>
-                <Link to="/mes-commandes" className="hover:text-white transition-colors">
-                  Mes commandes
-                </Link>
-              </li>
-              <li>
-                <Link to="/mon-compte" className="hover:text-white transition-colors">
-                  Mon profil
-                </Link>
-              </li>
-            </ul>
+
+          {/* Colonne 3 : Mon compte */}
+          <div className="flex flex-col gap-[11px]">
+            <div className="text-[11px] tracking-wide text-mist-4 uppercase">Mon compte</div>
+            <FooterLink to="/mes-commandes">Mes commandes</FooterLink>
+            <FooterStub>Mes listes récurrentes</FooterStub>
+            <FooterLink to="/mes-factures">Mes factures</FooterLink>
+            <FooterLink to="/mon-compte">Adresses de livraison</FooterLink>
           </div>
-          
-          {/* Colonne 4: Contact (dynamique) */}
-          <div>
-            <h4 className="text-white font-semibold mb-4">Contact</h4>
-            <ul className="space-y-3 text-sm">
+
+          {/* Colonne 4 : Infos */}
+          <div className="flex flex-col gap-[11px]">
+            <div className="text-[11px] tracking-wide text-mist-4 uppercase">Infos</div>
+            <FooterStub>Livraison</FooterStub>
+            <FooterLink to="/register">Ouvrir un compte pro</FooterLink>
+            <FooterLink to="/cgv">CGV</FooterLink>
+            <FooterLink to="/mentions-legales">Mentions légales</FooterLink>
+          </div>
+
+          {/* Colonne 5 : Service client */}
+          <div className="col-span-2 md:col-span-1 flex flex-col gap-3">
+            <div className="text-[11px] tracking-wide text-mist-4 uppercase">Service client</div>
+            {loading ? (
+              <span className="h-5 w-32 bg-ink-800 rounded animate-pulse" />
+            ) : (
+              <a href={`tel:${site.telephone?.replace(/\s/g, '')}`} className="font-mono text-[18px] text-white">
+                {site.telephone}
+              </a>
+            )}
+            <div className="text-[12.5px] text-mist-2 leading-relaxed">
+              Du lundi au samedi, 6 h – 18 h
+              <br />
               {loading ? (
-                <>
-                  <li className="h-4 bg-gray-700 rounded animate-pulse"></li>
-                  <li className="h-4 bg-gray-700 rounded animate-pulse"></li>
-                  <li className="h-4 bg-gray-700 rounded animate-pulse"></li>
-                </>
+                <span className="inline-block h-4 w-40 bg-ink-800 rounded animate-pulse mt-1" />
               ) : (
-                <>
-                  <li className="flex items-start gap-2">
-                    <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                    <span>
-                      {site.adresse}<br />
-                      {site.codePostal} {site.ville}
-                    </span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Phone className="w-4 h-4 flex-shrink-0" />
-                    <a href={`tel:${site.telephone?.replace(/\s/g, '')}`} className="hover:text-white transition-colors">
-                      {site.telephone}
-                    </a>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 flex-shrink-0" />
-                    <a href={`mailto:${site.email}`} className="hover:text-white transition-colors">
-                      {site.email}
-                    </a>
-                  </li>
-                </>
+                <a href={`mailto:${site.email}`} className="hover:text-white transition-colors">{site.email}</a>
               )}
-            </ul>
+            </div>
+            <div className="bg-ink-700 border border-[#2C4A3B] rounded-6 px-3.5 py-3">
+              <div className="text-[12.5px] text-white font-semibold mb-0.5">Prochaine tournée</div>
+              <div className="text-[12.5px] text-mist-2">Commandez avant 18 h pour être livré demain</div>
+            </div>
           </div>
         </div>
-        
-        {/* Barre du bas */}
-        <div className="border-t border-gray-800 mt-10 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
-            <p>
-              © {currentYear} {site.nom} - SIRET {site.siret}
-            </p>
-            <div className="flex flex-wrap justify-center gap-6">
-              <Link to="/cgv" className="hover:text-white transition-colors">
-                CGV
-              </Link>
-              <Link to="/confidentialite" className="hover:text-white transition-colors">
-                Confidentialité
-              </Link>
-              <Link to="/mentions-legales" className="hover:text-white transition-colors">
-                Mentions légales
-              </Link>
-              <Link to="/accessibilite" className="hover:text-white transition-colors">
-                Accessibilité
-              </Link>
-            </div>
+
+        {/* Barre légale */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-3 mt-9 pt-[18px] border-t border-ink-600 text-[12px] text-mist-4">
+          <span>© {currentYear} {site.nom}{site.siret ? ` — SIRET ${site.siret}` : ''}</span>
+          <div className="flex gap-5">
+            <FooterLink to="/confidentialite">Confidentialité</FooterLink>
+            <FooterLink to="/accessibilite">Accessibilité</FooterLink>
+            <FooterLink to="/confidentialite">Cookies</FooterLink>
           </div>
         </div>
       </div>

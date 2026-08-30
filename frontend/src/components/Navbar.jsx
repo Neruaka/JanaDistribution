@@ -1,301 +1,344 @@
 /**
- * Composant Navbar
- * @description Barre de navigation avec recherche intelligente
+ * Composant Navbar — en-tête public 3 bandes
+ * @description Barre utilitaire (HT/TTC) + barre principale (logo, recherche, compte, panier) + nav rayons
+ * @see design_handoff_jana_refonte/JanaHeader.dc.html
  */
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
+import { useSettings } from '../contexts/SettingsContext';
+import { usePriceMode } from '../contexts/PriceModeContext';
 import SearchBar from './SearchBar';
+import categoryService from '../services/categoryService';
 import toast from 'react-hot-toast';
-import { ShoppingCart, Menu, X } from 'lucide-react';
+import { ChevronDown, Menu, X, LogOut, User, Package, FileText, Settings } from 'lucide-react';
+import { formatAmount } from '../utils/priceUtils';
 
 const Navbar = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
-  const { itemCount, openDrawer } = useCart();
-  
-  // État du menu mobile
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
-  // État du dropdown utilisateur
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const { itemCount, openDrawer, subtotalHT, totalTTC } = useCart();
+  const { site, telephoneSite } = useSettings();
+  const { priceMode, setPriceMode } = usePriceMode();
 
-  /**
-   * Gère la déconnexion
-   */
+  const [rayons, setRayons] = useState([]);
+  const [isRayonsOpen, setIsRayonsOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const rayonsRef = useRef(null);
+
+  useEffect(() => {
+    let mounted = true;
+    categoryService.getAll({ includeProductCount: true }).then((response) => {
+      if (mounted && response.success && Array.isArray(response.data)) {
+        setRayons(response.data.filter((c) => c.estActif !== false));
+      }
+    }).catch(() => {});
+    return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (rayonsRef.current && !rayonsRef.current.contains(event.target)) {
+        setIsRayonsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const handleLogout = async () => {
     await logout();
     toast.success('Déconnexion réussie !');
+    setIsUserMenuOpen(false);
     navigate('/');
   };
 
+  const cartTotal = priceMode === 'TTC' ? totalTTC : subtotalHT;
+  const rayonsVisibles = rayons.slice(0, 7);
+
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          
-          {/* Logo et navigation principale */}
-          <div className="flex items-center">
-            {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
-              <span className="text-2xl">🥬</span>
-              <span className="font-bold text-xl text-green-600 hidden sm:block">
-                Jana Distribution
-              </span>
-            </Link>
-
-            {/* Lien Catalogue - Desktop */}
-            <div className="hidden md:flex ml-8">
-              <Link 
-                to="/catalogue" 
-                className="text-gray-700 hover:text-green-600 px-3 py-2 text-sm font-medium transition-colors"
-              >
-                Catalogue
-              </Link>
-            </div>
-          </div>
-
-          {/* Barre de recherche - Desktop */}
-          <div className="hidden md:flex flex-1 items-center justify-center px-8 max-w-xl">
-            <SearchBar className="w-full" />
-          </div>
-
-          {/* Actions utilisateur */}
-          <div className="flex items-center space-x-4">
-            {/* Panier - bouton qui ouvre le drawer */}
-            <button 
-              onClick={openDrawer}
-              className="text-gray-700 hover:text-green-600 p-2 relative transition-colors"
-              aria-label="Ouvrir le panier"
+    <header className="sticky top-0 z-50 bg-white font-sans">
+      {/* Bande 1 — barre utilitaire */}
+      <div className="hidden md:flex items-center justify-between h-[38px] px-10 bg-ink-900 text-[12.5px] text-mist-2">
+        <div className="flex items-center gap-7">
+          <span>Livraison 24–48 h en Île-de-France</span>
+          <span className="text-ink-500">|</span>
+          <span>Commande minimum 50 € HT</span>
+          <span className="text-ink-500">|</span>
+          <span>Créneaux confirmés par téléphone</span>
+        </div>
+        <div className="flex items-center gap-[22px]">
+          {telephoneSite && (
+            <a href={`tel:${telephoneSite.replace(/\s/g, '')}`} className="font-mono text-mist-2 hover:text-white">
+              {telephoneSite}
+            </a>
+          )}
+          <span className="text-ink-500">|</span>
+          <a href={`mailto:${site?.email || ''}`} className="text-mist-2 hover:text-white">
+            Aide &amp; contact
+          </a>
+          <div className="flex bg-ink-700 rounded p-0.5">
+            <button
+              type="button"
+              onClick={() => setPriceMode('HT')}
+              className={`px-[9px] py-[3px] rounded-[3px] text-[11.5px] font-semibold transition-colors ${
+                priceMode === 'HT' ? 'bg-sand-50 text-ink-900' : 'text-mist-3'
+              }`}
             >
-              <ShoppingCart className="w-6 h-6" />
-              {/* Badge panier dynamique */}
-              {itemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium animate-pulse">
-                  {itemCount > 99 ? '99+' : itemCount}
-                </span>
-              )}
+              HT
             </button>
+            <button
+              type="button"
+              onClick={() => setPriceMode('TTC')}
+              className={`px-[9px] py-[3px] rounded-[3px] text-[11.5px] font-semibold transition-colors ${
+                priceMode === 'TTC' ? 'bg-sand-50 text-ink-900' : 'text-mist-3'
+              }`}
+            >
+              TTC
+            </button>
+          </div>
+        </div>
+      </div>
 
-            {/* Authentification */}
+      {/* Bande 2 — barre principale */}
+      <div className="flex items-center gap-8 px-4 md:px-10 py-3 md:py-[18px] border-b border-sand-200">
+        <Link to="/" className="flex items-center gap-[11px] flex-shrink-0">
+          <div className="w-[34px] h-[34px] rounded-7 bg-green-700 flex items-center justify-center text-white font-display font-extrabold text-[17px] tracking-tight">
+            J
+          </div>
+          <div className="hidden sm:flex flex-col leading-none">
+            <span className="font-display font-extrabold text-[19px] tracking-tight text-ink-900">JANA</span>
+            <span className="text-[9.5px] tracking-widest text-graphite-500 mt-[3px]">DISTRIBUTION</span>
+          </div>
+        </Link>
+
+        <div className="hidden md:block flex-1 max-w-[720px]">
+          <SearchBar />
+        </div>
+
+        <div className="flex items-center gap-[26px] ml-auto">
+          {isAuthenticated && (
+            <Link to="/mes-commandes" className="hidden lg:flex flex-col leading-[1.25]">
+              <span className="text-[11px] text-graphite-500">Mes</span>
+              <span className="text-[13.5px] text-ink-900 font-semibold">commandes</span>
+            </Link>
+          )}
+
+          <div className="relative hidden md:block">
             {isAuthenticated ? (
-              // Utilisateur connecté
-              <div className="relative">
+              <>
                 <button
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center space-x-2 text-gray-700 hover:text-green-600 focus:outline-none"
+                  type="button"
+                  onClick={() => setIsUserMenuOpen((v) => !v)}
+                  className="flex flex-col leading-[1.25] text-left"
                 >
-                  <span className="text-xl">
-                    {isAdmin ? '👤' : '🙂'}
+                  <span className="text-[11px] text-graphite-500">Bonjour, {user?.prenom}</span>
+                  <span className="text-[13.5px] text-ink-900 font-semibold flex items-center gap-1">
+                    Mon compte
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
                   </span>
-                  <span className="hidden sm:block text-sm font-medium">
-                    {user?.prenom}
-                  </span>
-                  <svg 
-                    className={`w-4 h-4 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
                 </button>
 
-                {/* Dropdown menu */}
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border">
-                    {/* Infos utilisateur */}
-                    <div className="px-4 py-2 border-b">
-                      <p className="text-sm font-medium text-gray-900">
-                        {user?.prenom} {user?.nom}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {user?.email}
-                      </p>
-                      <span className={`inline-block mt-1 px-2 py-0.5 text-xs rounded-full ${
-                        isAdmin 
-                          ? 'bg-purple-100 text-purple-700' 
-                          : user?.typeClient === 'PROFESSIONNEL'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-green-100 text-green-700'
+                  <div className="absolute right-0 mt-3 w-56 bg-white rounded-8 border border-sand-200 py-1 z-50">
+                    <div className="px-4 py-3 border-b border-sand-200">
+                      <p className="text-[13.5px] font-semibold text-ink-900">{user?.prenom} {user?.nom}</p>
+                      <p className="text-[12px] text-graphite-500">{user?.email}</p>
+                      <span className={`inline-block mt-1.5 px-2 py-0.5 text-[11px] font-medium rounded-3 ${
+                        isAdmin ? 'bg-pro-bg text-pro-text' : user?.typeClient === 'PROFESSIONNEL'
+                          ? 'bg-pro-bg text-pro-text'
+                          : 'bg-particulier-bg text-particulier-text'
                       }`}>
-                        {isAdmin ? 'Administrateur' : user?.typeClient}
+                        {isAdmin ? 'Administrateur' : user?.typeClient === 'PROFESSIONNEL' ? 'Pro' : 'Particulier'}
                       </span>
                     </div>
-
-                    {/* Liens */}
-                    <Link
-                      to="/mon-compte"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      👤 Mon compte
+                    <Link to="/mon-compte" className="flex items-center gap-2 px-4 py-2 text-[13.5px] text-graphite-700 hover:bg-sand-50" onClick={() => setIsUserMenuOpen(false)}>
+                      <User className="w-4 h-4 text-graphite-400" /> Mon compte
                     </Link>
-                    <Link
-                      to="/mes-commandes"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      📦 Mes commandes
+                    <Link to="/mes-commandes" className="flex items-center gap-2 px-4 py-2 text-[13.5px] text-graphite-700 hover:bg-sand-50" onClick={() => setIsUserMenuOpen(false)}>
+                      <Package className="w-4 h-4 text-graphite-400" /> Mes commandes
                     </Link>
-                    <Link
-                      to="/mes-factures"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      🧾 Mes factures
+                    <Link to="/mes-factures" className="flex items-center gap-2 px-4 py-2 text-[13.5px] text-graphite-700 hover:bg-sand-50" onClick={() => setIsUserMenuOpen(false)}>
+                      <FileText className="w-4 h-4 text-graphite-400" /> Mes factures
                     </Link>
-
-                    {/* Admin uniquement */}
                     {isAdmin && (
                       <>
-                        <div className="border-t my-1"></div>
-                        <Link
-                          to="/admin"
-                          className="block px-4 py-2 text-sm text-purple-700 hover:bg-purple-50"
-                          onClick={() => setIsUserMenuOpen(false)}
-                        >
-                          ⚙️ Administration
+                        <div className="border-t border-sand-200 my-1" />
+                        <Link to="/admin" className="flex items-center gap-2 px-4 py-2 text-[13.5px] text-green-700 hover:bg-success-bg" onClick={() => setIsUserMenuOpen(false)}>
+                          <Settings className="w-4 h-4" /> Administration
                         </Link>
                       </>
                     )}
-
-                    {/* Déconnexion */}
-                    <div className="border-t my-1"></div>
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                    >
-                      🚪 Déconnexion
+                    <div className="border-t border-sand-200 my-1" />
+                    <button onClick={handleLogout} className="w-full flex items-center gap-2 px-4 py-2 text-[13.5px] text-danger-text hover:bg-danger-bg text-left">
+                      <LogOut className="w-4 h-4" /> Déconnexion
                     </button>
                   </div>
                 )}
-              </div>
+              </>
             ) : (
-              // Utilisateur non connecté
-              <div className="hidden sm:flex items-center space-x-2">
-                <Link
-                  to="/login"
-                  className="text-gray-700 hover:text-green-600 px-3 py-2 text-sm font-medium"
-                >
+              <div className="flex items-center gap-3">
+                <Link to="/login" className="text-[13.5px] font-semibold text-ink-900 hover:text-green-800">
                   Connexion
                 </Link>
-                <Link
-                  to="/register"
-                  className="bg-green-600 text-white hover:bg-green-700 px-4 py-2 rounded-md text-sm font-medium transition-colors"
-                >
+                <Link to="/register" className="bg-green-700 text-white hover:bg-green-800 px-4 py-2 rounded-6 text-[13.5px] font-semibold transition-colors">
                   Inscription
                 </Link>
               </div>
             )}
-
-            {/* Bouton menu mobile */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 text-gray-700"
-            >
-              {isMobileMenuOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
-            </button>
           </div>
+
+          <button
+            type="button"
+            onClick={openDrawer}
+            className="flex items-center gap-[10px] bg-green-700 hover:bg-green-800 text-white h-11 px-[18px] rounded-6 transition-colors"
+            aria-label="Ouvrir le panier"
+          >
+            <span className="text-[13.5px] font-semibold">Panier</span>
+            <span className="bg-white/[18%] rounded-full text-[12px] px-2 py-0.5">{itemCount}</span>
+            <span className="hidden sm:inline font-mono text-[13.5px]">
+              {formatAmount(cartTotal)} {priceMode}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen((v) => !v)}
+            className="md:hidden p-2 text-ink-900"
+            aria-label="Menu"
+          >
+            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
-
-        {/* Menu mobile */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t py-4 space-y-4">
-            {/* Barre de recherche mobile */}
-            <div className="px-2">
-              <SearchBar className="w-full" />
-            </div>
-            
-            <div className="space-y-2">
-              <Link 
-                to="/catalogue" 
-                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                📦 Catalogue
-              </Link>
-              
-              {/* Liens utilisateur connecté - mobile */}
-              {isAuthenticated && (
-                <>
-                  <div className="border-t my-2"></div>
-                  <Link 
-                    to="/mon-compte" 
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    👤 Mon compte
-                  </Link>
-                  <Link 
-                    to="/mes-commandes" 
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    📋 Mes commandes
-                  </Link>
-                  <Link 
-                    to="/panier" 
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    🛒 Mon panier {itemCount > 0 && `(${itemCount})`}
-                  </Link>
-                  
-                  {isAdmin && (
-                    <Link 
-                      to="/admin" 
-                      className="block px-4 py-2 text-purple-700 hover:bg-purple-50 rounded-md"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      ⚙️ Administration
-                    </Link>
-                  )}
-                </>
-              )}
-              
-              {/* Connexion/Inscription mobile */}
-              {!isAuthenticated && (
-                <>
-                  <div className="border-t my-2"></div>
-                  <Link 
-                    to="/login" 
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    🔐 Connexion
-                  </Link>
-                  <Link 
-                    to="/register" 
-                    className="block px-4 py-2 text-green-600 hover:bg-green-50 rounded-md font-medium"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    ✨ Inscription
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Overlay pour fermer les menus */}
-      {(isUserMenuOpen || isMobileMenuOpen) && (
-        <div 
-          className="fixed inset-0 z-40" 
+      {/* Bande 3 — nav rayons */}
+      <div className="hidden md:flex items-center gap-[30px] px-10 h-[46px] border-b border-sand-200 bg-white text-[13.5px]">
+        <div className="relative" ref={rayonsRef}>
+          <button
+            type="button"
+            onClick={() => setIsRayonsOpen((v) => !v)}
+            className="flex items-center gap-[9px] bg-ink-900 text-white px-[15px] py-[7px] rounded-5 font-semibold text-[13px]"
+          >
+            <Menu className="w-3.5 h-3.5" /> Rayons
+          </button>
+          {isRayonsOpen && rayons.length > 0 && (
+            <div className="absolute left-0 mt-2 w-64 bg-white rounded-8 border border-sand-200 py-2 z-50 max-h-96 overflow-y-auto">
+              {rayons.map((rayon) => (
+                <Link
+                  key={rayon.id}
+                  to={`/catalogue?categorie=${rayon.id}`}
+                  className="flex items-center justify-between px-4 py-2 text-[13.5px] text-graphite-900 hover:bg-sand-50"
+                  onClick={() => setIsRayonsOpen(false)}
+                >
+                  <span>{rayon.nom}</span>
+                  {typeof rayon.productCount === 'number' && (
+                    <span className="font-mono text-[11px] text-graphite-400">{rayon.productCount}</span>
+                  )}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {rayonsVisibles.map((rayon) => (
+          <Link key={rayon.id} to={`/catalogue?categorie=${rayon.id}`} className="text-graphite-900 hover:text-green-800">
+            {rayon.nom}
+          </Link>
+        ))}
+
+        <Link to="/catalogue?labels=PROMO" className="text-[#A8501A] font-semibold">
+          Promotions
+        </Link>
+
+        <Link to="/catalogue" className="ml-auto flex items-center gap-2 text-green-700 font-semibold hover:text-green-800">
+          Commande express par référence →
+        </Link>
+      </div>
+
+      {/* Menu mobile */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden border-t border-sand-200 bg-white px-4 py-4 space-y-4">
+          <SearchBar />
+
+          <div className="flex bg-sand-150 rounded-6 p-0.5 w-fit">
+            <button
+              type="button"
+              onClick={() => setPriceMode('HT')}
+              className={`px-3 py-1.5 rounded-5 text-[12px] font-semibold ${priceMode === 'HT' ? 'bg-white text-ink-900' : 'text-graphite-500'}`}
+            >
+              HT
+            </button>
+            <button
+              type="button"
+              onClick={() => setPriceMode('TTC')}
+              className={`px-3 py-1.5 rounded-5 text-[12px] font-semibold ${priceMode === 'TTC' ? 'bg-white text-ink-900' : 'text-graphite-500'}`}
+            >
+              TTC
+            </button>
+          </div>
+
+          <div className="space-y-1">
+            <Link to="/catalogue" className="block px-3 py-2 rounded-6 text-graphite-900 hover:bg-sand-50" onClick={() => setIsMobileMenuOpen(false)}>
+              Catalogue
+            </Link>
+            {rayonsVisibles.map((rayon) => (
+              <Link
+                key={rayon.id}
+                to={`/catalogue?categorie=${rayon.id}`}
+                className="block px-3 py-2 rounded-6 text-graphite-900 hover:bg-sand-50"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {rayon.nom}
+              </Link>
+            ))}
+
+            {isAuthenticated ? (
+              <>
+                <div className="border-t border-sand-200 my-2" />
+                <Link to="/mon-compte" className="block px-3 py-2 rounded-6 text-graphite-900 hover:bg-sand-50" onClick={() => setIsMobileMenuOpen(false)}>
+                  Mon compte
+                </Link>
+                <Link to="/mes-commandes" className="block px-3 py-2 rounded-6 text-graphite-900 hover:bg-sand-50" onClick={() => setIsMobileMenuOpen(false)}>
+                  Mes commandes
+                </Link>
+                {isAdmin && (
+                  <Link to="/admin" className="block px-3 py-2 rounded-6 text-green-700 hover:bg-success-bg font-semibold" onClick={() => setIsMobileMenuOpen(false)}>
+                    Administration
+                  </Link>
+                )}
+                <button onClick={handleLogout} className="w-full text-left px-3 py-2 rounded-6 text-danger-text hover:bg-danger-bg">
+                  Déconnexion
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="border-t border-sand-200 my-2" />
+                <Link to="/login" className="block px-3 py-2 rounded-6 text-graphite-900 hover:bg-sand-50" onClick={() => setIsMobileMenuOpen(false)}>
+                  Connexion
+                </Link>
+                <Link to="/register" className="block px-3 py-2 rounded-6 text-green-700 font-semibold hover:bg-success-bg" onClick={() => setIsMobileMenuOpen(false)}>
+                  Inscription
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {(isUserMenuOpen || isRayonsOpen) && (
+        <div
+          className="fixed inset-0 z-40"
           onClick={() => {
             setIsUserMenuOpen(false);
-            setIsMobileMenuOpen(false);
+            setIsRayonsOpen(false);
           }}
-        ></div>
+        />
       )}
-    </nav>
+    </header>
   );
 };
 
