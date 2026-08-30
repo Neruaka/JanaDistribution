@@ -57,9 +57,14 @@ const PORT = process.env.PORT || 3000;
 // Sécurité
 app.use(helmet());
 
-// CORS
+// CORS — CORS_ORIGIN accepte une liste d'origines séparées par des virgules
+const corsOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  origin: corsOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
