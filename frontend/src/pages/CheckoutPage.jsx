@@ -51,7 +51,7 @@ const CheckoutPage = () => {
         ...prev,
         prenom: user.prenom || '',
         nom: user.nom || '',
-        entreprise: user.entreprise || '',
+        entreprise: user.raisonSociale || '',
         telephone: user.telephone || ''
       }));
     }
