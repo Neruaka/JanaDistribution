@@ -137,8 +137,11 @@ export default {
 
       borderRadius: {
         3: '3px',  // micro-pastille
+        4: '4px',  // badge
         5: '5px',  // vignette
+        6: '6px',  // bouton, champ
         7: '7px',  // bouton mobile
+        8: '8px',  // carte
         9: '9px',  // carte mobile
         10: '10px',
         11: '11px', // interrupteur
