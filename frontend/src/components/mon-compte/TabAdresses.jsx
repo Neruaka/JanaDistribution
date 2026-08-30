@@ -1,44 +1,38 @@
 /**
- * Composant TabAdresses
- * Gestion des adresses de livraison (3 max)
+ * TabAdresses — carte "Adresses de livraison" de Mon compte
+ * @see design_handoff_jana_refonte/README.md ("10 — Mon compte")
+ *
+ * Pas d'API adresses côté backend (table réelle mais sans CRUD exposé) : la persistance
+ * reste 100% sessionStorage, comme dans le checkout. On le signale explicitement à l'écran
+ * plutôt que de laisser croire à une synchronisation serveur.
  */
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Plus, Edit2, Trash2, Check, Save, Loader2 } from 'lucide-react';
+import { Check, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Checkbox from '../Checkbox';
+
+const inputClass = 'border border-sand-250 rounded-6 h-11 px-3.5 text-[14px] text-ink-900 focus:outline-none focus:border-ink-900 transition-colors';
+const EMPTY_FORM = { id: null, nom: '', adresse: '', complement: '', codePostal: '', ville: '', telephone: '', estDefaut: false };
 
 const TabAdresses = ({ userId }) => {
-  // États
   const [adresses, setAdresses] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({
-    id: null,
-    nom: '',
-    adresse: '',
-    complement: '',
-    codePostal: '',
-    ville: '',
-    telephone: '',
-    estDefaut: false
-  });
+  const [form, setForm] = useState(EMPTY_FORM);
 
-  // Charger les adresses
   useEffect(() => {
-    if (userId) {
-      const storageKey = `addresses_${userId}`;
-      const saved = sessionStorage.getItem(storageKey) || localStorage.getItem(storageKey);
-      if (saved) {
-        setAdresses(JSON.parse(saved));
-        sessionStorage.setItem(storageKey, saved);
-        localStorage.removeItem(storageKey);
-      }
+    if (!userId) return;
+    const storageKey = `addresses_${userId}`;
+    const saved = sessionStorage.getItem(storageKey) || localStorage.getItem(storageKey);
+    if (saved) {
+      setAdresses(JSON.parse(saved));
+      sessionStorage.setItem(storageKey, saved);
+      localStorage.removeItem(storageKey);
     }
   }, [userId]);
 
-  // Sauvegarder dans le stockage de session
   const saveToStorage = (newAdresses) => {
     const storageKey = `addresses_${userId}`;
     sessionStorage.setItem(storageKey, JSON.stringify(newAdresses));
@@ -46,59 +40,27 @@ const TabAdresses = ({ userId }) => {
     setAdresses(newAdresses);
   };
 
-  // Reset form
   const resetForm = () => {
-    setForm({
-      id: null,
-      nom: '',
-      adresse: '',
-      complement: '',
-      codePostal: '',
-      ville: '',
-      telephone: '',
-      estDefaut: false
-    });
+    setForm(EMPTY_FORM);
     setShowForm(false);
     setEditingIndex(null);
   };
 
-  // Ouvrir le formulaire pour ajout
-  const handleAdd = () => {
-    resetForm();
-    setShowForm(true);
-  };
+  const handleAdd = () => { resetForm(); setShowForm(true); };
+  const handleEdit = (index) => { setForm({ ...adresses[index] }); setEditingIndex(index); setShowForm(true); };
 
-  // Ouvrir le formulaire pour modification
-  const handleEdit = (index) => {
-    const addr = adresses[index];
-    setForm({ ...addr });
-    setEditingIndex(index);
-    setShowForm(true);
-  };
-
-  // Sauvegarder l'adresse
   const handleSave = () => {
-    // Validation
     if (!form.nom || !form.adresse || !form.codePostal || !form.ville) {
       toast.error('Veuillez remplir tous les champs obligatoires');
       return;
     }
-
     setSaving(true);
-
     let newAdresses;
-    const addressData = {
-      ...form,
-      id: form.id || `addr_${Date.now()}`
-    };
+    const addressData = { ...form, id: form.id || `addr_${Date.now()}` };
 
     if (editingIndex !== null) {
-      // Modification
-      newAdresses = adresses.map((addr, idx) => 
-        idx === editingIndex ? addressData : addr
-      );
+      newAdresses = adresses.map((addr, idx) => (idx === editingIndex ? addressData : addr));
     } else {
-      // Ajout
       if (adresses.length >= 3) {
         toast.error('Vous ne pouvez pas avoir plus de 3 adresses');
         setSaving(false);
@@ -107,13 +69,9 @@ const TabAdresses = ({ userId }) => {
       newAdresses = [...adresses, addressData];
     }
 
-    // Si défaut, retirer le défaut des autres
     if (addressData.estDefaut) {
       const targetIndex = editingIndex ?? newAdresses.length - 1;
-      newAdresses = newAdresses.map((addr, idx) => ({
-        ...addr,
-        estDefaut: idx === targetIndex
-      }));
+      newAdresses = newAdresses.map((addr, idx) => ({ ...addr, estDefaut: idx === targetIndex }));
     }
 
     saveToStorage(newAdresses);
@@ -122,233 +80,105 @@ const TabAdresses = ({ userId }) => {
     toast.success(editingIndex !== null ? 'Adresse modifiée !' : 'Adresse ajoutée !');
   };
 
-  // Supprimer une adresse
   const handleDelete = (index) => {
-    const newAdresses = adresses.filter((_, idx) => idx !== index);
-    saveToStorage(newAdresses);
+    saveToStorage(adresses.filter((_, idx) => idx !== index));
     toast.success('Adresse supprimée');
   };
 
-  // Définir par défaut
   const handleSetDefault = (index) => {
-    const newAdresses = adresses.map((addr, idx) => ({
-      ...addr,
-      estDefaut: idx === index
-    }));
-    saveToStorage(newAdresses);
+    saveToStorage(adresses.map((addr, idx) => ({ ...addr, estDefaut: idx === index })));
     toast.success('Adresse par défaut mise à jour');
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 20 }}
-      className="space-y-6"
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-          <MapPin className="w-5 h-5 text-green-600" />
-          Adresses de livraison
-        </h3>
+    <div id="adresses" className="bg-white border border-sand-200 rounded-8 p-5">
+      <div className="flex items-center justify-between mb-1">
+        <div className="font-display text-[16px] font-bold text-ink-900">Adresses de livraison</div>
         {adresses.length < 3 && !showForm && (
-          <button
-            onClick={handleAdd}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Ajouter
+          <button type="button" onClick={handleAdd} className="text-[13px] font-semibold text-green-700 hover:text-green-800">
+            + Ajouter une adresse
           </button>
         )}
       </div>
+      <p className="text-[12px] text-graphite-400 mb-4">Jusqu'à 3 adresses, enregistrées sur cet appareil uniquement.</p>
 
-      <p className="text-sm text-gray-500">
-        Vous pouvez enregistrer jusqu'à 3 adresses de livraison.
-      </p>
-
-      {/* Formulaire */}
-      <AnimatePresence>
-        {showForm && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-gray-50 rounded-xl p-4 space-y-4"
-          >
-            <h4 className="font-medium text-gray-800">
-              {editingIndex !== null ? 'Modifier l\'adresse' : 'Nouvelle adresse'}
-            </h4>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nom de l'adresse <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={form.nom}
-                  onChange={(e) => setForm({ ...form, nom: e.target.value })}
-                  placeholder="Ex: Domicile, Bureau..."
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
-                <input
-                  type="tel"
-                  value={form.telephone}
-                  onChange={(e) => setForm({ ...form, telephone: e.target.value })}
-                  placeholder="06 12 34 56 78"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
-              </div>
+      {showForm && (
+        <div className="bg-sand-50 rounded-8 p-4 mb-4 flex flex-col gap-3.5">
+          <div className="font-semibold text-[13.5px] text-ink-900">{editingIndex !== null ? 'Modifier l\'adresse' : 'Nouvelle adresse'}</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[12.5px] text-graphite-600">Nom de l'adresse</span>
+              <input type="text" value={form.nom} onChange={(e) => setForm({ ...form, nom: e.target.value })} placeholder="Domicile, Bureau…" className={`${inputClass} bg-white`} />
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Adresse <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={form.adresse}
-                onChange={(e) => setForm({ ...form, adresse: e.target.value })}
-                placeholder="15 rue de la Paix"
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[12.5px] text-graphite-600">Téléphone</span>
+              <input type="tel" value={form.telephone} onChange={(e) => setForm({ ...form, telephone: e.target.value })} placeholder="06 12 34 56 78" className={`${inputClass} bg-white`} />
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Complément</label>
-              <input
-                type="text"
-                value={form.complement}
-                onChange={(e) => setForm({ ...form, complement: e.target.value })}
-                placeholder="Bâtiment A, 2ème étage..."
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
+            <div className="sm:col-span-2 flex flex-col gap-1.5">
+              <span className="text-[12.5px] text-graphite-600">Adresse</span>
+              <input type="text" value={form.adresse} onChange={(e) => setForm({ ...form, adresse: e.target.value })} placeholder="15 rue de la Paix" className={`${inputClass} bg-white`} />
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Code postal <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={form.codePostal}
-                  onChange={(e) => setForm({ ...form, codePostal: e.target.value.replace(/\D/g, '').slice(0, 5) })}
-                  placeholder="75001"
-                  maxLength={5}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Ville <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={form.ville}
-                  onChange={(e) => setForm({ ...form, ville: e.target.value })}
-                  placeholder="Paris"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
-              </div>
+            <div className="sm:col-span-2 flex flex-col gap-1.5">
+              <span className="text-[12.5px] text-graphite-600">Complément <span className="text-graphite-300">(optionnel)</span></span>
+              <input type="text" value={form.complement} onChange={(e) => setForm({ ...form, complement: e.target.value })} className={`${inputClass} bg-white`} />
             </div>
-
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.estDefaut}
-                onChange={(e) => setForm({ ...form, estDefaut: e.target.checked })}
-                className="w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
-              />
-              <span className="text-sm text-gray-700">Définir comme adresse par défaut</span>
-            </label>
-
-            <div className="flex gap-3 pt-2">
-              <button
-                onClick={resetForm}
-                className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
-              >
-                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                Enregistrer
-              </button>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[12.5px] text-graphite-600">Code postal</span>
+              <input type="text" value={form.codePostal} onChange={(e) => setForm({ ...form, codePostal: e.target.value.replace(/\D/g, '').slice(0, 5) })} maxLength={5} className={`${inputClass} bg-white`} />
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Liste des adresses */}
-      {adresses.length === 0 && !showForm ? (
-        <div className="text-center py-8 text-gray-500">
-          <MapPin className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-          <p>Aucune adresse enregistrée</p>
-          <p className="text-sm">Ajoutez une adresse pour faciliter vos commandes</p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {adresses.map((addr, idx) => (
-            <div
-              key={addr.id || idx}
-              className={`p-4 rounded-xl border-2 transition-colors ${
-                addr.estDefaut ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white'
-              }`}
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium text-gray-800">{addr.nom}</h4>
-                    {addr.estDefaut && (
-                      <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
-                        Par défaut
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-gray-600 text-sm">{addr.adresse}</p>
-                  {addr.complement && <p className="text-gray-500 text-sm">{addr.complement}</p>}
-                  <p className="text-gray-600 text-sm">{addr.codePostal} {addr.ville}</p>
-                  {addr.telephone && <p className="text-gray-500 text-sm mt-1">📞 {addr.telephone}</p>}
-                </div>
-                <div className="flex items-center gap-2">
-                  {!addr.estDefaut && (
-                    <button
-                      onClick={() => handleSetDefault(idx)}
-                      className="p-2 text-gray-400 hover:text-green-600 transition-colors"
-                      title="Définir par défaut"
-                    >
-                      <Check className="w-4 h-4" />
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleEdit(idx)}
-                    className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                    title="Modifier"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(idx)}
-                    className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                    title="Supprimer"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[12.5px] text-graphite-600">Ville</span>
+              <input type="text" value={form.ville} onChange={(e) => setForm({ ...form, ville: e.target.value })} className={`${inputClass} bg-white`} />
             </div>
-          ))}
+          </div>
+          <button type="button" onClick={() => setForm({ ...form, estDefaut: !form.estDefaut })} className="flex items-center gap-2.5 text-left w-fit">
+            <Checkbox checked={form.estDefaut} />
+            <span className="text-[13px] text-graphite-700">Définir comme adresse par défaut</span>
+          </button>
+          <div className="flex gap-2.5">
+            <button type="button" onClick={resetForm} className="flex-1 border border-sand-250 text-graphite-700 text-[13px] font-semibold py-2.5 rounded-6 hover:border-sand-300 transition-colors">
+              Annuler
+            </button>
+            <button type="button" onClick={handleSave} disabled={saving} className="flex-1 bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white text-[13px] font-semibold py-2.5 rounded-6 flex items-center justify-center gap-1.5 transition-colors">
+              {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />} Enregistrer
+            </button>
+          </div>
         </div>
       )}
-    </motion.div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {adresses.map((addr, idx) => (
+          <div key={addr.id || idx} className={`rounded-6 p-3.5 ${addr.estDefaut ? 'border-[1.5px] border-green-700 bg-selection-bg' : 'border border-sand-200'}`}>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[13.5px] font-bold text-ink-900">{addr.nom}</span>
+              {addr.estDefaut && <span className="text-[11px] text-success-text bg-success-bg px-2 py-0.5 rounded-3 flex-shrink-0">Par défaut</span>}
+            </div>
+            <div className="text-[13px] text-graphite-700 leading-[1.55] mt-1.5">
+              {addr.adresse}{addr.complement && `, ${addr.complement}`}<br />
+              {addr.codePostal} {addr.ville}
+            </div>
+            <div className="flex gap-3 mt-2.5 text-[12px]">
+              {!addr.estDefaut && (
+                <button type="button" onClick={() => handleSetDefault(idx)} className="text-graphite-500 hover:text-green-700 flex items-center gap-1">
+                  <Check className="w-3 h-3" /> Par défaut
+                </button>
+              )}
+              <button type="button" onClick={() => handleEdit(idx)} className="text-graphite-500 hover:text-ink-900">Modifier</button>
+              <button type="button" onClick={() => handleDelete(idx)} className="text-graphite-500 hover:text-danger-text">Supprimer</button>
+            </div>
+          </div>
+        ))}
+        {adresses.length < 3 && (
+          <button
+            type="button"
+            onClick={handleAdd}
+            className="rounded-6 border border-dashed border-[#D6D2C6] flex items-center justify-center text-[13.5px] text-graphite-300 hover:text-graphite-500 hover:border-sand-300 transition-colors min-h-[88px]"
+          >
+            + Nouvelle adresse
+          </button>
+        )}
+      </div>
+    </div>
   );
 };
 
