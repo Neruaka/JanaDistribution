@@ -124,9 +124,9 @@ const createOrderValidation = [
     .isLength({ max: 500 })
     .withMessage('Les instructions ne peuvent pas dépasser 500 caractères'),
 
-  // Code promo (optionnel)
+  // Code promo (optionnel) — nullable: le frontend envoie explicitement null en l'absence de code
   body('code_promo')
-    .optional()
+    .optional({ nullable: true })
     .isString()
     .trim()
     .isLength({ min: 1, max: 50 })
