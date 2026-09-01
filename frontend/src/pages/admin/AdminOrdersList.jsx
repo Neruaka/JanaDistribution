@@ -1,132 +1,98 @@
 /**
- * Page Admin Commandes - VERSION REFACTORISÉE
- * @description Gestion des commandes avec composants modulaires
- * @location frontend/src/pages/admin/AdminOrdersList.jsx
- * 
- * ✅ FIX: Bug des stats qui disparaissaient (loadOrders écrasait les stats)
- * ✅ REFACTORING: Composants modulaires + hook personnalisé
+ * Page Admin Commandes
+ * @description Ecran A2 — liste des commandes
+ * @see design_handoff_jana_refonte/README.md (A2 — Commandes)
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Search, Download, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { Download } from 'lucide-react';
 import adminService from '../../services/adminService';
+import { getStatutInfo } from '../../services/orderService';
+import { getAdminStatutStyle } from '../../utils/adminStatut';
+import { AdminTopBar } from '../../components/admin';
+import Pagination from '../../components/Pagination';
 
-// Composants
-import OrdersStatsCards from '../../components/admin/OrdersStatsCards';
-import OrdersFilters from '../../components/admin/OrdersFilters';
-import OrdersTable from '../../components/admin/OrdersTable';
-import OrderDetailModal from '../../components/admin/OrderDetailModal';
-import OrderContextMenu from '../../components/admin/OrderContextMenu';
+const STATUT_RAIL = [
+  { key: 'EN_ATTENTE', label: 'En attente', countKey: 'enAttente', color: 'text-warning-text' },
+  { key: 'CONFIRMEE', label: 'Confirmées', countKey: 'confirmees', color: 'text-ink-900' },
+  { key: 'EN_PREPARATION', label: 'En préparation', countKey: 'enPreparation', color: 'text-ink-900' },
+  { key: 'EXPEDIEE', label: 'Expédiées', countKey: 'expediees', color: 'text-ink-900' },
+  { key: 'LIVREE', label: 'Livrées', countKey: 'livrees', color: 'text-success-text' },
+  { key: 'ANNULEE', label: 'Annulées', countKey: 'annulees', color: 'text-danger-text' }
+];
 
-// Configuration des statuts
-const STATUTS = {
-  EN_ATTENTE: { label: 'En attente', next: 'CONFIRMEE' },
-  CONFIRMEE: { label: 'Confirmée', next: 'EN_PREPARATION' },
-  EN_PREPARATION: { label: 'En préparation', next: 'EXPEDIEE' },
-  EXPEDIEE: { label: 'Expédiée', next: 'LIVREE' },
-  LIVREE: { label: 'Livrée', next: null },
-  ANNULEE: { label: 'Annulée', next: null }
+const NEXT_STATUT = {
+  EN_ATTENTE: 'CONFIRMEE',
+  CONFIRMEE: 'EN_PREPARATION',
+  EN_PREPARATION: 'EXPEDIEE',
+  EXPEDIEE: 'LIVREE'
 };
 
+const NEXT_ACTION_LABEL = {
+  EN_ATTENTE: 'Confirmer',
+  CONFIRMEE: 'Préparer',
+  EN_PREPARATION: 'Expédier',
+  EXPEDIEE: 'Marquer livrée'
+};
+
+const formatMoney = (amount) =>
+  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount || 0);
+
+const formatDate = (date) => date ? new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
+
 const AdminOrdersList = () => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  
-  // ==========================================
-  // ÉTATS
-  // ==========================================
-  
-  // Données
+
   const [orders, setOrders] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 15,
-    total: 0,
-    totalPages: 0
-  });
-
-  // Filtres
-  const [filters, setFilters] = useState({
-    search: searchParams.get('search') || '',
-    statut: searchParams.get('statut') || '',
-    dateDebut: searchParams.get('dateDebut') || '',
-    dateFin: searchParams.get('dateFin') || '',
-    orderBy: 'createdAt',
-    orderDir: 'DESC'
-  });
-
-  // Modal détail
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [pagination, setPagination] = useState({ page: 1, limit: 15, total: 0, totalPages: 0 });
+  const [search, setSearch] = useState(searchParams.get('search') || '');
+  const [statut, setStatut] = useState(searchParams.get('statut') || '');
   const [updatingStatus, setUpdatingStatus] = useState(null);
-
-  // Menu contextuel
-  const [openMenuOrderId, setOpenMenuOrderId] = useState(null);
-  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
-
   const [exportLoading, setExportLoading] = useState(false);
 
-  // Ref pour éviter les appels dupliqués
   const statsLoadedRef = useRef(false);
 
-  // ==========================================
-  // CHARGEMENT DES DONNÉES
-  // ==========================================
-
-  // ✅ FIX: Charger les stats SÉPARÉMENT (une seule fois au montage)
   const loadStats = useCallback(async () => {
     try {
-      const statsResponse = await adminService.getOrderStats();
-      if (statsResponse) {
-        setStats(statsResponse);
-      }
+      const response = await adminService.getOrderStats();
+      if (response) setStats(response);
     } catch (error) {
       console.error('Erreur stats:', error);
     }
   }, []);
 
-  // Charger les commandes (sans toucher aux stats)
   const loadOrders = useCallback(async (page = 1) => {
     try {
       setLoading(true);
       const response = await adminService.getOrders({
         page,
         limit: pagination.limit,
-        search: filters.search || undefined,
-        statut: filters.statut || undefined,
-        dateDebut: filters.dateDebut || undefined,
-        dateFin: filters.dateFin || undefined,
-        orderBy: filters.orderBy,
-        orderDir: filters.orderDir
+        search: search || undefined,
+        statut: statut || undefined,
+        orderBy: 'createdAt',
+        orderDir: 'DESC'
       });
-
       setOrders(response.data || []);
-      setPagination(prev => ({
+      setPagination((prev) => ({
         ...prev,
         page,
         total: response.pagination?.total || 0,
         totalPages: response.pagination?.totalPages || 0
       }));
-      
-      // ✅ FIX: NE PAS écraser les stats ici !
-      // Les stats sont chargées séparément par loadStats()
-      
-      return response.data || [];
     } catch (error) {
       console.error('Erreur chargement commandes:', error);
       toast.error('Erreur lors du chargement des commandes');
-      return [];
     } finally {
       setLoading(false);
     }
-  }, [filters, pagination.limit]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, statut, pagination.limit]);
 
-  // ✅ Charger stats au montage (une seule fois)
   useEffect(() => {
     if (!statsLoadedRef.current) {
       loadStats();
@@ -134,200 +100,54 @@ const AdminOrdersList = () => {
     }
   }, [loadStats]);
 
-  // Charger commandes quand les filtres changent (sauf search)
+  useEffect(() => { loadOrders(1); }, [statut]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    loadOrders(1);
-  }, [filters.statut, filters.dateDebut, filters.dateFin, filters.orderBy, filters.orderDir]);
-
-  // Recherche avec délai (debounce)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      loadOrders(1);
-    }, 500);
+    const timer = setTimeout(() => loadOrders(1), 500);
     return () => clearTimeout(timer);
-  }, [filters.search]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
-  // ✅ Ouvrir modal si orderId dans l'URL
   useEffect(() => {
     const orderId = searchParams.get('orderId');
-    if (orderId) {
-      handleViewDetailById(orderId);
-      // Nettoyer l'URL
-      const newParams = new URLSearchParams(searchParams);
-      newParams.delete('orderId');
-      setSearchParams(newParams, { replace: true });
-    }
-  }, [searchParams, setSearchParams]);
+    if (orderId) navigate(`/admin/commandes/${orderId}`, { replace: true });
+  }, [searchParams, navigate]);
 
-  // ==========================================
-  // HANDLERS FILTRES
-  // ==========================================
-
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+  const handleStatutClick = (key) => {
+    const next = statut === key ? '' : key;
+    setStatut(next);
+    setSearchParams(next ? { statut: next } : {});
   };
 
-  const handleStatusFilter = (statut) => {
-    const newStatut = filters.statut === statut ? '' : statut;
-    setFilters(prev => ({ ...prev, statut: newStatut }));
-    setSearchParams(newStatut ? { statut: newStatut } : {});
-  };
-
-  const clearFilters = () => {
-    setFilters({
-      search: '',
-      statut: '',
-      dateDebut: '',
-      dateFin: '',
-      orderBy: 'createdAt',
-      orderDir: 'DESC'
-    });
-    setSearchParams({});
-  };
-
-  // ==========================================
-  // HANDLERS MODAL DÉTAIL
-  // ==========================================
-
-  const handleViewDetailById = async (orderId) => {
-    try {
-      setLoadingDetail(true);
-      setShowDetailModal(true);
-      const detail = await adminService.getOrderById(orderId);
-      setSelectedOrder(detail);
-    } catch (error) {
-      console.error('Erreur chargement détail:', error);
-      toast.error('Erreur lors du chargement de la commande');
-      setShowDetailModal(false);
-    } finally {
-      setLoadingDetail(false);
-    }
-  };
-
-  const handleViewDetail = async (order) => {
-    try {
-      setLoadingDetail(true);
-      setShowDetailModal(true);
-      setOpenMenuOrderId(null);
-      const detail = await adminService.getOrderById(order.id);
-      setSelectedOrder(detail);
-    } catch (error) {
-      console.error('Erreur chargement détail:', error);
-      toast.error('Erreur lors du chargement de la commande');
-      setShowDetailModal(false);
-    } finally {
-      setLoadingDetail(false);
-    }
-  };
-
-  const closeDetailModal = () => {
-    setShowDetailModal(false);
-    setSelectedOrder(null);
-  };
-
-  // ==========================================
-  // HANDLERS MENU CONTEXTUEL
-  // ==========================================
-
-  const handleOpenMenu = (e, orderId) => {
-    if (openMenuOrderId === orderId) {
-      setOpenMenuOrderId(null);
-    } else {
-      const rect = e.currentTarget.getBoundingClientRect();
-      setMenuPosition({
-        top: rect.bottom + 4,
-        right: window.innerWidth - rect.right
-      });
-      setOpenMenuOrderId(orderId);
-    }
-  };
-
-  const closeMenu = () => {
-    setOpenMenuOrderId(null);
-  };
-
-  // ==========================================
-  // HANDLERS ACTIONS
-  // ==========================================
-
-  const handleChangeStatus = async (order, newStatus) => {
+  const handleAdvance = async (order) => {
+    const next = NEXT_STATUT[order.statut];
+    if (!next) return;
     try {
       setUpdatingStatus(order.id);
-      await adminService.updateOrderStatus(order.id, newStatus);
-      toast.success(`Commande passée en "${STATUTS[newStatus].label}"`);
-      
-      // Recharger les données
+      await adminService.updateOrderStatus(order.id, next);
+      toast.success(`Commande passée en "${getStatutInfo(next).label}"`);
       loadOrders(pagination.page);
-      loadStats(); // ✅ Recharger aussi les stats après changement
-      
-      // Si modal ouverte, recharger le détail
-      if (showDetailModal && selectedOrder?.id === order.id) {
-        const detail = await adminService.getOrderById(order.id);
-        setSelectedOrder(detail);
-      }
+      loadStats();
     } catch (error) {
-      console.error('Erreur changement statut:', error);
       toast.error(error.response?.data?.message || 'Erreur lors du changement de statut');
     } finally {
       setUpdatingStatus(null);
-      setOpenMenuOrderId(null);
     }
   };
-
-  const handleCancel = async (order) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir annuler cette commande ?')) return;
-    
-    try {
-      setUpdatingStatus(order.id);
-      await adminService.updateOrderStatus(order.id, 'ANNULEE');
-      toast.success('Commande annulée');
-      
-      loadOrders(pagination.page);
-      loadStats();
-      
-      if (showDetailModal) {
-        closeDetailModal();
-      }
-    } catch (error) {
-      console.error('Erreur annulation:', error);
-      toast.error(error.response?.data?.message || 'Erreur lors de l\'annulation');
-    } finally {
-      setUpdatingStatus(null);
-      setOpenMenuOrderId(null);
-    }
-  };
-
-  // ==========================================
-  // EXPORT CSV
-  // ==========================================
 
   const handleExportCSV = async () => {
     try {
       setExportLoading(true);
-      // Récupérer toutes les commandes filtrées (sans pagination)
-      const response = await adminService.getOrders({
-        limit: 9999,
-        page: 1,
-        search: filters.search || undefined,
-        statut: filters.statut || undefined,
-        dateDebut: filters.dateDebut || undefined,
-        dateFin: filters.dateFin || undefined,
-        orderBy: filters.orderBy,
-        orderDir: filters.orderDir
-      });
-
+      const response = await adminService.getOrders({ limit: 9999, page: 1, search: search || undefined, statut: statut || undefined, orderBy: 'createdAt', orderDir: 'DESC' });
       const rows = response.data || [];
       const headers = ['N° commande', 'Date', 'Client nom', 'Client email', 'Statut', 'Total TTC', 'Mode paiement', 'Nb articles'];
-
       const escape = (v) => {
         const s = v == null ? '' : String(v);
-        return s.includes(',') || s.includes('"') || s.includes('\n')
-          ? `"${s.replace(/"/g, '""')}"` : s;
+        return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s;
       };
-
       const lines = [
         headers.join(','),
-        ...rows.map(o => [
+        ...rows.map((o) => [
           escape(o.numeroCommande),
           escape(o.dateCommande ? new Date(o.dateCommande).toLocaleDateString('fr-FR') : ''),
           escape(o.client ? `${o.client.prenom || ''} ${o.client.nom || ''}`.trim() : ''),
@@ -338,8 +158,7 @@ const AdminOrdersList = () => {
           escape(o.nbArticles || '')
         ].join(','))
       ];
-
-      const csv = '﻿' + lines.join('\r\n'); // BOM pour Excel FR
+      const csv = '﻿' + lines.join('\r\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -347,116 +166,133 @@ const AdminOrdersList = () => {
       a.download = `commandes_${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
-
       toast.success(`${rows.length} commande(s) exportée(s)`);
-    } catch (err) {
-      console.error('Erreur export CSV:', err);
+    } catch (error) {
+      console.error('Erreur export CSV:', error);
       toast.error('Erreur lors de l\'export');
     } finally {
       setExportLoading(false);
     }
   };
 
-  // ==========================================
-  // PAGINATION
-  // ==========================================
-
-  const goToPage = (page) => {
-    if (page >= 1 && page <= pagination.totalPages) {
-      loadOrders(page);
-    }
-  };
-
-  // ==========================================
-  // RENDER
-  // ==========================================
-
-  // Trouver la commande du menu contextuel
-  const menuOrder = orders.find(o => o.id === openMenuOrderId);
-
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Commandes</h1>
-          <p className="text-gray-500 mt-1">
-            Gérez les commandes clients
-            {pagination.total > 0 && (
-              <span className="ml-2 text-sm">
-                ({pagination.total} commande{pagination.total > 1 ? 's' : ''})
-              </span>
-            )}
-          </p>
-        </div>
+    <>
+      <AdminTopBar
+        search={
+          <div className="flex-1 max-w-[420px] h-[38px] flex items-center gap-2 border border-sand-250 rounded-6 px-3.5">
+            <Search className="w-3.5 h-3.5 text-graphite-300 flex-shrink-0" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Numéro, client, email, référence…"
+              className="flex-1 bg-transparent border-none outline-none text-[13.5px] text-ink-900 placeholder-graphite-200"
+            />
+          </div>
+        }
+      >
         <button
+          type="button"
           onClick={handleExportCSV}
           disabled={exportLoading || loading}
-          className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 text-sm"
+          className="h-[38px] flex items-center gap-1.5 border border-sand-250 rounded-6 px-3.5 text-[13.5px] text-graphite-900 hover:border-sand-300 transition-colors disabled:opacity-50"
         >
-          {exportLoading ? (
-            <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-          ) : (
-            <Download className="w-4 h-4" />
-          )}
+          {exportLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
           Exporter CSV
         </button>
+      </AdminTopBar>
+
+      <div className="p-[26px] flex flex-col gap-3.5">
+        <div>
+          <h2 className="font-display text-[26px] font-extrabold tracking-tighter text-ink-900">Commandes</h2>
+          <p className="text-[13.5px] text-graphite-500 mt-[3px]">
+            Gérez les commandes clients
+            {pagination.total > 0 && ` · ${pagination.total} commande${pagination.total > 1 ? 's' : ''}`}
+            {stats?.parStatut?.enAttente > 0 && ` · ${stats.parStatut.enAttente} en attente de confirmation`}
+          </p>
+        </div>
+
+        <div className="bg-white border border-sand-200 rounded-8 flex overflow-hidden">
+          {STATUT_RAIL.map((s, i) => (
+            <button
+              key={s.key}
+              type="button"
+              onClick={() => handleStatutClick(s.key)}
+              className={`flex-1 text-left px-[18px] py-3.5 ${i > 0 ? 'border-l border-sand-150' : ''} ${statut === s.key ? 'bg-[#FDFBF5]' : 'hover:bg-sand-50'} transition-colors`}
+            >
+              <div className="text-[12.5px] text-graphite-500">{s.label}</div>
+              <div className={`font-mono text-[22px] font-semibold mt-0.5 ${s.color}`}>{stats?.parStatut?.[s.countKey] ?? 0}</div>
+            </button>
+          ))}
+        </div>
+
+        <div className="bg-white border border-sand-200 rounded-8 overflow-hidden">
+          <div
+            className="grid gap-3 px-[18px] py-2.5 bg-sand-100 border-b border-sand-200 text-[11.5px] tracking-wide text-graphite-400"
+            style={{ gridTemplateColumns: '180px 1fr 130px 80px 120px 140px 90px' }}
+          >
+            <span>COMMANDE</span>
+            <span>CLIENT</span>
+            <span>DATE</span>
+            <span className="text-center">ART.</span>
+            <span className="text-right">TOTAL TTC</span>
+            <span className="text-center">STATUT</span>
+            <span className="text-right">ACTION</span>
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-5 h-5 text-green-700 animate-spin" />
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="text-center py-16 text-[13.5px] text-graphite-400">Aucune commande trouvée</div>
+          ) : (
+            orders.map((order) => {
+              const statutInfo = getStatutInfo(order.statut);
+              const next = NEXT_STATUT[order.statut];
+              return (
+                <div
+                  key={order.id}
+                  className={`grid gap-3 items-center px-[18px] py-3.5 border-b border-sand-150 last:border-b-0 hover:bg-sand-50 transition-colors cursor-pointer ${updatingStatus === order.id ? 'opacity-50' : ''}`}
+                  style={{ gridTemplateColumns: '180px 1fr 130px 80px 120px 140px 90px' }}
+                  onClick={() => navigate(`/admin/commandes/${order.id}`)}
+                >
+                  <span className="font-mono text-[12.5px] text-ink-900">{order.numeroCommande}</span>
+                  <div className="min-w-0">
+                    <div className="text-[13.5px] font-medium text-ink-900 truncate">{order.client?.prenom} {order.client?.nom}</div>
+                    <div className="text-[12px] text-graphite-300 truncate">{order.client?.email}</div>
+                  </div>
+                  <span className="text-[12.5px] text-graphite-600">{formatDate(order.dateCommande)}</span>
+                  <span className="font-mono text-[13px] text-graphite-600 text-center">{order.nbArticles || 0}</span>
+                  <span className="font-mono text-[13.5px] text-ink-900 text-right">{formatMoney(order.totalTtc)}</span>
+                  <span className="flex justify-center">
+                    <span className={`text-[12px] font-semibold px-2 py-[3px] rounded-4 ${getAdminStatutStyle(order.statut)}`}>{statutInfo.label}</span>
+                  </span>
+                  <span className="text-right">
+                    {next && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleAdvance(order); }}
+                        disabled={updatingStatus === order.id}
+                        className="text-[12.5px] font-semibold text-green-700 hover:text-green-800 disabled:opacity-50"
+                      >
+                        {NEXT_ACTION_LABEL[order.statut]}
+                      </button>
+                    )}
+                  </span>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {pagination.totalPages > 1 && (
+          <div className="flex justify-center">
+            <Pagination currentPage={pagination.page} totalPages={pagination.totalPages} onPageChange={(p) => loadOrders(p)} />
+          </div>
+        )}
       </div>
-
-      {/* Stats par statut */}
-      <OrdersStatsCards
-        stats={stats}
-        activeStatut={filters.statut}
-        onStatutClick={handleStatusFilter}
-      />
-
-      {/* Filtres */}
-      <OrdersFilters
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        onClearFilters={clearFilters}
-      />
-
-      {/* Tableau des commandes */}
-      <OrdersTable
-        orders={orders}
-        loading={loading}
-        pagination={pagination}
-        updatingStatus={updatingStatus}
-        onViewDetail={handleViewDetail}
-        onChangeStatus={handleChangeStatus}
-        onOpenMenu={handleOpenMenu}
-        onPageChange={goToPage}
-      />
-
-      {/* Modal Détail */}
-      <AnimatePresence>
-        {showDetailModal && (
-          <OrderDetailModal
-            order={selectedOrder}
-            loading={loadingDetail}
-            updatingStatus={updatingStatus}
-            onClose={closeDetailModal}
-            onChangeStatus={handleChangeStatus}
-            onCancel={handleCancel}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Menu contextuel */}
-      <AnimatePresence>
-        {openMenuOrderId && menuOrder && (
-          <OrderContextMenu
-            order={menuOrder}
-            position={menuPosition}
-            onClose={closeMenu}
-            onViewDetail={handleViewDetail}
-            onChangeStatus={handleChangeStatus}
-            onCancel={handleCancel}
-          />
-        )}
-      </AnimatePresence>
-    </div>
+    </>
   );
 };
 

@@ -266,7 +266,8 @@ router.get('/:id',
           lc.nom_produit,
           p.nom as produit_nom,
           p.reference as produit_reference,
-          p.image_url as produit_image
+          p.image_url as produit_image,
+          p.stock_quantite as produit_stock
         FROM ligne_commande lc
         LEFT JOIN produit p ON lc.produit_id = p.id
         WHERE lc.commande_id = $1
@@ -309,6 +310,7 @@ router.get('/:id',
         totalTtc: parseFloat(row.total_ttc) || 0,
         fraisLivraison: parseFloat(row.frais_livraison) || 0,
         modePaiement: row.mode_paiement,
+        paiementStatut: row.paiement_statut || 'PENDING',
         adresseLivraison,
         instructionsLivraison: row.instructions_livraison,
         dateCommande: row.date_commande,
@@ -344,7 +346,8 @@ router.get('/:id',
               id: ligne.produit_id,
               nom: ligne.produit_nom || ligne.nom_produit || 'Produit',
               reference: ligne.produit_reference,
-              imageUrl: ligne.produit_image
+              imageUrl: ligne.produit_image,
+              stockQuantite: ligne.produit_stock != null ? parseInt(ligne.produit_stock) : null
             }
           };
         })

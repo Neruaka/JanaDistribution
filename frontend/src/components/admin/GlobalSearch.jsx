@@ -73,7 +73,7 @@ const GlobalSearch = ({ isOpen, onClose }) => {
         navigate(`/admin/produits/${item.id}/modifier`);
         break;
       case 'order':
-        navigate(`/admin/commandes?orderId=${item.id}`);
+        navigate(`/admin/commandes/${item.id}`);
         break;
       case 'client':
         navigate(`/admin/clients?clientId=${item.id}`);

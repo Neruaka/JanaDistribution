@@ -249,7 +249,7 @@ const AdminDashboard = () => {
                 return (
                   <Link
                     key={o.id}
-                    to={`/admin/commandes?orderId=${o.id}`}
+                    to={`/admin/commandes/${o.id}`}
                     className="grid items-center gap-3 px-[18px] py-2.5 border-t border-sand-150 hover:bg-sand-50 transition-colors"
                     style={{ gridTemplateColumns: '170px minmax(0,1fr) 62px 92px 104px' }}
                   >

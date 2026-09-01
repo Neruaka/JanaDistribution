@@ -15,8 +15,4 @@ export { default as AdminTopBar } from './AdminTopBar';
 export { default as GlobalSearch } from './GlobalSearch';
 
 // Orders
-export { default as OrdersStatsCards } from './OrdersStatsCards';
-export { default as OrdersFilters } from './OrdersFilters';
-export { default as OrdersTable } from './OrdersTable';
-export { default as OrderDetailModal } from './OrderDetailModal';
-export { default as OrderContextMenu } from './OrderContextMenu';
+export { default as CommandeStatutTimeline } from './CommandeStatutTimeline';

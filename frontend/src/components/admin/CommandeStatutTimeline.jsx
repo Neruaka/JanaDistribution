@@ -1,99 +1,50 @@
 /**
- * Composant CommandeStatutTimeline
- * @description Affiche l'historique des transitions de statut d'une commande (timeline verticale).
+ * CommandeStatutTimeline — journal des transitions de statut d'une commande
+ * @see design_handoff_jana_refonte/README.md (A3 — Traitement, bloc "Journal")
+ *
+ * Purement presentationnel : AdminOrderDetail charge l'historique une seule fois
+ * et le partage avec la barre d'avancement (timestamps par etape) et ce journal.
  */
 
-import { useEffect, useState } from 'react';
-import adminService from '../../services/adminService';
+import { Loader2 } from 'lucide-react';
+import { getStatutInfo } from '../../services/orderService';
 
-const STATUT_COLORS = {
-  EN_ATTENTE:             'bg-yellow-400',
-  CONFIRMEE:              'bg-blue-500',
-  EN_PREPARATION:         'bg-purple-500',
-  EXPEDIEE:               'bg-indigo-500',
-  LIVREE:                 'bg-green-500',
-  ANNULEE:                'bg-red-500',
-  REMBOURSE:              'bg-gray-400',
-  PARTIELLEMENT_REMBOURSE:'bg-orange-400'
-};
+const formatDateTime = (isoDate) => new Date(isoDate).toLocaleDateString('fr-FR', {
+  day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+});
 
-const STATUT_LABELS = {
-  EN_ATTENTE:             'En attente',
-  CONFIRMEE:              'Confirmée',
-  EN_PREPARATION:         'En préparation',
-  EXPEDIEE:               'Expédiée',
-  LIVREE:                 'Livrée',
-  ANNULEE:                'Annulée',
-  REMBOURSE:              'Remboursée',
-  PARTIELLEMENT_REMBOURSE:'Partiellement remboursée'
-};
-
-const formatRelative = (isoDate) => {
-  const diff = Date.now() - new Date(isoDate).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return 'à l\'instant';
-  if (m < 60) return `il y a ${m}min`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `il y a ${h}h`;
-  const d = Math.floor(h / 24);
-  return `il y a ${d}j`;
-};
-
-const CommandeStatutTimeline = ({ commandeId }) => {
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!commandeId) return;
-    setLoading(true);
-    adminService.getOrderHistory(commandeId)
-      .then(data => setHistory(data || []))
-      .catch(() => setHistory([]))
-      .finally(() => setLoading(false));
-  }, [commandeId]);
-
+const CommandeStatutTimeline = ({ history, loading }) => {
   if (loading) {
     return (
-      <div className="space-y-2">
-        {[1, 2].map(i => (
-          <div key={i} className="flex items-center gap-3 animate-pulse">
-            <div className="w-3 h-3 rounded-full bg-gray-200 flex-shrink-0" />
-            <div className="h-3 bg-gray-200 rounded w-3/4" />
-          </div>
-        ))}
+      <div className="flex items-center py-3">
+        <Loader2 className="w-4 h-4 text-graphite-300 animate-spin" />
       </div>
     );
   }
 
   if (history.length === 0) {
-    return (
-      <p className="text-sm text-gray-400 italic">Aucun historique disponible.</p>
-    );
+    return <p className="text-[13px] text-graphite-400">Aucun événement enregistré.</p>;
   }
 
   return (
-    <ol className="relative border-l-2 border-gray-200 ml-1.5 space-y-4">
-      {history.map((entry, idx) => {
-        const dotColor = STATUT_COLORS[entry.nouveau_statut] || 'bg-gray-400';
-        return (
-          <li key={entry.id || idx} className="pl-5 relative">
-            <span className={`absolute -left-[9px] top-1 w-3.5 h-3.5 rounded-full border-2 border-white ${dotColor}`} />
-            <p className="text-sm text-gray-700 leading-tight">
-              {entry.ancien_statut ? (
-                <>
-                  <span className="font-medium">{STATUT_LABELS[entry.ancien_statut] || entry.ancien_statut}</span>
-                  {' → '}
-                  <span className="font-medium">{STATUT_LABELS[entry.nouveau_statut] || entry.nouveau_statut}</span>
-                </>
-              ) : (
-                <span className="font-medium">{STATUT_LABELS[entry.nouveau_statut] || entry.nouveau_statut}</span>
-              )}
-              <span className="ml-2 text-xs text-gray-400">{formatRelative(entry.created_at)}</span>
-            </p>
-          </li>
-        );
-      })}
-    </ol>
+    <ul className="flex flex-col gap-2">
+      {history.map((entry, idx) => (
+        <li key={entry.id || idx} className="flex items-baseline gap-3.5 text-[13px]">
+          <span className="font-mono text-[12px] text-graphite-300 w-[110px] flex-shrink-0">{formatDateTime(entry.created_at)}</span>
+          <span className="text-graphite-700">
+            {entry.ancien_statut ? (
+              <>
+                <span className="font-medium text-ink-900">{getStatutInfo(entry.ancien_statut).label}</span>
+                {' → '}
+                <span className="font-medium text-ink-900">{getStatutInfo(entry.nouveau_statut).label}</span>
+              </>
+            ) : (
+              <span className="font-medium text-ink-900">{getStatutInfo(entry.nouveau_statut).label}</span>
+            )}
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 };
 
