@@ -1,185 +1,125 @@
 /**
- * Admin Clients List
- * @description Page de gestion des clients côté admin
- * ✅ FIX: Menu contextuel en position fixed (hors du conteneur scrollable)
+ * Page Admin Clients
+ * @description Ecran A7 — Clients
+ * @see design_handoff_jana_refonte/README.md (A7 — Clients)
+ *
+ * La maquette prevoit un statut "SIRET a valider" et un KPI "En attente de
+ * validation" : aucun workflow de validation SIRET n'existe (juste une
+ * contrainte NOT NULL en base), et le KPI "CA moyen" n'est pas expose par
+ * l'API. Remplaces par 2 KPI reels (Particuliers, Bloques) plutot que
+ * fabriques. Le detail client reste une modale (aucun ecran dedie dans la
+ * maquette A1-A8), mais lit desormais ?clientId= pour honorer le lien
+ * "Voir la fiche client" pose depuis A3.
  */
 
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Users,
-  Search,
-  Filter,
-  Eye,
-  Ban,
-  CheckCircle,
-  MoreVertical,
-  Mail,
-  Phone,
-  Building,
-  User,
-  Calendar,
-  ShoppingCart,
-  TrendingUp,
-  ChevronLeft,
-  ChevronRight,
-  X,
-  AlertTriangle,
-  Trash2
-} from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Search, Loader2, X, AlertTriangle, ShoppingCart, TrendingUp, Calendar } from 'lucide-react';
 import adminService from '../../services/adminService';
+import { getAdminStatutStyle } from '../../utils/adminStatut';
+import { getStatutInfo } from '../../services/orderService';
+import { AdminTopBar } from '../../components/admin';
+import Pagination from '../../components/Pagination';
 import toast from 'react-hot-toast';
 
+const formatMoney = (amount) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0 }).format(amount || 0);
+const formatDate = (date) => date ? new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
+
+const KPI = ({ label, value }) => (
+  <div className="bg-white border border-sand-200 rounded-8 p-[18px]">
+    <div className="text-[12.5px] text-graphite-500">{label}</div>
+    <div className="font-mono text-[29px] font-semibold text-ink-900 mt-2 tracking-tight">{value}</div>
+  </div>
+);
+
 const AdminClientsList = () => {
-  const navigate = useNavigate();
-  
-  // States
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 15,
-    total: 0,
-    totalPages: 0
-  });
+  const [pagination, setPagination] = useState({ page: 1, limit: 15, total: 0, totalPages: 0 });
 
-  // Filtres
-  const [filters, setFilters] = useState({
-    search: '',
-    typeClient: '',
-    estActif: '',
-    orderBy: 'dateCreation',
-    orderDir: 'DESC'
-  });
-  const [showFilters, setShowFilters] = useState(false);
+  const [search, setSearch] = useState('');
+  const [typeClient, setTypeClient] = useState('');
+  const [estActif, setEstActif] = useState('');
 
-  // Modals
   const [openMenu, setOpenMenu] = useState(null);
-  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 }); // ✅ Position du menu
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [clientToDelete, setClientToDelete] = useState(null);
-  const [deleting, setDeleting] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [clientToDelete, setClientToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
-  // Chargement des clients
-  const loadClients = async (page = 1) => {
+  const loadClients = useCallback(async (page = 1) => {
     try {
       setLoading(true);
       const response = await adminService.getClients({
-        page,
-        limit: pagination.limit,
-        search: filters.search || undefined,
-        typeClient: filters.typeClient || undefined,
-        estActif: filters.estActif || undefined,
-        orderBy: filters.orderBy,
-        orderDir: filters.orderDir
+        page, limit: pagination.limit, search: search || undefined,
+        typeClient: typeClient || undefined, estActif: estActif || undefined,
+        orderBy: 'dateCreation', orderDir: 'DESC'
       });
-
       setClients(response.data || []);
       setStats(response.stats || null);
-      setPagination(prev => ({
-        ...prev,
-        page,
-        total: response.pagination?.total || 0,
-        totalPages: response.pagination?.totalPages || 0
-      }));
+      setPagination((prev) => ({ ...prev, page, total: response.pagination?.total || 0, totalPages: response.pagination?.totalPages || 0 }));
     } catch (error) {
       console.error('Erreur chargement clients:', error);
       toast.error('Erreur lors du chargement des clients');
     } finally {
       setLoading(false);
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, typeClient, estActif, pagination.limit]);
 
+  useEffect(() => { loadClients(1); }, [typeClient, estActif]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    loadClients(1);
-  }, [filters.typeClient, filters.estActif, filters.orderBy, filters.orderDir]);
-
-  // Recherche avec délai
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      loadClients(1);
-    }, 500);
+    const timer = setTimeout(() => loadClients(1), 500);
     return () => clearTimeout(timer);
-  }, [filters.search]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
-  // Formatter argent
-  const formatMoney = (amount) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 0
-    }).format(amount || 0);
-  };
-
-  // Formatter date
-  const formatDate = (date) => {
-    if (!date) return '-';
-    return new Date(date).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-  };
-
-  // ✅ Ouvrir le menu avec calcul de position
-  const handleOpenMenu = (e, clientId) => {
-    if (openMenu === clientId) {
-      setOpenMenu(null);
-    } else {
-      const rect = e.currentTarget.getBoundingClientRect();
-      setMenuPosition({
-        top: rect.bottom + 4,
-        right: window.innerWidth - rect.right
-      });
-      setOpenMenu(clientId);
-    }
-  };
-
-  // Toggle statut client
-  const handleToggleStatus = async (client) => {
-    try {
-      await adminService.toggleClientStatus(client.id);
-      toast.success(client.estActif ? 'Client bloqué' : 'Client activé');
-      loadClients(pagination.page);
-    } catch (error) {
-      console.error('Erreur toggle status:', error);
-      toast.error('Erreur lors de la mise à jour');
-    }
-    setOpenMenu(null);
-  };
-
-  // Voir détail client
-  const handleViewDetail = async (client) => {
+  const handleViewDetail = useCallback(async (client) => {
     try {
       setLoadingDetail(true);
       setShowDetailModal(true);
+      setOpenMenu(null);
       const detail = await adminService.getClientById(client.id);
       setSelectedClient(detail);
     } catch (error) {
-      console.error('Erreur chargement détail:', error);
       toast.error('Erreur lors du chargement du client');
       setShowDetailModal(false);
     } finally {
       setLoadingDetail(false);
     }
-    setOpenMenu(null);
-  };
+  }, []);
 
-  // Supprimer client (anonymisation)
-  const handleDeleteClick = (client) => {
-    setClientToDelete(client);
-    setShowDeleteModal(true);
+  useEffect(() => {
+    const clientId = searchParams.get('clientId');
+    if (clientId) {
+      handleViewDetail({ id: clientId });
+      const params = new URLSearchParams(searchParams);
+      params.delete('clientId');
+      setSearchParams(params, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  const handleToggleStatus = async (client) => {
+    try {
+      await adminService.toggleClientStatus(client.id);
+      toast.success(client.estActif ? 'Client bloqué' : 'Client activé');
+      loadClients(pagination.page);
+      if (selectedClient?.id === client.id) setSelectedClient((prev) => ({ ...prev, estActif: !prev.estActif }));
+    } catch (error) {
+      toast.error('Erreur lors de la mise à jour');
+    }
     setOpenMenu(null);
   };
 
   const handleDeleteConfirm = async () => {
     if (!clientToDelete) return;
-
     try {
       setDeleting(true);
       await adminService.deleteClient(clientToDelete.id);
@@ -188,701 +128,254 @@ const AdminClientsList = () => {
       setClientToDelete(null);
       loadClients(pagination.page);
     } catch (error) {
-      console.error('Erreur suppression:', error);
       toast.error('Erreur lors de la suppression');
     } finally {
       setDeleting(false);
     }
   };
 
-  // Pagination
-  const goToPage = (page) => {
-    if (page >= 1 && page <= pagination.totalPages) {
-      loadClients(page);
-    }
-  };
+  const bloques = stats ? stats.total - stats.actifs : 0;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <>
+      <AdminTopBar
+        search={
+          <div className="flex-1 max-w-[420px] h-[38px] flex items-center gap-2 border border-sand-250 rounded-6 px-3.5">
+            <Search className="w-3.5 h-3.5 text-graphite-300 flex-shrink-0" />
+            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Nom, email, raison sociale…" className="flex-1 bg-transparent border-none outline-none text-[13.5px] text-ink-900 placeholder-graphite-200" />
+          </div>
+        }
+      >
+        <select value={typeClient} onChange={(e) => setTypeClient(e.target.value)} className="h-[38px] border border-sand-250 rounded-6 px-3 text-[13.5px] text-graphite-900 bg-white">
+          <option value="">Tous les types</option>
+          <option value="PARTICULIER">Particulier</option>
+          <option value="PROFESSIONNEL">Professionnel</option>
+        </select>
+        <select value={estActif} onChange={(e) => setEstActif(e.target.value)} className="h-[38px] border border-sand-250 rounded-6 px-3 text-[13.5px] text-graphite-900 bg-white">
+          <option value="">Tous les statuts</option>
+          <option value="true">Actifs</option>
+          <option value="false">Bloqués</option>
+        </select>
+      </AdminTopBar>
+
+      <div className="p-[26px] flex flex-col gap-3.5">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Clients</h1>
-          <p className="text-gray-500 mt-1">Gérez votre base clients</p>
+          <h2 className="font-display text-[26px] font-extrabold tracking-tighter text-ink-900">Clients</h2>
+          <p className="text-[13.5px] text-graphite-500 mt-[3px]">{pagination.total} compte{pagination.total > 1 ? 's' : ''}</p>
         </div>
+
+        {stats && (
+          <div className="grid grid-cols-4 gap-3.5">
+            <KPI label="Comptes actifs" value={stats.actifs} />
+            <KPI label="Professionnels" value={stats.professionnels} />
+            <KPI label="Particuliers" value={stats.particuliers} />
+            <KPI label="Bloqués" value={bloques} />
+          </div>
+        )}
+
+        <div className="bg-white border border-sand-200 rounded-8 overflow-hidden">
+          <div className="grid gap-3 px-[18px] py-2.5 bg-sand-100 border-b border-sand-200 text-[11.5px] tracking-wide text-graphite-400" style={{ gridTemplateColumns: '1fr 220px 130px 110px 130px 120px 80px' }}>
+            <span>CLIENT</span><span>CONTACT</span><span>TYPE</span><span className="text-center">CMD.</span><span className="text-right">CA TOTAL</span><span>STATUT</span><span />
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-16"><Loader2 className="w-5 h-5 text-green-700 animate-spin" /></div>
+          ) : clients.length === 0 ? (
+            <div className="text-center py-16 text-[13.5px] text-graphite-400">Aucun client trouvé</div>
+          ) : (
+            clients.map((client) => (
+              <div key={client.id} className="grid gap-3 items-center px-[18px] py-3 border-b border-sand-150 last:border-b-0 hover:bg-sand-50 transition-colors" style={{ gridTemplateColumns: '1fr 220px 130px 110px 130px 120px 80px' }}>
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-[34px] h-[34px] rounded-full bg-sand-150 text-graphite-600 flex items-center justify-center text-[12px] font-semibold flex-shrink-0">
+                    {client.prenom?.[0]}{client.nom?.[0]}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[13.5px] font-medium text-ink-900 truncate">{client.prenom} {client.nom}</div>
+                    {client.raisonSociale && <div className="text-[12px] text-graphite-400 truncate">{client.raisonSociale}</div>}
+                  </div>
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[12.5px] text-graphite-600 truncate">{client.email}</div>
+                  {client.telephone && <div className="font-mono text-[11.5px] text-graphite-300">{client.telephone}</div>}
+                </div>
+                <span className={`w-fit text-[12px] font-semibold px-2 py-[3px] rounded-4 ${client.typeClient === 'PROFESSIONNEL' ? 'bg-pro-bg text-pro-text' : 'bg-particulier-bg text-particulier-text'}`}>
+                  {client.typeClient === 'PROFESSIONNEL' ? 'Pro' : 'Particulier'}
+                </span>
+                <span className="font-mono text-[13px] text-graphite-600 text-center">{client.nbCommandes || 0}</span>
+                <span className="font-mono text-[13.5px] text-ink-900 text-right">{formatMoney(client.caTotal)}</span>
+                <span className={`w-fit text-[12px] font-semibold px-2 py-[3px] rounded-4 ${client.estActif ? 'bg-success-bg text-success-text' : 'bg-danger-bg text-danger-text'}`}>
+                  {client.estActif ? 'Actif' : 'Bloqué'}
+                </span>
+                <div className="relative flex justify-end">
+                  <button type="button" onClick={() => setOpenMenu(openMenu === client.id ? null : client.id)} className="p-1.5 text-graphite-300 hover:text-ink-900 transition-colors">⋯</button>
+                  {openMenu === client.id && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setOpenMenu(null)} />
+                      <div className="absolute right-0 top-full mt-1 w-44 bg-white border border-sand-200 rounded-6 shadow-modal py-1 z-50">
+                        <button type="button" onClick={() => handleViewDetail(client)} className="w-full text-left px-3.5 py-2 text-[13px] text-ink-900 hover:bg-sand-50">Voir le profil</button>
+                        <button type="button" onClick={() => handleToggleStatus(client)} className="w-full text-left px-3.5 py-2 text-[13px] text-ink-900 hover:bg-sand-50">{client.estActif ? 'Bloquer' : 'Activer'}</button>
+                        <hr className="my-1 border-sand-150" />
+                        <button type="button" onClick={() => { setClientToDelete(client); setShowDeleteModal(true); setOpenMenu(null); }} className="w-full text-left px-3.5 py-2 text-[13px] text-danger-text hover:bg-danger-bg">Supprimer</button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {pagination.totalPages > 1 && (
+          <div className="flex justify-center">
+            <Pagination currentPage={pagination.page} totalPages={pagination.totalPages} onPageChange={(p) => loadClients(p)} />
+          </div>
+        )}
       </div>
 
-      {/* Stats */}
-      {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl p-4 border border-gray-100">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Total</p>
-                <p className="text-xl font-bold text-gray-800">{stats.total}</p>
-              </div>
+      {showDetailModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay-desktop" onClick={() => setShowDetailModal(false)}>
+          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-10 shadow-modal max-w-[560px] w-full max-h-[85vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white flex items-center justify-between p-5 border-b border-sand-200 z-10">
+              <h2 className="font-display text-[17px] font-bold text-ink-900">Fiche client</h2>
+              <button type="button" onClick={() => setShowDetailModal(false)} className="text-graphite-300 hover:text-ink-900"><X className="w-4 h-4" /></button>
             </div>
-          </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-100">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <User className="w-5 h-5 text-green-600" />
+
+            {loadingDetail ? (
+              <div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 text-green-700 animate-spin" /></div>
+            ) : selectedClient ? (
+              <div className="p-5 flex flex-col gap-4">
+                <div className="flex items-start gap-3.5">
+                  <div className="w-14 h-14 rounded-full bg-sand-150 text-graphite-600 flex items-center justify-center text-[18px] font-semibold flex-shrink-0">
+                    {selectedClient.prenom?.[0]}{selectedClient.nom?.[0]}
+                  </div>
+                  <div>
+                    <h3 className="text-[16px] font-semibold text-ink-900">{selectedClient.prenom} {selectedClient.nom}</h3>
+                    {selectedClient.raisonSociale && <p className="text-[13px] text-graphite-500">{selectedClient.raisonSociale}</p>}
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className={`text-[12px] font-semibold px-2 py-[3px] rounded-4 ${selectedClient.typeClient === 'PROFESSIONNEL' ? 'bg-pro-bg text-pro-text' : 'bg-particulier-bg text-particulier-text'}`}>
+                        {selectedClient.typeClient === 'PROFESSIONNEL' ? 'Pro' : 'Particulier'}
+                      </span>
+                      <span className={`text-[12px] font-semibold px-2 py-[3px] rounded-4 ${selectedClient.estActif ? 'bg-success-bg text-success-text' : 'bg-danger-bg text-danger-text'}`}>
+                        {selectedClient.estActif ? 'Actif' : 'Bloqué'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-sand-50 rounded-6 p-3">
+                    <div className="text-[11.5px] text-graphite-400">Email</div>
+                    <div className="text-[13px] font-medium text-ink-900 truncate">{selectedClient.email}</div>
+                  </div>
+                  <div className="bg-sand-50 rounded-6 p-3">
+                    <div className="text-[11.5px] text-graphite-400">Téléphone</div>
+                    <div className="font-mono text-[13px] font-medium text-ink-900">{selectedClient.telephone || '—'}</div>
+                  </div>
+                  <div className="bg-sand-50 rounded-6 p-3">
+                    <div className="text-[11.5px] text-graphite-400">Inscrit le</div>
+                    <div className="text-[13px] font-medium text-ink-900">{formatDate(selectedClient.dateCreation)}</div>
+                  </div>
+                  <div className="bg-sand-50 rounded-6 p-3">
+                    <div className="text-[11.5px] text-graphite-400">Dernière connexion</div>
+                    <div className="text-[13px] font-medium text-ink-900">{formatDate(selectedClient.derniereConnexion)}</div>
+                  </div>
+                </div>
+
+                {selectedClient.siret && (
+                  <div className="bg-pro-bg rounded-6 p-3.5">
+                    <div className="text-[12px] font-semibold text-pro-text mb-2">Informations professionnelles</div>
+                    <div className="grid grid-cols-2 gap-3 text-[13px]">
+                      <div><div className="text-graphite-500 text-[11.5px]">SIRET</div><div className="font-mono text-ink-900">{selectedClient.siret}</div></div>
+                      {selectedClient.numeroTva && <div><div className="text-graphite-500 text-[11.5px]">N° TVA</div><div className="font-mono text-ink-900">{selectedClient.numeroTva}</div></div>}
+                    </div>
+                  </div>
+                )}
+
+                {selectedClient.statistiques && (
+                  <div className="grid grid-cols-4 gap-2.5">
+                    <div className="bg-white border border-sand-200 rounded-6 p-3 text-center">
+                      <ShoppingCart className="w-4 h-4 text-graphite-300 mx-auto mb-1.5" />
+                      <div className="font-mono text-[16px] font-semibold text-ink-900">{selectedClient.statistiques.nbCommandes}</div>
+                      <div className="text-[11px] text-graphite-400">Commandes</div>
+                    </div>
+                    <div className="bg-white border border-sand-200 rounded-6 p-3 text-center">
+                      <TrendingUp className="w-4 h-4 text-graphite-300 mx-auto mb-1.5" />
+                      <div className="font-mono text-[16px] font-semibold text-ink-900">{formatMoney(selectedClient.statistiques.caTotal)}</div>
+                      <div className="text-[11px] text-graphite-400">CA total</div>
+                    </div>
+                    <div className="bg-white border border-sand-200 rounded-6 p-3 text-center">
+                      <ShoppingCart className="w-4 h-4 text-graphite-300 mx-auto mb-1.5" />
+                      <div className="font-mono text-[16px] font-semibold text-ink-900">{formatMoney(selectedClient.statistiques.panierMoyen)}</div>
+                      <div className="text-[11px] text-graphite-400">Panier moyen</div>
+                    </div>
+                    <div className="bg-white border border-sand-200 rounded-6 p-3 text-center">
+                      <Calendar className="w-4 h-4 text-graphite-300 mx-auto mb-1.5" />
+                      <div className="text-[12px] font-semibold text-ink-900">{formatDate(selectedClient.statistiques.derniereCommande)}</div>
+                      <div className="text-[11px] text-graphite-400">Dernière cmd</div>
+                    </div>
+                  </div>
+                )}
+
+                {selectedClient.dernieresCommandes?.length > 0 && (
+                  <div>
+                    <div className="text-[13px] font-semibold text-ink-900 mb-2">Dernières commandes</div>
+                    <div className="flex flex-col gap-1.5">
+                      {selectedClient.dernieresCommandes.slice(0, 5).map((order) => (
+                        <div key={order.id} className="flex items-center justify-between bg-sand-50 rounded-6 px-3 py-2">
+                          <div>
+                            <div className="font-mono text-[12.5px] text-ink-900">{order.numeroCommande}</div>
+                            <div className="text-[11.5px] text-graphite-400">{formatDate(order.dateCommande)}</div>
+                          </div>
+                          <div className="text-right flex items-center gap-2">
+                            <span className="font-mono text-[13px] font-semibold text-ink-900">{formatMoney(order.totalTtc)}</span>
+                            <span className={`text-[11px] font-semibold px-1.5 py-[2px] rounded-4 ${getAdminStatutStyle(order.statut)}`}>{getStatutInfo(order.statut).label}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-2.5 pt-2 border-t border-sand-150">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleStatus(selectedClient)}
+                    className={`flex-1 text-[13.5px] font-semibold py-2.5 rounded-6 transition-colors ${selectedClient.estActif ? 'bg-danger-bg text-danger-text hover:opacity-90' : 'bg-success-bg text-success-text hover:opacity-90'}`}
+                  >
+                    {selectedClient.estActif ? 'Bloquer' : 'Activer'}
+                  </button>
+                  <button type="button" onClick={() => setShowDetailModal(false)} className="flex-1 border border-sand-250 text-graphite-700 text-[13.5px] font-semibold py-2.5 rounded-6 hover:border-sand-300 transition-colors">Fermer</button>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-gray-500">Particuliers</p>
-                <p className="text-xl font-bold text-gray-800">{stats.particuliers}</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-100">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Building className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Professionnels</p>
-                <p className="text-xl font-bold text-gray-800">{stats.professionnels}</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-100">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <Ban className="w-5 h-5 text-red-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Bloqués</p>
-                <p className="text-xl font-bold text-gray-800">{stats.bloques}</p>
-              </div>
-            </div>
+            ) : null}
           </div>
         </div>
       )}
 
-      {/* Filtres */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-          {/* Recherche */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Rechercher par nom, email, raison sociale..."
-              value={filters.search}
-              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
+      {showDeleteModal && clientToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay-desktop" onClick={() => setShowDeleteModal(false)}>
+          <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-10 shadow-modal max-w-[440px] w-full p-5">
+            <div className="flex items-start gap-3.5 mb-4">
+              <div className="w-10 h-10 rounded-full bg-danger-bg flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-danger-text" />
+              </div>
+              <div>
+                <h2 className="font-display text-[17px] font-bold text-ink-900">Supprimer le client ?</h2>
+                <p className="text-[13px] text-graphite-500 mt-0.5">
+                  Le compte de {clientToDelete.prenom} {clientToDelete.nom} sera anonymisé (RGPD). Les commandes sont conservées mais anonymisées.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2.5">
+              <button type="button" onClick={() => setShowDeleteModal(false)} className="flex-1 border border-sand-250 text-graphite-700 text-[13.5px] font-semibold py-2.5 rounded-6 hover:border-sand-300 transition-colors">Annuler</button>
+              <button type="button" onClick={handleDeleteConfirm} disabled={deleting} className="flex-1 bg-danger-text hover:opacity-90 disabled:opacity-50 text-white text-[13.5px] font-semibold py-2.5 rounded-6 transition-opacity">
+                {deleting ? 'Suppression…' : 'Supprimer'}
+              </button>
+            </div>
           </div>
-
-          {/* Toggle filtres */}
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-4 py-2.5 border rounded-xl transition-colors ${
-              showFilters ? 'bg-green-50 border-green-200 text-green-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            <Filter className="w-4 h-4" />
-            Filtres
-          </button>
         </div>
-
-        {/* Filtres avancés */}
-        <AnimatePresence>
-          {showFilters && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-4 mt-4 border-t border-gray-100">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Type de client
-                  </label>
-                  <select
-                    value={filters.typeClient}
-                    onChange={(e) => setFilters({ ...filters, typeClient: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="">Tous</option>
-                    <option value="PARTICULIER">Particulier</option>
-                    <option value="PROFESSIONNEL">Professionnel</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Statut
-                  </label>
-                  <select
-                    value={filters.estActif}
-                    onChange={(e) => setFilters({ ...filters, estActif: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="">Tous</option>
-                    <option value="true">Actifs</option>
-                    <option value="false">Bloqués</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Trier par
-                  </label>
-                  <select
-                    value={filters.orderBy}
-                    onChange={(e) => setFilters({ ...filters, orderBy: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="dateCreation">Date d'inscription</option>
-                    <option value="nom">Nom</option>
-                    <option value="email">Email</option>
-                    <option value="caTotal">CA total</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ordre
-                  </label>
-                  <select
-                    value={filters.orderDir}
-                    onChange={(e) => setFilters({ ...filters, orderDir: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="DESC">Décroissant</option>
-                    <option value="ASC">Croissant</option>
-                  </select>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
-          </div>
-        ) : clients.length === 0 ? (
-          <div className="text-center py-12">
-            <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">Aucun client trouvé</p>
-          </div>
-        ) : (
-          <>
-            {/* Table desktop */}
-            <div className="hidden lg:block overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-100">
-                  <tr>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Client</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Contact</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Type</th>
-                    <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">Commandes</th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">CA Total</th>
-                    <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">Statut</th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {clients.map((client) => (
-                    <tr key={client.id} className="hover:bg-gray-50">
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                            <span className="text-sm font-semibold text-gray-600">
-                              {client.prenom?.[0]}{client.nom?.[0]}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-800">
-                              {client.prenom} {client.nom}
-                            </p>
-                            {client.raisonSociale && (
-                              <p className="text-sm text-gray-500">{client.raisonSociale}</p>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <p className="text-sm text-gray-600">{client.email}</p>
-                        {client.telephone && (
-                          <p className="text-sm text-gray-400">{client.telephone}</p>
-                        )}
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-                          client.typeClient === 'PROFESSIONNEL'
-                            ? 'bg-purple-100 text-purple-700'
-                            : 'bg-blue-100 text-blue-700'
-                        }`}>
-                          {client.typeClient === 'PROFESSIONNEL' ? (
-                            <><Building className="w-3 h-3" /> Pro</>
-                          ) : (
-                            <><User className="w-3 h-3" /> Particulier</>
-                          )}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <span className="font-medium text-gray-800">{client.nbCommandes || 0}</span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <span className="font-semibold text-gray-800">
-                          {formatMoney(client.caTotal)}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        {client.estActif ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                            <CheckCircle className="w-3 h-3" /> Actif
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
-                            <Ban className="w-3 h-3" /> Bloqué
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        {/* ✅ Bouton menu avec calcul de position */}
-                        <button
-                          onClick={(e) => handleOpenMenu(e, client.id)}
-                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                        >
-                          <MoreVertical className="w-5 h-5 text-gray-400" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Liste mobile */}
-            <div className="lg:hidden divide-y divide-gray-100">
-              {clients.map((client) => (
-                <div key={client.id} className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                        <span className="font-semibold text-gray-600">
-                          {client.prenom?.[0]}{client.nom?.[0]}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-800">
-                          {client.prenom} {client.nom}
-                        </p>
-                        <p className="text-sm text-gray-500">{client.email}</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleViewDetail(client)}
-                      className="p-2 hover:bg-gray-100 rounded-lg"
-                    >
-                      <Eye className="w-5 h-5 text-gray-400" />
-                    </button>
-                  </div>
-                  <div className="mt-3 flex items-center justify-between">
-                    <div className="flex items-center gap-4 text-sm">
-                      <span className="text-gray-500">
-                        {client.nbCommandes || 0} cmd
-                      </span>
-                      <span className="font-semibold text-gray-800">
-                        {formatMoney(client.caTotal)}
-                      </span>
-                    </div>
-                    {client.estActif ? (
-                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                        Actif
-                      </span>
-                    ) : (
-                      <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
-                        Bloqué
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* Pagination */}
-        {pagination.totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-            <p className="text-sm text-gray-500">
-              Page {pagination.page} sur {pagination.totalPages} ({pagination.total} clients)
-            </p>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => goToPage(pagination.page - 1)}
-                disabled={pagination.page === 1}
-                className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => goToPage(pagination.page + 1)}
-                disabled={pagination.page === pagination.totalPages}
-                className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Modal Détail Client */}
-      <AnimatePresence>
-        {showDetailModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-            onClick={() => setShowDetailModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.95 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-            >
-              {/* Header */}
-              <div className="sticky top-0 bg-white flex items-center justify-between p-6 border-b z-10">
-                <h2 className="text-xl font-semibold text-gray-800">Détail client</h2>
-                <button
-                  onClick={() => setShowDetailModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {loadingDetail ? (
-                <div className="flex items-center justify-center h-64">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
-                </div>
-              ) : selectedClient ? (
-                <div className="p-6 space-y-6">
-                  {/* Info client */}
-                  <div className="flex items-start gap-4">
-                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                      <span className="text-xl font-bold text-gray-600">
-                        {selectedClient.prenom?.[0]}{selectedClient.nom?.[0]}
-                      </span>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-800">
-                        {selectedClient.prenom} {selectedClient.nom}
-                      </h3>
-                      {selectedClient.raisonSociale && (
-                        <p className="text-gray-600">{selectedClient.raisonSociale}</p>
-                      )}
-                      <div className="flex items-center gap-4 mt-2">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-                          selectedClient.typeClient === 'PROFESSIONNEL'
-                            ? 'bg-purple-100 text-purple-700'
-                            : 'bg-blue-100 text-blue-700'
-                        }`}>
-                          {selectedClient.typeClient}
-                        </span>
-                        {selectedClient.estActif ? (
-                          <span className="px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                            Actif
-                          </span>
-                        ) : (
-                          <span className="px-2.5 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
-                            Bloqué
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Contact */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                      <Mail className="w-5 h-5 text-gray-400" />
-                      <div>
-                        <p className="text-xs text-gray-500">Email</p>
-                        <p className="text-sm font-medium text-gray-800">{selectedClient.email}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                      <Phone className="w-5 h-5 text-gray-400" />
-                      <div>
-                        <p className="text-xs text-gray-500">Téléphone</p>
-                        <p className="text-sm font-medium text-gray-800">
-                          {selectedClient.telephone || '-'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                      <Calendar className="w-5 h-5 text-gray-400" />
-                      <div>
-                        <p className="text-xs text-gray-500">Inscrit le</p>
-                        <p className="text-sm font-medium text-gray-800">
-                          {formatDate(selectedClient.dateCreation)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                      <Calendar className="w-5 h-5 text-gray-400" />
-                      <div>
-                        <p className="text-xs text-gray-500">Dernière connexion</p>
-                        <p className="text-sm font-medium text-gray-800">
-                          {formatDate(selectedClient.derniereConnexion)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* SIRET si pro */}
-                  {selectedClient.siret && (
-                    <div className="p-4 bg-purple-50 rounded-xl">
-                      <p className="text-sm text-purple-600 font-medium mb-2">Informations professionnelles</p>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p className="text-gray-500">SIRET</p>
-                          <p className="font-medium text-gray-800">{selectedClient.siret}</p>
-                        </div>
-                        {selectedClient.numeroTva && (
-                          <div>
-                            <p className="text-gray-500">N° TVA</p>
-                            <p className="font-medium text-gray-800">{selectedClient.numeroTva}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Stats */}
-                  {selectedClient.statistiques && (
-                    <div>
-                      <h4 className="font-semibold text-gray-800 mb-3">Statistiques</h4>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <div className="bg-blue-50 rounded-xl p-4 text-center">
-                          <ShoppingCart className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-                          <p className="text-2xl font-bold text-gray-800">
-                            {selectedClient.statistiques.nbCommandes}
-                          </p>
-                          <p className="text-xs text-gray-500">Commandes</p>
-                        </div>
-                        <div className="bg-green-50 rounded-xl p-4 text-center">
-                          <TrendingUp className="w-6 h-6 text-green-600 mx-auto mb-2" />
-                          <p className="text-2xl font-bold text-gray-800">
-                            {formatMoney(selectedClient.statistiques.caTotal)}
-                          </p>
-                          <p className="text-xs text-gray-500">CA Total</p>
-                        </div>
-                        <div className="bg-purple-50 rounded-xl p-4 text-center">
-                          <ShoppingCart className="w-6 h-6 text-purple-600 mx-auto mb-2" />
-                          <p className="text-2xl font-bold text-gray-800">
-                            {formatMoney(selectedClient.statistiques.panierMoyen)}
-                          </p>
-                          <p className="text-xs text-gray-500">Panier moyen</p>
-                        </div>
-                        <div className="bg-amber-50 rounded-xl p-4 text-center">
-                          <Calendar className="w-6 h-6 text-amber-600 mx-auto mb-2" />
-                          <p className="text-sm font-bold text-gray-800">
-                            {formatDate(selectedClient.statistiques.derniereCommande)}
-                          </p>
-                          <p className="text-xs text-gray-500">Dernière cmd</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Dernières commandes */}
-                  {selectedClient.dernieresCommandes?.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold text-gray-800 mb-3">Dernières commandes</h4>
-                      <div className="space-y-2">
-                        {selectedClient.dernieresCommandes.slice(0, 5).map((order) => (
-                          <div
-                            key={order.id}
-                            className="flex items-center justify-between p-3 bg-gray-50 rounded-xl"
-                          >
-                            <div>
-                              <p className="font-medium text-gray-800">{order.numeroCommande}</p>
-                              <p className="text-sm text-gray-500">{formatDate(order.dateCommande)}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-semibold text-gray-800">{formatMoney(order.totalTtc)}</p>
-                              <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                order.statut === 'LIVREE' ? 'bg-green-100 text-green-700' :
-                                order.statut === 'ANNULEE' ? 'bg-red-100 text-red-700' :
-                                'bg-blue-100 text-blue-700'
-                              }`}>
-                                {order.statut}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Actions */}
-                  <div className="flex gap-3 pt-4 border-t">
-                    <button
-                      onClick={() => {
-                        handleToggleStatus(selectedClient);
-                        setShowDetailModal(false);
-                      }}
-                      className={`flex-1 px-4 py-2.5 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 ${
-                        selectedClient.estActif
-                          ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                          : 'bg-green-50 text-green-600 hover:bg-green-100'
-                      }`}
-                    >
-                      {selectedClient.estActif ? (
-                        <><Ban className="w-4 h-4" /> Bloquer</>
-                      ) : (
-                        <><CheckCircle className="w-4 h-4" /> Activer</>
-                      )}
-                    </button>
-                    <button
-                      onClick={() => setShowDetailModal(false)}
-                      className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
-                    >
-                      Fermer
-                    </button>
-                  </div>
-                </div>
-              ) : null}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Modal Suppression */}
-      <AnimatePresence>
-        {showDeleteModal && clientToDelete && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-            onClick={() => setShowDeleteModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.95 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6"
-            >
-              <div className="text-center">
-                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <AlertTriangle className="w-8 h-8 text-red-600" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                  Supprimer le client ?
-                </h3>
-                <p className="text-gray-500 mb-2">
-                  Êtes-vous sûr de vouloir supprimer le compte de {clientToDelete.prenom} {clientToDelete.nom} ?
-                </p>
-                <p className="text-sm text-amber-600 bg-amber-50 rounded-lg p-3 mb-6">
-                  ⚠️ Cette action anonymisera toutes les données personnelles du client (conformité RGPD).
-                  Les commandes seront conservées mais anonymisées.
-                </p>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowDeleteModal(false)}
-                    className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    onClick={handleDeleteConfirm}
-                    disabled={deleting}
-                    className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-medium disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {deleting ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Suppression...
-                      </>
-                    ) : (
-                      <>
-                        <Trash2 className="w-4 h-4" />
-                        Supprimer
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ✅ Menu contextuel - EN DEHORS de la table (position fixed) */}
-      <AnimatePresence>
-        {openMenu && (
-          <>
-            {/* Overlay pour fermer */}
-            <div
-              className="fixed inset-0 z-40"
-              onClick={() => setOpenMenu(null)}
-            />
-            
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              style={{
-                position: 'fixed',
-                top: menuPosition.top,
-                right: menuPosition.right,
-              }}
-              className="w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50"
-            >
-              {(() => {
-                const client = clients.find(c => c.id === openMenu);
-                if (!client) return null;
-                
-                return (
-                  <>
-                    <button
-                      onClick={() => handleViewDetail(client)}
-                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                    >
-                      <Eye className="w-4 h-4" /> Voir le profil
-                    </button>
-                    <button
-                      onClick={() => handleToggleStatus(client)}
-                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                    >
-                      {client.estActif ? (
-                        <><Ban className="w-4 h-4" /> Bloquer</>
-                      ) : (
-                        <><CheckCircle className="w-4 h-4" /> Activer</>
-                      )}
-                    </button>
-                    <hr className="my-1" />
-                    <button
-                      onClick={() => handleDeleteClick(client)}
-                      className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                    >
-                      <Trash2 className="w-4 h-4" /> Supprimer
-                    </button>
-                  </>
-                );
-              })()}
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-    </div>
+      )}
+    </>
   );
 };
 
