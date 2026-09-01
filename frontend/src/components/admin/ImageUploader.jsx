@@ -130,38 +130,58 @@ const ImageUploader = ({
   const previewUrl = getPreviewUrl();
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className={`flex flex-col gap-3 ${className}`}>
       {/* Tabs de sélection du mode */}
-      <div className="flex gap-2 p-1 bg-gray-100 rounded-lg w-fit">
+      <div className="flex gap-1 p-1 bg-sand-100 rounded-6 w-fit">
         <button
           type="button"
           onClick={() => setMode('upload')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            mode === 'upload'
-              ? 'bg-white text-green-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-800'
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-5 text-[12.5px] font-semibold transition-colors ${
+            mode === 'upload' ? 'bg-white text-green-700 shadow-sm' : 'text-graphite-500 hover:text-ink-900'
           }`}
         >
-          <Upload className="w-4 h-4" />
+          <Upload className="w-3.5 h-3.5" />
           Depuis mon PC
         </button>
         <button
           type="button"
           onClick={() => setMode('url')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            mode === 'url'
-              ? 'bg-white text-green-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-800'
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-5 text-[12.5px] font-semibold transition-colors ${
+            mode === 'url' ? 'bg-white text-green-700 shadow-sm' : 'text-graphite-500 hover:text-ink-900'
           }`}
         >
-          <LinkIcon className="w-4 h-4" />
+          <LinkIcon className="w-3.5 h-3.5" />
           URL externe
         </button>
       </div>
 
-      {/* Mode Upload */}
-      {mode === 'upload' && (
-        <div className="space-y-3">
+      {/* Aperçu ou zone de dépôt */}
+      {value ? (
+        <div className="relative group">
+          <div className="relative overflow-hidden rounded-8 border-2 border-green-700 bg-sand-50 h-[150px]">
+            {previewError ? (
+              <div className="w-full h-full flex flex-col items-center justify-center text-graphite-300 gap-1.5 px-4 text-center">
+                <AlertCircle className="w-5 h-5" />
+                <span className="text-[12px]">Aperçu indisponible</span>
+              </div>
+            ) : (
+              <img src={previewUrl} alt="Aperçu" className="w-full h-full object-contain" onError={() => setPreviewError(true)} />
+            )}
+            <button
+              type="button"
+              onClick={handleRemove}
+              className="absolute top-2 right-2 p-1.5 bg-danger-text text-white rounded-5 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <div className="mt-1.5 flex items-center gap-1.5 text-[11.5px] text-graphite-400">
+            <ImageIcon className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className="truncate">{value.startsWith('/uploads') ? `Fichier local : ${value.split('/').pop()}` : 'URL externe'}</span>
+          </div>
+        </div>
+      ) : mode === 'upload' ? (
+        <div>
           <input
             ref={fileInputRef}
             type="file"
@@ -169,35 +189,29 @@ const ImageUploader = ({
             onChange={handleFileChange}
             className="hidden"
           />
-          
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className="w-full border-2 border-dashed border-gray-300 rounded-xl p-6 hover:border-green-500 hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-[150px] border border-dashed border-[#D6D2C6] rounded-8 hover:border-green-700 hover:bg-sand-50 transition-colors disabled:opacity-50"
           >
-            <div className="flex flex-col items-center gap-2 text-gray-500">
+            <div className="flex flex-col items-center gap-1.5 text-graphite-400">
               {isUploading ? (
                 <>
-                  <Loader2 className="w-8 h-8 animate-spin text-green-600" />
-                  <span>Upload en cours...</span>
+                  <Loader2 className="w-6 h-6 animate-spin text-green-700" />
+                  <span className="text-[12.5px]">Upload en cours…</span>
                 </>
               ) : (
                 <>
-                  <Upload className="w-8 h-8" />
-                  <span className="font-medium">Cliquer pour choisir une image</span>
-                  <span className="text-xs text-gray-400">
-                    JPG, PNG, WebP, GIF • Max 5 MB
-                  </span>
+                  <Upload className="w-6 h-6" />
+                  <span className="text-[13px] font-medium text-graphite-600">Cliquer pour choisir une image</span>
+                  <span className="font-mono text-[11px] text-graphite-300">JPG, PNG, WebP, GIF · Max 5 Mo</span>
                 </>
               )}
             </div>
           </button>
         </div>
-      )}
-
-      {/* Mode URL */}
-      {mode === 'url' && (
+      ) : (
         <div className="flex gap-2">
           <input
             type="url"
@@ -205,70 +219,12 @@ const ImageUploader = ({
             onChange={(e) => setUrlInput(e.target.value)}
             onBlur={handleUrlSubmit}
             onKeyDown={(e) => e.key === 'Enter' && handleUrlSubmit()}
-            placeholder="https://example.com/image.jpg"
-            className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="https://exemple.com/image.jpg"
+            className="flex-1 border border-sand-250 rounded-6 h-11 px-3.5 text-[13.5px] text-ink-900 focus:outline-none focus:border-ink-900"
           />
-          <button
-            type="button"
-            onClick={handleUrlSubmit}
-            className="px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors"
-          >
-            <Check className="w-5 h-5" />
+          <button type="button" onClick={handleUrlSubmit} className="w-11 h-11 flex items-center justify-center bg-green-700 hover:bg-green-800 text-white rounded-6 transition-colors flex-shrink-0">
+            <Check className="w-4 h-4" />
           </button>
-        </div>
-      )}
-
-      {/* Aperçu de l'image */}
-      {value && (
-        <div className="relative group">
-          <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
-            {previewError ? (
-              <div className="w-full h-48 flex flex-col items-center justify-center text-gray-400">
-                <AlertCircle className="w-8 h-8 mb-2" />
-                <span className="text-sm">Impossible de charger l'aperçu</span>
-                <span className="text-xs text-gray-400 mt-1 break-all px-4">
-                  {value}
-                </span>
-              </div>
-            ) : (
-              <img
-                src={previewUrl}
-                alt="Aperçu"
-                className="w-full h-48 object-contain"
-                onError={() => setPreviewError(true)}
-              />
-            )}
-            
-            {/* Bouton supprimer */}
-            <button
-              type="button"
-              onClick={handleRemove}
-              className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Info fichier */}
-          <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
-            <ImageIcon className="w-4 h-4" />
-            <span className="truncate">
-              {value.startsWith('/uploads') 
-                ? `Fichier local: ${value.split('/').pop()}`
-                : 'URL externe'
-              }
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Placeholder si pas d'image */}
-      {!value && !isUploading && (
-        <div className="w-full h-32 border border-gray-200 rounded-xl bg-gray-50 flex items-center justify-center">
-          <div className="text-center text-gray-400">
-            <ImageIcon className="w-8 h-8 mx-auto mb-2" />
-            <span className="text-sm">Aucune image</span>
-          </div>
         </div>
       )}
     </div>
