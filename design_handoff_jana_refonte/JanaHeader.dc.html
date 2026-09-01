@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="font-family:'Instrument Sans',system-ui,sans-serif;background:#fff">
+  <div style="background:#10231A;color:#9FB8AA;display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:38px;font-size:12.5px;letter-spacing:0.01em">
+    <div style="display:flex;gap:28px;align-items:center">
+      <span>Livraison 24–48 h en Île-de-France</span>
+      <span style="color:#38584A">|</span>
+      <span>Commande minimum 50 € HT</span>
+      <span style="color:#38584A">|</span>
+      <span>Retrait entrepôt Rungis sans minimum</span>
+    </div>
+    <div style="display:flex;gap:22px;align-items:center">
+      <span style="font-family:'IBM Plex Mono',monospace">01 84 80 12 40</span>
+      <span style="color:#38584A">|</span>
+      <a href="#" style="color:#9FB8AA;text-decoration:none">Aide &amp; contact</a>
+      <div style="display:flex;background:#1C3A2C;border-radius:4px;padding:2px">
+        <span style="background:#F6F4EE;color:#10231A;font-weight:600;font-size:11.5px;padding:3px 9px;border-radius:3px">HT</span>
+        <span style="color:#7E9C8D;font-size:11.5px;padding:3px 9px">TTC</span>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:32px;padding:18px 40px;border-bottom:1px solid #E6E3DA">
+    <a href="#" style="display:flex;align-items:center;gap:11px;text-decoration:none">
+      <div style="width:34px;height:34px;border-radius:7px;background:#1E7A46;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Archivo',sans-serif;font-weight:800;font-size:17px;letter-spacing:-0.03em">J</div>
+      <div style="display:flex;flex-direction:column;line-height:1">
+        <span style="font-family:'Archivo',sans-serif;font-weight:800;font-size:19px;letter-spacing:-0.03em;color:#10231A">JANA</span>
+        <span style="font-size:9.5px;letter-spacing:0.22em;color:#6B7A72;margin-top:3px">DISTRIBUTION</span>
+      </div>
+    </a>
+    <div style="flex:1;display:flex;height:44px;border:1.5px solid #10231A;border-radius:6px;overflow:hidden;max-width:720px">
+      <div style="display:flex;align-items:center;gap:8px;padding:0 14px;border-right:1px solid #E6E3DA;background:#F6F4EE;font-size:13.5px;color:#3D4A43;white-space:nowrap">Tout le catalogue <span style="font-size:9px">▼</span></div>
+      <div style="flex:1;display:flex;align-items:center;padding:0 14px;color:#8B968F;font-size:14px">Référence, produit, marque…</div>
+      <div style="background:#10231A;color:#fff;display:flex;align-items:center;padding:0 22px;font-size:13.5px;font-weight:600">Rechercher</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:26px;margin-left:auto">
+      <a href="#" style="display:flex;flex-direction:column;line-height:1.25;text-decoration:none">
+        <span style="font-size:11px;color:#6B7A72">Mes</span>
+        <span style="font-size:13.5px;color:#10231A;font-weight:600">commandes</span>
+      </a>
+      <a href="#" style="display:flex;flex-direction:column;line-height:1.25;text-decoration:none">
+        <span style="font-size:11px;color:#6B7A72">Bonjour, Janaa</span>
+        <span style="font-size:13.5px;color:#10231A;font-weight:600">Mon compte</span>
+      </a>
+      <div style="display:flex;align-items:center;gap:10px;background:#1E7A46;color:#fff;height:44px;padding:0 18px;border-radius:6px">
+        <span style="font-size:13.5px;font-weight:600">Panier</span>
+        <span style="background:rgba(255,255,255,0.18);border-radius:20px;font-size:12px;padding:2px 8px">{{ cartCount }}</span>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:13.5px">{{ cartTotal }}</span>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:30px;padding:0 40px;height:46px;border-bottom:1px solid #E6E3DA;background:#fff;font-size:13.5px">
+    <div style="display:flex;align-items:center;gap:9px;background:#10231A;color:#fff;padding:7px 15px;border-radius:5px;font-weight:600;font-size:13px">☰ Rayons</div>
+    <a href="#" style="color:#28352E;text-decoration:none">Fruits &amp; Légumes</a>
+    <a href="#" style="color:#28352E;text-decoration:none">Crémerie</a>
+    <a href="#" style="color:#28352E;text-decoration:none">Boucherie</a>
+    <a href="#" style="color:#28352E;text-decoration:none">Marée</a>
+    <a href="#" style="color:#28352E;text-decoration:none">Épicerie</a>
+    <a href="#" style="color:#28352E;text-decoration:none">Boulangerie</a>
+    <a href="#" style="color:#28352E;text-decoration:none">Surgelés</a>
+    <a href="#" style="color:#A8501A;text-decoration:none;font-weight:600">Promotions</a>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px;color:#1E7A46;font-weight:600">Commande express par référence →</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;cartCount&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;3&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;cartTotal&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;284,60 € HT&quot;,&quot;tsType&quot;:&quot;string&quot;}}"></script>
+</body>
+</html>

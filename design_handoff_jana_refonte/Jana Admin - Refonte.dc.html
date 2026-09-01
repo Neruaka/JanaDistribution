@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#EAE7DE; font-family:'Instrument Sans',system-ui,sans-serif; }
+  a { color:#1E7A46; text-decoration:none; }
+  a:hover { color:#155C34; }
+</style>
+</helmet>
+
+<section style="display:flex;flex-direction:column;gap:26px;padding:44px">
+  <div id="2a" style="display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;align-items:baseline;gap:16px">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;background:#10231A;color:#fff;padding:4px 9px;border-radius:4px">2a</span>
+      <h1 style="font-family:'Archivo',sans-serif;font-size:30px;font-weight:800;letter-spacing:-0.03em;color:#10231A;margin:0">Back-office</h1>
+      <span style="font-size:14px;color:#5E6B63">Même système visuel que le site — dashboard, commandes, produits, catégories, clients, paramètres</span>
+    </div>
+
+    <div data-screen-label="Admin dashboard" style="width:1440px;background:#F6F4EE;border:1px solid #DFDCD2;border-radius:10px;overflow:hidden;box-shadow:0 18px 40px rgba(16,35,26,0.08)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#6B7A72;background:#EDEAE1;padding:7px 14px;border-bottom:1px solid #DFDCD2">A1 — DASHBOARD</div>
+      <div style="display:flex;min-height:900px">
+        <dc-import name="JanaAdminSidebar" active="Dashboard" hint-size="236px,100%"></dc-import>
+        <div style="flex:1;display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;gap:16px;background:#fff;border-bottom:1px solid #E6E3DA;padding:14px 26px">
+            <div style="flex:1;max-width:420px;border:1px solid #E0DDD3;border-radius:6px;height:38px;line-height:38px;padding:0 13px;font-size:13.5px;color:#9AA69F">Rechercher une commande, un produit, un client…</div>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+              <div style="border:1px solid #E0DDD3;border-radius:6px;height:38px;line-height:38px;padding:0 13px;font-size:13.5px;color:#28352E">30 derniers jours ▾</div>
+              <div style="border:1px solid #E0DDD3;border-radius:6px;height:38px;line-height:38px;padding:0 13px;font-size:13.5px;color:#28352E">Voir le site ↗</div>
+              <div style="background:#1E7A46;color:#fff;border-radius:6px;height:38px;line-height:38px;padding:0 16px;font-size:13.5px;font-weight:600">+ Nouveau produit</div>
+            </div>
+          </div>
+
+          <div style="padding:24px 26px;display:flex;flex-direction:column;gap:16px">
+            <div>
+              <h2 style="font-family:'Archivo',sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.035em;color:#10231A;margin:0">Vue d'ensemble</h2>
+              <div style="font-size:13.5px;color:#6B7A72;margin-top:3px">Du 30 juillet au 28 août 2026 · comparé aux 30 jours précédents</div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+              <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+                <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:18px">
+                  <div style="font-size:12.5px;color:#6B7A72">{{ k.label }}</div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:29px;font-weight:600;color:#10231A;margin-top:8px;letter-spacing:-0.02em">{{ k.valeur }}</div>
+                  <div style="display:flex;align-items:center;gap:7px;margin-top:8px">
+                    <span style="font-size:12px;font-weight:600;color:{{ k.tonC }};background:{{ k.tonBg }};padding:3px 8px;border-radius:4px">{{ k.delta }}</span>
+                    <span style="font-size:12px;color:#8D978F">{{ k.sub }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:16px 18px;display:flex;align-items:center;gap:26px">
+              <div style="font-family:'Archivo',sans-serif;font-size:15px;font-weight:700;color:#10231A">À traiter aujourd'hui</div>
+              <sc-for list="{{ aTraiter }}" as="t" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:9px;padding-left:20px;border-left:1px solid #EDEAE1">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:20px;color:{{ t.c }}">{{ t.n }}</span>
+                  <span style="font-size:13px;color:#3D4A43">{{ t.label }}</span>
+                </div>
+              </sc-for>
+              <div style="margin-left:auto;background:#10231A;color:#fff;font-size:13px;font-weight:600;padding:10px 16px;border-radius:6px">Ouvrir la file de traitement</div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:14px">
+              <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:18px">
+                <div style="display:flex;align-items:baseline;justify-content:space-between">
+                  <div>
+                    <div style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A">Chiffre d'affaires HT</div>
+                    <div style="font-size:12.5px;color:#6B7A72;margin-top:2px">Par jour, 30 derniers jours</div>
+                  </div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:22px;color:#10231A">38 420 €</div>
+                </div>
+                <div style="display:flex;align-items:flex-end;gap:6px;height:210px;margin-top:20px;padding-bottom:22px;border-bottom:1px solid #EDEAE1;position:relative">
+                  <sc-for list="{{ barres }}" as="b" hint-placeholder-count="30">
+                    <div style="flex:1;height:{{ b.h }};background:{{ b.c }};border-radius:2px 2px 0 0"></div>
+                  </sc-for>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8D978F;margin-top:8px"><span>30 juil.</span><span>8 août</span><span>18 août</span><span>28 août</span></div>
+              </div>
+
+              <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:18px">
+                <div style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A">Répartition par rayon</div>
+                <div style="display:flex;height:12px;border-radius:6px;overflow:hidden;margin:16px 0 18px">
+                  <sc-for list="{{ rayonsCa }}" as="r" hint-placeholder-count="5">
+                    <div style="width:{{ r.pct }};background:{{ r.c }}"></div>
+                  </sc-for>
+                </div>
+                <sc-for list="{{ rayonsCa }}" as="r" hint-placeholder-count="5">
+                  <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F4F2EC">
+                    <span style="width:9px;height:9px;border-radius:2px;background:{{ r.c }};display:inline-block"></span>
+                    <span style="flex:1;font-size:13.5px;color:#3D4A43">{{ r.nom }}</span>
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#10231A">{{ r.ca }}</span>
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8D978F;width:42px;text-align:right">{{ r.pct }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:14px">
+              <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;overflow:hidden">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid #E6E3DA">
+                  <span style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A">Dernières commandes</span>
+                  <a href="#" style="font-size:13px;font-weight:600">Tout voir →</a>
+                </div>
+                <sc-for list="{{ dernieres }}" as="c" hint-placeholder-count="5">
+                  <div style="display:grid;grid-template-columns:170px minmax(0,1fr) 62px 92px 104px;gap:10px;padding:13px 18px;border-bottom:1px solid #F4F2EC;align-items:center">
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#10231A">{{ c.num }}</span>
+                    <div style="min-width:0"><div style="font-size:13.5px;color:#10231A;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.client }}</div><div style="font-size:12px;color:#8D978F;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.email }}</div></div>
+                    <span style="font-size:12.5px;color:#5E6B63">{{ c.date }}</span>
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:#10231A;text-align:right">{{ c.total }}</span>
+                    <span style="font-size:12px;font-weight:600;padding:5px 9px;border-radius:4px;background:{{ c.bg }};color:{{ c.c }};text-align:center">{{ c.statut }}</span>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;overflow:hidden">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid #E6E3DA">
+                  <span style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A">Stock sous le seuil</span>
+                  <span style="font-size:12px;font-weight:600;background:#FBEDE4;color:#A8501A;padding:4px 9px;border-radius:4px">7 réf.</span>
+                </div>
+                <sc-for list="{{ stockBas }}" as="s" hint-placeholder-count="5">
+                  <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid #F4F2EC">
+                    <div style="width:34px;height:34px;border-radius:4px;background:repeating-linear-gradient(135deg,#F1EFE9 0 6px,#E7E4DC 6px 12px);flex:none"></div>
+                    <div style="flex:1;min-width:0">
+                      <div style="font-size:13.5px;color:#10231A;font-weight:500">{{ s.nom }}</div>
+                      <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8D978F">{{ s.ref }}</div>
+                    </div>
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:{{ s.c }}">{{ s.stock }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div data-screen-label="Admin commandes" style="width:1440px;background:#F6F4EE;border:1px solid #DFDCD2;border-radius:10px;overflow:hidden;box-shadow:0 18px 40px rgba(16,35,26,0.08)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#6B7A72;background:#EDEAE1;padding:7px 14px;border-bottom:1px solid #DFDCD2">A2 — COMMANDES</div>
+      <div style="display:flex;min-height:760px">
+        <dc-import name="JanaAdminSidebar" active="Commandes" hint-size="236px,100%"></dc-import>
+        <div style="flex:1;display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;gap:16px;background:#fff;border-bottom:1px solid #E6E3DA;padding:14px 26px">
+            <div style="flex:1;max-width:420px;border:1px solid #E0DDD3;border-radius:6px;height:38px;line-height:38px;padding:0 13px;font-size:13.5px;color:#9AA69F">Numéro, client, email, référence…</div>
+            <div style="margin-left:auto;display:flex;gap:10px">
+              <div style="border:1px solid #E0DDD3;border-radius:6px;height:38px;line-height:38px;padding:0 13px;font-size:13.5px;color:#28352E">Exporter CSV</div>
+            </div>
+          </div>
+          <div style="padding:24px 26px;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between">
+              <div>
+                <h2 style="font-family:'Archivo',sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.035em;color:#10231A;margin:0">Commandes</h2>
+                <div style="font-size:13.5px;color:#6B7A72;margin-top:3px">3 commandes · 2 en attente de confirmation</div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:0;background:#fff;border:1px solid #E6E3DA;border-radius:8px;overflow:hidden">
+              <sc-for list="{{ ongletsStatut }}" as="o" hint-placeholder-count="6">
+                <div style="flex:1;padding:14px 18px;border-right:1px solid #F0EEE7;background:{{ o.bg }}">
+                  <div style="font-size:12.5px;color:#6B7A72">{{ o.label }}</div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:22px;color:{{ o.c }};margin-top:5px">{{ o.n }}</div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;overflow:hidden">
+              <div style="display:grid;grid-template-columns:30px 180px 1fr 130px 80px 120px 140px 90px;gap:12px;padding:11px 18px;background:#FAF9F5;border-bottom:1px solid #E6E3DA;font-size:11.5px;letter-spacing:0.06em;color:#7C8981;align-items:center">
+                <span style="width:15px;height:15px;border:1.5px solid #CFCBC0;border-radius:3px;display:inline-block"></span>
+                <span>COMMANDE</span><span>CLIENT</span><span>DATE</span><span>ART.</span><span style="text-align:right">TOTAL TTC</span><span style="text-align:center">STATUT</span><span style="text-align:right">ACTION</span>
+              </div>
+              <sc-for list="{{ commandesAdmin }}" as="c" hint-placeholder-count="6">
+                <div style="display:grid;grid-template-columns:30px 180px 1fr 130px 80px 120px 140px 90px;gap:12px;padding:14px 18px;border-bottom:1px solid #F4F2EC;align-items:center">
+                  <span style="width:15px;height:15px;border:1.5px solid #CFCBC0;border-radius:3px;display:inline-block"></span>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#10231A">{{ c.num }}</span>
+                  <div><div style="font-size:13.5px;color:#10231A;font-weight:500">{{ c.client }}</div><div style="font-size:12px;color:#8D978F">{{ c.email }}</div></div>
+                  <span style="font-size:12.5px;color:#5E6B63">{{ c.date }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#5E6B63">{{ c.n }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:#10231A;text-align:right">{{ c.total }}</span>
+                  <span style="font-size:12px;font-weight:600;padding:5px 9px;border-radius:4px;background:{{ c.bg }};color:{{ c.c }};text-align:center">{{ c.statut }}</span>
+                  <span style="font-size:12.5px;font-weight:600;color:#155C34;text-align:right">{{ c.action }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div data-screen-label="Admin detail commande" style="width:1440px;background:#F6F4EE;border:1px solid #DFDCD2;border-radius:10px;overflow:hidden;box-shadow:0 18px 40px rgba(16,35,26,0.08)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#6B7A72;background:#EDEAE1;padding:7px 14px;border-bottom:1px solid #DFDCD2">A3 — TRAITEMENT D'UNE COMMANDE</div>
+      <div style="display:flex;min-height:820px">
+        <dc-import name="JanaAdminSidebar" active="Commandes" hint-size="236px,100%"></dc-import>
+        <div style="flex:1;display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;gap:16px;background:#fff;border-bottom:1px solid #E6E3DA;padding:14px 26px">
+            <a href="#" style="font-size:13.5px;font-weight:600">← Commandes</a>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:14px;color:#10231A">CMD-20260828-0003</span>
+            <span style="font-size:12px;font-weight:600;padding:5px 10px;border-radius:4px;background:#FBF4E4;color:#8A5A16">En attente</span>
+            <div style="margin-left:auto;display:flex;gap:10px">
+              <div style="border:1px solid #E0DDD3;border-radius:6px;height:38px;line-height:38px;padding:0 14px;font-size:13.5px;color:#28352E">Imprimer bon de préparation</div>
+              <div style="border:1px solid #E7CFCF;color:#9A3A2E;border-radius:6px;height:38px;line-height:38px;padding:0 14px;font-size:13.5px;font-weight:600">Annuler</div>
+              <div style="background:#1E7A46;color:#fff;border-radius:6px;height:38px;line-height:38px;padding:0 18px;font-size:13.5px;font-weight:600">Confirmer la commande</div>
+            </div>
+          </div>
+
+          <div style="padding:24px 26px;display:grid;grid-template-columns:1fr 340px;gap:16px">
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:18px">
+                <div style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A;margin-bottom:16px">Avancement</div>
+                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
+                  <sc-for list="{{ suiviAdmin }}" as="s" hint-placeholder-count="5">
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                      <div style="height:4px;border-radius:2px;background:{{ s.bar }}"></div>
+                      <span style="font-size:13px;font-weight:600;color:#10231A">{{ s.titre }}</span>
+                      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8D978F">{{ s.quand }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;overflow:hidden">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid #E6E3DA">
+                  <span style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A">Lignes de commande</span>
+                  <a href="#" style="font-size:13px;font-weight:600">Modifier les quantités</a>
+                </div>
+                <div style="display:grid;grid-template-columns:52px 1fr 110px 90px 100px 110px;gap:12px;padding:10px 18px;background:#FAF9F5;border-bottom:1px solid #E6E3DA;font-size:11.5px;letter-spacing:0.06em;color:#7C8981">
+                  <span></span><span>PRODUIT</span><span>PRIX HT</span><span>QTÉ</span><span>STOCK</span><span style="text-align:right">TOTAL HT</span>
+                </div>
+                <sc-for list="{{ lignes }}" as="l" hint-placeholder-count="3">
+                  <div style="display:grid;grid-template-columns:52px 1fr 110px 90px 100px 110px;gap:12px;padding:13px 18px;border-bottom:1px solid #F4F2EC;align-items:center">
+                    <div style="height:52px;border-radius:4px;background:repeating-linear-gradient(135deg,#F1EFE9 0 6px,#E7E4DC 6px 12px)"></div>
+                    <div><div style="font-size:13.5px;font-weight:600;color:#10231A">{{ l.nom }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8D978F">{{ l.ref }}</div></div>
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#3D4A43">{{ l.pu }}</span>
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#3D4A43">{{ l.qte }}</span>
+                    <span style="font-size:12.5px;color:{{ l.stockC }}">{{ l.stock }}</span>
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:#10231A;text-align:right">{{ l.total }}</span>
+                  </div>
+                </sc-for>
+                <div style="display:flex;justify-content:flex-end;gap:40px;padding:14px 18px;background:#FAF9F5">
+                  <div style="text-align:right"><div style="font-size:12.5px;color:#6B7A72">Sous-total HT</div><div style="font-family:'IBM Plex Mono',monospace;font-size:15px;color:#10231A">105,20 €</div></div>
+                  <div style="text-align:right"><div style="font-size:12.5px;color:#6B7A72">TVA</div><div style="font-family:'IBM Plex Mono',monospace;font-size:15px;color:#10231A">5,79 €</div></div>
+                  <div style="text-align:right"><div style="font-size:12.5px;color:#6B7A72">Livraison</div><div style="font-family:'IBM Plex Mono',monospace;font-size:15px;color:#10231A">9,90 €</div></div>
+                  <div style="text-align:right"><div style="font-size:12.5px;color:#6B7A72">Total TTC</div><div style="font-family:'IBM Plex Mono',monospace;font-size:19px;color:#10231A">120,89 €</div></div>
+                </div>
+              </div>
+
+              <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:18px">
+                <div style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A;margin-bottom:12px">Journal</div>
+                <sc-for list="{{ journal }}" as="j" hint-placeholder-count="3">
+                  <div style="display:flex;gap:14px;padding:9px 0;border-bottom:1px solid #F4F2EC">
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8D978F;width:110px;flex:none">{{ j.quand }}</span>
+                    <span style="font-size:13px;color:#3D4A43">{{ j.texte }}</span>
+                  </div>
+                </sc-for>
+                <div style="display:flex;gap:10px;margin-top:14px">
+                  <div style="flex:1;border:1px solid #DDD9CE;border-radius:6px;height:40px;line-height:40px;padding:0 13px;font-size:13.5px;color:#9AA69F">Ajouter une note interne…</div>
+                  <div style="border:1px solid #DDD9CE;border-radius:6px;height:40px;line-height:40px;padding:0 16px;font-size:13.5px;font-weight:600;color:#10231A">Ajouter</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:18px">
+                <div style="font-size:12px;letter-spacing:0.08em;color:#7C8981;margin-bottom:10px">CLIENT</div>
+                <div style="font-size:14.5px;font-weight:600;color:#10231A">Janaa Adminn</div>
+                <div style="font-size:13px;color:#5E6B63;margin-top:4px;line-height:1.6">admin@jana-distribution.fr<br>06 11 78 89 24<br>Particulier · 12 commandes</div>
+                <a href="#" style="font-size:13px;font-weight:600;display:inline-block;margin-top:10px">Voir la fiche client →</a>
+              </div>
+              <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:18px">
+                <div style="font-size:12px;letter-spacing:0.08em;color:#7C8981;margin-bottom:10px">LIVRAISON</div>
+                <div style="font-size:13.5px;font-weight:600;color:#10231A">Samedi 29 août · 6 h – 12 h</div>
+                <div style="font-size:13px;color:#3D4A43;margin-top:6px;line-height:1.6">3 rue de la Pise<br>77451 Champs-sur-Marne</div>
+                <div style="margin-top:12px;border-top:1px solid #F0EEE7;padding-top:12px;font-size:13px;color:#5E6B63">Instructions : <span style="color:#10231A">livrer côté quai, code portail 1234</span></div>
+              </div>
+              <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:18px">
+                <div style="font-size:12px;letter-spacing:0.08em;color:#7C8981;margin-bottom:10px">RÈGLEMENT</div>
+                <div style="font-size:13.5px;font-weight:600;color:#10231A">Carte bancaire à la livraison</div>
+                <div style="font-size:12.5px;color:#6B7A72;margin-top:4px">Devis envoyé le 28/08 à 14 h 38</div>
+                <div style="display:flex;gap:8px;margin-top:12px">
+                  <div style="flex:1;border:1px solid #E0DDD3;border-radius:6px;height:38px;line-height:38px;text-align:center;font-size:13px;font-weight:600;color:#10231A">Renvoyer le devis</div>
+                  <div style="flex:1;border:1px solid #E0DDD3;border-radius:6px;height:38px;line-height:38px;text-align:center;font-size:13px;font-weight:600;color:#10231A">Facturer</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div data-screen-label="Admin produits" style="width:1440px;background:#F6F4EE;border:1px solid #DFDCD2;border-radius:10px;overflow:hidden;box-shadow:0 18px 40px rgba(16,35,26,0.08)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#6B7A72;background:#EDEAE1;padding:7px 14px;border-bottom:1px solid #DFDCD2">A4 — PRODUITS</div>
+      <div style="display:flex;min-height:760px">
+        <dc-import name="JanaAdminSidebar" active="Produits" hint-size="236px,100%"></dc-import>
+        <div style="flex:1;display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;gap:16px;background:#fff;border-bottom:1px solid #E6E3DA;padding:14px 26px">
+            <div style="flex:1;max-width:420px;border:1px solid #E0DDD3;border-radius:6px;height:38px;line-height:38px;padding:0 13px;font-size:13.5px;color:#9AA69F">Rechercher un produit, une référence…</div>
+            <div style="margin-left:auto;display:flex;gap:10px">
+              <div style="border:1px solid #E0DDD3;border-radius:6px;height:38px;line-height:38px;padding:0 13px;font-size:13.5px;color:#28352E">Importer .xlsx</div>
+              <div style="border:1px solid #E0DDD3;border-radius:6px;height:38px;line-height:38px;padding:0 13px;font-size:13.5px;color:#28352E">Exporter</div>
+              <div style="background:#1E7A46;color:#fff;border-radius:6px;height:38px;line-height:38px;padding:0 16px;font-size:13.5px;font-weight:600">+ Nouveau produit</div>
+            </div>
+          </div>
+          <div style="padding:24px 26px;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between">
+              <div>
+                <h2 style="font-family:'Archivo',sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.035em;color:#10231A;margin:0">Produits</h2>
+                <div style="font-size:13.5px;color:#6B7A72;margin-top:3px">1 240 références · 7 sous le seuil de stock · 18 inactives</div>
+              </div>
+              <div style="display:flex;gap:9px">
+                <div style="border:1px solid #E0DDD3;background:#fff;border-radius:6px;height:38px;line-height:38px;padding:0 13px;font-size:13.5px;color:#28352E">Rayon : tous ▾</div>
+                <div style="border:1px solid #E0DDD3;background:#fff;border-radius:6px;height:38px;line-height:38px;padding:0 13px;font-size:13.5px;color:#28352E">Stock : tous ▾</div>
+                <div style="border:1px solid #E0DDD3;background:#fff;border-radius:6px;height:38px;line-height:38px;padding:0 13px;font-size:13.5px;color:#28352E">Statut : actif ▾</div>
+              </div>
+            </div>
+
+            <div style="background:#EAF3EC;border:1px solid #CBE2D3;border-radius:8px;padding:11px 16px;display:flex;align-items:center;gap:16px">
+              <span style="font-size:13.5px;color:#155C34;font-weight:600">3 produits sélectionnés</span>
+              <div style="display:flex;gap:8px">
+                <span style="background:#fff;border:1px solid #CBE2D3;border-radius:5px;padding:6px 12px;font-size:12.5px;color:#155C34">Changer de rayon</span>
+                <span style="background:#fff;border:1px solid #CBE2D3;border-radius:5px;padding:6px 12px;font-size:12.5px;color:#155C34">Appliquer une remise</span>
+                <span style="background:#fff;border:1px solid #CBE2D3;border-radius:5px;padding:6px 12px;font-size:12.5px;color:#155C34">Désactiver</span>
+              </div>
+            </div>
+
+            <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;overflow:hidden">
+              <div style="display:grid;grid-template-columns:30px 60px 1fr 150px 120px 150px 110px 90px;gap:12px;padding:11px 18px;background:#FAF9F5;border-bottom:1px solid #E6E3DA;font-size:11.5px;letter-spacing:0.06em;color:#7C8981;align-items:center">
+                <span style="width:15px;height:15px;border:1.5px solid #CFCBC0;border-radius:3px;display:inline-block"></span>
+                <span></span><span>PRODUIT</span><span>RAYON</span><span style="text-align:right">PRIX HT</span><span>STOCK</span><span style="text-align:center">STATUT</span><span style="text-align:right">ACTIONS</span>
+              </div>
+              <sc-for list="{{ produits }}" as="p" hint-placeholder-count="8">
+                <div style="display:grid;grid-template-columns:30px 60px 1fr 150px 120px 150px 110px 90px;gap:12px;padding:12px 18px;border-bottom:1px solid #F4F2EC;align-items:center">
+                  <span style="width:15px;height:15px;border:1.5px solid #CFCBC0;border-radius:3px;display:inline-block"></span>
+                  <div style="height:44px;border-radius:4px;background:repeating-linear-gradient(135deg,#F1EFE9 0 6px,#E7E4DC 6px 12px)"></div>
+                  <div><div style="font-size:13.5px;font-weight:600;color:#10231A">{{ p.nom }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8D978F">{{ p.ref }}</div></div>
+                  <span style="font-size:13px;color:#5E6B63">{{ p.rayon }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:#10231A;text-align:right">{{ p.prix }}</span>
+                  <div style="display:flex;align-items:center;gap:9px">
+                    <div style="flex:1;height:5px;border-radius:3px;background:#EFEDE6;overflow:hidden"><div style="height:100%;width:{{ p.jauge }};background:{{ p.stockC }}"></div></div>
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5E6B63;width:38px;text-align:right">{{ p.stock }}</span>
+                  </div>
+                  <span style="font-size:12px;font-weight:600;padding:5px 9px;border-radius:4px;background:{{ p.bg }};color:{{ p.c }};text-align:center">{{ p.statut }}</span>
+                  <span style="font-size:13px;color:#8D978F;text-align:right">Voir · Éditer</span>
+                </div>
+              </sc-for>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 18px">
+                <span style="font-size:13px;color:#6B7A72">Affichage de 1–8 sur 1 240 références</span>
+                <div style="display:flex;gap:6px">
+                  <span style="width:32px;height:32px;line-height:32px;text-align:center;background:#10231A;color:#fff;border-radius:5px;font-size:13px">1</span>
+                  <span style="width:32px;height:32px;line-height:32px;text-align:center;border:1px solid #E0DDD3;border-radius:5px;font-size:13px;color:#3D4A43">2</span>
+                  <span style="width:32px;height:32px;line-height:32px;text-align:center;border:1px solid #E0DDD3;border-radius:5px;font-size:13px;color:#3D4A43">3</span>
+                  <span style="width:32px;height:32px;line-height:32px;text-align:center;border:1px solid #E0DDD3;border-radius:5px;font-size:13px;color:#3D4A43">…</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div data-screen-label="Admin nouveau produit" style="width:1440px;background:#F6F4EE;border:1px solid #DFDCD2;border-radius:10px;overflow:hidden;box-shadow:0 18px 40px rgba(16,35,26,0.08)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#6B7A72;background:#EDEAE1;padding:7px 14px;border-bottom:1px solid #DFDCD2">A5 — FICHE PRODUIT (ÉDITION)</div>
+      <div style="display:flex;min-height:840px">
+        <dc-import name="JanaAdminSidebar" active="Produits" hint-size="236px,100%"></dc-import>
+        <div style="flex:1;display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;gap:16px;background:#fff;border-bottom:1px solid #E6E3DA;padding:14px 26px">
+            <a href="#" style="font-size:13.5px;font-weight:600">← Produits</a>
+            <span style="font-size:15px;font-weight:600;color:#10231A">Nouveau produit</span>
+            <span style="font-size:12px;color:#8D978F">Brouillon enregistré automatiquement</span>
+            <div style="margin-left:auto;display:flex;gap:10px">
+              <div style="border:1px solid #E0DDD3;border-radius:6px;height:38px;line-height:38px;padding:0 14px;font-size:13.5px;color:#28352E">Aperçu sur le site</div>
+              <div style="border:1px solid #E0DDD3;border-radius:6px;height:38px;line-height:38px;padding:0 14px;font-size:13.5px;color:#28352E">Enregistrer en brouillon</div>
+              <div style="background:#1E7A46;color:#fff;border-radius:6px;height:38px;line-height:38px;padding:0 18px;font-size:13.5px;font-weight:600">Publier</div>
+            </div>
+          </div>
+
+          <div style="padding:24px 26px;display:grid;grid-template-columns:1fr 330px;gap:16px">
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:20px">
+                <div style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A;margin-bottom:16px">Identité du produit</div>
+                <div style="display:flex;flex-direction:column;gap:6px;max-width:340px"><span style="font-size:12.5px;color:#5E6B63">Référence interne *</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:42px;line-height:42px;padding:0 13px;font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:#9AA69F">FRL-001</div></div>
+                <div style="display:flex;flex-direction:column;gap:6px;margin-top:14px"><span style="font-size:12.5px;color:#5E6B63">Nom du produit *</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:42px;line-height:42px;padding:0 13px;font-size:14px;color:#9AA69F">Ex. Sucrine bio — colis 12 pièces</div></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
+                  <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Rayon *</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:42px;line-height:42px;padding:0 13px;font-size:14px;color:#28352E">Fruits &amp; Légumes ▾</div></div>
+                  <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Sous-rayon</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:42px;line-height:42px;padding:0 13px;font-size:14px;color:#28352E">Salades ▾</div></div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px;margin-top:14px"><span style="font-size:12.5px;color:#5E6B63">Description commerciale</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:96px;padding:11px 13px;font-size:13.5px;color:#9AA69F">Origine, calibre, usages en cuisine…</div></div>
+              </div>
+
+              <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:20px">
+                <div style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A;margin-bottom:16px">Prix, conditionnement et stock</div>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+                  <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Prix HT *</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:42px;line-height:42px;padding:0 13px;font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:#9AA69F">0,00 €</div></div>
+                  <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">TVA</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:42px;line-height:42px;padding:0 13px;font-size:13.5px;color:#28352E">5,5 % ▾</div></div>
+                  <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Unité de vente</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:42px;line-height:42px;padding:0 13px;font-size:13.5px;color:#28352E">Colis ▾</div></div>
+                  <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Contenu du colis</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:42px;line-height:42px;padding:0 13px;font-size:13.5px;color:#9AA69F">12 pièces</div></div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:14px">
+                  <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Stock</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:42px;line-height:42px;padding:0 13px;font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:#9AA69F">0</div></div>
+                  <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Seuil d'alerte</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:42px;line-height:42px;padding:0 13px;font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:#9AA69F">10</div></div>
+                  <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Origine</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:42px;line-height:42px;padding:0 13px;font-size:13.5px;color:#28352E">France</div></div>
+                  <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Conservation</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:42px;line-height:42px;padding:0 13px;font-size:13.5px;color:#28352E">+2 °C à +6 °C</div></div>
+                </div>
+                <div style="margin-top:18px;border:1px solid #E6E3DA;border-radius:6px;overflow:hidden">
+                  <div style="display:flex;align-items:center;justify-content:space-between;background:#FAF9F5;padding:10px 14px;border-bottom:1px solid #E6E3DA">
+                    <span style="font-size:12.5px;letter-spacing:0.05em;color:#6B7A72">TARIFS DÉGRESSIFS</span>
+                    <span style="font-size:12.5px;font-weight:600;color:#155C34">+ Ajouter un palier</span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr 60px;gap:12px;padding:11px 14px;border-bottom:1px solid #F4F2EC;align-items:center">
+                    <div style="border:1px solid #E4E1D8;border-radius:5px;height:36px;line-height:36px;padding:0 11px;font-size:13px;color:#3D4A43">À partir de 5</div>
+                    <div style="border:1px solid #E4E1D8;border-radius:5px;height:36px;line-height:36px;padding:0 11px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:#3D4A43">13,60 €</div>
+                    <span style="text-align:center;color:#B0B8B3">✕</span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr 60px;gap:12px;padding:11px 14px;align-items:center">
+                    <div style="border:1px solid #E4E1D8;border-radius:5px;height:36px;line-height:36px;padding:0 11px;font-size:13px;color:#3D4A43">À partir de 20</div>
+                    <div style="border:1px solid #E4E1D8;border-radius:5px;height:36px;line-height:36px;padding:0 11px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:#3D4A43">12,80 €</div>
+                    <span style="text-align:center;color:#B0B8B3">✕</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:20px">
+                <div style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A;margin-bottom:14px">Labels et certifications</div>
+                <div style="display:flex;flex-wrap:wrap;gap:9px">
+                  <sc-for list="{{ labels }}" as="l" hint-placeholder-count="7">
+                    <span style="border:1px solid {{ l.bd }};background:{{ l.bg }};color:{{ l.c }};font-size:13px;font-weight:500;padding:8px 14px;border-radius:5px">{{ l.nom }}</span>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:18px">
+                <div style="font-size:12px;letter-spacing:0.08em;color:#7C8981;margin-bottom:12px">VISIBILITÉ</div>
+                <div style="display:flex;align-items:center;gap:11px;padding:7px 0">
+                  <div style="width:38px;height:22px;border-radius:11px;background:#1E7A46;position:relative;flex:none"><div style="position:absolute;top:3px;left:19px;width:16px;height:16px;border-radius:50%;background:#fff"></div></div>
+                  <div><div style="font-size:13.5px;font-weight:600;color:#10231A">Produit actif</div><div style="font-size:12px;color:#7C8981">Visible dans le catalogue</div></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:11px;padding:7px 0">
+                  <div style="width:38px;height:22px;border-radius:11px;background:#D8D5CB;position:relative;flex:none"><div style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff"></div></div>
+                  <div><div style="font-size:13.5px;font-weight:600;color:#10231A">Mis en avant</div><div style="font-size:12px;color:#7C8981">Affiché en page d'accueil</div></div>
+                </div>
+              </div>
+              <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:18px">
+                <div style="font-size:12px;letter-spacing:0.08em;color:#7C8981;margin-bottom:12px">PHOTOS</div>
+                <div style="border:1px dashed #D6D2C6;border-radius:6px;height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:#FAF9F5">
+                  <span style="font-size:13.5px;color:#3D4A43;font-weight:600">Glissez vos photos ici</span>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8D978F">JPG ou PNG · 1200 × 1200 min.</span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px">
+                  <div style="height:56px;border-radius:5px;border:2px solid #1E7A46;background:repeating-linear-gradient(135deg,#F1EFE9 0 6px,#E7E4DC 6px 12px)"></div>
+                  <div style="height:56px;border-radius:5px;border:1px solid #E4E1D8;background:repeating-linear-gradient(135deg,#F1EFE9 0 6px,#E7E4DC 6px 12px)"></div>
+                  <div style="height:56px;border-radius:5px;border:1px solid #E4E1D8;background:repeating-linear-gradient(135deg,#F1EFE9 0 6px,#E7E4DC 6px 12px)"></div>
+                  <div style="height:56px;border-radius:5px;border:1px dashed #D6D2C6;display:flex;align-items:center;justify-content:center;color:#9AA69F;font-size:16px">+</div>
+                </div>
+              </div>
+              <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:18px">
+                <div style="font-size:12px;letter-spacing:0.08em;color:#7C8981;margin-bottom:12px">RÉFÉRENCEMENT</div>
+                <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Slug</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:40px;line-height:40px;padding:0 13px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#3D4A43">/produit/sucrine-bio-colis-12</div></div>
+                <div style="display:flex;flex-direction:column;gap:6px;margin-top:12px"><span style="font-size:12.5px;color:#5E6B63">Titre méta</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:40px;line-height:40px;padding:0 13px;font-size:13px;color:#9AA69F">60 caractères max.</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div data-screen-label="Admin categories" style="position:relative;width:1440px;background:#F6F4EE;border:1px solid #DFDCD2;border-radius:10px;overflow:hidden;box-shadow:0 18px 40px rgba(16,35,26,0.08)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#6B7A72;background:#EDEAE1;padding:7px 14px;border-bottom:1px solid #DFDCD2">A6 — CATÉGORIES</div>
+      <div style="display:flex;min-height:700px">
+        <dc-import name="JanaAdminSidebar" active="Catégories" hint-size="236px,100%"></dc-import>
+        <div style="flex:1;display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;gap:16px;background:#fff;border-bottom:1px solid #E6E3DA;padding:14px 26px">
+            <div style="flex:1;max-width:420px;border:1px solid #E0DDD3;border-radius:6px;height:38px;line-height:38px;padding:0 13px;font-size:13.5px;color:#9AA69F">Rechercher une catégorie…</div>
+            <div style="margin-left:auto;background:#1E7A46;color:#fff;border-radius:6px;height:38px;line-height:38px;padding:0 16px;font-size:13.5px;font-weight:600">+ Nouvelle catégorie</div>
+          </div>
+          <div style="padding:24px 26px;display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div>
+                <h2 style="font-family:'Archivo',sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.035em;color:#10231A;margin:0">Catégories</h2>
+                <div style="font-size:13.5px;color:#6B7A72;margin-top:3px">Glissez pour réordonner — l'ordre est repris dans la navigation du site</div>
+              </div>
+              <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;overflow:hidden">
+                <sc-for list="{{ categories }}" as="c" hint-placeholder-count="8">
+                  <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid #F4F2EC">
+                    <span style="color:#C3CBC6;font-size:14px">⠿</span>
+                    <div style="width:38px;height:38px;border-radius:5px;background:repeating-linear-gradient(135deg,#F1EFE9 0 6px,#E7E4DC 6px 12px);flex:none"></div>
+                    <div style="flex:1">
+                      <div style="font-size:14px;font-weight:600;color:#10231A">{{ c.nom }}</div>
+                      <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8D978F">{{ c.slug }}</div>
+                    </div>
+                    <span style="font-size:13px;color:#5E6B63">{{ c.sous }} sous-rayons</span>
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#10231A;width:70px;text-align:right">{{ c.n }}</span>
+                    <span style="font-size:12px;font-weight:600;padding:5px 9px;border-radius:4px;background:{{ c.bg }};color:{{ c.c }}">{{ c.statut }}</span>
+                    <span style="color:#B0B8B3;font-size:15px">⋯</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+                      </div>
+        </div>
+      </div>
+
+      <div style="position:absolute;inset:0;background:rgba(16,35,26,0.55);display:flex;align-items:flex-start;justify-content:center;padding-top:150px">
+        <div style="width:520px;background:#fff;border-radius:10px;box-shadow:0 30px 70px rgba(16,35,26,0.35);overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid #E6E3DA">
+            <div>
+              <div style="font-family:'Archivo',sans-serif;font-size:18px;font-weight:700;color:#10231A;letter-spacing:-0.02em">Nouvelle catégorie</div>
+              <div style="font-size:12.5px;color:#7C8981;margin-top:2px">Elle apparaîtra dans la navigation du site une fois visible</div>
+            </div>
+            <span style="color:#8D978F;font-size:17px">✕</span>
+          </div>
+          <div style="padding:22px">
+
+    <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Nom *</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:42px;line-height:42px;padding:0 13px;font-size:14px;color:#9AA69F">Ex. Surgelés</div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:12px"><span style="font-size:12.5px;color:#5E6B63">Description</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:72px;padding:11px 13px;font-size:13.5px;color:#9AA69F">Affichée en tête du rayon</div></div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+    <span style="font-size:12.5px;color:#5E6B63">Visuel du rayon</span>
+    <div style="border:1px dashed #D6D2C6;border-radius:6px;height:96px;display:flex;align-items:center;justify-content:center;background:#FAF9F5;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8D978F">photo rayon — 1200 × 600</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:11px;margin-top:14px">
+    <div style="width:38px;height:22px;border-radius:11px;background:#1E7A46;position:relative;flex:none"><div style="position:absolute;top:3px;left:19px;width:16px;height:16px;border-radius:50%;background:#fff"></div></div>
+    <span style="font-size:13.5px;color:#10231A">Visible sur le site</span>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+    <div style="flex:1;border:1px solid #E0DDD3;border-radius:6px;height:42px;line-height:42px;text-align:center;font-size:13.5px;color:#5E6B63">Annuler</div>
+    <div style="flex:1;background:#1E7A46;color:#fff;border-radius:6px;height:42px;line-height:42px;text-align:center;font-size:13.5px;font-weight:600">Créer</div>
+    </div>
+    </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div data-screen-label="Admin clients" style="width:1440px;background:#F6F4EE;border:1px solid #DFDCD2;border-radius:10px;overflow:hidden;box-shadow:0 18px 40px rgba(16,35,26,0.08)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#6B7A72;background:#EDEAE1;padding:7px 14px;border-bottom:1px solid #DFDCD2">A7 — CLIENTS</div>
+      <div style="display:flex;min-height:700px">
+        <dc-import name="JanaAdminSidebar" active="Clients" hint-size="236px,100%"></dc-import>
+        <div style="flex:1;display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;gap:16px;background:#fff;border-bottom:1px solid #E6E3DA;padding:14px 26px">
+            <div style="flex:1;max-width:420px;border:1px solid #E0DDD3;border-radius:6px;height:38px;line-height:38px;padding:0 13px;font-size:13.5px;color:#9AA69F">Nom, email, raison sociale, SIRET…</div>
+            <div style="margin-left:auto;display:flex;gap:10px">
+              <div style="border:1px solid #E0DDD3;border-radius:6px;height:38px;line-height:38px;padding:0 13px;font-size:13.5px;color:#28352E">Exporter</div>
+              <div style="background:#1E7A46;color:#fff;border-radius:6px;height:38px;line-height:38px;padding:0 16px;font-size:13.5px;font-weight:600">+ Nouveau client</div>
+            </div>
+          </div>
+          <div style="padding:24px 26px;display:flex;flex-direction:column;gap:14px">
+            <div>
+              <h2 style="font-family:'Archivo',sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.035em;color:#10231A;margin:0">Clients</h2>
+              <div style="font-size:13.5px;color:#6B7A72;margin-top:3px">418 comptes · 96 professionnels · 12 en attente de validation SIRET</div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+              <sc-for list="{{ kpiClients }}" as="k" hint-placeholder-count="4">
+                <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:16px 18px">
+                  <div style="font-size:12.5px;color:#6B7A72">{{ k.label }}</div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:25px;color:#10231A;margin-top:6px">{{ k.valeur }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;overflow:hidden">
+              <div style="display:grid;grid-template-columns:1fr 220px 130px 110px 130px 120px 80px;gap:12px;padding:11px 18px;background:#FAF9F5;border-bottom:1px solid #E6E3DA;font-size:11.5px;letter-spacing:0.06em;color:#7C8981">
+                <span>CLIENT</span><span>CONTACT</span><span>TYPE</span><span style="text-align:right">COMMANDES</span><span style="text-align:right">CA HT</span><span style="text-align:center">STATUT</span><span></span>
+              </div>
+              <sc-for list="{{ clients }}" as="c" hint-placeholder-count="6">
+                <div style="display:grid;grid-template-columns:1fr 220px 130px 110px 130px 120px 80px;gap:12px;padding:13px 18px;border-bottom:1px solid #F4F2EC;align-items:center">
+                  <div style="display:flex;align-items:center;gap:11px">
+                    <div style="width:34px;height:34px;border-radius:50%;background:#F2F1EC;color:#5E6B63;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex:none">{{ c.ini }}</div>
+                    <div><div style="font-size:13.5px;font-weight:600;color:#10231A">{{ c.nom }}</div><div style="font-size:12px;color:#8D978F">{{ c.societe }}</div></div>
+                  </div>
+                  <div><div style="font-size:12.5px;color:#3D4A43">{{ c.email }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8D978F">{{ c.tel }}</div></div>
+                  <span style="font-size:12px;font-weight:600;padding:5px 9px;border-radius:4px;background:{{ c.tbg }};color:{{ c.tc }};justify-self:start">{{ c.type }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#3D4A43;text-align:right">{{ c.n }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:#10231A;text-align:right">{{ c.ca }}</span>
+                  <span style="font-size:12px;font-weight:600;padding:5px 9px;border-radius:4px;background:{{ c.sbg }};color:{{ c.sc }};text-align:center">{{ c.statut }}</span>
+                  <span style="color:#B0B8B3;font-size:15px;text-align:right">⋯</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div data-screen-label="Admin parametres" style="width:1440px;background:#F6F4EE;border:1px solid #DFDCD2;border-radius:10px;overflow:hidden;box-shadow:0 18px 40px rgba(16,35,26,0.08)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#6B7A72;background:#EDEAE1;padding:7px 14px;border-bottom:1px solid #DFDCD2">A8 — PARAMÈTRES</div>
+      <div style="display:flex;min-height:760px">
+        <dc-import name="JanaAdminSidebar" active="Paramètres" hint-size="236px,100%"></dc-import>
+        <div style="flex:1;display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;gap:16px;background:#fff;border-bottom:1px solid #E6E3DA;padding:14px 26px">
+            <span style="font-size:15px;font-weight:600;color:#10231A">Paramètres</span>
+            <span style="font-size:12.5px;color:#8D978F">Dernière modification le 20 janvier 2026</span>
+            <div style="margin-left:auto;display:flex;gap:10px">
+              <div style="border:1px solid #E0DDD3;border-radius:6px;height:38px;line-height:38px;padding:0 14px;font-size:13.5px;color:#28352E">Annuler</div>
+              <div style="background:#1E7A46;color:#fff;border-radius:6px;height:38px;line-height:38px;padding:0 18px;font-size:13.5px;font-weight:600">Enregistrer</div>
+            </div>
+          </div>
+          <div style="padding:24px 26px;display:grid;grid-template-columns:250px 1fr;gap:16px">
+            <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:8px;height:fit-content">
+              <sc-for list="{{ ongletsParam }}" as="o" hint-placeholder-count="6">
+                <div style="padding:11px 13px;border-radius:6px;margin-bottom:2px;background:{{ o.bg }};color:{{ o.c }};font-size:13.5px;font-weight:{{ o.w }}">{{ o.nom }}</div>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:20px">
+                <div style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A">Identité de l'entreprise</div>
+                <div style="font-size:13px;color:#6B7A72;margin-top:3px;margin-bottom:16px">Reprise dans le pied de page, les devis, les factures et les mentions légales.</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                  <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Nom commercial</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:42px;line-height:42px;padding:0 13px;font-size:14px;color:#10231A">Jana Distribution</div></div>
+                  <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Email de contact</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:42px;line-height:42px;padding:0 13px;font-size:14px;color:#10231A">contact@jana-distribution.fr</div></div>
+                  <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Téléphone</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:42px;line-height:42px;padding:0 13px;font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:#10231A">01 84 80 12 40</div></div>
+                  <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">SIRET</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:42px;line-height:42px;padding:0 13px;font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:#9AA69F">000 000 000 00000</div></div>
+                </div>
+              </div>
+              <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:20px">
+                <div style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A;margin-bottom:16px">Livraison</div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+                  <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Commande minimum HT</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:42px;line-height:42px;padding:0 13px;font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:#10231A">50,00 €</div></div>
+                  <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Franco de port HT</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:42px;line-height:42px;padding:0 13px;font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:#10231A">149,00 €</div></div>
+                  <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Frais de livraison HT</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:42px;line-height:42px;padding:0 13px;font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:#10231A">9,90 €</div></div>
+                </div>
+                <div style="margin-top:16px;border:1px solid #E6E3DA;border-radius:6px;overflow:hidden">
+                  <div style="background:#FAF9F5;padding:10px 14px;border-bottom:1px solid #E6E3DA;font-size:12.5px;letter-spacing:0.05em;color:#6B7A72">CRÉNEAUX PROPOSÉS</div>
+                  <sc-for list="{{ creneauxParam }}" as="c" hint-placeholder-count="3">
+                    <div style="display:flex;align-items:center;gap:14px;padding:11px 14px;border-bottom:1px solid #F4F2EC">
+                      <div style="width:38px;height:22px;border-radius:11px;background:{{ c.bg }};position:relative;flex:none"><div style="position:absolute;top:3px;left:{{ c.x }};width:16px;height:16px;border-radius:50%;background:#fff"></div></div>
+                      <span style="flex:1;font-size:13.5px;color:#10231A">{{ c.jour }}</span>
+                      <span style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#5E6B63">{{ c.heures }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:20px">
+                <div style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A;margin-bottom:14px">Emails transactionnels</div>
+                <sc-for list="{{ emails }}" as="e" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid #F4F2EC">
+                    <div style="width:38px;height:22px;border-radius:11px;background:{{ e.bg }};position:relative;flex:none"><div style="position:absolute;top:3px;left:{{ e.x }};width:16px;height:16px;border-radius:50%;background:#fff"></div></div>
+                    <div style="flex:1"><div style="font-size:13.5px;font-weight:600;color:#10231A">{{ e.nom }}</div><div style="font-size:12.5px;color:#7C8981">{{ e.desc }}</div></div>
+                    <span style="font-size:12.5px;font-weight:600;color:#155C34">Modifier le modèle</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1560}}">
+class Component extends DCLogic {
+  renderVals() {
+    const pos = { bg: "#EAF3EC", c: "#155C34" };
+    const warn = { bg: "#FBF4E4", c: "#8A5A16" };
+    const neutral = { bg: "#F2F1EC", c: "#3D4A43" };
+    const bad = { bg: "#FBEDE9", c: "#9A3A2E" };
+    const heights = [42, 55, 38, 61, 74, 48, 30, 66, 82, 58, 45, 70, 88, 52, 39, 63, 77, 95, 60, 47, 71, 84, 56, 41, 68, 79, 90, 62, 73, 100];
+    return {
+      kpis: [
+        { label: "Chiffre d'affaires HT", valeur: "38 420 €", delta: "+12,4 %", sub: "vs 34 190 €", tonC: "#155C34", tonBg: "#EAF3EC" },
+        { label: "Commandes", valeur: "142", delta: "+8,3 %", sub: "vs 131", tonC: "#155C34", tonBg: "#EAF3EC" },
+        { label: "Panier moyen HT", valeur: "270,56 €", delta: "+3,8 %", sub: "vs 260,99 €", tonC: "#155C34", tonBg: "#EAF3EC" },
+        { label: "Nouveaux clients", valeur: "26", delta: "−4,2 %", sub: "vs 27", tonC: "#9A3A2E", tonBg: "#FBEDE9" }
+      ],
+      aTraiter: [
+        { n: "2", label: "devis à confirmer", c: "#8A5A16" },
+        { n: "5", label: "commandes à préparer", c: "#10231A" },
+        { n: "7", label: "ruptures de stock", c: "#9A3A2E" },
+        { n: "3", label: "comptes pro à valider", c: "#10231A" }
+      ],
+      barres: heights.map((h, i) => ({ h: h + "%", c: i === heights.length - 1 ? "#10231A" : "#9CC9AE" })),
+      rayonsCa: [
+        { nom: "Fruits & Légumes", ca: "12 840 €", pct: "33%", c: "#1E7A46" },
+        { nom: "Crémerie", ca: "9 210 €", pct: "24%", c: "#4E9E6E" },
+        { nom: "Épicerie", ca: "7 480 €", pct: "20%", c: "#88BFA0" },
+        { nom: "Boucherie", ca: "5 320 €", pct: "14%", c: "#B9D9C6" },
+        { nom: "Autres", ca: "3 570 €", pct: "9%", c: "#DCEAE1" }
+      ],
+      dernieres: [
+        { num: "CMD-20260828-0003", client: "Janaa Adminn", email: "admin@jana-distribution.fr", date: "28/08", total: "120,89 €", statut: "En attente", ...warn },
+        { num: "CMD-20260828-0002", client: "Restaurant Le Gourmet", email: "pro@restaurant.fr", date: "28/08", total: "842,10 €", statut: "Confirmée", ...pos },
+        { num: "CMD-20260827-0014", client: "Épicerie du Marché", email: "contact@epicerie.fr", date: "27/08", total: "396,00 €", statut: "Livrée", ...neutral },
+        { num: "CMD-20260827-0013", client: "Jean Dupont", email: "client@test.fr", date: "27/08", total: "78,40 €", statut: "Livrée", ...neutral },
+        { num: "CMD-20260826-0011", client: "Brasserie Nation", email: "achats@nation.fr", date: "26/08", total: "1 204,60 €", statut: "Annulée", ...bad }
+      ],
+      stockBas: [
+        { nom: "Filet de bar", ref: "MAR-045", stock: "9 / 20", c: "#9A3A2E" },
+        { nom: "Champignon de Paris", ref: "FRL-204", stock: "19 / 25", c: "#8A5A16" },
+        { nom: "Comté 18 mois AOP", ref: "CRM-208", stock: "22 / 30", c: "#8A5A16" },
+        { nom: "Courgette verte", ref: "FRL-182", stock: "31 / 40", c: "#8A5A16" },
+        { nom: "Poulet fermier PAC", ref: "BCH-076", stock: "33 / 40", c: "#8A5A16" }
+      ],
+      ongletsStatut: [
+        { label: "En attente", n: "2", c: "#8A5A16", bg: "#FDFBF5" },
+        { label: "Confirmées", n: "1", c: "#10231A", bg: "#fff" },
+        { label: "En préparation", n: "0", c: "#10231A", bg: "#fff" },
+        { label: "Expédiées", n: "0", c: "#10231A", bg: "#fff" },
+        { label: "Livrées", n: "0", c: "#10231A", bg: "#fff" },
+        { label: "Annulées", n: "0", c: "#10231A", bg: "#fff" }
+      ],
+      commandesAdmin: [
+        { num: "CMD-20260828-0003", client: "Janaa Adminn", email: "admin@jana-distribution.fr", date: "28/08 · 14:38", n: "3", total: "120,89 €", statut: "En attente", action: "Confirmer", ...warn },
+        { num: "CMD-20260828-0002", client: "Restaurant Le Gourmet", email: "pro@restaurant.fr", date: "28/08 · 09:12", n: "14", total: "842,10 €", statut: "Confirmée", action: "Préparer", ...pos },
+        { num: "CMD-20260827-0014", client: "Épicerie du Marché", email: "contact@epicerie.fr", date: "27/08 · 17:44", n: "6", total: "396,00 €", statut: "Livrée", action: "Facturer", ...neutral },
+        { num: "CMD-20260827-0013", client: "Jean Dupont", email: "client@test.fr", date: "27/08 · 11:02", n: "2", total: "78,40 €", statut: "Livrée", action: "Facturer", ...neutral },
+        { num: "CMD-20260826-0012", client: "Traiteur Bastille", email: "cuisine@bastille.fr", date: "26/08 · 15:30", n: "9", total: "534,80 €", statut: "En attente", action: "Confirmer", ...warn },
+        { num: "CMD-20260826-0011", client: "Brasserie Nation", email: "achats@nation.fr", date: "26/08 · 08:20", n: "21", total: "1 204,60 €", statut: "Annulée", action: "Archiver", ...bad }
+      ],
+      suiviAdmin: [
+        { titre: "Devis envoyé", quand: "28/08 · 14:38", bar: "#1E7A46" },
+        { titre: "Confirmée", quand: "À faire", bar: "#E4E1D8" },
+        { titre: "En préparation", quand: "—", bar: "#E4E1D8" },
+        { titre: "Expédiée", quand: "—", bar: "#E4E1D8" },
+        { titre: "Livrée", quand: "—", bar: "#E4E1D8" }
+      ],
+      lignes: [
+        { nom: "Sucrine bio — colis 12", ref: "FRL-114", pu: "14,40 €", qte: "2", total: "28,80 €", stock: "128 dispo.", stockC: "#155C34" },
+        { nom: "Comté 18 mois AOP", ref: "CRM-208", pu: "13,20 €", qte: "4", total: "52,80 €", stock: "22 dispo.", stockC: "#8A5A16" },
+        { nom: "Baguette tradition — carton 20", ref: "BOU-031", pu: "11,80 €", qte: "2", total: "23,60 €", stock: "210 dispo.", stockC: "#155C34" }
+      ],
+      journal: [
+        { quand: "28/08 · 14:38", texte: "Commande créée par le client — devis PDF envoyé automatiquement." },
+        { quand: "28/08 · 14:39", texte: "Email de confirmation remis (janaa@jana-distribution.fr)." },
+        { quand: "28/08 · 15:02", texte: "Note interne — client rappelé, créneau samedi matin validé." }
+      ],
+      produits: [
+        { nom: "Sucrine bio — colis 12 pièces", ref: "FRL-114", rayon: "Fruits & Légumes", prix: "14,40 €", stock: "128", jauge: "85%", stockC: "#1E7A46", statut: "Actif", ...pos },
+        { nom: "Tomate grappe — plateau 6 kg", ref: "FRL-207", rayon: "Fruits & Légumes", prix: "18,90 €", stock: "64", jauge: "62%", stockC: "#1E7A46", statut: "Actif", ...pos },
+        { nom: "Comté 18 mois AOP", ref: "CRM-208", rayon: "Crémerie", prix: "13,20 €", stock: "22", jauge: "28%", stockC: "#C88A2E", statut: "Actif", ...pos },
+        { nom: "Filet de bar — caisse 3 kg", ref: "MAR-045", rayon: "Marée", prix: "24,50 €", stock: "9", jauge: "12%", stockC: "#C4523E", statut: "Stock bas", ...warn },
+        { nom: "Huile d'olive VE — bidon 5 L", ref: "EPI-512", rayon: "Épicerie", prix: "38,90 €", stock: "87", jauge: "78%", stockC: "#1E7A46", statut: "Actif", ...pos },
+        { nom: "Beurre doux — carton 20 × 250 g", ref: "CRM-101", rayon: "Crémerie", prix: "52,00 €", stock: "41", jauge: "54%", stockC: "#1E7A46", statut: "Actif", ...pos },
+        { nom: "Poulet fermier PAC — colis 6", ref: "BCH-076", rayon: "Boucherie", prix: "8,75 €", stock: "33", jauge: "44%", stockC: "#C88A2E", statut: "Actif", ...pos },
+        { nom: "Farine T65 — sac 25 kg", ref: "EPI-208", rayon: "Épicerie", prix: "19,60 €", stock: "0", jauge: "0%", stockC: "#C4523E", statut: "Inactif", ...neutral }
+      ],
+      labels: [
+        { nom: "Bio", bg: "#EAF3EC", bd: "#CBE2D3", c: "#155C34" },
+        { nom: "Local", bg: "#FAF9F5", bd: "#E0DDD3", c: "#3D4A43" },
+        { nom: "AOP", bg: "#FAF9F5", bd: "#E0DDD3", c: "#3D4A43" },
+        { nom: "AOC", bg: "#FAF9F5", bd: "#E0DDD3", c: "#3D4A43" },
+        { nom: "Label Rouge", bg: "#FAF9F5", bd: "#E0DDD3", c: "#3D4A43" },
+        { nom: "IGP", bg: "#FAF9F5", bd: "#E0DDD3", c: "#3D4A43" },
+        { nom: "Promo", bg: "#FBF1E4", bd: "#EBD8BC", c: "#8A5A16" }
+      ],
+      categories: [
+        { nom: "Fruits & Légumes", slug: "/rayon/fruits-legumes", sous: "8", n: "218", statut: "Visible", ...pos },
+        { nom: "Crémerie", slug: "/rayon/cremerie", sous: "5", n: "143", statut: "Visible", ...pos },
+        { nom: "Boucherie", slug: "/rayon/boucherie", sous: "6", n: "96", statut: "Visible", ...pos },
+        { nom: "Marée", slug: "/rayon/maree", sous: "4", n: "58", statut: "Visible", ...pos },
+        { nom: "Épicerie", slug: "/rayon/epicerie", sous: "11", n: "402", statut: "Visible", ...pos },
+        { nom: "Boulangerie", slug: "/rayon/boulangerie", sous: "3", n: "74", statut: "Visible", ...pos },
+        { nom: "Surgelés", slug: "/rayon/surgeles", sous: "5", n: "131", statut: "Visible", ...pos },
+        { nom: "Boissons", slug: "/rayon/boissons", sous: "6", n: "118", statut: "Masquée", ...neutral }
+      ],
+      kpiClients: [
+        { label: "Comptes actifs", valeur: "418" },
+        { label: "Professionnels", valeur: "96" },
+        { label: "En attente de validation", valeur: "12" },
+        { label: "CA moyen par client", valeur: "1 184 €" }
+      ],
+      clients: [
+        { ini: "SM", nom: "Sophie Martin", societe: "Restaurant Le Gourmet", email: "pro@restaurant.fr", tel: "06 98 76 54 32", type: "Pro", tbg: "#F0EDF7", tc: "#4A3B7A", n: "34", ca: "12 480 €", statut: "Actif", sbg: "#EAF3EC", sc: "#155C34" },
+        { ini: "JD", nom: "Jean Dupont", societe: "Particulier", email: "client@test.fr", tel: "06 12 34 56 78", type: "Particulier", tbg: "#EDF1F5", tc: "#2F4A63", n: "7", ca: "684 €", statut: "Actif", sbg: "#EAF3EC", sc: "#155C34" },
+        { ini: "EM", nom: "Élodie Meunier", societe: "Épicerie du Marché", email: "contact@epicerie.fr", tel: "01 43 22 18 04", type: "Pro", tbg: "#F0EDF7", tc: "#4A3B7A", n: "58", ca: "24 310 €", statut: "Actif", sbg: "#EAF3EC", sc: "#155C34" },
+        { ini: "TB", nom: "Thomas Bernard", societe: "Traiteur Bastille", email: "cuisine@bastille.fr", tel: "06 44 09 71 25", type: "Pro", tbg: "#F0EDF7", tc: "#4A3B7A", n: "3", ca: "1 402 €", statut: "SIRET à valider", sbg: "#FBF4E4", sc: "#8A5A16" },
+        { ini: "AL", nom: "Amina Lahlou", societe: "Particulier", email: "amina.l@mail.fr", tel: "07 61 30 22 90", type: "Particulier", tbg: "#EDF1F5", tc: "#2F4A63", n: "12", ca: "1 108 €", statut: "Actif", sbg: "#EAF3EC", sc: "#155C34" },
+        { ini: "BN", nom: "Brasserie Nation", societe: "SAS Nation Food", email: "achats@nation.fr", tel: "01 55 78 90 12", type: "Pro", tbg: "#F0EDF7", tc: "#4A3B7A", n: "0", ca: "0 €", statut: "Bloqué", sbg: "#FBEDE9", sc: "#9A3A2E" }
+      ],
+      ongletsParam: [
+        { nom: "Informations générales", bg: "#10231A", c: "#fff", w: 600 },
+        { nom: "Livraison", bg: "transparent", c: "#3D4A43", w: 400 },
+        { nom: "Commandes & devis", bg: "transparent", c: "#3D4A43", w: 400 },
+        { nom: "TVA & facturation", bg: "transparent", c: "#3D4A43", w: 400 },
+        { nom: "Emails", bg: "transparent", c: "#3D4A43", w: 400 },
+        { nom: "Utilisateurs & rôles", bg: "transparent", c: "#3D4A43", w: 400 },
+        { nom: "Sécurité", bg: "transparent", c: "#3D4A43", w: 400 }
+      ],
+      creneauxParam: [
+        { jour: "Lundi au vendredi", heures: "6 h – 12 h · 12 h – 18 h", bg: "#1E7A46", x: "19px" },
+        { jour: "Samedi", heures: "6 h – 12 h", bg: "#1E7A46", x: "19px" },
+        { jour: "Dimanche", heures: "Fermé", bg: "#D8D5CB", x: "3px" }
+      ],
+      emails: [
+        { nom: "Devis de commande", desc: "Envoyé immédiatement après validation du panier.", bg: "#1E7A46", x: "19px" },
+        { nom: "Confirmation de commande", desc: "Envoyé quand l'équipe passe la commande en « Confirmée ».", bg: "#1E7A46", x: "19px" },
+        { nom: "Départ en livraison", desc: "Envoyé le matin de la tournée avec le créneau.", bg: "#1E7A46", x: "19px" },
+        { nom: "Relance panier abandonné", desc: "48 h après un panier non validé.", bg: "#D8D5CB", x: "3px" }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#EAE7DE; font-family:'Instrument Sans',system-ui,sans-serif; }
+  a { color:#1E7A46; text-decoration:none; }
+  a:hover { color:#155C34; }
+</style>
+</helmet>
+
+<section style="display:flex;flex-direction:column;gap:26px;padding:44px">
+  <div id="1a" style="display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;align-items:baseline;gap:16px">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;background:#10231A;color:#fff;padding:4px 9px;border-radius:4px">1a</span>
+      <h1 style="font-family:'Archivo',sans-serif;font-size:30px;font-weight:800;letter-spacing:-0.03em;color:#10231A;margin:0">Direction « marchand dense »</h1>
+      <span style="font-size:14px;color:#5E6B63">Desktop 1440 — accueil, catalogue, fiche, panier, checkout, connexion</span>
+    </div>
+
+    <div data-screen-label="Accueil" style="width:1440px;background:#F6F4EE;border:1px solid #DFDCD2;border-radius:10px;overflow:hidden;box-shadow:0 18px 40px rgba(16,35,26,0.08)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#6B7A72;background:#EDEAE1;padding:7px 14px;border-bottom:1px solid #DFDCD2">01 — ACCUEIL</div>
+      <dc-import name="JanaHeader" cart-count="3" cart-total="105,20 € HT" hint-size="100%,130px"></dc-import>
+
+      <div style="background:#10231A;padding:34px 40px;display:grid;grid-template-columns:1.25fr 1fr;gap:44px;align-items:center">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:0.14em;color:#6FBF8E">GROSSISTE ALIMENTAIRE · RUNGIS</span>
+          <h2 style="font-family:'Archivo',sans-serif;font-size:44px;line-height:1.04;font-weight:800;letter-spacing:-0.035em;color:#fff;margin:0;text-wrap:pretty">Le prix de gros,<br>sans carte de grossiste.</h2>
+          <p style="font-size:15.5px;line-height:1.6;color:#A6BEB1;max-width:520px;margin:0;text-wrap:pretty">1 240 références en frais, sec et surgelé. Mêmes tarifs pour les restaurateurs et les particuliers, livrés en 24–48 h du lundi au samedi.</p>
+          <div style="display:flex;gap:12px;margin-top:6px">
+            <div style="background:#1E7A46;color:#fff;font-size:14.5px;font-weight:600;padding:13px 24px;border-radius:6px">Parcourir le catalogue</div>
+            <div style="border:1px solid #38584A;color:#fff;font-size:14.5px;font-weight:600;padding:13px 24px;border-radius:6px">Ouvrir un compte pro</div>
+          </div>
+          <div style="display:flex;gap:26px;margin-top:12px;padding-top:16px;border-top:1px solid #22402F">
+            <div><div style="font-family:'IBM Plex Mono',monospace;font-size:21px;color:#fff">1 240</div><div style="font-size:12px;color:#7E9C8D">références</div></div>
+            <div><div style="font-family:'IBM Plex Mono',monospace;font-size:21px;color:#fff">24–48 h</div><div style="font-size:12px;color:#7E9C8D">livraison</div></div>
+            <div><div style="font-family:'IBM Plex Mono',monospace;font-size:21px;color:#fff">50 €</div><div style="font-size:12px;color:#7E9C8D">minimum HT</div></div>
+            <div><div style="font-family:'IBM Plex Mono',monospace;font-size:21px;color:#fff">6 h – 18 h</div><div style="font-size:12px;color:#7E9C8D">service client</div></div>
+          </div>
+        </div>
+        <sc-if value="{{ showReorder }}" hint-placeholder-val="{{ true }}">
+          <div style="background:#fff;border-radius:10px;padding:22px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+              <h3 style="font-family:'Archivo',sans-serif;font-size:17px;font-weight:700;color:#10231A;margin:0;letter-spacing:-0.02em">Votre dernière commande</h3>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#7C8981">CMD-20260828-0003</span>
+            </div>
+            <p style="font-size:13px;color:#5E6B63;margin:0 0 14px">Livrée le 21 août · 14 références · 396,00 € HT</p>
+            <div style="border:1px solid #E0DDD3;border-radius:6px;background:#FAF9F5;overflow:hidden">
+              <sc-for list="{{ dernieresLignes }}" as="l" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:11px;padding:9px 12px;border-bottom:1px solid #EFECE4">
+                  <div style="width:34px;height:34px;border-radius:4px;background:repeating-linear-gradient(135deg,#F1EFE9 0 6px,#E7E4DC 6px 12px);flex:none"></div>
+                  <span style="flex:1;font-size:13px;color:#10231A">{{ l.nom }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6B7A72">×{{ l.qte }}</span>
+                </div>
+              </sc-for>
+              <div style="padding:8px 12px;font-size:12.5px;color:#7C8981">+ 11 autres références</div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:12px">
+              <div style="flex:1;background:#1E7A46;color:#fff;text-align:center;font-size:13.5px;font-weight:600;padding:11px;border-radius:6px">Tout remettre au panier</div>
+              <div style="border:1px solid #DDD9CE;color:#10231A;font-size:13.5px;font-weight:600;padding:11px 16px;border-radius:6px">Détail</div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="display:flex;gap:10px;padding:16px 40px;background:#fff;border-bottom:1px solid #E6E3DA;overflow:hidden">
+        <sc-for list="{{ rayons }}" as="r" hint-placeholder-count="8">
+          <div style="flex:1;border:1px solid #E6E3DA;border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:#FCFBF8">
+            <div style="height:52px;border-radius:5px;background:repeating-linear-gradient(135deg,#F1EFE9 0 7px,#E7E4DC 7px 14px);display:flex;align-items:flex-end;justify-content:flex-start;padding:5px"><span style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:#8D978F">{{ r.ph }}</span></div>
+            <div style="font-size:13px;font-weight:600;color:#10231A">{{ r.nom }}</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#7C8981">{{ r.n }} réf.</div>
+          </div>
+        </sc-for>
+      </div>
+
+                  <div style="padding:26px 40px 34px;display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div style="background:#1E7A46;border-radius:8px;padding:26px 28px;display:flex;flex-direction:column;gap:8px;min-height:150px;justify-content:center">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.14em;color:#B7E3C6">OFFRE DE LA SEMAINE</span>
+          <div style="font-family:'Archivo',sans-serif;font-size:26px;font-weight:800;color:#fff;letter-spacing:-0.03em">−18 % sur la crémerie</div>
+          <span style="font-size:14px;color:#D3ECDB">Jusqu'au dimanche 30 août, dans la limite des stocks</span>
+        </div>
+        <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:26px 28px;display:flex;flex-direction:column;gap:8px;justify-content:center">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.14em;color:#A8501A">COMPTE PROFESSIONNEL</span>
+          <div style="font-family:'Archivo',sans-serif;font-size:26px;font-weight:800;color:#10231A;letter-spacing:-0.03em">Facturation mensuelle</div>
+          <span style="font-size:14px;color:#5E6B63">Paiement à 30 jours, factures groupées, commandes récurrentes.</span>
+        </div>
+      </div>
+
+      <div style="padding:0 40px 40px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
+          <h3 style="font-family:'Archivo',sans-serif;font-size:23px;font-weight:800;letter-spacing:-0.03em;color:#10231A;margin:0">Les plus commandés</h3>
+          <a href="#" style="font-size:13.5px;font-weight:600">Tout voir →</a>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px">
+          <sc-for list="{{ ventes }}" as="p" hint-placeholder-count="5">
+            <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;overflow:hidden;display:flex;flex-direction:column">
+              <div style="position:relative;height:150px;background:repeating-linear-gradient(135deg,#F1EFE9 0 8px,#E7E4DC 8px 16px);display:flex;align-items:flex-end;padding:8px">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#8D978F">{{ p.ph }}</span>
+                <span style="position:absolute;top:8px;left:8px;background:#10231A;color:#fff;font-size:10px;letter-spacing:0.06em;padding:3px 7px;border-radius:3px">{{ p.badge }}</span>
+              </div>
+              <div style="padding:12px 13px;display:flex;flex-direction:column;gap:5px;flex:1">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#8D978F">{{ p.ref }}</span>
+                <span style="font-size:14px;font-weight:600;color:#10231A;line-height:1.3">{{ p.nom }}</span>
+                <span style="font-size:12px;color:#6B7A72">{{ p.sub }}</span>
+                <div style="display:flex;align-items:baseline;gap:6px;margin-top:6px">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;color:#10231A">{{ p.prix }}</span>
+                  <span style="font-size:12px;color:#6B7A72">{{ p.unite }}</span>
+                </div>
+                <span style="font-size:11.5px;color:#8D978F">{{ p.second }}</span>
+                <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+                  <span style="width:6px;height:6px;border-radius:50%;background:#1E7A46;display:inline-block"></span>
+                  <span style="font-size:11.5px;color:#3F5A4C">{{ p.stock }}</span>
+                </div>
+                <div style="display:flex;gap:7px;margin-top:10px">
+                  <div style="display:flex;align-items:center;border:1px solid #E0DDD3;border-radius:5px;height:36px">
+                    <span style="width:26px;text-align:center;color:#6B7A72;font-size:15px">–</span>
+                    <span style="width:26px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:13px;color:#10231A">1</span>
+                    <span style="width:26px;text-align:center;color:#6B7A72;font-size:15px">+</span>
+                  </div>
+                  <div style="flex:1;background:#1E7A46;color:#fff;text-align:center;line-height:36px;height:36px;border-radius:5px;font-size:13px;font-weight:600">Ajouter</div>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <dc-import name="JanaFooter" hint-size="100%,340px"></dc-import>
+    </div>
+
+    <div data-screen-label="Catalogue" style="width:1440px;background:#F6F4EE;border:1px solid #DFDCD2;border-radius:10px;overflow:hidden;box-shadow:0 18px 40px rgba(16,35,26,0.08)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#6B7A72;background:#EDEAE1;padding:7px 14px;border-bottom:1px solid #DFDCD2">02 — CATALOGUE &amp; FILTRES</div>
+      <dc-import name="JanaHeader" cart-count="3" cart-total="105,20 € HT" hint-size="100%,130px"></dc-import>
+
+      <div style="background:#fff;border-bottom:1px solid #E6E3DA;padding:16px 40px">
+        <div style="font-size:12.5px;color:#7C8981;margin-bottom:8px">Accueil <span style="color:#C3CBC6">/</span> Catalogue <span style="color:#C3CBC6">/</span> <span style="color:#10231A">Fruits &amp; Légumes</span></div>
+        <div style="display:flex;align-items:flex-end;justify-content:space-between">
+          <div>
+            <h2 style="font-family:'Archivo',sans-serif;font-size:29px;font-weight:800;letter-spacing:-0.035em;color:#10231A;margin:0">Fruits &amp; Légumes</h2>
+            <div style="font-size:13.5px;color:#6B7A72;margin-top:4px"><span style="font-family:'IBM Plex Mono',monospace;color:#10231A">218</span> références disponibles · prix affichés HT</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="display:flex;align-items:center;gap:8px;border:1px solid #E0DDD3;border-radius:6px;height:38px;padding:0 12px;font-size:13.5px;color:#28352E;background:#fff">Trier : Pertinence <span style="font-size:9px">▼</span></div>
+            <div style="display:flex;border:1px solid #E0DDD3;border-radius:6px;overflow:hidden;height:38px">
+              <span style="background:#10231A;color:#fff;font-size:12.5px;padding:0 13px;line-height:38px">Grille</span>
+              <span style="color:#5E6B63;font-size:12.5px;padding:0 13px;line-height:38px">Liste</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:262px 1fr;gap:22px;padding:22px 40px 40px">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:16px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <span style="font-family:'Archivo',sans-serif;font-size:15px;font-weight:700;color:#10231A">Filtres actifs</span>
+              <a href="#" style="font-size:12.5px">Tout effacer</a>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:7px">
+              <span style="background:#EAF3EC;border:1px solid #CBE2D3;color:#155C34;font-size:12px;padding:5px 9px;border-radius:4px">Bio ✕</span>
+              <span style="background:#EAF3EC;border:1px solid #CBE2D3;color:#155C34;font-size:12px;padding:5px 9px;border-radius:4px">En stock ✕</span>
+              <span style="background:#EAF3EC;border:1px solid #CBE2D3;color:#155C34;font-size:12px;padding:5px 9px;border-radius:4px">France ✕</span>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px">
+            <sc-for list="{{ filtres }}" as="f" hint-placeholder-count="4">
+              <div style="padding:14px 16px;border-bottom:1px solid #F0EEE7">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                  <span style="font-size:13.5px;font-weight:700;color:#10231A">{{ f.titre }}</span>
+                  <span style="font-size:10px;color:#8D978F">▲</span>
+                </div>
+                <sc-for list="{{ f.options }}" as="o" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:9px;padding:5px 0">
+                    <span style="width:15px;height:15px;border:1.5px solid #CFCBC0;border-radius:3px;display:inline-block"></span>
+                    <span style="font-size:13px;color:#3D4A43;flex:1">{{ o.nom }}</span>
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#9AA69F">{{ o.n }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+            <div style="padding:14px 16px">
+              <div style="font-size:13.5px;font-weight:700;color:#10231A;margin-bottom:10px">Prix HT (€)</div>
+              <div style="display:flex;gap:8px">
+                <div style="flex:1;border:1px solid #E0DDD3;border-radius:5px;padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#9AA69F">0</div>
+                <div style="flex:1;border:1px solid #E0DDD3;border-radius:5px;padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#9AA69F">50</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+            <sc-for list="{{ catalogue }}" as="p" hint-placeholder-count="8">
+              <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;overflow:hidden;display:flex;flex-direction:column">
+                <div style="position:relative;height:168px;background:repeating-linear-gradient(135deg,#F1EFE9 0 8px,#E7E4DC 8px 16px);display:flex;align-items:flex-end;padding:8px">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#8D978F">{{ p.ph }}</span>
+                  <span style="position:absolute;top:8px;left:8px;background:#10231A;color:#fff;font-size:10px;letter-spacing:0.06em;padding:3px 7px;border-radius:3px">{{ p.badge }}</span>
+                </div>
+                <div style="padding:13px 14px;display:flex;flex-direction:column;gap:5px;flex:1">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#8D978F">{{ p.ref }}</span>
+                  <span style="font-size:14.5px;font-weight:600;color:#10231A;line-height:1.3">{{ p.nom }}</span>
+                  <span style="font-size:12px;color:#6B7A72">{{ p.sub }}</span>
+                  <div style="display:flex;align-items:baseline;gap:6px;margin-top:8px">
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:#10231A">{{ p.prix }}</span>
+                    <span style="font-size:12px;color:#6B7A72">{{ p.unite }}</span>
+                  </div>
+                  <span style="font-size:11.5px;color:#8D978F">{{ p.second }}</span>
+                  <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+                    <span style="width:6px;height:6px;border-radius:50%;background:#1E7A46;display:inline-block"></span>
+                    <span style="font-size:11.5px;color:#3F5A4C">{{ p.stock }}</span>
+                  </div>
+                  <div style="display:flex;gap:7px;margin-top:10px">
+                    <div style="display:flex;align-items:center;border:1px solid #E0DDD3;border-radius:5px;height:38px">
+                      <span style="width:28px;text-align:center;color:#6B7A72;font-size:15px">–</span>
+                      <span style="width:28px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:13px;color:#10231A">1</span>
+                      <span style="width:28px;text-align:center;color:#6B7A72;font-size:15px">+</span>
+                    </div>
+                    <div style="flex:1;background:#1E7A46;color:#fff;text-align:center;line-height:38px;height:38px;border-radius:5px;font-size:13px;font-weight:600">Ajouter</div>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:13px 18px">
+            <span style="font-size:13px;color:#6B7A72">Affichage de 1–24 sur 218 références</span>
+            <div style="display:flex;gap:6px;align-items:center">
+              <span style="width:34px;height:34px;line-height:34px;text-align:center;border:1px solid #E0DDD3;border-radius:5px;font-size:13px;color:#9AA69F">‹</span>
+              <span style="width:34px;height:34px;line-height:34px;text-align:center;background:#10231A;color:#fff;border-radius:5px;font-size:13px">1</span>
+              <span style="width:34px;height:34px;line-height:34px;text-align:center;border:1px solid #E0DDD3;border-radius:5px;font-size:13px;color:#3D4A43">2</span>
+              <span style="width:34px;height:34px;line-height:34px;text-align:center;border:1px solid #E0DDD3;border-radius:5px;font-size:13px;color:#3D4A43">3</span>
+              <span style="width:34px;height:34px;line-height:34px;text-align:center;border:1px solid #E0DDD3;border-radius:5px;font-size:13px;color:#3D4A43">›</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <dc-import name="JanaFooter" hint-size="100%,340px"></dc-import>
+    </div>
+
+    <div data-screen-label="Fiche produit" style="width:1440px;background:#F6F4EE;border:1px solid #DFDCD2;border-radius:10px;overflow:hidden;box-shadow:0 18px 40px rgba(16,35,26,0.08)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#6B7A72;background:#EDEAE1;padding:7px 14px;border-bottom:1px solid #DFDCD2">03 — FICHE PRODUIT</div>
+      <dc-import name="JanaHeader" cart-count="3" cart-total="105,20 € HT" hint-size="100%,130px"></dc-import>
+
+      <div style="background:#fff;border-bottom:1px solid #E6E3DA;padding:12px 40px;font-size:12.5px;color:#7C8981">Accueil <span style="color:#C3CBC6">/</span> Fruits &amp; Légumes <span style="color:#C3CBC6">/</span> Salades <span style="color:#C3CBC6">/</span> <span style="color:#10231A">Sucrine bio — colis 12 pièces</span></div>
+
+      <div style="display:grid;grid-template-columns:1fr 430px;gap:36px;padding:28px 40px 34px">
+        <div style="display:flex;flex-direction:column;gap:22px">
+          <div style="display:grid;grid-template-columns:84px 1fr;gap:12px">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="height:84px;border:2px solid #10231A;border-radius:6px;background:repeating-linear-gradient(135deg,#F1EFE9 0 7px,#E7E4DC 7px 14px)"></div>
+              <div style="height:84px;border:1px solid #E0DDD3;border-radius:6px;background:repeating-linear-gradient(135deg,#F1EFE9 0 7px,#E7E4DC 7px 14px)"></div>
+              <div style="height:84px;border:1px solid #E0DDD3;border-radius:6px;background:repeating-linear-gradient(135deg,#F1EFE9 0 7px,#E7E4DC 7px 14px)"></div>
+              <div style="height:84px;border:1px solid #E0DDD3;border-radius:6px;background:repeating-linear-gradient(135deg,#F1EFE9 0 7px,#E7E4DC 7px 14px);display:flex;align-items:center;justify-content:center;font-size:12px;color:#6B7A72">+3</div>
+            </div>
+            <div style="height:450px;border:1px solid #E6E3DA;border-radius:8px;background:repeating-linear-gradient(135deg,#F1EFE9 0 10px,#E7E4DC 10px 20px);display:flex;align-items:flex-end;padding:14px">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8D978F">photo produit — 1200 × 1200, fond neutre</span>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px">
+            <div style="display:flex;border-bottom:1px solid #E6E3DA;padding:0 18px;gap:26px">
+              <span style="font-size:14px;font-weight:600;color:#10231A;padding:14px 0;border-bottom:2px solid #1E7A46">Description</span>
+              <span style="font-size:14px;color:#6B7A72;padding:14px 0">Fiche technique</span>
+              <span style="font-size:14px;color:#6B7A72;padding:14px 0">Allergènes &amp; conservation</span>
+              <span style="font-size:14px;color:#6B7A72;padding:14px 0">Livraison</span>
+            </div>
+            <div style="padding:20px 18px;display:grid;grid-template-columns:1.3fr 1fr;gap:30px">
+              <p style="font-size:14px;line-height:1.7;color:#3D4A43;margin:0;text-wrap:pretty">Sucrine bio cultivée en plein champ dans le Val de Loire, récoltée à maturité et conditionnée le jour même. Feuilles croquantes, cœur sucré, calibre régulier 250–300 g. Idéale en salade composée ou grillée. Colis de 12 pièces, palettisable.</p>
+              <div style="display:flex;flex-direction:column">
+                <sc-for list="{{ specs }}" as="s" hint-placeholder-count="6">
+                  <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #F0EEE7">
+                    <span style="font-size:13px;color:#6B7A72">{{ s.k }}</span>
+                    <span style="font-size:13px;color:#10231A;font-weight:500">{{ s.v }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;gap:7px">
+            <span style="background:#EAF3EC;border:1px solid #CBE2D3;color:#155C34;font-size:11.5px;font-weight:600;padding:5px 9px;border-radius:4px">BIO — FR-BIO-01</span>
+            <span style="background:#FBF1E4;border:1px solid #EBD8BC;color:#8A5A16;font-size:11.5px;font-weight:600;padding:5px 9px;border-radius:4px">ORIGINE FRANCE</span>
+          </div>
+          <div>
+            <h2 style="font-family:'Archivo',sans-serif;font-size:31px;font-weight:800;letter-spacing:-0.035em;line-height:1.1;color:#10231A;margin:0;text-wrap:pretty">Sucrine bio — colis 12 pièces</h2>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#7C8981;margin-top:7px">FRL-114 · Val de Loire · Cat. I</div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:18px">
+            <div style="display:flex;align-items:baseline;gap:9px">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:34px;font-weight:600;color:#10231A;letter-spacing:-0.02em">14,40 €</span>
+              <span style="font-size:14px;color:#6B7A72">HT / colis</span>
+            </div>
+            <div style="font-size:13px;color:#8D978F;margin-top:2px">soit 1,20 € HT la pièce · 15,19 € TTC (TVA 5,5 %)</div>
+
+            <div style="margin-top:16px;border:1px solid #E6E3DA;border-radius:6px;overflow:hidden">
+              <div style="display:flex;background:#FAF9F5;border-bottom:1px solid #E6E3DA;font-size:11.5px;color:#6B7A72;padding:8px 12px;letter-spacing:0.04em">TARIF DÉGRESSIF</div>
+              <sc-for list="{{ paliers }}" as="t" hint-placeholder-count="3">
+                <div style="display:flex;justify-content:space-between;padding:9px 12px;border-bottom:1px solid #F0EEE7;font-size:13px">
+                  <span style="color:#3D4A43">{{ t.q }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace;color:#10231A">{{ t.p }}</span>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:8px;margin-top:16px">
+              <span style="width:7px;height:7px;border-radius:50%;background:#1E7A46;display:inline-block"></span>
+              <span style="font-size:13.5px;color:#1E7A46;font-weight:600">En stock — 128 colis</span>
+              <span style="font-size:13px;color:#6B7A72">· expédié demain si commandé avant 18 h</span>
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:16px">
+              <div style="display:flex;align-items:center;border:1px solid #DDD9CE;border-radius:6px;height:50px">
+                <span style="width:40px;text-align:center;color:#5E6B63;font-size:18px">–</span>
+                <span style="width:44px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:16px;color:#10231A">2</span>
+                <span style="width:40px;text-align:center;color:#5E6B63;font-size:18px">+</span>
+              </div>
+              <div style="flex:1;background:#1E7A46;color:#fff;height:50px;line-height:50px;text-align:center;border-radius:6px;font-size:15px;font-weight:600">Ajouter au panier — 28,80 € HT</div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:9px">
+              <div style="flex:1;border:1px solid #DDD9CE;color:#10231A;height:42px;line-height:42px;text-align:center;border-radius:6px;font-size:13.5px;font-weight:600">Ajouter à une liste</div>
+              <div style="flex:1;border:1px solid #DDD9CE;color:#10231A;height:42px;line-height:42px;text-align:center;border-radius:6px;font-size:13.5px;font-weight:600">Commande récurrente</div>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:14px 18px;display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;gap:10px;font-size:13px;color:#3D4A43"><span style="color:#1E7A46">✓</span> Livraison 24–48 h en Île-de-France, offerte dès 149 € HT</div>
+            <div style="display:flex;gap:10px;font-size:13px;color:#3D4A43"><span style="color:#1E7A46">✓</span> Créneau de livraison choisi à la commande, confirmé par téléphone</div>
+            <div style="display:flex;gap:10px;font-size:13px;color:#3D4A43"><span style="color:#1E7A46">✓</span> Chaîne du froid garantie, produit non conforme repris</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:0 40px 40px">
+        <h3 style="font-family:'Archivo',sans-serif;font-size:21px;font-weight:800;letter-spacing:-0.03em;color:#10231A;margin:0 0 14px">Souvent commandé avec</h3>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px">
+          <sc-for list="{{ similaires }}" as="p" hint-placeholder-count="5">
+            <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;overflow:hidden;display:flex;flex-direction:column">
+              <div style="height:130px;background:repeating-linear-gradient(135deg,#F1EFE9 0 8px,#E7E4DC 8px 16px);display:flex;align-items:flex-end;padding:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#8D978F">{{ p.ph }}</span></div>
+              <div style="padding:12px 13px;display:flex;flex-direction:column;gap:4px">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#8D978F">{{ p.ref }}</span>
+                <span style="font-size:13.5px;font-weight:600;color:#10231A;line-height:1.3">{{ p.nom }}</span>
+                <div style="display:flex;align-items:baseline;gap:5px;margin-top:5px">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600;color:#10231A">{{ p.prix }}</span>
+                  <span style="font-size:11.5px;color:#6B7A72">{{ p.unite }}</span>
+                </div>
+                <div style="background:#EAF3EC;color:#155C34;text-align:center;line-height:34px;height:34px;border-radius:5px;font-size:12.5px;font-weight:600;margin-top:8px">Ajouter</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <dc-import name="JanaFooter" hint-size="100%,340px"></dc-import>
+    </div>
+
+    <div data-screen-label="Panier" style="width:1440px;background:#F6F4EE;border:1px solid #DFDCD2;border-radius:10px;overflow:hidden;box-shadow:0 18px 40px rgba(16,35,26,0.08)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#6B7A72;background:#EDEAE1;padding:7px 14px;border-bottom:1px solid #DFDCD2">04 — PANIER</div>
+      <dc-import name="JanaHeader" cart-count="3" cart-total="105,20 € HT" hint-size="100%,130px"></dc-import>
+
+      <div style="display:grid;grid-template-columns:1fr 380px;gap:22px;padding:28px 40px 40px">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between">
+            <h2 style="font-family:'Archivo',sans-serif;font-size:27px;font-weight:800;letter-spacing:-0.035em;color:#10231A;margin:0">Mon panier <span style="color:#7C8981;font-weight:600;font-size:18px">3 références · 8 unités</span></h2>
+            <a href="#" style="font-size:13.5px;font-weight:600">← Continuer mes achats</a>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:14px 18px;display:flex;align-items:center;gap:16px">
+            <div style="flex:1">
+              <div style="font-size:13.5px;color:#10231A;font-weight:600">Plus que 43,80 € HT pour la livraison offerte</div>
+              <div style="height:6px;border-radius:3px;background:#EDEAE1;margin-top:9px;overflow:hidden"><div style="width:71%;height:100%;background:#1E7A46"></div></div>
+            </div>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#7C8981">105,20 / 149,00 € HT</span>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;overflow:hidden">
+            <div style="display:grid;grid-template-columns:64px 1fr 130px 150px 110px 40px;gap:14px;padding:11px 18px;background:#FAF9F5;border-bottom:1px solid #E6E3DA;font-size:11.5px;letter-spacing:0.06em;color:#7C8981">
+              <span></span><span>PRODUIT</span><span>PRIX UNITAIRE</span><span>QUANTITÉ</span><span style="text-align:right">TOTAL HT</span><span></span>
+            </div>
+            <sc-for list="{{ panier }}" as="l" hint-placeholder-count="3">
+              <div style="display:grid;grid-template-columns:64px 1fr 130px 150px 110px 40px;gap:14px;padding:16px 18px;border-bottom:1px solid #F0EEE7;align-items:center">
+                <div style="height:64px;border-radius:5px;background:repeating-linear-gradient(135deg,#F1EFE9 0 7px,#E7E4DC 7px 14px)"></div>
+                <div style="display:flex;flex-direction:column;gap:3px">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#8D978F">{{ l.ref }}</span>
+                  <span style="font-size:14px;font-weight:600;color:#10231A">{{ l.nom }}</span>
+                  <span style="font-size:12px;color:#6B7A72">{{ l.sub }}</span>
+                </div>
+                <div style="display:flex;flex-direction:column">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:14px;color:#10231A">{{ l.pu }}</span>
+                  <span style="font-size:11.5px;color:#8D978F">{{ l.unite }}</span>
+                </div>
+                <div style="display:flex;align-items:center;border:1px solid #E0DDD3;border-radius:5px;height:38px;width:118px">
+                  <span style="width:36px;text-align:center;color:#6B7A72;font-size:16px">–</span>
+                  <span style="flex:1;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:14px;color:#10231A">{{ l.qte }}</span>
+                  <span style="width:36px;text-align:center;color:#6B7A72;font-size:16px">+</span>
+                </div>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:15px;color:#10231A;text-align:right">{{ l.total }}</span>
+                <span style="text-align:center;color:#B0B8B3;font-size:15px">✕</span>
+              </div>
+            </sc-for>
+            <div style="display:flex;justify-content:space-between;padding:13px 18px">
+              <a href="#" style="font-size:13px;color:#9AA69F">Vider le panier</a>
+              <a href="#" style="font-size:13px;font-weight:600">Enregistrer comme liste récurrente</a>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:16px 18px">
+            <div style="font-family:'Archivo',sans-serif;font-size:15px;font-weight:700;color:#10231A;margin-bottom:12px">Complétez votre commande</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+              <sc-for list="{{ suggest }}" as="p" hint-placeholder-count="4">
+                <div style="display:flex;gap:10px;border:1px solid #EDEAE1;border-radius:6px;padding:9px">
+                  <div style="width:52px;height:52px;border-radius:4px;background:repeating-linear-gradient(135deg,#F1EFE9 0 7px,#E7E4DC 7px 14px);flex:none"></div>
+                  <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+                    <span style="font-size:12.5px;font-weight:600;color:#10231A;line-height:1.25">{{ p.nom }}</span>
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#3D4A43">{{ p.prix }}</span>
+                    <span style="font-size:11.5px;color:#1E7A46;font-weight:600">+ Ajouter</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:18px">
+            <div style="font-family:'Archivo',sans-serif;font-size:17px;font-weight:700;color:#10231A;margin-bottom:14px">Récapitulatif</div>
+            <div style="display:flex;justify-content:space-between;padding:7px 0;font-size:13.5px"><span style="color:#5E6B63">Sous-total HT</span><span style="font-family:'IBM Plex Mono',monospace;color:#10231A">105,20 €</span></div>
+            <div style="display:flex;justify-content:space-between;padding:7px 0;font-size:13.5px"><span style="color:#5E6B63">TVA 5,5 %</span><span style="font-family:'IBM Plex Mono',monospace;color:#10231A">5,79 €</span></div>
+            <div style="display:flex;justify-content:space-between;padding:7px 0;font-size:13.5px;border-bottom:1px solid #F0EEE7"><span style="color:#5E6B63">Livraison</span><span style="font-family:'IBM Plex Mono',monospace;color:#10231A">9,90 €</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;padding:14px 0 4px">
+              <span style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A">Total TTC</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;color:#10231A">120,89 €</span>
+            </div>
+            <div style="background:#1E7A46;color:#fff;text-align:center;height:50px;line-height:50px;border-radius:6px;font-size:15px;font-weight:600;margin-top:12px">Valider ma commande</div>
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <div style="flex:1;border:1px solid #E0DDD3;border-radius:5px;padding:10px 12px;font-size:13px;color:#9AA69F">Code promo</div>
+              <div style="border:1px solid #E0DDD3;border-radius:5px;padding:10px 15px;font-size:13px;color:#10231A;font-weight:600">OK</div>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:16px 18px">
+            <div style="font-size:12px;letter-spacing:0.08em;color:#7C8981;margin-bottom:11px">LIVRAISON</div>
+            <div style="border:1.5px solid #1E7A46;background:#F4FAF6;border-radius:6px;padding:11px 13px">
+              <div style="display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;color:#10231A"><span>Livraison — samedi 29 août</span><span style="font-family:'IBM Plex Mono',monospace">9,90 €</span></div>
+              <div style="font-size:12.5px;color:#5E6B63;margin-top:3px">Créneau 6 h – 12 h · livraison offerte dès 149 € HT</div>
+            </div>
+                      </div>
+        </div>
+      </div>
+      <dc-import name="JanaFooter" hint-size="100%,340px"></dc-import>
+    </div>
+
+    <div data-screen-label="Checkout" style="width:1440px;background:#F6F4EE;border:1px solid #DFDCD2;border-radius:10px;overflow:hidden;box-shadow:0 18px 40px rgba(16,35,26,0.08)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#6B7A72;background:#EDEAE1;padding:7px 14px;border-bottom:1px solid #DFDCD2">05 — CHECKOUT (DEVIS + PAIEMENT À LA LIVRAISON)</div>
+
+      <div style="background:#fff;border-bottom:1px solid #E6E3DA;padding:18px 40px;display:flex;align-items:center;gap:36px">
+        <div style="display:flex;align-items:center;gap:11px">
+          <div style="width:32px;height:32px;border-radius:6px;background:#1E7A46;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Archivo',sans-serif;font-weight:800;font-size:16px">J</div>
+          <span style="font-family:'Archivo',sans-serif;font-weight:800;font-size:18px;letter-spacing:-0.03em;color:#10231A">JANA DISTRIBUTION</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;font-size:13.5px">
+          <span style="color:#1E7A46;font-weight:600">1. Panier</span><span style="color:#C3CBC6">—</span>
+          <span style="color:#10231A;font-weight:600">2. Livraison &amp; paiement</span><span style="color:#C3CBC6">—</span>
+          <span style="color:#9AA69F">3. Confirmation</span>
+        </div>
+        <div style="margin-left:auto;font-size:13px;color:#6B7A72">Besoin d'aide ? <span style="font-family:'IBM Plex Mono',monospace;color:#10231A">01 84 80 12 40</span></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 380px;gap:22px;padding:26px 40px 40px">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="background:#EAF3EC;border:1px solid #CBE2D3;border-radius:8px;padding:14px 18px;font-size:13.5px;color:#254534;line-height:1.6">
+            <strong style="color:#10231A">Commande sans paiement en ligne.</strong> Vous recevez un devis par email dans la minute. Notre équipe confirme la disponibilité et le créneau, puis vous réglez à la livraison.
+          </div>
+
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:20px">
+            <div style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A;margin-bottom:16px">Coordonnées</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+              <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Prénom</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:44px;line-height:44px;padding:0 13px;font-size:14px;color:#10231A">Janaa</div></div>
+              <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Nom</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:44px;line-height:44px;padding:0 13px;font-size:14px;color:#10231A">Adminn</div></div>
+              <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Téléphone</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:44px;line-height:44px;padding:0 13px;font-size:14px;color:#10231A">06 11 78 89 24</div></div>
+              <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Raison sociale (optionnel)</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:44px;line-height:44px;padding:0 13px;font-size:14px;color:#9AA69F">Ma société SARL</div></div>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:20px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+              <div style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A">Adresse de livraison</div>
+              <a href="#" style="font-size:13px;font-weight:600">+ Nouvelle adresse</a>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div style="border:1.5px solid #1E7A46;background:#F4FAF6;border-radius:6px;padding:14px">
+                <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13.5px;font-weight:700;color:#10231A">Entrepôt principal</span><span style="color:#1E7A46">✓</span></div>
+                <div style="font-size:13px;color:#3D4A43;line-height:1.55;margin-top:5px">3 rue de la Pise<br>77451 Champs-sur-Marne<br>06 11 78 89 24</div>
+              </div>
+              <div style="border:1px solid #E6E3DA;border-radius:6px;padding:14px">
+                <div style="font-size:13.5px;font-weight:700;color:#10231A">Boutique Bastille</div>
+                <div style="font-size:13px;color:#3D4A43;line-height:1.55;margin-top:5px">12 rue de Lyon<br>75012 Paris<br>01 43 07 00 00</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:9px;margin-top:14px">
+              <span style="width:15px;height:15px;border:1.5px solid #1E7A46;background:#1E7A46;border-radius:3px;display:inline-block"></span>
+              <span style="font-size:13.5px;color:#3D4A43">Utiliser cette adresse pour la facturation</span>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:20px">
+            <div style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A;margin-bottom:4px">Créneau de livraison</div>
+            <div style="font-size:13px;color:#6B7A72;margin-bottom:14px">Confirmé par téléphone après validation du devis.</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+              <sc-for list="{{ creneaux }}" as="c" hint-placeholder-count="4">
+                <div style="border:1px solid #E6E3DA;border-radius:6px;padding:12px 13px">
+                  <div style="font-size:13.5px;font-weight:600;color:#10231A">{{ c.jour }}</div>
+                  <div style="font-size:12.5px;color:#6B7A72;margin-top:3px">{{ c.heure }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:20px">
+            <div style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A;margin-bottom:4px">Règlement à la livraison</div>
+            <div style="font-size:13px;color:#6B7A72;margin-bottom:14px">Indiquez le mode prévu, aucun débit maintenant.</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+              <div style="border:1.5px solid #1E7A46;background:#F4FAF6;border-radius:6px;padding:13px"><div style="font-size:13.5px;font-weight:600;color:#10231A">Carte bancaire</div><div style="font-size:12px;color:#5E6B63;margin-top:3px">TPE du livreur</div></div>
+              <div style="border:1px solid #E6E3DA;border-radius:6px;padding:13px"><div style="font-size:13.5px;font-weight:600;color:#10231A">Espèces</div><div style="font-size:12px;color:#5E6B63;margin-top:3px">Appoint apprécié</div></div>
+              <div style="border:1px solid #E6E3DA;border-radius:6px;padding:13px"><div style="font-size:13.5px;font-weight:600;color:#10231A">Chèque</div><div style="font-size:12px;color:#5E6B63;margin-top:3px">À l'ordre de Jana</div></div>
+              <div style="border:1px solid #E6E3DA;border-radius:6px;padding:13px"><div style="font-size:13.5px;font-weight:600;color:#10231A">Virement</div><div style="font-size:12px;color:#5E6B63;margin-top:3px">Avant livraison</div></div>
+            </div>
+            <div style="margin-top:14px;display:flex;flex-direction:column;gap:6px">
+              <span style="font-size:12.5px;color:#5E6B63">Instructions de livraison (optionnel)</span>
+              <div style="border:1px solid #DDD9CE;border-radius:6px;height:76px;padding:11px 13px;font-size:13.5px;color:#9AA69F">Quai de déchargement, code portail, horaires préférés…</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:18px">
+            <div style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A;margin-bottom:12px">Votre commande</div>
+            <sc-for list="{{ panier }}" as="l" hint-placeholder-count="3">
+              <div style="display:flex;gap:11px;padding:9px 0;border-bottom:1px solid #F0EEE7;align-items:center">
+                <div style="width:44px;height:44px;border-radius:4px;background:repeating-linear-gradient(135deg,#F1EFE9 0 7px,#E7E4DC 7px 14px);flex:none"></div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:600;color:#10231A;line-height:1.3">{{ l.nom }}</div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8D978F">{{ l.ref }} · ×{{ l.qte }}</div>
+                </div>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#10231A">{{ l.total }}</span>
+              </div>
+            </sc-for>
+            <div style="display:flex;justify-content:space-between;padding:9px 0 0;font-size:13.5px"><span style="color:#5E6B63">Sous-total HT</span><span style="font-family:'IBM Plex Mono',monospace;color:#10231A">105,20 €</span></div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13.5px"><span style="color:#5E6B63">TVA 5,5 %</span><span style="font-family:'IBM Plex Mono',monospace;color:#10231A">5,79 €</span></div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13.5px;border-bottom:1px solid #F0EEE7"><span style="color:#5E6B63">Livraison</span><span style="font-family:'IBM Plex Mono',monospace;color:#10231A">9,90 €</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;padding:13px 0 0">
+              <span style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A">Total à régler</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:25px;font-weight:600;color:#10231A">120,89 €</span>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:9px;margin-top:14px">
+              <span style="width:15px;height:15px;border:1.5px solid #CFCBC0;border-radius:3px;display:inline-block;flex:none;margin-top:2px"></span>
+              <span style="font-size:12.5px;color:#5E6B63;line-height:1.5">J'accepte les <a href="#">CGV</a> et la <a href="#">politique de confidentialité</a>.</span>
+            </div>
+            <div style="background:#1E7A46;color:#fff;text-align:center;height:50px;line-height:50px;border-radius:6px;font-size:15px;font-weight:600;margin-top:12px">Recevoir mon devis</div>
+            <div style="text-align:center;font-size:12px;color:#8D978F;margin-top:8px">Sans engagement — vous confirmez après réception du devis</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div data-screen-label="Connexion et inscription" style="width:1440px;background:#F6F4EE;border:1px solid #DFDCD2;border-radius:10px;overflow:hidden;box-shadow:0 18px 40px rgba(16,35,26,0.08)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#6B7A72;background:#EDEAE1;padding:7px 14px;border-bottom:1px solid #DFDCD2">06 — CONNEXION / INSCRIPTION</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;min-height:720px">
+        <div style="background:#fff;padding:56px 72px;display:flex;flex-direction:column;justify-content:center;gap:22px">
+          <div style="display:flex;align-items:center;gap:11px">
+            <div style="width:32px;height:32px;border-radius:6px;background:#1E7A46;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Archivo',sans-serif;font-weight:800;font-size:16px">J</div>
+            <span style="font-family:'Archivo',sans-serif;font-weight:800;font-size:18px;letter-spacing:-0.03em;color:#10231A">JANA DISTRIBUTION</span>
+          </div>
+          <div>
+            <h2 style="font-family:'Archivo',sans-serif;font-size:32px;font-weight:800;letter-spacing:-0.035em;color:#10231A;margin:0">Se connecter</h2>
+            <p style="font-size:14.5px;color:#5E6B63;margin:7px 0 0">Retrouvez vos listes, vos tarifs et l'historique de vos commandes.</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px;max-width:420px">
+            <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Adresse email</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:48px;line-height:48px;padding:0 14px;font-size:14.5px;color:#10231A">janaa@jana-distribution.fr</div></div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="display:flex;justify-content:space-between"><span style="font-size:12.5px;color:#5E6B63">Mot de passe</span><a href="#" style="font-size:12.5px">Oublié ?</a></div>
+              <div style="border:1px solid #DDD9CE;border-radius:6px;height:48px;line-height:48px;padding:0 14px;font-size:16px;color:#10231A;letter-spacing:0.18em">••••••••</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:9px"><span style="width:15px;height:15px;border:1.5px solid #CFCBC0;border-radius:3px;display:inline-block"></span><span style="font-size:13.5px;color:#3D4A43">Rester connecté sur cet appareil</span></div>
+            <div style="background:#1E7A46;color:#fff;text-align:center;height:50px;line-height:50px;border-radius:6px;font-size:15px;font-weight:600">Se connecter</div>
+            <div style="text-align:center;font-size:13.5px;color:#5E6B63">Pas encore de compte ? <a href="#" style="font-weight:600">Créer un compte</a></div>
+            <div style="border-top:1px solid #EDEAE1;padding-top:16px;margin-top:6px;display:flex;gap:10px">
+              <div style="flex:1;border:1px solid #E0DDD3;border-radius:6px;height:42px;line-height:42px;text-align:center;font-size:13px;color:#5E6B63">Démo admin</div>
+              <div style="flex:1;border:1px solid #E0DDD3;border-radius:6px;height:42px;line-height:42px;text-align:center;font-size:13px;color:#5E6B63">Démo client</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:#10231A;padding:56px 72px;display:flex;flex-direction:column;justify-content:center;gap:26px">
+          <div>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:0.14em;color:#6FBF8E">CRÉER UN COMPTE</span>
+            <h3 style="font-family:'Archivo',sans-serif;font-size:30px;font-weight:800;letter-spacing:-0.035em;color:#fff;margin:12px 0 0;line-height:1.15">Particulier ou professionnel,<br>les mêmes prix.</h3>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:1px;background:#22402F;border:1px solid #22402F;border-radius:8px;overflow:hidden">
+            <sc-for list="{{ argsCompte }}" as="a" hint-placeholder-count="4">
+              <div style="background:#152A20;padding:16px 18px;display:flex;gap:14px;align-items:flex-start">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6FBF8E;margin-top:2px">{{ a.n }}</span>
+                <div>
+                  <div style="font-size:14.5px;font-weight:600;color:#fff">{{ a.titre }}</div>
+                  <div style="font-size:13px;color:#8FA89B;margin-top:3px;line-height:1.5">{{ a.desc }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;gap:10px">
+            <div style="background:#1E7A46;color:#fff;font-size:14.5px;font-weight:600;padding:13px 22px;border-radius:6px">Compte particulier</div>
+            <div style="border:1px solid #38584A;color:#fff;font-size:14.5px;font-weight:600;padding:13px 22px;border-radius:6px">Compte professionnel</div>
+          </div>
+          <div style="font-size:12.5px;color:#6B8779;line-height:1.6">Compte pro : SIRET requis, facturation mensuelle et paiement à 30 jours après validation par notre équipe.</div>
+        </div>
+      </div>
+    </div>
+    <div data-screen-label="Confirmation de commande" style="width:1440px;background:#F6F4EE;border:1px solid #DFDCD2;border-radius:10px;overflow:hidden;box-shadow:0 18px 40px rgba(16,35,26,0.08)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#6B7A72;background:#EDEAE1;padding:7px 14px;border-bottom:1px solid #DFDCD2">07 — CONFIRMATION DE COMMANDE</div>
+      <dc-import name="JanaHeader" cart-count="0" cart-total="0,00 € HT" hint-size="100%,130px"></dc-import>
+
+      <div style="background:#10231A;padding:34px 40px;display:flex;align-items:center;gap:26px">
+        <div style="width:52px;height:52px;border-radius:50%;background:#1E7A46;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;flex:none">✓</div>
+        <div style="flex:1">
+          <h2 style="font-family:'Archivo',sans-serif;font-size:30px;font-weight:800;letter-spacing:-0.035em;color:#fff;margin:0">Votre demande est enregistrée</h2>
+          <p style="font-size:14.5px;color:#A6BEB1;margin:6px 0 0">Le devis <span style="font-family:'IBM Plex Mono',monospace;color:#fff">CMD-20260828-0003</span> vient de partir vers janaa@jana-distribution.fr. Notre équipe vous appelle avant 18 h pour confirmer le créneau.</p>
+        </div>
+        <div style="display:flex;gap:10px">
+          <div style="border:1px solid #38584A;color:#fff;font-size:14px;font-weight:600;padding:12px 20px;border-radius:6px">Télécharger le devis (PDF)</div>
+          <div style="background:#1E7A46;color:#fff;font-size:14px;font-weight:600;padding:12px 20px;border-radius:6px">Suivre ma commande</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 380px;gap:22px;padding:26px 40px 40px">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:20px">
+            <div style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A;margin-bottom:18px">Ce qui se passe maintenant</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+              <sc-for list="{{ etapes }}" as="e" hint-placeholder-count="4">
+                <div style="display:flex;flex-direction:column;gap:7px">
+                  <div style="height:4px;border-radius:2px;background:#EDEAE1;overflow:hidden"><div style="height:100%;background:#1E7A46;width:100%"></div></div>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#7C8981">{{ e.n }}</span>
+                  <span style="font-size:14px;font-weight:600;color:#10231A">{{ e.titre }}</span>
+                  <span style="font-size:12.5px;color:#5E6B63;line-height:1.5">{{ e.desc }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;overflow:hidden">
+            <div style="padding:15px 18px;border-bottom:1px solid #E6E3DA;font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A">Récapitulatif — 3 références</div>
+            <sc-for list="{{ panier }}" as="l" hint-placeholder-count="3">
+              <div style="display:flex;gap:13px;padding:14px 18px;border-bottom:1px solid #F0EEE7;align-items:center">
+                <div style="width:48px;height:48px;border-radius:4px;background:repeating-linear-gradient(135deg,#F1EFE9 0 7px,#E7E4DC 7px 14px);flex:none"></div>
+                <div style="flex:1">
+                  <div style="font-size:14px;font-weight:600;color:#10231A">{{ l.nom }}</div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8D978F">{{ l.ref }} · {{ l.pu }} {{ l.unite }} · ×{{ l.qte }}</div>
+                </div>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:14px;color:#10231A">{{ l.total }}</span>
+              </div>
+            </sc-for>
+            <div style="display:flex;justify-content:space-between;padding:13px 18px 4px;font-size:13.5px"><span style="color:#5E6B63">Sous-total HT</span><span style="font-family:'IBM Plex Mono',monospace;color:#10231A">105,20 €</span></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 18px;font-size:13.5px"><span style="color:#5E6B63">TVA 5,5 %</span><span style="font-family:'IBM Plex Mono',monospace;color:#10231A">5,79 €</span></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 18px 12px;font-size:13.5px"><span style="color:#5E6B63">Livraison</span><span style="font-family:'IBM Plex Mono',monospace;color:#10231A">9,90 €</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;padding:14px 18px;background:#FAF9F5;border-top:1px solid #E6E3DA">
+              <span style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A">Total à régler à la livraison</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:25px;font-weight:600;color:#10231A">120,89 €</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:18px">
+            <div style="font-size:12px;letter-spacing:0.08em;color:#7C8981;margin-bottom:10px">LIVRAISON</div>
+            <div style="font-size:14px;font-weight:600;color:#10231A">Samedi 29 août · 6 h – 12 h</div>
+            <div style="font-size:13px;color:#3D4A43;line-height:1.6;margin-top:6px">Janaa Adminn<br>3 rue de la Pise<br>77451 Champs-sur-Marne<br>06 11 78 89 24</div>
+          </div>
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:18px">
+            <div style="font-size:12px;letter-spacing:0.08em;color:#7C8981;margin-bottom:10px">RÈGLEMENT PRÉVU</div>
+            <div style="font-size:14px;font-weight:600;color:#10231A">Carte bancaire à la livraison</div>
+            <div style="font-size:13px;color:#5E6B63;margin-top:5px">TPE du livreur · aucun débit avant réception</div>
+          </div>
+          <div style="background:#EAF3EC;border:1px solid #CBE2D3;border-radius:8px;padding:18px">
+            <div style="font-size:14px;font-weight:700;color:#10231A">Une modification ?</div>
+            <div style="font-size:13px;color:#40564A;margin-top:5px;line-height:1.6">Tant que la commande n'est pas préparée, vous pouvez ajuster les quantités par téléphone au <span style="font-family:'IBM Plex Mono',monospace">01 84 80 12 40</span>.</div>
+          </div>
+        </div>
+      </div>
+      <dc-import name="JanaFooter" hint-size="100%,340px"></dc-import>
+    </div>
+
+    <div data-screen-label="Mes commandes" style="width:1440px;background:#F6F4EE;border:1px solid #DFDCD2;border-radius:10px;overflow:hidden;box-shadow:0 18px 40px rgba(16,35,26,0.08)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#6B7A72;background:#EDEAE1;padding:7px 14px;border-bottom:1px solid #DFDCD2">08 — MES COMMANDES</div>
+      <dc-import name="JanaHeader" cart-count="3" cart-total="105,20 € HT" hint-size="100%,130px"></dc-import>
+
+      <div style="display:grid;grid-template-columns:238px 1fr;gap:22px;padding:26px 40px 40px">
+        <div style="display:flex;flex-direction:column;gap:2px;background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:8px;height:fit-content">
+          <div style="padding:11px 13px;border-radius:6px;background:#10231A;color:#fff;font-size:13.5px;font-weight:600">Mes commandes</div>
+          <div style="padding:11px 13px;border-radius:6px;color:#3D4A43;font-size:13.5px">Mes listes récurrentes</div>
+          <div style="padding:11px 13px;border-radius:6px;color:#3D4A43;font-size:13.5px">Mes factures</div>
+          <div style="padding:11px 13px;border-radius:6px;color:#3D4A43;font-size:13.5px">Mes adresses</div>
+          <div style="padding:11px 13px;border-radius:6px;color:#3D4A43;font-size:13.5px">Mes informations</div>
+          <div style="padding:11px 13px;border-radius:6px;color:#3D4A43;font-size:13.5px">Sécurité</div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:flex-end;justify-content:space-between">
+            <div>
+              <h2 style="font-family:'Archivo',sans-serif;font-size:27px;font-weight:800;letter-spacing:-0.035em;color:#10231A;margin:0">Mes commandes</h2>
+              <div style="font-size:13.5px;color:#6B7A72;margin-top:4px">12 commandes · 4 812,60 € HT sur les 12 derniers mois</div>
+            </div>
+            <div style="display:flex;gap:9px">
+              <div style="border:1px solid #E0DDD3;background:#fff;border-radius:6px;height:38px;line-height:38px;padding:0 13px;font-size:13.5px;color:#28352E">12 derniers mois ▾</div>
+              <div style="border:1px solid #E0DDD3;background:#fff;border-radius:6px;height:38px;line-height:38px;padding:0 13px;font-size:13.5px;color:#28352E">Tous les statuts ▾</div>
+              <div style="background:#10231A;color:#fff;border-radius:6px;height:38px;line-height:38px;padding:0 15px;font-size:13.5px;font-weight:600">Exporter</div>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;overflow:hidden">
+            <div style="display:grid;grid-template-columns:190px 1fr 110px 90px 120px 250px;gap:14px;padding:11px 18px;background:#FAF9F5;border-bottom:1px solid #E6E3DA;font-size:11.5px;letter-spacing:0.06em;color:#7C8981">
+              <span>COMMANDE</span><span>CONTENU</span><span>DATE</span><span>ARTICLES</span><span style="text-align:right">TOTAL TTC</span><span style="text-align:right">STATUT</span>
+            </div>
+            <sc-for list="{{ commandes }}" as="c" hint-placeholder-count="5">
+              <div style="display:grid;grid-template-columns:190px 1fr 110px 90px 120px 250px;gap:14px;padding:15px 18px;border-bottom:1px solid #F0EEE7;align-items:center">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#10231A">{{ c.num }}</span>
+                <span style="font-size:13.5px;color:#3D4A43">{{ c.contenu }}</span>
+                <span style="font-size:13px;color:#5E6B63">{{ c.date }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#5E6B63">{{ c.n }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:14px;color:#10231A;text-align:right">{{ c.total }}</span>
+                <div style="display:flex;align-items:center;justify-content:flex-end;gap:9px">
+                  <span style="font-size:12px;font-weight:600;padding:5px 10px;border-radius:4px;background:#F2F1EC;color:#3D4A43">{{ c.statut }}</span>
+                  <span style="font-size:12.5px;font-weight:600;color:#155C34;border:1px solid #CBE2D3;background:#EAF3EC;padding:6px 11px;border-radius:5px">Recommander</span>
+                  <span style="font-size:12.5px;color:#5E6B63;border:1px solid #E0DDD3;padding:6px 11px;border-radius:5px">Détail</span>
+                </div>
+              </div>
+            </sc-for>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 18px">
+              <span style="font-size:13px;color:#6B7A72">Affichage de 1–5 sur 12 commandes</span>
+              <div style="display:flex;gap:6px">
+                <span style="width:32px;height:32px;line-height:32px;text-align:center;background:#10231A;color:#fff;border-radius:5px;font-size:13px">1</span>
+                <span style="width:32px;height:32px;line-height:32px;text-align:center;border:1px solid #E0DDD3;border-radius:5px;font-size:13px;color:#3D4A43">2</span>
+                <span style="width:32px;height:32px;line-height:32px;text-align:center;border:1px solid #E0DDD3;border-radius:5px;font-size:13px;color:#3D4A43">3</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <dc-import name="JanaFooter" hint-size="100%,340px"></dc-import>
+    </div>
+
+    <div data-screen-label="Detail commande" style="width:1440px;background:#F6F4EE;border:1px solid #DFDCD2;border-radius:10px;overflow:hidden;box-shadow:0 18px 40px rgba(16,35,26,0.08)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#6B7A72;background:#EDEAE1;padding:7px 14px;border-bottom:1px solid #DFDCD2">09 — DÉTAIL D'UNE COMMANDE</div>
+      <dc-import name="JanaHeader" cart-count="3" cart-total="105,20 € HT" hint-size="100%,130px"></dc-import>
+
+      <div style="padding:26px 40px 40px;display:flex;flex-direction:column;gap:14px">
+        <a href="#" style="font-size:13.5px;font-weight:600">← Retour à mes commandes</a>
+        <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:20px;display:flex;align-items:center;gap:22px">
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:12px">
+              <h2 style="font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;color:#10231A;margin:0;letter-spacing:-0.01em">CMD-20260828-0003</h2>
+              <span style="font-size:12px;font-weight:600;padding:5px 11px;border-radius:4px;background:#EAF3EC;color:#155C34;border:1px solid #CBE2D3">En préparation</span>
+            </div>
+            <div style="font-size:13.5px;color:#6B7A72;margin-top:6px">Passée le vendredi 28 août 2026 à 14 h 38 · Livraison prévue samedi 29 août, 6 h – 12 h</div>
+          </div>
+          <div style="display:flex;gap:9px">
+            <div style="border:1px solid #E0DDD3;color:#10231A;font-size:13.5px;font-weight:600;padding:11px 16px;border-radius:6px">Devis PDF</div>
+            <div style="border:1px solid #E0DDD3;color:#10231A;font-size:13.5px;font-weight:600;padding:11px 16px;border-radius:6px">Facture</div>
+            <div style="background:#1E7A46;color:#fff;font-size:13.5px;font-weight:600;padding:11px 18px;border-radius:6px">Recommander</div>
+          </div>
+        </div>
+
+        <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:22px">
+          <div style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A;margin-bottom:20px">Suivi</div>
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0">
+            <sc-for list="{{ suivi }}" as="s" hint-placeholder-count="5">
+              <div style="display:flex;flex-direction:column;gap:9px;padding-right:14px">
+                <div style="height:4px;border-radius:2px;background:{{ s.bar }}"></div>
+                <span style="font-size:13.5px;font-weight:600;color:#10231A">{{ s.titre }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#7C8981">{{ s.quand }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 380px;gap:22px">
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;overflow:hidden">
+            <div style="display:grid;grid-template-columns:56px 1fr 120px 80px 110px;gap:14px;padding:11px 18px;background:#FAF9F5;border-bottom:1px solid #E6E3DA;font-size:11.5px;letter-spacing:0.06em;color:#7C8981">
+              <span></span><span>PRODUIT</span><span>PRIX UNITAIRE</span><span>QTÉ</span><span style="text-align:right">TOTAL HT</span>
+            </div>
+            <sc-for list="{{ panier }}" as="l" hint-placeholder-count="3">
+              <div style="display:grid;grid-template-columns:56px 1fr 120px 80px 110px;gap:14px;padding:15px 18px;border-bottom:1px solid #F0EEE7;align-items:center">
+                <div style="height:56px;border-radius:4px;background:repeating-linear-gradient(135deg,#F1EFE9 0 7px,#E7E4DC 7px 14px)"></div>
+                <div>
+                  <div style="font-size:14px;font-weight:600;color:#10231A">{{ l.nom }}</div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8D978F">{{ l.ref }} · {{ l.sub }}</div>
+                </div>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:#3D4A43">{{ l.pu }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:13.5px;color:#3D4A43">{{ l.qte }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:14px;color:#10231A;text-align:right">{{ l.total }}</span>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:18px">
+              <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13.5px"><span style="color:#5E6B63">Sous-total HT</span><span style="font-family:'IBM Plex Mono',monospace;color:#10231A">105,20 €</span></div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13.5px"><span style="color:#5E6B63">TVA 5,5 %</span><span style="font-family:'IBM Plex Mono',monospace;color:#10231A">5,79 €</span></div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13.5px;border-bottom:1px solid #F0EEE7"><span style="color:#5E6B63">Livraison</span><span style="font-family:'IBM Plex Mono',monospace;color:#10231A">9,90 €</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;padding:13px 0 0"><span style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A">Total TTC</span><span style="font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;color:#10231A">120,89 €</span></div>
+            </div>
+            <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:18px">
+              <div style="font-size:12px;letter-spacing:0.08em;color:#7C8981;margin-bottom:9px">ADRESSE DE LIVRAISON</div>
+              <div style="font-size:13px;color:#3D4A43;line-height:1.6">Janaa Adminn<br>3 rue de la Pise<br>77451 Champs-sur-Marne<br>06 11 78 89 24</div>
+            </div>
+            <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:18px">
+              <div style="font-size:12px;letter-spacing:0.08em;color:#7C8981;margin-bottom:9px">RÈGLEMENT</div>
+              <div style="font-size:13.5px;color:#10231A;font-weight:600">Carte bancaire à la livraison</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <dc-import name="JanaFooter" hint-size="100%,340px"></dc-import>
+    </div>
+
+    <div data-screen-label="Mon compte" style="width:1440px;background:#F6F4EE;border:1px solid #DFDCD2;border-radius:10px;overflow:hidden;box-shadow:0 18px 40px rgba(16,35,26,0.08)">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#6B7A72;background:#EDEAE1;padding:7px 14px;border-bottom:1px solid #DFDCD2">10 — MON COMPTE</div>
+      <dc-import name="JanaHeader" cart-count="3" cart-total="105,20 € HT" hint-size="100%,130px"></dc-import>
+
+      <div style="display:grid;grid-template-columns:238px 1fr;gap:22px;padding:26px 40px 40px">
+        <div style="display:flex;flex-direction:column;gap:2px;background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:8px;height:fit-content">
+          <div style="padding:11px 13px;border-radius:6px;color:#3D4A43;font-size:13.5px">Mes commandes</div>
+          <div style="padding:11px 13px;border-radius:6px;color:#3D4A43;font-size:13.5px">Mes listes récurrentes</div>
+          <div style="padding:11px 13px;border-radius:6px;color:#3D4A43;font-size:13.5px">Mes factures</div>
+          <div style="padding:11px 13px;border-radius:6px;color:#3D4A43;font-size:13.5px">Mes adresses</div>
+          <div style="padding:11px 13px;border-radius:6px;background:#10231A;color:#fff;font-size:13.5px;font-weight:600">Mes informations</div>
+          <div style="padding:11px 13px;border-radius:6px;color:#3D4A43;font-size:13.5px">Sécurité</div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:20px;display:flex;align-items:center;gap:18px">
+            <div style="width:56px;height:56px;border-radius:50%;background:#EAF3EC;border:1px solid #CBE2D3;display:flex;align-items:center;justify-content:center;font-family:'Archivo',sans-serif;font-weight:700;font-size:19px;color:#155C34">JA</div>
+            <div style="flex:1">
+              <div style="font-family:'Archivo',sans-serif;font-size:20px;font-weight:700;color:#10231A;letter-spacing:-0.02em">Janaa Adminn</div>
+              <div style="font-size:13.5px;color:#6B7A72;margin-top:3px">admin@jana-distribution.fr · client depuis janvier 2026</div>
+            </div>
+            <div style="display:flex;gap:22px;padding-left:22px;border-left:1px solid #EDEAE1">
+              <div><div style="font-family:'IBM Plex Mono',monospace;font-size:20px;color:#10231A">12</div><div style="font-size:12px;color:#7C8981">commandes</div></div>
+              <div><div style="font-family:'IBM Plex Mono',monospace;font-size:20px;color:#10231A">4 812 €</div><div style="font-size:12px;color:#7C8981">cumul HT</div></div>
+              <div><div style="font-family:'IBM Plex Mono',monospace;font-size:20px;color:#10231A">3</div><div style="font-size:12px;color:#7C8981">listes</div></div>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:20px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+              <div style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A">Informations personnelles</div>
+              <div style="background:#1E7A46;color:#fff;font-size:13px;font-weight:600;padding:9px 16px;border-radius:6px">Enregistrer</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+              <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Prénom</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:44px;line-height:44px;padding:0 13px;font-size:14px;color:#10231A">Janaa</div></div>
+              <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Nom</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:44px;line-height:44px;padding:0 13px;font-size:14px;color:#10231A">Adminn</div></div>
+              <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Email (non modifiable)</span><div style="border:1px solid #EDEAE1;background:#FAF9F5;border-radius:6px;height:44px;line-height:44px;padding:0 13px;font-size:14px;color:#8D978F">admin@jana-distribution.fr</div></div>
+              <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:12.5px;color:#5E6B63">Téléphone</span><div style="border:1px solid #DDD9CE;border-radius:6px;height:44px;line-height:44px;padding:0 13px;font-size:14px;color:#10231A">06 11 78 89 24</div></div>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:20px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+              <div style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A">Adresses de livraison</div>
+              <a href="#" style="font-size:13px;font-weight:600">+ Ajouter une adresse</a>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+              <div style="border:1.5px solid #1E7A46;background:#F4FAF6;border-radius:6px;padding:14px">
+                <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13.5px;font-weight:700;color:#10231A">Entrepôt principal</span><span style="font-size:11px;color:#155C34;background:#DCEEE2;padding:3px 8px;border-radius:3px">Par défaut</span></div>
+                <div style="font-size:13px;color:#3D4A43;line-height:1.55;margin-top:6px">3 rue de la Pise<br>77451 Champs-sur-Marne</div>
+              </div>
+              <div style="border:1px solid #E6E3DA;border-radius:6px;padding:14px">
+                <div style="font-size:13.5px;font-weight:700;color:#10231A">Boutique Bastille</div>
+                <div style="font-size:13px;color:#3D4A43;line-height:1.55;margin-top:6px">12 rue de Lyon<br>75012 Paris</div>
+              </div>
+              <div style="border:1px dashed #D6D2C6;border-radius:6px;padding:14px;display:flex;align-items:center;justify-content:center;font-size:13.5px;color:#8D978F">+ Nouvelle adresse</div>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E6E3DA;border-radius:8px;padding:20px">
+            <div style="font-family:'Archivo',sans-serif;font-size:16px;font-weight:700;color:#10231A;margin-bottom:14px">Préférences</div>
+            <sc-for list="{{ prefs }}" as="p" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:13px;padding:11px 0;border-bottom:1px solid #F0EEE7">
+                <div style="width:38px;height:22px;border-radius:11px;background:{{ p.bg }};position:relative;flex:none"><div style="position:absolute;top:3px;left:{{ p.x }};width:16px;height:16px;border-radius:50%;background:#fff"></div></div>
+                <div style="flex:1">
+                  <div style="font-size:13.5px;font-weight:600;color:#10231A">{{ p.titre }}</div>
+                  <div style="font-size:12.5px;color:#6B7A72">{{ p.desc }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+      <dc-import name="JanaFooter" hint-size="100%,340px"></dc-import>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;priceMode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;HT&quot;,&quot;TTC&quot;],&quot;default&quot;:&quot;HT&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Affichage&quot;},&quot;stockPolicy&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Stock exact&quot;,&quot;Disponible / sur commande&quot;],&quot;default&quot;:&quot;Stock exact&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Affichage&quot;},&quot;showReorder&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Accueil&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const mode = this.props.priceMode ?? "HT";
+    const ht = mode === "HT";
+    const stockStyle = this.props.stockPolicy ?? "Stock exact";
+    const stk = (n) => stockPolicy(stockStyle, n);
+    function stockPolicy(kind, n) {
+      if (kind === "Disponible / sur commande") return n > 0 ? "Disponible" : "Sur commande";
+      return n + " en stock";
+    }
+    const p = (h, t) => (ht ? h + " €" : t + " €");
+    const sec = (h, t) => (ht ? t + " € TTC" : h + " € HT");
+    const unit = (u) => (ht ? "HT " + u : "TTC " + u);
+
+    const refs = [
+      { ref: "FRL-114", nom: "Sucrine bio", sub: "Colis 12 pièces · Val de Loire", prix: p("14,40", "15,19"), unite: unit("/ colis"), second: sec("14,40", "15,19"), stock: stk(128), badge: "BIO", ph: "salade — 800×800" },
+      { ref: "FRL-207", nom: "Tomate grappe", sub: "Plateau 6 kg · Provence", prix: p("18,90", "19,94"), unite: unit("/ plateau"), second: sec("18,90", "19,94"), stock: stk(64), badge: "FRANCE", ph: "tomates — 800×800" },
+      { ref: "CRM-208", nom: "Comté 18 mois", sub: "Meule 1/8 · env. 4,5 kg", prix: p("13,20", "13,93"), unite: unit("/ kg"), second: sec("13,20", "13,93"), stock: stk(22), badge: "AOP", ph: "comté — 800×800" },
+      { ref: "MAR-045", nom: "Filet de bar", sub: "Caisse 3 kg · Atlantique", prix: p("24,50", "25,85"), unite: unit("/ kg"), second: sec("24,50", "25,85"), stock: stk(9), badge: "FRAIS", ph: "poisson — 800×800" },
+      { ref: "BOU-031", nom: "Baguette tradition", sub: "Carton 20 pièces · précuit", prix: p("11,80", "12,45"), unite: unit("/ carton"), second: sec("11,80", "12,45"), stock: stk(210), badge: "NOUVEAU", ph: "pain — 800×800" }
+    ];
+    const ventes = [
+      { ref: "EPI-512", nom: "Huile d'olive vierge extra", sub: "Bidon 5 L · Espagne", prix: p("38,90", "46,68"), unite: unit("/ bidon"), second: sec("38,90", "46,68"), stock: stk(87), badge: "TOP VENTE", ph: "huile — 800×800" },
+      { ref: "CRM-101", nom: "Beurre doux plaquette", sub: "Carton 20 × 250 g", prix: p("52,00", "54,86"), unite: unit("/ carton"), second: sec("52,00", "54,86"), stock: stk(41), badge: "TOP VENTE", ph: "beurre — 800×800" },
+      { ref: "BCH-076", nom: "Poulet fermier PAC", sub: "Colis 6 pièces · Label Rouge", prix: p("8,75", "9,23"), unite: unit("/ kg"), second: sec("8,75", "9,23"), stock: stk(33), badge: "LABEL ROUGE", ph: "volaille — 800×800" },
+      { ref: "FRL-330", nom: "Pomme de terre Agata", sub: "Sac 25 kg · Nord", prix: p("21,40", "22,58"), unite: unit("/ sac"), second: sec("21,40", "22,58"), stock: stk(150), badge: "PRIX BAS", ph: "pommes de terre" },
+      { ref: "EPI-208", nom: "Farine T65 tradition", sub: "Sac 25 kg · Beauce", prix: p("19,60", "20,68"), unite: unit("/ sac"), second: sec("19,60", "20,68"), stock: stk(76), badge: "TOP VENTE", ph: "farine — 800×800" }
+    ];
+    const catalogue = [
+      refs[0], refs[1],
+      { ref: "FRL-121", nom: "Mâche nantaise", sub: "Sachet 500 g · France", prix: p("4,20", "4,43"), unite: unit("/ sachet"), second: sec("4,20", "4,43"), stock: stk(88), badge: "BIO", ph: "mâche — 800×800" },
+      { ref: "FRL-155", nom: "Carotte des sables", sub: "Sac 10 kg · Créances", prix: p("12,10", "12,77"), unite: unit("/ sac"), second: sec("12,10", "12,77"), stock: stk(54), badge: "IGP", ph: "carottes — 800×800" },
+      { ref: "FRL-182", nom: "Courgette verte", sub: "Colis 5 kg · Provence", prix: p("9,80", "10,34"), unite: unit("/ colis"), second: sec("9,80", "10,34"), stock: stk(31), badge: "FRANCE", ph: "courgettes" },
+      { ref: "FRL-204", nom: "Champignon de Paris", sub: "Cageot 3 kg · Saumur", prix: p("11,25", "11,87"), unite: unit("/ cageot"), second: sec("11,25", "11,87"), stock: stk(19), badge: "FRANCE", ph: "champignons" },
+      { ref: "FRL-260", nom: "Citron jaune bio", sub: "Colis 5 kg · Sicile", prix: p("16,40", "17,30"), unite: unit("/ colis"), second: sec("16,40", "17,30"), stock: stk(46), badge: "BIO", ph: "citrons — 800×800" },
+      refs[4]
+    ];
+    return {
+      showReorder: this.props.showReorder ?? true,
+      ventes, catalogue,
+      similaires: [ventes[1], catalogue[2], catalogue[3], refs[2], catalogue[6]],
+      dernieresLignes: [
+        { nom: "Comté 18 mois AOP", qte: "4" },
+        { nom: "Beurre doux — carton 20", qte: "1" },
+        { nom: "Sucrine bio — colis 12", qte: "2" }
+      ],
+      rayons: [
+        { nom: "Fruits & Légumes", n: 218, ph: "rayon" }, { nom: "Crémerie", n: 143, ph: "rayon" },
+        { nom: "Boucherie", n: 96, ph: "rayon" }, { nom: "Marée", n: 58, ph: "rayon" },
+        { nom: "Épicerie", n: 402, ph: "rayon" }, { nom: "Boulangerie", n: 74, ph: "rayon" },
+        { nom: "Surgelés", n: 131, ph: "rayon" }, { nom: "Boissons", n: 118, ph: "rayon" }
+      ],
+      filtres: [
+        { titre: "Sous-rayon", options: [{ nom: "Salades", n: 24 }, { nom: "Tomates", n: 18 }, { nom: "Racines", n: 31 }, { nom: "Herbes fraîches", n: 27 }] },
+        { titre: "Labels", options: [{ nom: "Bio", n: 64 }, { nom: "Label Rouge", n: 12 }, { nom: "AOP / IGP", n: 21 }, { nom: "Local (< 150 km)", n: 39 }] },
+        { titre: "Conditionnement", options: [{ nom: "À la pièce", n: 42 }, { nom: "Colis", n: 118 }, { nom: "Sac 10–25 kg", n: 34 }, { nom: "Palette", n: 9 }] },
+        { titre: "Disponibilité", options: [{ nom: "En stock", n: 196 }, { nom: "Sur commande (48 h)", n: 22 }] }
+      ],
+      specs: [
+        { k: "Référence", v: "FRL-114" }, { k: "Conditionnement", v: "Colis de 12 pièces" },
+        { k: "Calibre", v: "250 – 300 g" }, { k: "Origine", v: "Val de Loire, France" },
+        { k: "Conservation", v: "+2 °C à +6 °C" }, { k: "DLC moyenne", v: "7 jours" },
+        { k: "Colis / palette", v: "96" }, { k: "TVA", v: "5,5 %" }
+      ],
+      paliers: [
+        { q: "1 à 4 colis", p: "14,40 € HT" }, { q: "5 à 19 colis", p: "13,60 € HT" }, { q: "20 colis et +", p: "12,80 € HT" }
+      ],
+      panier: [
+        { ref: "FRL-114", nom: "Sucrine bio", sub: "Colis 12 pièces", pu: "14,40 €", unite: "HT / colis", qte: "2", total: "28,80 €" },
+        { ref: "CRM-208", nom: "Comté 18 mois AOP", sub: "Meule 1/8, env. 4,5 kg", pu: "13,20 €", unite: "HT / kg", qte: "4", total: "52,80 €" },
+        { ref: "BOU-031", nom: "Baguette tradition précuite", sub: "Carton 20 pièces", pu: "11,80 €", unite: "HT / carton", qte: "2", total: "23,60 €" }
+      ],
+      suggest: [
+        { nom: "Beurre doux 250 g", prix: "2,60 € HT" }, { nom: "Crème 35 % — 1 L", prix: "4,10 € HT" },
+        { nom: "Œufs plein air × 30", prix: "6,90 € HT" }, { nom: "Persil plat botte", prix: "1,20 € HT" }
+      ],
+      etapes: [
+        { n: "01", titre: "Devis envoyé", desc: "Reçu par email à l'instant, valable 7 jours." },
+        { n: "02", titre: "Appel de confirmation", desc: "Disponibilités et créneau validés avec vous." },
+        { n: "03", titre: "Préparation", desc: "Colis constitués le matin de la livraison." },
+        { n: "04", titre: "Livraison & règlement", desc: "Vous réglez au livreur, facture par email." }
+      ],
+      commandes: [
+        { num: "CMD-20260828-0003", contenu: "Sucrine bio, Comté 18 mois +1", date: "28/08/2026", n: "3", total: "120,89 €", statut: "En préparation" },
+        { num: "CMD-20260814-0011", contenu: "Huile d'olive 5 L, Farine T65 +6", date: "14/08/2026", n: "8", total: "486,20 €", statut: "Livrée" },
+        { num: "CMD-20260731-0009", contenu: "Poulet fermier, Beurre doux +9", date: "31/07/2026", n: "11", total: "912,40 €", statut: "Livrée" },
+        { num: "CMD-20260718-0006", contenu: "Tomate grappe, Courgette +4", date: "18/07/2026", n: "6", total: "254,75 €", statut: "Livrée" },
+        { num: "CMD-20260702-0004", contenu: "Pomme de terre 25 kg +2", date: "02/07/2026", n: "3", total: "98,30 €", statut: "Annulée" }
+      ],
+      suivi: [
+        { titre: "Devis envoyé", quand: "28/08 · 14 h 38", bar: "#1E7A46" },
+        { titre: "Confirmée", quand: "28/08 · 15 h 02", bar: "#1E7A46" },
+        { titre: "En préparation", quand: "En cours", bar: "#1E7A46" },
+        { titre: "Expédiée", quand: "29/08 · prévu 6 h", bar: "#E4E1D8" },
+        { titre: "Livrée", quand: "29/08 · prévu 12 h", bar: "#E4E1D8" }
+      ],
+      prefs: [
+        { titre: "Offres et nouveautés par email", desc: "Une fois par semaine, le lundi matin.", bg: "#1E7A46", x: "19px" },
+        { titre: "Alerte retour en stock", desc: "Sur les références de vos listes récurrentes.", bg: "#1E7A46", x: "19px" },
+        { titre: "SMS de suivi de livraison", desc: "Le matin de la tournée, avec le créneau.", bg: "#D8D5CB", x: "3px" }
+      ],
+      creneaux: [
+        { jour: "Samedi 29", heure: "6 h – 12 h" }, { jour: "Samedi 29", heure: "12 h – 18 h" },
+        { jour: "Lundi 31", heure: "6 h – 12 h" }, { jour: "Lundi 31", heure: "12 h – 18 h" }
+      ],
+      argsCompte: [
+        { n: "01", titre: "Mêmes tarifs pour tous", desc: "Pas de carte, pas de minimum caché : le prix de gros dès le premier colis." },
+        { n: "02", titre: "Recommandez en un clic", desc: "Historique complet et listes récurrentes réutilisables." },
+        { n: "03", titre: "Devis avant paiement", desc: "Vous validez le devis, vous réglez à la livraison." },
+        { n: "04", titre: "Facturation pro", desc: "Factures groupées et paiement à 30 jours pour les comptes professionnels." }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
