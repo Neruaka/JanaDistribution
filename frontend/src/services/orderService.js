@@ -23,7 +23,9 @@ export const STATUTS_COMMANDE = {
   EN_PREPARATION: { label: 'En préparation', color: 'purple', description: 'Commande en cours de préparation' },
   EXPEDIEE: { label: 'Expédiée', color: 'indigo', description: 'Commande en cours de livraison' },
   LIVREE: { label: 'Livrée', color: 'green', description: 'Commande livrée' },
-  ANNULEE: { label: 'Annulée', color: 'red', description: 'Commande annulée' }
+  ANNULEE: { label: 'Annulée', color: 'red', description: 'Commande annulée' },
+  REMBOURSE: { label: 'Remboursée', color: 'red', description: 'Commande remboursée intégralement' },
+  PARTIELLEMENT_REMBOURSE: { label: 'Partiellement remboursée', color: 'red', description: 'Commande partiellement remboursée' }
 };
 
 // ==========================================

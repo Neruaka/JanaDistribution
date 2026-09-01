@@ -1,46 +1,19 @@
 /**
  * Dashboard Admin
- * @description Page d'accueil de l'administration avec stats temps réel
- * ✅ FIX: Lien "Voir →" redirige vers /admin/commandes?orderId=xxx pour ouvrir le modal
+ * @description Ecran A1 — Vue d'ensemble de l'activite
+ * @see design_handoff_jana_refonte/README.md (A1 — Dashboard)
  */
 
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import {
-  Package,
-  ShoppingCart,
-  Users,
-  TrendingUp,
-  AlertTriangle,
-  ArrowUpRight,
-  ArrowDownRight,
-  Eye,
-  Calendar,
-  Clock,
-  CheckCircle,
-  Truck,
-  XCircle,
-  RefreshCw,
-  ChevronDown
-} from 'lucide-react';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts';
+import { ChevronDown, ExternalLink, Loader2 } from 'lucide-react';
 import adminService from '../../services/adminService';
-import toast from 'react-hot-toast';
+import { getStatutInfo } from '../../services/orderService';
+import { getAdminStatutStyle } from '../../utils/adminStatut';
 import { getImageUrl } from '../../utils/imageUtils';
+import { AdminTopBar } from '../../components/admin';
+import toast from 'react-hot-toast';
 
-// Périodes prédéfinies
 const PERIODS = [
   { label: '7 derniers jours', days: 7 },
   { label: '30 derniers jours', days: 30 },
@@ -48,637 +21,294 @@ const PERIODS = [
   { label: 'Cette année', days: 365 }
 ];
 
-// Couleurs pour le graphique pie
-const CATEGORY_COLORS = [
-  '#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336',
-  '#00BCD4', '#FFEB3B', '#795548', '#607D8B', '#E91E63'
-];
+const CHART_COLORS = ['#1E7A46', '#4E9E6E', '#88BFA0', '#B9D9C6', '#DCEAE1'];
+
+const formatMoney = (amount) =>
+  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount || 0);
+
+const formatDateLong = (date, withYear) =>
+  date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: withYear ? 'numeric' : undefined });
+
+const formatDateShort = (dateStr) => new Date(dateStr).toLocaleDateString('fr-FR');
+
+const KPICard = ({ label, value, delta }) => (
+  <div className="bg-white border border-sand-200 rounded-8 p-[18px]">
+    <div className="text-[12.5px] text-graphite-500">{label}</div>
+    <div className="font-mono text-[29px] font-semibold text-ink-900 mt-2 tracking-tight">{value}</div>
+    {delta != null && (
+      <div className="flex items-center gap-1.5 mt-2">
+        <span className={`text-[12px] font-semibold px-2 py-[3px] rounded-4 ${delta >= 0 ? 'bg-success-bg text-success-text' : 'bg-danger-bg text-danger-text'}`}>
+          {delta >= 0 ? '+' : ''}{delta}%
+        </span>
+        <span className="text-[12px] text-graphite-300">vs période précédente</span>
+      </div>
+    )}
+  </div>
+);
 
 const AdminDashboard = () => {
-  // States
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [periodDays, setPeriodDays] = useState(30);
-  const [periodMenuOpen, setPeriodMenuOpen] = useState(false);
-  
-  // Data states
-  const [dashboardStats, setDashboardStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState(null);
+  const [comparison, setComparison] = useState(null);
   const [evolution, setEvolution] = useState([]);
   const [topCategories, setTopCategories] = useState([]);
-  const [topProducts, setTopProducts] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
   const [lowStockProducts, setLowStockProducts] = useState([]);
 
-  // Calcul des dates
-  const { dateDebut, dateFin } = useMemo(() => {
+  const { dateDebut, dateFin, dateDebutObj, dateFinObj } = useMemo(() => {
     const fin = new Date();
     const debut = new Date(fin.getTime() - periodDays * 24 * 60 * 60 * 1000);
-    return {
-      dateDebut: debut.toISOString(),
-      dateFin: fin.toISOString()
-    };
+    return { dateDebut: debut.toISOString(), dateFin: fin.toISOString(), dateDebutObj: debut, dateFinObj: fin };
   }, [periodDays]);
 
-  // Chargement des données
-  const loadData = async (showLoading = true) => {
-    try {
-      if (showLoading) setLoading(true);
-      else setRefreshing(true);
-      
-      const [stats, evo, cats, prods, orders, lowStock] = await Promise.all([
-        adminService.getDashboardStats(dateDebut, dateFin),
-        adminService.getEvolution(dateDebut, dateFin, periodDays <= 30 ? 'day' : 'week'),
-        adminService.getTopCategories(dateDebut, dateFin, 5),
-        adminService.getTopProducts(dateDebut, dateFin, 5),
-        adminService.getRecentOrders(5),
-        adminService.getLowStockProducts(5)
-      ]);
-      
-      setDashboardStats(stats);
-      setEvolution(evo.evolution || []);
-      setTopCategories(cats || []);
-      setTopProducts(prods || []);
-      setRecentOrders(orders || []);
-      setLowStockProducts(lowStock || []);
-    } catch (error) {
-      console.error('Erreur chargement dashboard:', error);
-      toast.error('Erreur lors du chargement des statistiques');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
   useEffect(() => {
-    loadData();
-  }, [dateDebut, dateFin]);
+    let mounted = true;
+    setLoading(true);
+    const groupBy = periodDays <= 30 ? 'day' : 'week';
+    Promise.all([
+      adminService.getDashboardStats(dateDebut, dateFin),
+      adminService.getComparison(dateDebut, dateFin),
+      adminService.getEvolution(dateDebut, dateFin, groupBy),
+      adminService.getTopCategories(dateDebut, dateFin, 5),
+      adminService.getRecentOrders(6),
+      adminService.getLowStockProducts(7)
+    ])
+      .then(([s, c, evo, cats, orders, lowStock]) => {
+        if (!mounted) return;
+        setStats(s);
+        setComparison(c);
+        setEvolution(evo?.evolution || []);
+        setTopCategories(cats || []);
+        setRecentOrders(orders || []);
+        setLowStockProducts(lowStock || []);
+      })
+      .catch((error) => {
+        console.error('Erreur chargement dashboard:', error);
+        toast.error('Erreur lors du chargement des statistiques');
+      })
+      .finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
+  }, [dateDebut, dateFin, periodDays]);
 
-  // Formatter les montants
-  const formatMoney = (amount) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
-
-  // Formatter les dates pour le graphique
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-  };
-
-  // Composant carte stat
-  const StatCard = ({ title, value, variation, icon: Icon, color, link, suffix = '' }) => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
-    >
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-gray-500 mb-1">{title}</p>
-          <p className="text-3xl font-bold text-gray-800">
-            {value}{suffix}
-          </p>
-          {variation !== undefined && (
-            <p className={`text-sm mt-2 flex items-center gap-1 ${
-              parseFloat(variation) >= 0 ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {parseFloat(variation) >= 0 ? (
-                <ArrowUpRight className="w-4 h-4" />
-              ) : (
-                <ArrowDownRight className="w-4 h-4" />
-              )}
-              {parseFloat(variation) >= 0 ? '+' : ''}{variation}% vs période précédente
-            </p>
-          )}
-        </div>
-        <div className={`p-3 rounded-xl ${color}`}>
-          <Icon className="w-6 h-6 text-white" />
-        </div>
-      </div>
-      {link && (
-        <Link
-          to={link}
-          className="mt-4 text-sm text-green-600 hover:text-green-700 flex items-center gap-1"
-        >
-          Voir tout <ArrowUpRight className="w-4 h-4" />
-        </Link>
-      )}
-    </motion.div>
-  );
-
-  // Badge statut
-  const StatusBadge = ({ statut }) => {
-    const config = {
-      EN_ATTENTE: { label: 'En attente', bg: 'bg-yellow-100', text: 'text-yellow-700', icon: Clock },
-      CONFIRMEE: { label: 'Confirmée', bg: 'bg-blue-100', text: 'text-blue-700', icon: CheckCircle },
-      EN_PREPARATION: { label: 'En préparation', bg: 'bg-purple-100', text: 'text-purple-700', icon: Package },
-      EXPEDIEE: { label: 'Expédiée', bg: 'bg-cyan-100', text: 'text-cyan-700', icon: Truck },
-      LIVREE: { label: 'Livrée', bg: 'bg-green-100', text: 'text-green-700', icon: CheckCircle },
-      ANNULEE: { label: 'Annulée', bg: 'bg-red-100', text: 'text-red-700', icon: XCircle }
-    };
-    
-    const { label, bg, text, icon: StatusIcon } = config[statut] || config.EN_ATTENTE;
-    
-    return (
-      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${bg} ${text}`}>
-        <StatusIcon className="w-3 h-3" />
-        {label}
-      </span>
-    );
-  };
-
-  // Tooltip personnalisé pour le graphique
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-100">
-          <p className="text-sm font-medium text-gray-800">{label}</p>
-          <p className="text-sm text-green-600">
-            CA: {formatMoney(payload[0].value)}
-          </p>
-        </div>
-      );
+  // Zero-fill jour par jour pour la période courte (vue mockup = 30 barres)
+  const bars = useMemo(() => {
+    if (periodDays > 30) return evolution.map((e) => ({ date: e.periode, ca: e.chiffreAffaires }));
+    const byDate = new Map(evolution.map((e) => [e.periode, e.chiffreAffaires]));
+    const days = [];
+    for (let d = new Date(dateDebutObj); d <= dateFinObj; d.setDate(d.getDate() + 1)) {
+      const key = d.toISOString().slice(0, 10);
+      days.push({ date: key, ca: byDate.get(key) || 0 });
     }
-    return null;
-  };
+    return days;
+  }, [evolution, periodDays, dateDebutObj, dateFinObj]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <RefreshCw className="w-8 h-8 text-green-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-500">Chargement des statistiques...</p>
-        </div>
-      </div>
-    );
-  }
+  const maxBar = Math.max(1, ...bars.map((b) => b.ca));
+  const totalPeriode = bars.reduce((sum, b) => sum + b.ca, 0);
+  const axisIndexes = bars.length > 1
+    ? [0, Math.floor((bars.length - 1) / 3), Math.floor((2 * (bars.length - 1)) / 3), bars.length - 1]
+    : [0];
+
+  const banniere = stats ? [
+    { label: 'À confirmer', value: stats.commandes?.parStatut?.enAttente ?? 0, warn: true },
+    { label: 'À préparer', value: stats.commandes?.parStatut?.confirmees ?? 0 },
+    { label: 'À expédier', value: stats.commandes?.parStatut?.enPreparation ?? 0 },
+    { label: 'Stock bas', value: stats.produits?.stockFaible ?? 0, warn: true }
+  ] : [];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <>
+      <AdminTopBar>
+        <div className="relative">
+          <select
+            value={periodDays}
+            onChange={(e) => setPeriodDays(Number(e.target.value))}
+            className="appearance-none h-[38px] border border-sand-250 rounded-6 pl-3.5 pr-8 text-[13.5px] text-graphite-900 bg-white cursor-pointer focus:outline-none focus:border-ink-900"
+          >
+            {PERIODS.map((p) => <option key={p.days} value={p.days}>{p.label}</option>)}
+          </select>
+          <ChevronDown className="w-3.5 h-3.5 text-graphite-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+        </div>
+        <a
+          href="/" target="_blank" rel="noopener noreferrer"
+          className="h-[38px] flex items-center gap-1.5 border border-sand-250 rounded-6 px-3.5 text-[13.5px] text-graphite-900 hover:border-sand-300 transition-colors"
+        >
+          Voir le site <ExternalLink className="w-3.5 h-3.5" />
+        </a>
+        <Link
+          to="/admin/produits/nouveau"
+          className="h-[38px] flex items-center bg-green-700 hover:bg-green-800 text-white rounded-6 px-4 text-[13.5px] font-semibold transition-colors"
+        >
+          + Nouveau produit
+        </Link>
+      </AdminTopBar>
+
+      <div className="p-[26px] flex flex-col gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-          <p className="text-gray-500">Vue d'ensemble de votre activité</p>
+          <h2 className="font-display text-[26px] font-extrabold tracking-tighter text-ink-900">Vue d'ensemble</h2>
+          <p className="text-[13.5px] text-graphite-500 mt-[3px]">
+            Du {formatDateLong(dateDebutObj)} au {formatDateLong(dateFinObj, true)} · comparé aux {periodDays} jours précédents
+          </p>
         </div>
-        
-        <div className="flex items-center gap-3">
-          {/* Sélecteur de période */}
-          <div className="relative">
-            <button
-              onClick={() => setPeriodMenuOpen(!periodMenuOpen)}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
-            >
-              <Calendar className="w-4 h-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-700">
-                {PERIODS.find(p => p.days === periodDays)?.label}
-              </span>
-              <ChevronDown className="w-4 h-4 text-gray-400" />
-            </button>
-            
-            {periodMenuOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50"
-              >
-                {PERIODS.map((period) => (
-                  <button
-                    key={period.days}
-                    onClick={() => {
-                      setPeriodDays(period.days);
-                      setPeriodMenuOpen(false);
-                    }}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${
-                      periodDays === period.days ? 'text-green-600 font-medium bg-green-50' : 'text-gray-700'
-                    }`}
-                  >
-                    {period.label}
-                  </button>
-                ))}
-              </motion.div>
-            )}
+
+        {loading && !stats ? (
+          <div className="flex items-center justify-center py-24">
+            <Loader2 className="w-6 h-6 text-green-700 animate-spin" />
           </div>
-          
-          {/* Bouton refresh */}
-          <button
-            onClick={() => loadData(false)}
-            disabled={refreshing}
-            className="p-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 disabled:opacity-50"
-          >
-            <RefreshCw className={`w-5 h-5 text-gray-500 ${refreshing ? 'animate-spin' : ''}`} />
-          </button>
-          
-          {/* Nouveau produit */}
+        ) : (
+        <>
+        <div className="grid grid-cols-4 gap-3.5">
+          <KPICard label="Chiffre d'affaires HT" value={formatMoney(stats?.chiffreAffaires?.total)} delta={comparison?.variation?.chiffreAffaires} />
+          <KPICard label="Commandes" value={stats?.commandes?.total ?? 0} delta={comparison?.variation?.commandes} />
+          <KPICard label="Panier moyen HT" value={formatMoney(stats?.panierMoyen?.total)} delta={comparison?.variation?.panierMoyen} />
+          <KPICard label="Clients" value={stats?.clients?.total ?? 0} delta={comparison?.variation?.clients} />
+        </div>
+
+        <div className="bg-white border border-sand-200 rounded-8 px-[18px] py-4 flex items-center gap-[26px]">
+          <div className="font-display text-[15px] font-bold text-ink-900 flex-shrink-0">À traiter aujourd'hui</div>
+          {banniere.map((it, i) => (
+            <div key={it.label} className={i > 0 ? 'border-l border-sand-300 pl-5' : ''}>
+              <div className={`font-mono text-[20px] font-semibold ${it.warn && it.value > 0 ? 'text-warning-text' : 'text-ink-900'}`}>{it.value}</div>
+              <div className="text-[13px] text-graphite-700">{it.label}</div>
+            </div>
+          ))}
           <Link
-            to="/admin/produits/nouveau"
-            className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors flex items-center gap-2"
+            to="/admin/commandes?statut=EN_ATTENTE"
+            className="ml-auto flex-shrink-0 bg-ink-900 hover:bg-ink-800 text-white text-[13px] font-semibold h-[38px] px-4 rounded-6 flex items-center transition-colors"
           >
-            <Package className="w-4 h-4" />
-            <span className="hidden sm:inline">Nouveau produit</span>
+            Ouvrir la file de traitement
           </Link>
         </div>
-      </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Chiffre d'affaires"
-          value={formatMoney(dashboardStats?.chiffreAffaires?.total || 0)}
-          variation={dashboardStats?.chiffreAffaires?.variation}
-          icon={TrendingUp}
-          color="bg-green-500"
-        />
-        <StatCard
-          title="Commandes"
-          value={dashboardStats?.commandes?.total || 0}
-          variation={dashboardStats?.commandes?.variation}
-          icon={ShoppingCart}
-          color="bg-purple-500"
-          link="/admin/commandes"
-        />
-        <StatCard
-          title="Panier moyen"
-          value={formatMoney(dashboardStats?.panierMoyen?.total || 0)}
-          variation={dashboardStats?.panierMoyen?.variation}
-          icon={ShoppingCart}
-          color="bg-blue-500"
-        />
-        <StatCard
-          title="Clients"
-          value={dashboardStats?.clients?.total || 0}
-          suffix={` (${dashboardStats?.clients?.nouveaux || 0} nouveaux)`}
-          icon={Users}
-          color="bg-cyan-500"
-          link="/admin/clients"
-        />
-      </div>
-
-      {/* Statuts commandes mini */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-        {[
-          { key: 'enAttente', label: 'En attente', color: 'bg-yellow-500' },
-          { key: 'confirmees', label: 'Confirmées', color: 'bg-blue-500' },
-          { key: 'enPreparation', label: 'En prépa.', color: 'bg-purple-500' },
-          { key: 'expediees', label: 'Expédiées', color: 'bg-cyan-500' },
-          { key: 'livrees', label: 'Livrées', color: 'bg-green-500' },
-          { key: 'annulees', label: 'Annulées', color: 'bg-red-500' }
-        ].map(({ key, label, color }) => (
-          <div key={key} className="bg-white rounded-xl p-4 border border-gray-100">
-            <div className="flex items-center gap-2 mb-2">
-              <div className={`w-2 h-2 rounded-full ${color}`} />
-              <span className="text-xs text-gray-500">{label}</span>
-            </div>
-            <p className="text-xl font-bold text-gray-800">
-              {dashboardStats?.commandes?.parStatut?.[key] || 0}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      {/* Graphiques - Evolution CA + Top Catégories */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Evolution CA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="font-semibold text-gray-800">Évolution du chiffre d'affaires</h2>
-              <p className="text-sm text-gray-500">CA par jour sur la période</p>
-            </div>
-          </div>
-          
-          <div className="h-[300px]">
-            {evolution.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={evolution}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis 
-                    dataKey="periode" 
-                    tickFormatter={formatDate}
-                    tick={{ fontSize: 12, fill: '#888' }}
-                  />
-                  <YAxis 
-                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}k€`}
-                    tick={{ fontSize: 12, fill: '#888' }}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Line 
-                    type="monotone" 
-                    dataKey="chiffreAffaires" 
-                    stroke="#4CAF50" 
-                    strokeWidth={3}
-                    dot={{ fill: '#4CAF50', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-gray-400">
-                Aucune donnée sur cette période
+        <div className="grid grid-cols-[1.55fr_1fr] gap-3.5">
+          <div className="bg-white border border-sand-200 rounded-8 p-[18px] flex flex-col">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h3 className="font-display text-[16px] font-bold text-ink-900">Évolution du chiffre d'affaires</h3>
+                <p className="text-[12.5px] text-graphite-500">CA HT par jour sur la période</p>
               </div>
-            )}
+              <div className="font-mono text-[22px] font-semibold text-ink-900">{formatMoney(totalPeriode)}</div>
+            </div>
+            <div className="flex items-end gap-1.5 h-[210px]">
+              {bars.map((b, i) => (
+                <div
+                  key={b.date}
+                  title={`${b.date} · ${formatMoney(b.ca)}`}
+                  className={`flex-1 rounded-t-[2px] ${i === bars.length - 1 ? 'bg-bar-current' : 'bg-bar-default'}`}
+                  style={{ height: `${Math.max(2, (b.ca / maxBar) * 100)}%` }}
+                />
+              ))}
+            </div>
+            <div className="flex justify-between mt-2 font-mono text-[11px] text-graphite-400">
+              {axisIndexes.map((idx) => (
+                <span key={idx}>{bars[idx] ? new Date(bars[idx].date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : ''}</span>
+              ))}
+            </div>
           </div>
-        </motion.div>
 
-        {/* Top Catégories - Pie Chart */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
-        >
-          <div className="mb-4">
-            <h2 className="font-semibold text-gray-800">Top catégories</h2>
-            <p className="text-sm text-gray-500">Répartition du CA</p>
-          </div>
-          
-          <div className="h-[200px]">
+          <div className="bg-white border border-sand-200 rounded-8 p-[18px]">
+            <h3 className="font-display text-[16px] font-bold text-ink-900">Top catégories</h3>
+            <p className="text-[12.5px] text-graphite-500 mb-4">Répartition du CA</p>
             {topCategories.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={topCategories}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={80}
-                    paddingAngle={2}
-                    dataKey="chiffreAffaires"
-                    nameKey="nom"
-                  >
-                    {topCategories.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={entry.couleur || CATEGORY_COLORS[index % CATEGORY_COLORS.length]} 
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => formatMoney(value)} />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-gray-400">
-                Aucune donnée
-              </div>
-            )}
-          </div>
-          
-          {/* Légende */}
-          <div className="space-y-2 mt-4">
-            {topCategories.slice(0, 4).map((cat, index) => (
-              <div key={cat.id} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <div 
-                    className="w-3 h-3 rounded-full" 
-                    style={{ backgroundColor: cat.couleur || CATEGORY_COLORS[index] }}
-                  />
-                  <span className="text-gray-600 truncate max-w-[100px]">{cat.nom}</span>
+              <>
+                <div className="h-3 rounded-6 overflow-hidden flex mb-4">
+                  {topCategories.map((cat, i) => (
+                    <div key={cat.id} style={{ width: `${cat.pourcentage}%`, background: CHART_COLORS[i % CHART_COLORS.length] }} />
+                  ))}
                 </div>
-                <span className="font-medium text-gray-800">{cat.pourcentage}%</span>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Top Produits */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
-      >
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="font-semibold text-gray-800">Top 5 produits vendus</h2>
-            <p className="text-sm text-gray-500">Par quantité vendue</p>
-          </div>
-          <Link
-            to="/admin/produits"
-            className="text-sm text-green-600 hover:text-green-700 flex items-center gap-1"
-          >
-            Voir tous <ArrowUpRight className="w-4 h-4" />
-          </Link>
-        </div>
-        
-        <div className="space-y-4">
-          {topProducts.length > 0 ? (
-            topProducts.map((product, index) => (
-              <div key={product.id || index} className="flex items-center gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center font-bold text-gray-500">
-                  {product.rang}
-                </div>
-                
-                <div className="flex-shrink-0 w-12 h-12 bg-gray-100 rounded-lg overflow-hidden">
-                  {product.imageUrl ? (
-                    <img src={getImageUrl(product.imageUrl)} alt={product.nom} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <Package className="w-6 h-6" />
-                    </div>
-                  )}
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-800 truncate">{product.nom}</p>
-                  <p className="text-sm text-gray-500">{product.categorie}</p>
-                </div>
-                
-                <div className="flex-1 hidden sm:block">
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-green-500 rounded-full transition-all duration-500"
-                      style={{ width: `${product.pourcentageMax}%` }}
-                    />
-                  </div>
-                </div>
-                
-                <div className="text-right">
-                  <p className="font-bold text-gray-800">{product.quantiteVendue}</p>
-                  <p className="text-xs text-gray-500">ventes</p>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="text-center py-8 text-gray-400">
-              Aucune vente sur cette période
-            </div>
-          )}
-        </div>
-      </motion.div>
-
-      {/* Deux colonnes: Commandes récentes + Alertes stock */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Commandes récentes */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-white rounded-2xl shadow-sm border border-gray-100"
-        >
-          <div className="p-6 border-b border-gray-100">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <ShoppingCart className="w-5 h-5 text-purple-600" />
-                </div>
-                <div>
-                  <h2 className="font-semibold text-gray-800">Commandes récentes</h2>
-                  <p className="text-sm text-gray-500">Dernières commandes reçues</p>
-                </div>
-              </div>
-              <Link to="/admin/commandes" className="text-sm text-green-600 hover:text-green-700">
-                Voir toutes →
-              </Link>
-            </div>
-          </div>
-          
-          <div className="divide-y divide-gray-100">
-            {recentOrders.length > 0 ? (
-              recentOrders.map((order) => (
-                <div key={order.id} className="p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="font-medium text-gray-800">{order.numeroCommande}</p>
-                        <StatusBadge statut={order.statut} />
+                <div className="flex flex-col">
+                  {topCategories.map((cat, i) => (
+                    <div key={cat.id} className="flex items-center justify-between py-2 border-b border-sand-150 last:border-b-0 gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="w-[9px] h-[9px] rounded-full flex-shrink-0" style={{ background: CHART_COLORS[i % CHART_COLORS.length] }} />
+                        <span className="text-[13.5px] text-ink-900 truncate">{cat.nom}</span>
                       </div>
-                      <p className="text-sm text-gray-500">
-                        {order.client?.prenom} {order.client?.nom} • {new Date(order.dateCommande).toLocaleDateString('fr-FR')}
-                      </p>
+                      <div className="flex items-center gap-3 flex-shrink-0">
+                        <span className="font-mono text-[13px] text-ink-900">{formatMoney(cat.chiffreAffaires)}</span>
+                        <span className="font-mono text-[12px] text-graphite-300 w-9 text-right">{cat.pourcentage}%</span>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-gray-800">{formatMoney(order.totalTtc)}</p>
-                      {/* ✅ FIX: Lien avec paramètre orderId pour ouvrir le modal */}
-                      <Link 
-                        to={`/admin/commandes?orderId=${order.id}`} 
-                        className="text-sm text-green-600 hover:text-green-700"
-                      >
-                        Voir →
-                      </Link>
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              ))
+              </>
             ) : (
-              <div className="p-8 text-center text-gray-400">Aucune commande récente</div>
+              <div className="py-8 text-center text-[13px] text-graphite-400">Aucune vente sur cette période</div>
             )}
           </div>
-        </motion.div>
+        </div>
 
-        {/* Alertes stock */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="bg-white rounded-2xl shadow-sm border border-gray-100"
-        >
-          <div className="p-6 border-b border-gray-100">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-amber-100 rounded-lg">
-                  <AlertTriangle className="w-5 h-5 text-amber-600" />
-                </div>
-                <div>
-                  <h2 className="font-semibold text-gray-800">Alertes stock</h2>
-                  <p className="text-sm text-gray-500">Produits à réapprovisionner</p>
-                </div>
-              </div>
-              <span className="bg-amber-100 text-amber-700 text-sm font-medium px-2.5 py-1 rounded-full">
-                {dashboardStats?.produits?.stockFaible || 0}
-              </span>
+        <div className="grid grid-cols-[1.55fr_1fr] gap-3.5">
+          <div className="bg-white border border-sand-200 rounded-8 flex flex-col">
+            <div className="flex items-center justify-between px-[18px] pt-[18px] pb-3.5">
+              <h3 className="font-display text-[16px] font-bold text-ink-900">Dernières commandes</h3>
+              <Link to="/admin/commandes" className="text-[13px] text-green-700 hover:text-green-800 font-medium">Tout voir →</Link>
             </div>
-          </div>
-          
-          <div className="divide-y divide-gray-100">
-            {lowStockProducts.length > 0 ? (
-              lowStockProducts.map((product) => (
-                <div key={product.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                      {product.imageUrl ? (
-                        <img src={getImageUrl(product.imageUrl)} alt={product.nom} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Package className="w-5 h-5 text-gray-400" />
-                        </div>
-                      )}
+            <div className="flex flex-col">
+              {recentOrders.length > 0 ? recentOrders.map((o) => {
+                const statutInfo = getStatutInfo(o.statut);
+                return (
+                  <Link
+                    key={o.id}
+                    to={`/admin/commandes?orderId=${o.id}`}
+                    className="grid items-center gap-3 px-[18px] py-2.5 border-t border-sand-150 hover:bg-sand-50 transition-colors"
+                    style={{ gridTemplateColumns: '170px minmax(0,1fr) 62px 92px 104px' }}
+                  >
+                    <span className="font-mono text-[12.5px] text-ink-900">{o.numeroCommande}</span>
+                    <div className="min-w-0">
+                      <div className="text-[13.5px] font-medium text-ink-900 truncate">{o.client?.prenom} {o.client?.nom}</div>
+                      <div className="text-[12px] text-graphite-300 truncate">{o.client?.email}</div>
                     </div>
-                    <div>
-                      <p className="font-medium text-gray-800">{product.nom}</p>
-                      <p className="text-sm text-gray-500">
-                        Stock: <span className={product.enRupture ? 'text-red-600 font-medium' : 'text-amber-600 font-medium'}>
-                          {product.stock}
-                        </span> / {product.seuilAlerte} min
-                      </p>
-                    </div>
-                  </div>
-                  <Link to={`/admin/produits/${product.id}/modifier`} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
-                    <Eye className="w-4 h-4" />
+                    <span className="text-[12.5px] text-graphite-600">{formatDateShort(o.dateCommande)}</span>
+                    <span className="font-mono text-[13.5px] text-ink-900 text-right">{formatMoney(o.totalTtc)}</span>
+                    <span className={`justify-self-end text-[12px] font-semibold px-2 py-[3px] rounded-4 ${getAdminStatutStyle(o.statut)}`}>{statutInfo.label}</span>
                   </Link>
-                </div>
-              ))
-            ) : (
-              <div className="p-8 text-center text-gray-400">
-                <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-400" />
-                <p>Tous les stocks sont OK !</p>
-              </div>
-            )}
-          </div>
-
-          {lowStockProducts.length > 0 && (
-            <div className="p-4 border-t border-gray-100">
-              <Link to="/admin/produits?stock=low" className="text-sm text-green-600 hover:text-green-700 flex items-center gap-1">
-                Voir tous les produits en stock faible <ArrowUpRight className="w-4 h-4" />
-              </Link>
+                );
+              }) : (
+                <div className="p-8 text-center text-[13px] text-graphite-400">Aucune commande récente</div>
+              )}
             </div>
-          )}
-        </motion.div>
-      </div>
+          </div>
 
-      {/* Infos produits */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl p-4 border border-gray-100 flex items-center gap-4">
-          <div className="p-3 bg-blue-100 rounded-lg">
-            <Package className="w-6 h-6 text-blue-600" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-800">{dashboardStats?.produits?.actifs || 0}</p>
-            <p className="text-sm text-gray-500">Produits actifs</p>
+          <div className="bg-white border border-sand-200 rounded-8 flex flex-col">
+            <div className="flex items-center justify-between px-[18px] pt-[18px] pb-3.5">
+              <h3 className="font-display text-[16px] font-bold text-ink-900">Stock sous le seuil</h3>
+              {lowStockProducts.length > 0 && (
+                <span className="bg-warning-bg text-warning-text text-[12px] font-semibold px-2 py-[3px] rounded-4">{lowStockProducts.length}</span>
+              )}
+            </div>
+            <div className="flex flex-col">
+              {lowStockProducts.length > 0 ? lowStockProducts.map((p) => {
+                const img = getImageUrl(p.imageUrl);
+                return (
+                  <Link
+                    key={p.id}
+                    to={`/admin/produits/${p.id}/modifier`}
+                    className="flex items-center gap-3 px-[18px] py-2.5 border-t border-sand-150 hover:bg-sand-50 transition-colors"
+                  >
+                    {p.imageUrl ? (
+                      <img src={img} alt={p.nom} className="w-[34px] h-[34px] rounded-5 object-cover flex-shrink-0" />
+                    ) : (
+                      <div className="w-[34px] h-[34px] rounded-5 placeholder-stripe flex-shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13.5px] font-medium text-ink-900 truncate">{p.nom}</div>
+                      <div className="font-mono text-[11.5px] text-graphite-300">{p.reference}</div>
+                    </div>
+                    <span className={`font-mono text-[13px] font-semibold ${p.enRupture ? 'text-danger-text' : 'text-warning-text'}`}>
+                      {p.stock}/{p.seuilAlerte}
+                    </span>
+                  </Link>
+                );
+              }) : (
+                <div className="p-8 text-center text-[13px] text-graphite-400">Tous les stocks sont au-dessus du seuil</div>
+              )}
+            </div>
           </div>
         </div>
-        
-        <div className="bg-white rounded-xl p-4 border border-gray-100 flex items-center gap-4">
-          <div className="p-3 bg-amber-100 rounded-lg">
-            <AlertTriangle className="w-6 h-6 text-amber-600" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-800">{dashboardStats?.produits?.stockFaible || 0}</p>
-            <p className="text-sm text-gray-500">Stock faible</p>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl p-4 border border-gray-100 flex items-center gap-4">
-          <div className="p-3 bg-red-100 rounded-lg">
-            <XCircle className="w-6 h-6 text-red-600" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-800">{dashboardStats?.produits?.rupture || 0}</p>
-            <p className="text-sm text-gray-500">En rupture</p>
-          </div>
-        </div>
+        </>
+        )}
       </div>
-    </div>
+    </>
   );
 };
 

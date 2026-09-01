@@ -92,7 +92,21 @@ const adminService = {
     const response = await api.get(`/admin/stats/low-stock?limit=${limit}`);
     return response.data.data;
   },
-  
+
+  /**
+   * Récupérer les stats comparées à la période précédente (deltas réels)
+   * @param {string} dateDebut - Date de début (ISO)
+   * @param {string} dateFin - Date de fin (ISO)
+   */
+  async getComparison(dateDebut = null, dateFin = null) {
+    const params = new URLSearchParams();
+    if (dateDebut) params.append('dateDebut', dateDebut);
+    if (dateFin) params.append('dateFin', dateFin);
+
+    const response = await api.get(`/admin/stats/comparison?${params}`);
+    return response.data.data;
+  },
+
   // ==========================================
   // CLIENTS
   // ==========================================
