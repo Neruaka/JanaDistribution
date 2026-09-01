@@ -9,6 +9,7 @@ import { useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import productService from '../services/productService';
 import categoryService from '../services/categoryService';
+import adminService from '../services/adminService';
 
 const useProductsAdmin = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -33,7 +34,11 @@ const useProductsAdmin = () => {
   const [search, setSearch] = useState(searchParams.get('q') || '');
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('categorie') || '');
   const [stockFilter, setStockFilter] = useState(searchParams.get('stock') || '');
+  const [statutFilter, setStatutFilter] = useState(searchParams.get('statut') || '');
   const [selectedProducts, setSelectedProducts] = useState([]);
+
+  // Compteurs d'en-tete (independants des filtres actifs)
+  const [counts, setCounts] = useState({ total: 0, stockFaible: 0, inactifs: 0 });
 
   // ==========================================
   // CHARGEMENT DES DONNÉES
@@ -43,7 +48,7 @@ const useProductsAdmin = () => {
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const response = await categoryService.getAll(true);
+        const response = await categoryService.getAll({ includeInactive: true });
         if (response.success) {
           setCategories(response.data);
         }
@@ -63,12 +68,12 @@ const useProductsAdmin = () => {
         limit: 10,
         search: search || undefined,
         categorieId: selectedCategory || undefined,
-        estActif: 'all',
+        estActif: statutFilter === 'actif' ? true : statutFilter === 'inactif' ? false : 'all',
         orderBy: 'createdAt',
         orderDir: 'DESC'
       };
 
-      if (stockFilter === 'low') {
+      if (stockFilter === 'in') {
         params.enStock = true;
       } else if (stockFilter === 'out') {
         params.enStock = false;
@@ -90,11 +95,29 @@ const useProductsAdmin = () => {
     } finally {
       setLoading(false);
     }
-  }, [searchParams, search, selectedCategory, stockFilter]);
+  }, [searchParams, search, selectedCategory, stockFilter, statutFilter]);
 
   useEffect(() => {
     loadProducts();
   }, [loadProducts]);
+
+  // Compteurs d'en-tete : total, sous le seuil (backend), inactifs — independants des filtres
+  useEffect(() => {
+    let mounted = true;
+    Promise.allSettled([
+      productService.getAll({ limit: 1, estActif: 'all' }),
+      productService.getAll({ limit: 1, estActif: false }),
+      adminService.getDashboardStats()
+    ]).then(([totalRes, inactifsRes, statsRes]) => {
+      if (!mounted) return;
+      setCounts({
+        total: totalRes.status === 'fulfilled' ? totalRes.value?.pagination?.total ?? 0 : 0,
+        inactifs: inactifsRes.status === 'fulfilled' ? inactifsRes.value?.pagination?.total ?? 0 : 0,
+        stockFaible: statsRes.status === 'fulfilled' ? statsRes.value?.produits?.stockFaible ?? 0 : 0
+      });
+    });
+    return () => { mounted = false; };
+  }, [products]);
 
   // ==========================================
   // HANDLERS FILTRES
@@ -136,6 +159,18 @@ const useProductsAdmin = () => {
     setSearchParams(params);
   };
 
+  const handleStatutFilterChange = (value) => {
+    setStatutFilter(value);
+    const params = new URLSearchParams(searchParams);
+    if (value) {
+      params.set('statut', value);
+    } else {
+      params.delete('statut');
+    }
+    params.delete('page');
+    setSearchParams(params);
+  };
+
   const handlePageChange = (newPage) => {
     const params = new URLSearchParams(searchParams);
     params.set('page', newPage);
@@ -146,6 +181,7 @@ const useProductsAdmin = () => {
     setSearch('');
     setSelectedCategory('');
     setStockFilter('');
+    setStatutFilter('');
     setSearchParams({});
   };
 
@@ -234,6 +270,48 @@ const useProductsAdmin = () => {
     }
   };
 
+  // Changement de rayon en masse (boucle sur l'endpoint de mise a jour existant,
+  // aucun endpoint bulk dedie cote backend)
+  const [bulkUpdating, setBulkUpdating] = useState(false);
+
+  const handleBulkChangeCategory = async (categorieId) => {
+    if (selectedProducts.length === 0 || !categorieId) return;
+    setBulkUpdating(true);
+    try {
+      const results = await Promise.allSettled(selectedProducts.map((id) => productService.update(id, { categorieId })));
+      const failed = results.filter((r) => r.status === 'rejected').length;
+      toast.success(`${selectedProducts.length - failed} produit(s) déplacé(s)`);
+      if (failed > 0) toast.error(`${failed} erreur(s)`);
+      setSelectedProducts([]);
+      loadProducts();
+    } catch (err) {
+      console.error('Erreur changement de rayon:', err);
+      toast.error('Erreur lors du changement de rayon');
+    } finally {
+      setBulkUpdating(false);
+    }
+  };
+
+  // Desactivation en masse (idem : boucle sur l'update existant)
+  const handleBulkDeactivate = async () => {
+    if (selectedProducts.length === 0) return;
+    if (!window.confirm(`Désactiver ${selectedProducts.length} produit(s) ?`)) return;
+    setBulkUpdating(true);
+    try {
+      const results = await Promise.allSettled(selectedProducts.map((id) => productService.update(id, { estActif: false })));
+      const failed = results.filter((r) => r.status === 'rejected').length;
+      toast.success(`${selectedProducts.length - failed} produit(s) désactivé(s)`);
+      if (failed > 0) toast.error(`${failed} erreur(s)`);
+      setSelectedProducts([]);
+      loadProducts();
+    } catch (err) {
+      console.error('Erreur désactivation:', err);
+      toast.error('Erreur lors de la désactivation');
+    } finally {
+      setBulkUpdating(false);
+    }
+  };
+
   // Export Excel
   const handleExport = async () => {
     setExporting(true);
@@ -285,37 +363,43 @@ const useProductsAdmin = () => {
     categories,
     loading,
     pagination,
-    
+    counts,
+
     // États d'actions
     exporting,
     importing,
     deleting,
-    
+    bulkUpdating,
+
     // Filtres
     search,
     setSearch,
     selectedCategory,
     stockFilter,
+    statutFilter,
     selectedProducts,
-    
+
     // Handlers filtres
     handleSearch,
     handleCategoryChange,
     handleStockFilterChange,
+    handleStatutFilterChange,
     handlePageChange,
     clearFilters,
-    
+
     // Handlers sélection
     handleSelectAll,
     handleSelectProduct,
     clearSelection,
-    
+
     // Handlers actions
     handleDeleteProduct,
     handleBulkDelete,
+    handleBulkChangeCategory,
+    handleBulkDeactivate,
     handleExport,
     handleImport,
-    
+
     // Reload
     loadProducts
   };

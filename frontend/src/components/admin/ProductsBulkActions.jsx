@@ -1,52 +1,73 @@
 /**
  * Composant ProductsBulkActions
- * @description Actions groupées pour les produits sélectionnés
- * @location frontend/src/components/admin/ProductsBulkActions.jsx
+ * @description Barre d'actions groupees, affichee quand une selection existe
+ * @see design_handoff_jana_refonte/README.md (A4 — Produits)
+ *
+ * La maquette prevoit "Changer de rayon / Appliquer une remise / Desactiver".
+ * "Appliquer une remise" n'a pas d'equivalent reel (pas de notion de remise en
+ * masse cote backend) et n'a pas ete ajoutee pour ne pas fabriquer une action
+ * qui ne ferait rien. "Changer de rayon" et "Desactiver" reutilisent l'endpoint
+ * de mise a jour produit existant. "Supprimer" (deja reel avant la refonte) est
+ * conservee au-dela de la maquette plutot que retiree.
  */
-
-import { motion } from 'framer-motion';
 
 const ProductsBulkActions = ({
   selectedCount,
+  categories,
   deleting,
+  bulkUpdating,
   onClearSelection,
-  onBulkDelete
+  onBulkDelete,
+  onBulkChangeCategory,
+  onBulkDeactivate
 }) => {
   if (selectedCount === 0) return null;
+  const busy = deleting || bulkUpdating;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center justify-between"
-    >
-      <span className="text-blue-700 font-medium">
+    <div className="bg-success-bg border border-success-border rounded-8 px-4 py-3 flex items-center gap-3 flex-wrap">
+      <span className="text-[13.5px] font-semibold text-success-text">
         {selectedCount} produit{selectedCount > 1 ? 's' : ''} sélectionné{selectedCount > 1 ? 's' : ''}
       </span>
-      <div className="flex gap-2">
-        <button 
+
+      <div className="flex items-center gap-2 ml-auto flex-wrap">
+        <select
+          defaultValue=""
+          disabled={busy}
+          onChange={(e) => { if (e.target.value) { onBulkChangeCategory(e.target.value); e.target.value = ''; } }}
+          className="h-[34px] border border-success-border rounded-6 px-2.5 text-[12.5px] text-success-text bg-white disabled:opacity-50"
+        >
+          <option value="">Changer de rayon…</option>
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.id}>{cat.nom}</option>
+          ))}
+        </select>
+        <button
+          type="button"
+          onClick={onBulkDeactivate}
+          disabled={busy}
+          className="h-[34px] px-3 text-[12.5px] font-semibold text-success-text border border-success-border rounded-6 bg-white hover:bg-success-bg disabled:opacity-50 transition-colors"
+        >
+          Désactiver
+        </button>
+        <button
+          type="button"
+          onClick={onBulkDelete}
+          disabled={busy}
+          className="h-[34px] px-3 text-[12.5px] font-semibold text-white bg-danger-text rounded-6 hover:opacity-90 disabled:opacity-50 transition-opacity"
+        >
+          {deleting ? 'Suppression…' : 'Supprimer'}
+        </button>
+        <button
+          type="button"
           onClick={onClearSelection}
-          className="px-3 py-1.5 text-sm bg-white border border-blue-200 rounded-lg hover:bg-blue-50 text-blue-700 transition-colors"
+          disabled={busy}
+          className="h-[34px] px-3 text-[12.5px] font-semibold text-success-text hover:underline disabled:opacity-50"
         >
           Désélectionner
         </button>
-        <button 
-          onClick={onBulkDelete}
-          disabled={deleting}
-          className="px-3 py-1.5 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors flex items-center gap-2"
-        >
-          {deleting ? (
-            <>
-              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Suppression...
-            </>
-          ) : (
-            'Supprimer'
-          )}
-        </button>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

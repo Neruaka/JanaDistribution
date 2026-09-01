@@ -245,40 +245,32 @@ const ProductsExportImport = ({
 
       {/* Bouton Import */}
       <button
+        type="button"
         onClick={() => fileInputRef.current?.click()}
         disabled={importing}
-        className="px-4 py-2 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-2 text-gray-600 disabled:opacity-50"
+        className="h-[38px] flex items-center gap-1.5 border border-sand-250 rounded-6 px-3.5 text-[13.5px] text-graphite-900 hover:border-sand-300 transition-colors disabled:opacity-50"
       >
         {importing ? (
-          <>
-            <span className="w-4 h-4 border-2 border-gray-400/30 border-t-gray-400 rounded-full animate-spin" />
-            Import...
-          </>
+          <span className="w-3.5 h-3.5 border-2 border-graphite-300/40 border-t-graphite-500 rounded-full animate-spin" />
         ) : (
-          <>
-            <Upload className="w-4 h-4" />
-            Importer
-          </>
+          <Upload className="w-3.5 h-3.5" />
         )}
+        {importing ? 'Import…' : 'Importer .xlsx'}
       </button>
 
       {/* Bouton Export */}
       <button
+        type="button"
         onClick={handleExportClick}
         disabled={exporting}
-        className="px-4 py-2 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors flex items-center gap-2 text-gray-600 disabled:opacity-50"
+        className="h-[38px] flex items-center gap-1.5 border border-sand-250 rounded-6 px-3.5 text-[13.5px] text-graphite-900 hover:border-sand-300 transition-colors disabled:opacity-50"
       >
         {exporting ? (
-          <>
-            <span className="w-4 h-4 border-2 border-gray-400/30 border-t-gray-400 rounded-full animate-spin" />
-            Export...
-          </>
+          <span className="w-3.5 h-3.5 border-2 border-graphite-300/40 border-t-graphite-500 rounded-full animate-spin" />
         ) : (
-          <>
-            <Download className="w-4 h-4" />
-            Exporter
-          </>
+          <Download className="w-3.5 h-3.5" />
         )}
+        {exporting ? 'Export…' : 'Exporter'}
       </button>
     </>
   );
@@ -289,18 +281,16 @@ const ProductsExportImport = ({
 // ==========================================
 
 export const ImportInfoBox = () => (
-  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-    <div className="flex items-start gap-3">
-      <FileSpreadsheet className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-      <div>
-        <h3 className="font-medium text-blue-800">Format d'import Excel</h3>
-        <p className="text-sm text-blue-600 mt-1">
-          Colonnes attendues : <strong>Reference</strong> | <strong>Nom</strong> | Categorie | Origine | Prix | Description | Unite de mesure | Stock
-        </p>
-        <p className="text-sm text-blue-600 mt-1">
-          Les produits sans categorie existante seront assignes a "TBD". Reference et Nom sont obligatoires.
-        </p>
-      </div>
+  <div className="bg-white border border-sand-200 rounded-8 p-4 flex items-start gap-3">
+    <FileSpreadsheet className="w-4 h-4 text-graphite-300 mt-0.5 flex-shrink-0" />
+    <div>
+      <h3 className="text-[13.5px] font-semibold text-ink-900">Format d'import Excel</h3>
+      <p className="text-[12.5px] text-graphite-500 mt-1">
+        Colonnes attendues : <strong className="text-graphite-700">Référence</strong> | <strong className="text-graphite-700">Nom</strong> | Catégorie | Origine | Prix | Description | Unité de mesure | Stock
+      </p>
+      <p className="text-[12.5px] text-graphite-500 mt-1">
+        Les produits sans catégorie existante seront assignés à « TBD ». Référence et Nom sont obligatoires.
+      </p>
     </div>
   </div>
 );

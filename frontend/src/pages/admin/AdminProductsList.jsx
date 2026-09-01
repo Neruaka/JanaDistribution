@@ -1,24 +1,14 @@
 /**
- * Page Admin Produits - VERSION REFACTORISÉE
- * @description Gestion des produits avec composants modulaires
- * @location frontend/src/pages/admin/AdminProductsList.jsx
- * 
- * ✅ REFACTORING:
- * - Hook useProductsAdmin pour la logique
- * - ProductsFilters pour les filtres
- * - ProductsTable pour le tableau
- * - ProductsBulkActions pour les actions groupées
- * - ProductsExportImport pour l'export/import Excel
+ * Page Admin Produits
+ * @description Ecran A4 — Produits
+ * @see design_handoff_jana_refonte/README.md (A4 — Produits)
  */
 
 import { Link } from 'react-router-dom';
-import { Plus } from 'lucide-react';
-import { AnimatePresence } from 'framer-motion';
+import { Search, Plus } from 'lucide-react';
 
-// Hook personnalisé
 import useProductsAdmin from '../../hooks/useProductsAdmin';
-
-// Composants
+import { AdminTopBar } from '../../components/admin';
 import ProductsFilters from '../../components/admin/ProductsFilters';
 import ProductsTable from '../../components/admin/ProductsTable';
 import ProductsBulkActions from '../../components/admin/ProductsBulkActions';
@@ -26,119 +16,82 @@ import ProductsExportImport, { ImportInfoBox } from '../../components/admin/Prod
 
 const AdminProductsList = () => {
   const {
-    // Données
-    products,
-    categories,
-    loading,
-    pagination,
-    
-    // États d'actions
-    exporting,
-    importing,
-    deleting,
-    
-    // Filtres
-    search,
-    setSearch,
-    selectedCategory,
-    stockFilter,
-    selectedProducts,
-    
-    // Handlers filtres
-    handleSearch,
-    handleCategoryChange,
-    handleStockFilterChange,
-    handlePageChange,
-    clearFilters,
-    
-    // Handlers sélection
-    handleSelectAll,
-    handleSelectProduct,
-    clearSelection,
-    
-    // Handlers actions
-    handleDeleteProduct,
-    handleBulkDelete,
-    handleExport,
-    handleImport
+    products, categories, loading, pagination, counts,
+    exporting, importing, deleting, bulkUpdating,
+    search, setSearch, selectedCategory, stockFilter, statutFilter, selectedProducts,
+    handleSearch, handleCategoryChange, handleStockFilterChange, handleStatutFilterChange, handlePageChange,
+    handleSelectAll, handleSelectProduct, clearSelection,
+    handleDeleteProduct, handleBulkDelete, handleBulkChangeCategory, handleBulkDeactivate,
+    handleExport, handleImport
   } = useProductsAdmin();
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Produits</h1>
-          <p className="text-gray-500">
-            Gérez votre catalogue de produits
-            {pagination.total > 0 && (
-              <span className="ml-2 text-sm">
-                ({pagination.total} produit{pagination.total > 1 ? 's' : ''})
-              </span>
-            )}
-          </p>
-        </div>
-        
-        <div className="flex gap-3">
-          {/* Export / Import */}
-          <ProductsExportImport
+    <>
+      <AdminTopBar
+        search={
+          <form onSubmit={handleSearch} className="flex-1 max-w-[420px] h-[38px] flex items-center gap-2 border border-sand-250 rounded-6 px-3.5">
+            <Search className="w-3.5 h-3.5 text-graphite-300 flex-shrink-0" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Rechercher un produit, une référence…"
+              className="flex-1 bg-transparent border-none outline-none text-[13.5px] text-ink-900 placeholder-graphite-200"
+            />
+          </form>
+        }
+      >
+        <ProductsExportImport categories={categories} exporting={exporting} importing={importing} onExport={handleExport} onImport={handleImport} />
+        <Link to="/admin/produits/nouveau" className="h-[38px] flex items-center gap-1.5 bg-green-700 hover:bg-green-800 text-white rounded-6 px-4 text-[13.5px] font-semibold transition-colors">
+          <Plus className="w-3.5 h-3.5" /> Nouveau produit
+        </Link>
+      </AdminTopBar>
+
+      <div className="p-[26px] flex flex-col gap-3.5">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h2 className="font-display text-[26px] font-extrabold tracking-tighter text-ink-900">Produits</h2>
+            <p className="text-[13.5px] text-graphite-500 mt-[3px]">
+              {counts.total} réf.{counts.stockFaible > 0 && ` · ${counts.stockFaible} sous le seuil`}{counts.inactifs > 0 && ` · ${counts.inactifs} inactives`}
+            </p>
+          </div>
+          <ProductsFilters
+            selectedCategory={selectedCategory}
+            stockFilter={stockFilter}
+            statutFilter={statutFilter}
             categories={categories}
-            exporting={exporting}
-            importing={importing}
-            onExport={handleExport}
-            onImport={handleImport}
+            onCategoryChange={handleCategoryChange}
+            onStockFilterChange={handleStockFilterChange}
+            onStatutFilterChange={handleStatutFilterChange}
           />
-          
-          {/* Nouveau produit */}
-          <Link
-            to="/admin/produits/nouveau"
-            className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Nouveau produit
-          </Link>
         </div>
-      </div>
 
-      {/* Filtres */}
-      <ProductsFilters
-        search={search}
-        setSearch={setSearch}
-        selectedCategory={selectedCategory}
-        stockFilter={stockFilter}
-        categories={categories}
-        onSearch={handleSearch}
-        onCategoryChange={handleCategoryChange}
-        onStockFilterChange={handleStockFilterChange}
-        onClearFilters={clearFilters}
-      />
-
-      {/* Actions groupées */}
-      <AnimatePresence>
         <ProductsBulkActions
           selectedCount={selectedProducts.length}
+          categories={categories}
           deleting={deleting}
+          bulkUpdating={bulkUpdating}
           onClearSelection={clearSelection}
           onBulkDelete={handleBulkDelete}
+          onBulkChangeCategory={handleBulkChangeCategory}
+          onBulkDeactivate={handleBulkDeactivate}
         />
-      </AnimatePresence>
 
-      {/* Tableau des produits */}
-      <ProductsTable
-        products={products}
-        loading={loading}
-        pagination={pagination}
-        selectedProducts={selectedProducts}
-        deleting={deleting}
-        onSelectAll={handleSelectAll}
-        onSelectProduct={handleSelectProduct}
-        onDeleteProduct={handleDeleteProduct}
-        onPageChange={handlePageChange}
-      />
+        <ProductsTable
+          products={products}
+          loading={loading}
+          pagination={pagination}
+          selectedProducts={selectedProducts}
+          deleting={deleting}
+          onSelectAll={handleSelectAll}
+          onSelectProduct={handleSelectProduct}
+          onDeleteProduct={handleDeleteProduct}
+          onPageChange={handlePageChange}
+        />
 
-      {/* Info import */}
-      <ImportInfoBox />
-    </div>
+        <ImportInfoBox />
+      </div>
+    </>
   );
 };
 
