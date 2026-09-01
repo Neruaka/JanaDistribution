@@ -33,10 +33,10 @@ class StatsRepository {
 
       // Chiffre d'affaires et commandes (exclut ANNULEE)
       const revenueSQL = `
-        SELECT 
-          COALESCE(SUM(total_ttc), 0) as chiffre_affaires,
+        SELECT
+          COALESCE(SUM(total_ht), 0) as chiffre_affaires,
           COUNT(*) as nombre_commandes,
-          COALESCE(AVG(total_ttc), 0) as panier_moyen
+          COALESCE(AVG(total_ht), 0) as panier_moyen
         FROM commande c
         ${dateCondition}
         ${dateCondition ? 'AND' : 'WHERE'} statut != 'ANNULEE'
@@ -131,9 +131,9 @@ class StatsRepository {
       const sql = `
         SELECT 
           ${dateFormat} as periode,
-          COALESCE(SUM(total_ttc), 0) as montant,
+          COALESCE(SUM(total_ht), 0) as montant,
           COUNT(*) as nombre_commandes,
-          COALESCE(AVG(total_ttc), 0) as panier_moyen
+          COALESCE(AVG(total_ht), 0) as panier_moyen
         FROM commande c
         ${dateCondition}
         ${dateCondition ? 'AND' : 'WHERE'} statut != 'ANNULEE'
