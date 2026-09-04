@@ -122,7 +122,7 @@ const OrderHistoryPage = () => {
                 {pagination.total} commande{pagination.total > 1 ? 's' : ''}
               </div>
             </div>
-            <div className="flex gap-2.5 flex-wrap">
+            <div className="hidden md:flex gap-2.5 flex-wrap">
               <select
                 value={periode}
                 onChange={(e) => updateParams({ periode: e.target.value })}
@@ -142,6 +142,27 @@ const OrderHistoryPage = () => {
                 Exporter
               </button>
             </div>
+          </div>
+
+          {/* Chips de statut (mobile, M9) */}
+          <div className="md:hidden flex gap-2 overflow-x-auto pb-1 -mx-4 px-4">
+            <button
+              type="button"
+              onClick={() => updateParams({ statut: '' })}
+              className={`flex-shrink-0 text-[12.5px] font-semibold px-3 py-1.5 rounded-full border transition-colors ${statut === '' ? 'bg-ink-900 border-ink-900 text-white' : 'bg-white border-sand-250 text-graphite-700'}`}
+            >
+              Tous
+            </button>
+            {Object.entries(STATUTS_COMMANDE).map(([key, v]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => updateParams({ statut: key })}
+                className={`flex-shrink-0 text-[12.5px] font-semibold px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap ${statut === key ? 'bg-ink-900 border-ink-900 text-white' : 'bg-white border-sand-250 text-graphite-700'}`}
+              >
+                {v.label}
+              </button>
+            ))}
           </div>
 
           {error && (
@@ -184,7 +205,7 @@ const OrderHistoryPage = () => {
                 return (
                   <div
                     key={order.id}
-                    className="grid gap-3.5 px-[18px] py-4 border-b border-[#F0EEE7] last:border-b-0 items-center"
+                    className="hidden md:grid gap-3.5 px-[18px] py-4 border-b border-[#F0EEE7] last:border-b-0 items-center"
                     style={{ gridTemplateColumns: '190px 1fr 110px 90px 120px 250px' }}
                   >
                     <span className="font-mono text-[13px] text-ink-900">{order.numeroCommande}</span>
@@ -209,6 +230,42 @@ const OrderHistoryPage = () => {
                   </div>
                 );
               })}
+
+              {/* Cartes commande (mobile, M9) */}
+              <div className="md:hidden flex flex-col">
+                {orders.map((order) => {
+                  const statutInfo = getStatutInfo(order.statut);
+                  const badgeStyle = STATUT_STYLE[order.statut] || 'bg-neutral-status-bg text-neutral-status-text';
+                  const nbArticles = order.nbArticles ?? order.lignes?.length ?? 0;
+                  return (
+                    <div key={`m-${order.id}`} className="px-4 py-3.5 border-b border-[#F0EEE7] last:border-b-0 flex flex-col gap-2.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-[13px] text-ink-900">{order.numeroCommande}</span>
+                            <span className={`text-[11px] font-semibold px-2 py-[2px] rounded-4 ${badgeStyle}`}>{statutInfo.label}</span>
+                          </div>
+                          <div className="text-[12px] text-graphite-500 mt-1">{formatDate(order.dateCommande)} · {nbArticles} référence{nbArticles > 1 ? 's' : ''}</div>
+                        </div>
+                        <span className="font-mono text-[16px] text-ink-900 flex-shrink-0">{formatAmount(order.totalTtc)}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Link to={`/mes-commandes/${order.id}`} className="flex-1 text-center text-[12.5px] text-graphite-700 border border-sand-250 py-2 rounded-5">
+                          Détail
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => handleReorder(order.id)}
+                          disabled={reorderingId === order.id}
+                          className="flex-1 text-[12.5px] font-semibold text-success-text bg-success-bg border border-success-border py-2 rounded-5 disabled:opacity-50"
+                        >
+                          {reorderingId === order.id ? '…' : 'Recommander'}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
 
               <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 px-[18px] py-3.5">
                 <span className="text-[13px] text-graphite-500">
