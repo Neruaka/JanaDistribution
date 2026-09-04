@@ -9,18 +9,18 @@
 
 | Indicateur | Valeur |
 |---|---|
-| Phase active | Phase 14 (déploiement) COMPLÈTE. T5-14/T5-15 (facturation) DONE. **25 tâches restent réellement TODO dans le code**, voir ligne TODO ci-dessous — "le site est en ligne" ne veut pas dire "il n'y a plus rien à coder". |
-| Tâche active | Session 2026-09-04 (suite) : **T5-14 (factures immuables) et T5-15 (avoir après remboursement) implémentées, testées en conditions réelles et déployées** — voir détail dans leurs entrées ci-dessous. Bug annexe trouvé et corrigé en cours de route : la génération de facture n'avait jamais fonctionné contre le vrai schéma (colonnes d'adresse inexistantes) — jamais exercée avant cette session. Bug annexe 2 : `.gitignore` bloquait `backend/scripts/migrations` depuis le tout premier commit du projet (règle `scripts/` trop large), corrigé — la migration 0001 et `run-migrations.js` sont enfin versionnés. 7 commits créés pour l'ensemble de cette session (audit + déploiement + facturation), sans trailer de co-autorat. Reste : DB-04 (décision propriétaire), peuplement du catalogue, et le backlog TODO réel ci-dessous. |
+| Phase active | Phase 14 (déploiement) COMPLÈTE. T5-14/T5-15 (facturation) DONE. **21 tâches restent réellement TODO dans le code**, voir ligne TODO ci-dessous — "le site est en ligne" ne veut pas dire "il n'y a plus rien à coder". |
+| Tâche active | Session 2026-09-04 (suite) : re-vérification une par une des 25 tâches TODO restantes après la facturation. T13-08 (validation manquante sur `PUT /api/admin/settings`), T13-09 (révocation refresh token fail-open), T13-11 (`jwt.verify` sans `algorithms` épinglé) corrigées et testées (139/139 tests unitaires passent). T13-12 déjà résolu en effet de bord de T5-15. Reste 21 items à revérifier/corriger. Sans trailer de co-autorat, comme demandé. |
 | Tâches totales | 134 — recompté par comptage réel des statuts dans le document (pas par arithmétique incrémentale, qui avait introduit une erreur le 2026-09-04 — voir historique de session) |
 | READY | 0 |
 | IN_PROGRESS | 0 |
 | BLOCKED | 4 — T5-16, T5-17 (tests facture, dépendent de T5-14/15 maintenant DONE) ; T9-03 (validation légale CGV/RGPD) ; T9-04 (validation comptable TVA, = DB-03). DB-04 (secret git) est une **décision**, pas une tâche BLOCKED de ce compteur — voir §3. |
-| TODO | 25 — liste complète : T3-03, T6-04, T7-05, T7-07, T9-02, T9-06, T9-07, T9-08, T13-08..T13-24 (17 items de l'audit Phase 13, tous P2/P3) |
-| DONE | 86 |
+| TODO | 21 — liste complète : T3-03, T6-04, T7-05, T7-07, T9-02, T9-06, T9-07, T9-08, T13-10, T13-13..T13-24 (13 items restants de l'audit Phase 13, tous P2/P3) |
+| DONE | 90 |
 | CANCELLED | 19 (9 + Phase 8 : T8-01..T8-06 + T11-04, T11-05, T11-07, T11-09 supersédées par Fly.io le 2026-09-04) |
 | P0 restants | 1 (DB-04 — secret réel dans l'historique git d'un dépôt GitHub public, décision propriétaire, voir §3) |
 | P1 restants | 2 (npm audit frontend react-router open redirect [nécessite migration v7] ; rotation SMTP_USER/SMTP_PASS legacy — Phase 12 T12-10). T5-14 et T5-15 sont DONE — ce ne sont plus des P0/P1 restants. |
-| Verdict | EN PRODUCTION SUR FLY.IO et fonctionnel (jana-frontend.fly.dev / jana-backend.fly.dev), facturation légale complète (immuable + avoir). **PAS "terminé" pour autant** : 25 tâches TODO réelles dans le code, toutes P2/P3 non bloquantes (voir ligne TODO). DB-04 (P0, décision propriétaire) toujours ouvert. Catalogue à peupler. |
+| Verdict | EN PRODUCTION SUR FLY.IO et fonctionnel (jana-frontend.fly.dev / jana-backend.fly.dev), facturation légale complète (immuable + avoir). **PAS "terminé" pour autant** : 21 tâches TODO réelles dans le code, toutes P2/P3 non bloquantes (voir ligne TODO). DB-04 (P0, décision propriétaire) toujours ouvert. Catalogue à peupler. |
 
 ---
 
@@ -1229,14 +1229,14 @@ Checklist complète : `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 - **Build :** `npm run build` ✓ sans erreur.
 
 ### T13-08 — `PUT /api/admin/settings` contourne la validation appliquée ailleurs
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** Backend
-- **Fichiers :** `backend/src/services/settings.service.js:161-193` vs `138-154`
-- **Détail :** `updateAll()` n'appelle jamais `_validateSettings()` (bornes négatives, format email), contrairement à `updateCategory()`. Un admin peut pousser des frais de livraison négatifs via cette seule route.
+- **Statut :** DONE (2026-09-04) | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** Backend
+- **Fichiers :** `backend/src/services/settings.service.js`
+- **Détail :** `updateAll()` appelle désormais `_validateSettings()` pour chaque catégorie (`delivery`, `orders`, `emails`) avant persistance, comme `updateCategory()`. Un admin ne peut plus pousser des valeurs invalides (frais négatifs, email malformé) via cette route.
 
 ### T13-09 — Révocation de refresh token silencieusement inopérante si l'écriture DB échoue
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** SÉCURITÉ | **Domaine :** Backend/Cybersécurité
-- **Fichiers :** `backend/src/services/auth.service.js:232-247,486-494`
-- **Détail :** `_storeRefreshToken` avale toute erreur DB ; si le stockage échoue au login, le token reste valide 30 jours sans possibilité de révocation serveur (cas limite, dégrade la garantie de T2-03..T2-05).
+- **Statut :** DONE (2026-09-04) | **Priorité :** P2 | **Catégorie :** SÉCURITÉ | **Domaine :** Backend/Cybersécurité
+- **Fichiers :** `backend/src/services/auth.service.js:232-253`
+- **Détail :** `refreshTokens()` passe en fail-closed : si `findRefreshToken()` ne retrouve pas le hash en DB (stockage silencieusement échoué au login, ou erreur de lecture), la requête est rejetée (`401 Session introuvable`) au lieu de se fier à la seule signature JWT valable 30 jours.
 
 ### T13-10 — Recherche produits et import Excel hors du rate limiting dédié
 - **Statut :** TODO | **Priorité :** P2 | **Catégorie :** SÉCURITÉ | **Domaine :** Backend
@@ -1244,14 +1244,13 @@ Checklist complète : `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 - **Détail :** `GET /api/products/search` (requête `ILIKE` non authentifiée) n'a que le plafond global générique (300/15min) — potentiel abus de charge DB.
 
 ### T13-11 — `jwt.verify` sans `algorithms` épinglé explicitement
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** SÉCURITÉ | **Domaine :** Backend
-- **Fichiers :** `backend/src/middlewares/auth.middleware.js:35`, `backend/src/services/auth.service.js:545,561`
-- **Détail :** non exploitable actuellement (HS256 uniquement), mais durcissement standard à appliquer par prévention : `jwt.verify(token, secret, { algorithms: ['HS256'] })`.
+- **Statut :** DONE (2026-09-04) | **Priorité :** P2 | **Catégorie :** SÉCURITÉ | **Domaine :** Backend
+- **Fichiers :** `backend/src/middlewares/auth.middleware.js:35,88`, `backend/src/services/auth.service.js:560,576`
+- **Détail :** les 4 appels `jwt.verify()` du projet épinglent désormais `{ algorithms: ['HS256'] }`, éliminant tout risque de confusion d'algorithme (`alg: none`, RS256→HS256).
 
 ### T13-12 — Aucun email envoyé au client lors d'un remboursement
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** E-commerce/Backend
-- **Fichiers :** `backend/src/routes/admin.order.routes.js:518-596`
-- **Détail :** la route de remboursement contourne `orderService.updateStatus()` (qui envoie systématiquement un email) en appelant directement le repository.
+- **Statut :** DONE (2026-09-04, résolu comme effet de bord de T5-15) | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** E-commerce/Backend
+- **Détail :** `invoiceService.generateCreditNote()` (T5-15) envoie désormais systématiquement un email au client avec le PDF de l'avoir à chaque remboursement — vérifié en conditions réelles (messageId Gmail confirmé dans les logs). Plus besoin de correctif dédié.
 
 ### T13-13 — Code promo à usage unique jamais libéré si la commande est annulée
 - **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** E-commerce/Backend
