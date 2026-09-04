@@ -6,7 +6,7 @@ Jana Distribution est une plateforme e-commerce alimentaire B2C/B2B.
 Stack : React 18 / Vite / TailwindCSS 3.4 / Node.js + Express / PostgreSQL 15 / Redis 7 / Gmail SMTP (nodemailer).
 Paiement en ligne (Stripe) retiré du MVP (T4-07, 2026-07-02) — ESPECES/VIREMENT/CHEQUE manuel uniquement.
 Email transactionnel migré de Brevo REST API vers Gmail SMTP (2026-07-08) — voir `docs/guides/GUIDE_GMAIL_SMTP.md`.
-Déploiement : Fly.io (`jana-frontend.fly.dev` / `jana-backend.fly.dev` / Postgres `jana-db`) — EN PRODUCTION depuis 2026-09-04 (Phase 14). Railway abandonné (plan expiré) ; le homeserver `tfredklab.dev` (Phase 11) a été supersédé par cette décision utilisateur avant d'être mis en service — ne pas reprendre ce chemin sans confirmation explicite.
+Déploiement : Fly.io (`jana-frontend.fly.dev` / `jana-backend.fly.dev` / Postgres `jana-db`) — EN PRODUCTION depuis 2026-09-04 (Phase 14). Manuel (`flyctl deploy`), pas de CI/CD — voir `docs/deploiement/DEPLOY-FLYIO.md`. Railway abandonné (plan expiré) ; le homeserver `tfredklab.dev` (Phase 11) a été supersédé par cette décision utilisateur avant d'être mis en service — ne pas reprendre ce chemin sans confirmation explicite.
 Avancement : voir `docs/workflow/PLAN_CORRECTION_AUDIT.md` §1 (Tableau de bord) pour le compte à jour — NE PAS recopier un pourcentage figé ici, il dérive vite (incident constaté le 2026-09-04, recompter au lieu d'incrémenter).
 Phase active : Phase 14 (déploiement Fly.io) COMPLÈTE. Voir `docs/workflow/PLAN_CORRECTION_AUDIT.md` et `docs/workflow/ETAT_ACTUEL_PROJET.md` pour la prochaine tâche recommandée.
 

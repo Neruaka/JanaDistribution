@@ -80,7 +80,8 @@ ghcr.io/<username>/jana-distribution/frontend:latest
 
 > ⚠️ **SUPERSÉDÉ ET DÉSACTIVÉ (2026-09-05, décision utilisateur explicite).**
 > Le homeserver `tfredklab.dev` a été abandonné avant mise en service au
-> profit de Fly.io (Phase 14), déployé manuellement (`flyctl deploy`, pas de
+> profit de Fly.io (Phase 14), déployé manuellement (`flyctl deploy` — voir
+> `docs/deploiement/DEPLOY-FLYIO.md`, pas de
 > CI/CD — choix délibéré pour ne pas dépendre de GitHub Actions). Le
 > déclencheur automatique sur push `develop` a été retiré de
 > `.github/workflows/deploy.yml` (ne reste que `workflow_dispatch` manuel) ;
