@@ -16,6 +16,7 @@ import adminService from '../../services/adminService';
 import productService from '../../services/productService';
 import categoryService from '../../services/categoryService';
 import toast from 'react-hot-toast';
+import AdminMobileTabBar from './AdminMobileTabBar';
 
 const NAV_ITEMS = [
   { name: 'Dashboard', href: '/admin', exact: true },
@@ -162,7 +163,7 @@ const AdminLayout = () => {
         </div>
       )}
 
-      <div className="flex-1 min-w-0 lg:ml-[236px] flex flex-col">
+      <div className="flex-1 min-w-0 lg:ml-[236px] flex flex-col pb-[76px] lg:pb-0">
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
@@ -172,6 +173,8 @@ const AdminLayout = () => {
         </button>
         <Outlet />
       </div>
+
+      <AdminMobileTabBar />
     </div>
   );
 };

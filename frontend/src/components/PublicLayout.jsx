@@ -5,6 +5,7 @@
 
 import Navbar from './Navbar';
 import Footer from './Footer';
+import MobileTabBar from './MobileTabBar';
 
 const PublicLayout = ({ children }) => {
   return (
@@ -14,6 +15,8 @@ const PublicLayout = ({ children }) => {
         {children}
       </main>
       <Footer />
+      <div className="h-[76px] md:hidden" />
+      <MobileTabBar />
     </div>
   );
 };
