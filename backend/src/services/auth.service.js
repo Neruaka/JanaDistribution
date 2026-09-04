@@ -316,6 +316,10 @@ class AuthService {
     const nouveauHash = await bcrypt.hash(nouveauMotDePasse, this.saltRounds);
     await userRepository.updatePassword(userId, nouveauHash);
 
+    // Révoquer toutes les sessions existantes : un changement de mot de passe doit
+    // couper l'accès à un éventuel refresh token volé sur un autre appareil.
+    await userRepository.revokeAllUserRefreshTokens(userId);
+
     logger.info(`Mot de passe changé pour: ${user.email}`);
 
     // ✅ Envoyer email de confirmation
@@ -445,6 +449,11 @@ class AuthService {
     // Mettre à jour le mot de passe et supprimer le token
     await userRepository.updatePassword(user.id, nouveauHash);
     await userRepository.clearResetToken(user.id);
+
+    // Révoquer toutes les sessions existantes : un reset de mot de passe (souvent
+    // déclenché après une compromission suspectée) doit couper l'accès à tout
+    // refresh token émis avant la réinitialisation.
+    await userRepository.revokeAllUserRefreshTokens(user.id);
 
     logger.info(`Mot de passe réinitialisé pour: ${user.email}`);
 
