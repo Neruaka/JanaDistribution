@@ -137,7 +137,7 @@ const ProductDetailPage = () => {
   ].filter(Boolean);
 
   return (
-    <div className="bg-sand-50 min-h-screen">
+    <div className="bg-sand-50 min-h-screen pb-[86px] md:pb-0">
       <div className="bg-white border-b border-sand-200 px-4 md:px-10 py-3 text-[12.5px] text-graphite-400">
         <Link to="/" className="hover:text-ink-900">Accueil</Link>
         <span className="text-[#C3CBC6] mx-1.5">/</span>
@@ -155,7 +155,7 @@ const ProductDetailPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-[1fr_430px] gap-9 px-4 md:px-10 pt-7 pb-[34px]">
         {/* Colonne galerie + onglets */}
         <div className="flex flex-col gap-[22px]">
-          <div className="grid grid-cols-[84px_1fr] gap-3">
+          <div className="hidden md:grid grid-cols-[84px_1fr] gap-3">
             <div className="flex flex-col gap-2.5">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className={`h-[84px] rounded-6 placeholder-stripe ${i === 0 ? 'border-2 border-ink-900' : 'border border-sand-250'}`} />
@@ -168,6 +168,14 @@ const ProductDetailPage = () => {
                 <span className="font-mono text-[11px] text-graphite-300">photo produit — 1200 × 1200, fond neutre</span>
               )}
             </div>
+          </div>
+          {/* Mobile : image unique 300px, sans bandeau de vignettes (pas de galerie multi-photos reelle) */}
+          <div className="md:hidden h-[300px] rounded-8 border border-sand-200 placeholder-stripe flex items-end p-3.5 overflow-hidden">
+            {fullImageUrl ? (
+              <img src={fullImageUrl} alt={product.nom} className="w-full h-full object-cover" />
+            ) : (
+              <span className="font-mono text-[11px] text-graphite-300">photo produit — 1200 × 1200, fond neutre</span>
+            )}
           </div>
 
           <div className="bg-white border border-sand-200 rounded-8">
@@ -229,7 +237,7 @@ const ProductDetailPage = () => {
           </div>
 
           <div>
-            <h1 className="font-display text-[31px] font-extrabold leading-[1.1] tracking-tighter text-ink-900">{product.nom}</h1>
+            <h1 className="font-display text-[23px] md:text-[31px] font-extrabold leading-[1.1] tracking-tighter text-ink-900">{product.nom}</h1>
             <div className="font-mono text-[12.5px] text-graphite-400 mt-1.5">
               {product.reference}{product.origine ? ` · ${product.origine}` : ''}
             </div>
@@ -237,7 +245,7 @@ const ProductDetailPage = () => {
 
           <div className="bg-white border border-sand-200 rounded-8 p-[18px]">
             <div className="flex items-baseline gap-2 flex-wrap">
-              <span className="font-mono text-[34px] font-semibold tracking-tight text-ink-900">{primary}</span>
+              <span className="font-mono text-[28px] md:text-[34px] font-semibold tracking-tight text-ink-900">{primary}</span>
               <span className="text-[14px] text-graphite-500">{primarySuffix}{unitLabel ? ` / ${unitLabel}` : ''}</span>
               {product.prixPromo && (
                 <span className="font-mono text-[15px] text-graphite-300 line-through">{formatAmount(product.prix)}</span>
@@ -253,7 +261,7 @@ const ProductDetailPage = () => {
               {inStock && <span className="text-[13px] text-graphite-500">· expédié demain si commandé avant 18 h</span>}
             </div>
 
-            <div className="flex gap-2.5 mt-4">
+            <div className="hidden md:flex gap-2.5 mt-4">
               <div className="flex items-center border border-sand-250 rounded-6 h-[50px] flex-shrink-0">
                 <button type="button" onClick={decrement} disabled={quantity <= 1} className="w-10 text-graphite-600 text-[18px] disabled:opacity-30">–</button>
                 <span className="w-11 text-center font-mono text-[16px] text-ink-900">{quantity}</span>
@@ -300,6 +308,23 @@ const ProductDetailPage = () => {
           </div>
         </div>
       )}
+
+      {/* Barre d'achat collee (mobile) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-sand-200 px-4 py-2.5 flex gap-2.5" style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}>
+        <div className="flex items-center border border-sand-250 rounded-6 h-[50px] flex-shrink-0">
+          <button type="button" onClick={decrement} disabled={quantity <= 1} className="w-10 text-graphite-600 text-[18px] disabled:opacity-30">–</button>
+          <span className="w-10 text-center font-mono text-[16px] text-ink-900">{quantity}</span>
+          <button type="button" onClick={increment} disabled={!inStock || quantity >= stock} className="w-10 text-graphite-600 text-[18px] disabled:opacity-30">+</button>
+        </div>
+        <button
+          type="button"
+          onClick={handleAddToCart}
+          disabled={!inStock || adding}
+          className="flex-1 bg-green-700 hover:bg-green-800 disabled:bg-sand-250 disabled:text-graphite-400 text-white h-[50px] rounded-6 text-[14px] font-semibold transition-colors truncate px-2"
+        >
+          {!inStock ? 'Indisponible' : adding ? 'Ajout…' : `Ajouter · ${totalPrice.primary} ${totalPrice.primarySuffix}`}
+        </button>
+      </div>
     </div>
   );
 };
