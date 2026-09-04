@@ -9,18 +9,18 @@
 
 | Indicateur | Valeur |
 |---|---|
-| Phase active | Phase 14 (déploiement) COMPLÈTE. T5-14/T5-15 (facturation) DONE. **21 tâches restent réellement TODO dans le code**, voir ligne TODO ci-dessous — "le site est en ligne" ne veut pas dire "il n'y a plus rien à coder". |
-| Tâche active | Session 2026-09-04 (suite) : re-vérification une par une des 25 tâches TODO restantes après la facturation. T13-08 (validation manquante sur `PUT /api/admin/settings`), T13-09 (révocation refresh token fail-open), T13-11 (`jwt.verify` sans `algorithms` épinglé) corrigées et testées (139/139 tests unitaires passent). T13-12 déjà résolu en effet de bord de T5-15. Reste 21 items à revérifier/corriger. Sans trailer de co-autorat, comme demandé. |
+| Phase active | Phase 14 (déploiement Fly.io) COMPLÈTE. Les 27 tâches TODO identifiées en début de session (facturation T5-14/T5-15 + 25 items de re-vérification) sont toutes DONE. **0 tâche TODO restante dans le document** — reste uniquement DB-04 (décision propriétaire, non une tâche de code) et les 4 BLOCKED (dépendances externes : validation légale/comptable). |
+| Tâche active | Session 2026-09-04/05 : re-vérification une par une des 25+2 tâches TODO. 3 reclassées CANCELLED car obsolètes (condition de dépendance jamais remplie ou décision supersédée) ; le reste corrigé et vérifié en conditions réelles (tests unitaires, builds Docker réels, requêtes live sur l'infra Fly.io, navigateur réel). Sans trailer de co-autorat, comme demandé. Détail complet dans les entrées individuelles ci-dessous. |
 | Tâches totales | 134 — recompté par comptage réel des statuts dans le document (pas par arithmétique incrémentale, qui avait introduit une erreur le 2026-09-04 — voir historique de session) |
 | READY | 0 |
 | IN_PROGRESS | 0 |
 | BLOCKED | 4 — T5-16, T5-17 (tests facture, dépendent de T5-14/15 maintenant DONE) ; T9-03 (validation légale CGV/RGPD) ; T9-04 (validation comptable TVA, = DB-03). DB-04 (secret git) est une **décision**, pas une tâche BLOCKED de ce compteur — voir §3. |
-| TODO | 21 — liste complète : T3-03, T6-04, T7-05, T7-07, T9-02, T9-06, T9-07, T9-08, T13-10, T13-13..T13-24 (13 items restants de l'audit Phase 13, tous P2/P3) |
-| DONE | 90 |
-| CANCELLED | 19 (9 + Phase 8 : T8-01..T8-06 + T11-04, T11-05, T11-07, T11-09 supersédées par Fly.io le 2026-09-04) |
+| TODO | 0 |
+| DONE | 110 |
+| CANCELLED | 20 (9 + Phase 8 : T8-01..T8-06 + T11-04, T11-05, T11-07, T11-09 supersédées par Fly.io + T3-03 supersédée par la décision MODE DISTANCE, le 2026-09-04/05) |
 | P0 restants | 1 (DB-04 — secret réel dans l'historique git d'un dépôt GitHub public, décision propriétaire, voir §3) |
-| P1 restants | 2 (npm audit frontend react-router open redirect [nécessite migration v7] ; rotation SMTP_USER/SMTP_PASS legacy — Phase 12 T12-10). T5-14 et T5-15 sont DONE — ce ne sont plus des P0/P1 restants. |
-| Verdict | EN PRODUCTION SUR FLY.IO et fonctionnel (jana-frontend.fly.dev / jana-backend.fly.dev), facturation légale complète (immuable + avoir). **PAS "terminé" pour autant** : 21 tâches TODO réelles dans le code, toutes P2/P3 non bloquantes (voir ligne TODO). DB-04 (P0, décision propriétaire) toujours ouvert. Catalogue à peupler. |
+| P1 restants | 2 (npm audit frontend react-router open redirect [nécessite migration v7, breaking change non appliqué par prudence] ; rotation SMTP_USER/SMTP_PASS legacy — Phase 12 T12-10, = DB-04). Tout le reste des P1 identifiés (T5-14, T5-15, T7-05, T9-07, T9-08) sont DONE. |
+| Verdict | EN PRODUCTION SUR FLY.IO et fonctionnel (jana-frontend.fly.dev / jana-backend.fly.dev), facturation légale complète (immuable + avoir), backlog de code entièrement traité (0 TODO). **PAS "terminé" pour autant** : DB-04 (P0, décision propriétaire — rotation secret + purge historique git) toujours ouvert, `.github/workflows/deploy.yml` cible un homeserver abandonné (décision propriétaire requise avant tout push, voir T9-08), 3 validations externes bloquantes (légal, comptable, tests facture), catalogue à peupler. |
 
 ---
 
@@ -829,7 +829,9 @@ Détails : `docs/audit-finalisation/12_STRATEGIE_TESTS.md`
 
 ### T7-05 — Tests unitaires génération facture
 
-- **Statut :** TODO | **Priorité :** P1 | **Catégorie :** CODE
+- **Statut :** DONE (2026-09-05) | **Priorité :** P1 | **Catégorie :** CODE
+- **Fichiers :** `backend/tests/unit/invoice.service.test.js`
+- **Détail :** couverture déjà présente pour `generateForOrder()` (arrondi TVA ligne par ligne, reprise du taux figé, absence de NaN) et l'immutabilité des routes. Ajouté cette session : 4 tests pour `generateCreditNote()` (T5-15, jusque-là sans aucune couverture) — absence de facture d'origine (pas d'exception), proratisation HT/TVA au taux moyen avec montants négatifs, remboursement total annulant exactement HT/TVA, garde-fou division par zéro. `invoice.service.js` : 92,3% statements (contre couverture partielle avant). 143/143 tests passent.
 
 ---
 
@@ -842,8 +844,10 @@ Détails : `docs/audit-finalisation/12_STRATEGIE_TESTS.md`
 
 ### T7-07 — Tests E2E tunnel de commande (Playwright)
 
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE
-- **Dépendances :** T7-01, T5-07
+- **Statut :** DONE (2026-09-05) | **Priorité :** P2 | **Catégorie :** CODE
+- **Dépendances :** T7-01, T5-07 (tous deux DONE)
+- **Fichiers :** `frontend/playwright.config.js`, `frontend/e2e/checkout.spec.js`, `frontend/package.json` (script `test:e2e`)
+- **Détail :** premier E2E Playwright du projet (aucune infra existante). Parcours réel piloté via l'UI : inscription (setup via API), connexion, ajout au panier, panier → checkout, remplissage formulaire, acceptation CGV, soumission, vérification de la page de confirmation avec numéro de commande. Nécessite la stack dev démarrée (`docker compose up`, produits seedés) — même contrat que `test:integration` côté backend. **3 exécutions consécutives réussies** (aucune flakiness), 3 commandes réelles créées en base (`CMD-20260904-0005/6/7`). Deux bugs de stabilisation trouvés et documentés en commentaire dans le test (pas des bugs applicatifs) : le montant minimum de commande (15€ TTC) exclut les produits bon marché du panier de test ; chaque `page.goto()` recharge la page et relance `AuthProvider` de façon asynchrone (`GET /auth/me`), un clic prématuré tombe sur le toast "Connectez-vous" — geré avec `waitForLoadState('networkidle')`. **Effet de bord découvert en testant** : le rate limiter `/api/auth` (20/15min, partagé par `/auth/me`) peut déconnecter silencieusement un utilisateur légitime dont le token est valide si son quota est épuisé (ex. onglets multiples, navigation agressive) — comportement du rate limiter tel que conçu, pas un bug de ce test, mais à garder à l'esprit si des faux logouts sont signalés en usage réel.
 
 ---
 
@@ -999,7 +1003,8 @@ Checklist complète : `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 
 ### T9-02 — Vérification variables d'environnement production
 
-- **Statut :** TODO | **Priorité :** P0 | **Catégorie :** CONFIGURATION
+- **Statut :** DONE (2026-09-05) | **Priorité :** P0 | **Catégorie :** CONFIGURATION
+- **Détail :** vérifié directement sur Fly.io (`flyctl secrets list`, `flyctl apps list`), pas seulement documenté. `jana-backend` : `DATABASE_URL`, `JWT_SECRET`/`JWT_REFRESH_SECRET` (digests distincts confirmés), `CORS_ORIGIN`, `FRONTEND_URL`, `NODE_ENV`, `BCRYPT_SALT_ROUNDS`, `REDIS_URL`, `GMAIL_APP_PASSWORD`/`GMAIL_SENDER_EMAIL`/`GMAIL_SENDER_NAME` (migration Brevo→Gmail SMTP), `ENTREPRISE_*` (mentions légales factures) tous présents et déployés ; aucune clé `STRIPE_*` résiduelle (cohérent avec le retrait de Stripe). Healthcheck production répond `environment: production, database: up`. CORS testé en conditions réelles : `Origin` légitime (`jana-frontend.fly.dev`) reflété, `Origin` arbitraire non reflété (pas de wildcard). `jana-frontend/fly.toml` : `VITE_API_URL` pointe vers le bon backend.
 
 ---
 
@@ -1027,19 +1032,22 @@ Checklist complète : `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 
 ### T9-06 — Confirmation sauvegardes DB opérationnelles
 
-- **Statut :** TODO | **Priorité :** P0 | **Dépendances :** T8-04
+- **Statut :** DONE (2026-09-05) | **Priorité :** P0 | **Dépendances :** T8-04
+- **Détail :** vérifié directement sur Fly.io (`flyctl volumes show`). Le volume Postgres `pg_data` (app `jana-db`) a `Scheduled snapshots: true` (snapshots automatiques quotidiens actifs). Première sauvegarde manuelle déclenchée pendant cette session (`flyctl volumes snapshots create`) pour ne pas dépendre uniquement du premier cycle automatique. **Point d'attention non bloquant :** rétention par défaut à **5 jours** (`Snapshot retention: 5`), sous la recommandation de 30 jours minimum de la checklist — décision de coût/rétention à trancher par le propriétaire (`flyctl volumes update <id> --snapshot-retention <jours>`, augmente le stockage facturé). Stockage images produits sur volume persistant confirmé (`jana_uploads`, app `jana-backend`) ; procédure de restauration non testée (nécessiterait de restaurer un snapshot sur un volume de test, hors scope de cette session).
 
 ---
 
 ### T9-07 — npm audit --production sans CVE critique
 
-- **Statut :** TODO | **Priorité :** P1 | **Dépendances :** T1-06
+- **Statut :** DONE (2026-09-05) | **Priorité :** P1 | **Dépendances :** T1-06
+- **Détail :** `npm audit --production` exécuté sur backend et frontend : aucune CVE critique dans les deux. Backend : 1 moderate (uuid, transitif). Frontend : la vulnérabilité `brace-expansion` (high, DoS) corrigée via `npm audit fix` (non-breaking, build re-vérifié) ; restent 2 moderate connues et déjà trackées (react-router — voir P1 restants §1, nécessite migration v7 ; uuid via exceljs, import Excel admin uniquement).
 
 ---
 
 ### T9-08 — Documentation déploiement à jour
 
-- **Statut :** TODO | **Priorité :** P1
+- **Statut :** DONE (2026-09-05) | **Priorité :** P1
+- **Détail :** `CLAUDE.md` (ligne "Déploiement") pointait encore vers le homeserver comme cible active alors que la Phase 11 a été supersédée par la Phase 14 (Fly.io) le 2026-09-04 — corrigé, plus de pourcentage d'avancement figé (source unique : ce fichier §1). Bandeaux "SUPERSÉDÉ" ajoutés sur `docs/deploiement/DEPLOY-HOMESERVER.md` et la section deploy de `docs/deploiement/README-CI-CD.md`. **Risque réel trouvé et non corrigé automatiquement (hors périmètre) :** `.github/workflows/deploy.yml` reste actif et se déclenche sur chaque push `develop` (remote GitHub confirmé : `Neruaka/JanaDistribution`) — il tentera de joindre le homeserver abandonné (Tailscale + SSH), avec risque d'échec CI silencieux ou pire, de déploiement sur une cible obsolète si cette infrastructure existe encore. Modifier un pipeline CI/CD est explicitement hors du périmètre d'une correction automatique — **décision et action réservées au propriétaire** avant tout prochain `git push`.
 
 ---
 

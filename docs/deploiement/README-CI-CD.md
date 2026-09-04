@@ -78,6 +78,19 @@ ghcr.io/<username>/jana-distribution/frontend:latest
 
 ## 🚀 Deploy Pipeline (`deploy.yml`)
 
+> ⚠️ **SUPERSÉDÉ (2026-09-04, décision utilisateur) — pipeline non désactivé,
+> voir `.github/workflows/deploy.yml`.** Le homeserver `tfredklab.dev` a été
+> abandonné avant mise en service au profit de Fly.io (Phase 14), déployé
+> manuellement (`flyctl deploy`, pas de CI/CD). Ce workflow se déclenche
+> toujours sur chaque push `develop` et tentera de joindre un homeserver qui
+> n'est plus la cible réelle — échec probable (Tailscale/SSH), voire risque
+> de déployer sur une cible obsolète si l'infrastructure homeserver existe
+> encore. **Décision de désactiver ou reconfigurer ce workflow réservée au
+> propriétaire** (modification de pipeline CI/CD hors périmètre d'une
+> correction automatique). Voir `docs/deploiement/DEPLOY-HOMESERVER.md`.
+>
+> Section originale ci-dessous, conservée à titre historique :
+>
 > Mis à jour 2026-07-26 (Phase 11, migration Railway → homeserver auto-géré `tfredklab.dev`). Voir `docs/deploiement/DEPLOY-HOMESERVER.md` pour l'infrastructure cible.
 
 ### Déclencheurs

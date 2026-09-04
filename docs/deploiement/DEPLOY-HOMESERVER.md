@@ -1,5 +1,12 @@
 # Déploiement Homeserver — Jana Distribution
 
+> ⚠️ **SUPERSÉDÉ (2026-09-04, décision utilisateur) — ne plus suivre ce document
+> pour un déploiement.** La Phase 11 (ce plan) a été abandonnée avant mise en
+> service au profit de la Phase 14 (Fly.io) — voir `docs/deploiement/DEPLOY-FLYIO.md`
+> et `docs/workflow/ETAT_ACTUEL_PROJET.md`. Conservé ici à titre historique
+> uniquement ; ne pas reprendre ce chemin sans confirmation explicite de
+> l'utilisateur.
+
 > Remplace Railway comme chemin critique vers la production (Phase 11,
 > `docs/workflow/PLAN_CORRECTION_AUDIT.md`). Railway reste actif en parallèle jusqu'à
 > validation complète du cutover (T11-09) — voir `docs/deploiement/DEPLOY-RAILWAY.md`
