@@ -89,6 +89,7 @@ class OrderRepository {
         c.instructions_livraison,
         c.paiement_statut,
         c.paye_le,
+        c.montant_rembourse,
         c.code_promo_id,
         c.montant_rabais,
         c.total_avant_rabais,
@@ -155,6 +156,7 @@ class OrderRepository {
         c.instructions_livraison,
         c.paiement_statut,
         c.paye_le,
+        c.montant_rembourse,
         c.code_promo_id,
         c.montant_rabais,
         c.total_avant_rabais,
@@ -629,31 +631,71 @@ class OrderRepository {
   }
 
   /**
-   * Met à jour les informations de remboursement (manuel) et le statut de la commande.
-   * Logue la transition dans commande_statut_historique.
+   * Enregistre un remboursement manuel supplémentaire pour une commande : le montant
+   * s'ajoute au cumul déjà remboursé (jamais un remplacement), plafonné strictement
+   * au total TTC de la commande. Verrou `SELECT ... FOR UPDATE` pour empêcher deux
+   * remboursements concurrents de dépasser ce plafond (race condition).
+   *
+   * @param {string} orderId
+   * @param {number} montantAjoute - Montant de CE remboursement (EUR), pas le cumul.
+   * @returns {Promise<{order: object, montantRembourseTotal: number, isTotal: boolean}>}
    */
-  async updateRefund(orderId, { montantRembourse, nouveauStatut }) {
-    const currentResult = await query('SELECT statut FROM commande WHERE id = $1', [orderId]);
-    const ancienStatut = currentResult.rows[0]?.statut || null;
+  async addRefund(orderId, montantAjoute) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
 
-    const sql = `
-      UPDATE commande
-      SET montant_rembourse = $2,
-          statut = $3,
-          date_modification = NOW()
-      WHERE id = $1
-      RETURNING *
-    `;
-    const result = await query(sql, [orderId, montantRembourse, nouveauStatut]);
+      const currentResult = await client.query(
+        'SELECT statut, total_ttc, montant_rembourse FROM commande WHERE id = $1 FOR UPDATE',
+        [orderId]
+      );
+      const current = currentResult.rows[0];
+      if (!current) {
+        throw ApiError.notFound('Commande introuvable');
+      }
 
-    if (result.rows[0]) {
+      const ancienStatut = current.statut;
+      const totalTtcCents = Math.round(Number(current.total_ttc) * 100);
+      const dejaRembourseCents = Math.round(Number(current.montant_rembourse || 0) * 100);
+      const ajoutCents = Math.round(Number(montantAjoute) * 100);
+      const nouveauMontantCents = dejaRembourseCents + ajoutCents;
+
+      if (nouveauMontantCents > totalTtcCents) {
+        throw ApiError.badRequest(
+          `Le cumul des remboursements (${(dejaRembourseCents / 100).toFixed(2)}€ déjà remboursés + ${(ajoutCents / 100).toFixed(2)}€) ne peut pas dépasser le total de la commande (${(totalTtcCents / 100).toFixed(2)}€)`
+        );
+      }
+
+      const isTotal = nouveauMontantCents >= totalTtcCents;
+      const nouveauStatut = isTotal ? 'REMBOURSE' : 'PARTIELLEMENT_REMBOURSE';
+      const nouveauMontant = nouveauMontantCents / 100;
+
+      const result = await client.query(
+        `UPDATE commande
+         SET montant_rembourse = $2, statut = $3, date_modification = NOW()
+         WHERE id = $1
+         RETURNING *`,
+        [orderId, nouveauMontant, nouveauStatut]
+      );
+
+      await client.query('COMMIT');
+
       query(
         'INSERT INTO commande_statut_historique (commande_id, ancien_statut, nouveau_statut) VALUES ($1, $2, $3)',
         [orderId, ancienStatut, nouveauStatut]
       ).catch(err => logger.warn('Historique statut refund non logué:', err.message));
-    }
 
-    return result.rows[0] ? this._mapOrder(result.rows[0]) : null;
+      return {
+        order: this._mapOrder(result.rows[0]),
+        montantRembourseTotal: nouveauMontant,
+        isTotal
+      };
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   /**
@@ -747,6 +789,7 @@ class OrderRepository {
       instructionsLivraison: row.instructions_livraison,
       paiementStatut: row.paiement_statut || 'PENDING',
       payeLe: row.paye_le || null,
+      montantRembourse: row.montant_rembourse !== undefined && row.montant_rembourse !== null ? parseFloat(row.montant_rembourse) : 0,
       codePromoId: row.code_promo_id || null,
       montantRabais: row.montant_rabais !== undefined && row.montant_rabais !== null ? parseFloat(row.montant_rabais) : 0,
       totalAvantRabais: row.total_avant_rabais !== undefined && row.total_avant_rabais !== null ? parseFloat(row.total_avant_rabais) : null,

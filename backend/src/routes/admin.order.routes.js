@@ -311,6 +311,7 @@ router.get('/:id',
         fraisLivraison: parseFloat(row.frais_livraison) || 0,
         modePaiement: row.mode_paiement,
         paiementStatut: row.paiement_statut || 'PENDING',
+        montantRembourse: row.montant_rembourse !== undefined && row.montant_rembourse !== null ? parseFloat(row.montant_rembourse) : 0,
         adresseLivraison,
         instructionsLivraison: row.instructions_livraison,
         dateCommande: row.date_commande,
@@ -547,22 +548,12 @@ router.post('/:id/refund',
         });
       }
 
-      const montantCentsDemande = Math.round(montant * 100);
-      const totalTtcCents = Math.round(order.totalTtc * 100);
-      if (montantCentsDemande > totalTtcCents) {
-        return res.status(400).json({
-          success: false,
-          message: 'Le montant remboursé ne peut pas dépasser le total de la commande'
-        });
-      }
-
-      const isTotal = montantCentsDemande >= totalTtcCents;
+      // Remboursement cumulatif : montant s'ajoute au cumul déjà remboursé (jamais
+      // un remplacement), plafonné au total TTC — vérifié et verrouillé en base
+      // (SELECT ... FOR UPDATE) dans orderRepository.addRefund pour empêcher deux
+      // remboursements concurrents de dépasser le plafond.
+      const { montantRembourseTotal, isTotal } = await orderRepository.addRefund(order.id, montant);
       const nouveauStatut = isTotal ? 'REMBOURSE' : 'PARTIELLEMENT_REMBOURSE';
-
-      await orderRepository.updateRefund(order.id, {
-        montantRembourse: montant,
-        nouveauStatut
-      });
 
       if (isTotal) {
         await orderRepository.updatePaymentStatus(order.id, 'REFUNDED');
@@ -573,19 +564,37 @@ router.post('/:id/refund',
         entiteType: 'commande',
         entiteId: order.id,
         utilisateurId: req.user.id,
-        details: { montant, raison: raison || null, total: isTotal, modePaiement: order.modePaiement },
+        details: { montant, montantRembourseTotal, raison: raison || null, total: isTotal, modePaiement: order.modePaiement },
         ipAddress: req.ip
       }).catch(err => logger.warn('Audit refund non logué:', err.message));
 
       logger.info('Remboursement manuel admin enregistré', {
-        orderId: order.id, montant, adminId: req.user.id, modePaiement: order.modePaiement
+        orderId: order.id, montant, montantRembourseTotal, adminId: req.user.id, modePaiement: order.modePaiement
       });
+
+      // Avoir comptable (T5-15) : contrepartie légale du remboursement, avec
+      // envoi automatique au client (couvre au passage T13-12 — absence
+      // d'email au client lors d'un remboursement). Ne doit jamais faire
+      // échouer la requête : le remboursement lui-même est déjà acté
+      // (addRefund a déjà committé) — l'absence d'avoir est loguée et
+      // remontée dans la réponse pour que l'admin le sache, pas masquée.
+      let avoir = null;
+      let avoirErreur = null;
+      try {
+        avoir = await invoiceService.generateCreditNote(order.id, montant, raison || null);
+      } catch (error) {
+        avoirErreur = error.message;
+        logger.error('Génération avoir échouée après remboursement', { orderId: order.id, error: error.message });
+      }
 
       res.json({
         success: true,
         data: {
           montant,
-          statutCommande: nouveauStatut
+          montantRembourseTotal,
+          statutCommande: nouveauStatut,
+          avoirNumero: avoir?.numero || null,
+          avoirErreur
         }
       });
     } catch (error) {

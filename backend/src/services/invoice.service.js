@@ -18,9 +18,15 @@ const ENTREPRISE = {
 
 class InvoiceService {
   async generateForOrder(commandeId) {
+    // L'adresse n'est jamais lue sur `utilisateur` (qui n'a pas de colonnes
+    // d'adresse — elles vivent dans la table `adresse`, séparée) : la seule
+    // adresse pertinente pour une facture est celle réellement utilisée pour
+    // CETTE commande, déjà figée en JSON sur `commande.adresse_livraison` au
+    // moment de la commande (voir order.repository.js). Utiliser l'adresse
+    // courante du profil utilisateur serait de toute façon incorrect si le
+    // client l'a modifiée depuis.
     const cmdResult = await query(
-      `SELECT c.*, u.prenom, u.nom AS client_nom_famille, u.email,
-              u.adresse_livraison, u.ville, u.code_postal
+      `SELECT c.*, u.prenom, u.nom AS client_nom_famille, u.email
        FROM commande c
        JOIN utilisateur u ON u.id = c.utilisateur_id
        WHERE c.id = $1`,
@@ -29,12 +35,19 @@ class InvoiceService {
 
     if (!cmdResult.rows.length) throw new Error(`Commande ${commandeId} introuvable`);
     const commande = cmdResult.rows[0];
+    const adresseLivraison = typeof commande.adresse_livraison === 'string'
+      ? JSON.parse(commande.adresse_livraison)
+      : commande.adresse_livraison;
 
-    // Idempotency — ne pas créer deux fois la même facture
-    const existing = await invoiceRepository.findByCommande(commandeId);
-    if (existing.length > 0) {
+    // Idempotency — ne pas créer deux fois la même facture. Doit chercher
+    // spécifiquement une facture de type FACTURE : findByCommande renvoie
+    // aussi les avoirs (type AVOIR, générés après un remboursement), triés
+    // par date décroissante — un avoir plus récent que la facture d'origine
+    // serait sinon retourné à tort ici.
+    const existing = await invoiceRepository.findOriginalByCommande(commandeId);
+    if (existing) {
       logger.info(`Facture déjà existante pour commande ${commandeId}`);
-      return existing[0];
+      return existing;
     }
 
     // NOTE : on ne sélectionne QUE p.reference depuis produit — le taux de
@@ -100,8 +113,12 @@ class InvoiceService {
       clientSnapshot: {
         nom: `${commande.prenom || ''} ${commande.client_nom_famille || ''}`.trim(),
         email: commande.email,
-        adresse: [commande.adresse_livraison, commande.code_postal, commande.ville]
-          .filter(Boolean).join(', '),
+        adresse: adresseLivraison
+          ? [
+              [adresseLivraison.adresse, adresseLivraison.complement].filter(Boolean).join(' '),
+              [adresseLivraison.codePostal, adresseLivraison.ville].filter(Boolean).join(' '),
+            ].filter(Boolean).join(', ')
+          : null,
       },
       entrepriseSnapshot: ENTREPRISE,
       totaux: { ht: totalHt, tva: totalTva, ttc: totalTtc },
@@ -126,6 +143,98 @@ class InvoiceService {
       .catch(err => logger.error(`Email facture échoué ${numero}:`, err.message));
 
     return facture;
+  }
+
+  /**
+   * Génère un avoir (facture à montants négatifs) suite à un remboursement
+   * manuel (voir T13-04, orderRepository.addRefund). Ne modifie jamais la
+   * facture d'origine — l'immuabilité (T5-14) interdit toute UPDATE de ses
+   * montants ; seul son avoir_id est renseigné une fois, pour la lier à cet
+   * avoir.
+   *
+   * Le montant TTC du remboursement est réparti HT/TVA au prorata du taux
+   * moyen pondéré de la facture d'origine (une commande peut mélanger
+   * plusieurs taux de TVA ; le flux de remboursement actuel ne redescend pas
+   * au niveau ligne, donc cette répartition proportionnelle est
+   * l'approximation la plus défendable sans réécrire ce flux).
+   *
+   * @param {string} commandeId
+   * @param {number} montantTtc - Montant TTC de CE remboursement (pas le cumul)
+   * @param {string|null} raison
+   * @returns {Promise<Object|null>} L'avoir créé, ou null si aucune facture
+   *   d'origine n'existe pour cette commande (remboursement enregistré quand
+   *   même côté commande — l'absence de facture ne doit jamais bloquer un
+   *   remboursement déjà décidé par un admin).
+   */
+  async generateCreditNote(commandeId, montantTtc, raison) {
+    const original = await invoiceRepository.findOriginalByCommande(commandeId);
+    if (!original) {
+      logger.warn(`Remboursement enregistré sans facture d'origine pour la commande ${commandeId} — avoir non généré`);
+      return null;
+    }
+
+    const totalHtOriginal = parseFloat(original.total_ht);
+    const totalTvaOriginal = parseFloat(original.total_tva);
+    const totalTtcOriginal = parseFloat(original.total_ttc);
+    const ratioHt = totalTtcOriginal > 0 ? totalHtOriginal / totalTtcOriginal : 1;
+
+    const montantTtcAvoir = Math.round(montantTtc * 100) / 100;
+    const montantHtAvoir = Math.round(montantTtcAvoir * ratioHt * 100) / 100;
+    const montantTvaAvoir = Math.round((montantTtcAvoir - montantHtAvoir) * 100) / 100;
+    const tauxMoyen = totalHtOriginal > 0 ? Math.round((totalTvaOriginal / totalHtOriginal) * 10000) / 100 : 0;
+
+    const numero = await invoiceRepository.getNextNumber('AV');
+
+    const avoir = await invoiceRepository.create({
+      numero,
+      commandeId,
+      utilisateurId: original.utilisateur_id,
+      clientSnapshot: {
+        nom: original.client_nom,
+        email: original.client_email,
+        adresse: original.client_adresse,
+      },
+      entrepriseSnapshot: {
+        nom: original.entreprise_nom,
+        siret: original.entreprise_siret,
+        tvaNumero: original.entreprise_tva_numero,
+        adresse: original.entreprise_adresse,
+      },
+      totaux: { ht: -montantHtAvoir, tva: -montantTvaAvoir, ttc: -montantTtcAvoir },
+      type: 'AVOIR',
+    });
+
+    await invoiceRepository.createLigne({
+      factureId: avoir.id,
+      ligne: {
+        nom: `Avoir sur facture ${original.numero}${raison ? ` — ${raison}` : ''}`,
+        ref: original.numero,
+        quantite: 1,
+        prixUnitaireHt: -montantHtAvoir,
+        tauxTva: tauxMoyen,
+        montantHt: -montantHtAvoir,
+        montantTva: -montantTvaAvoir,
+        montantTtc: -montantTtcAvoir,
+      },
+    });
+
+    await invoiceRepository.linkAvoir(original.id, avoir.id);
+
+    logger.info(`Avoir ${numero} généré pour commande ${commandeId} (${montantTtcAvoir}€ TTC) — facture d'origine ${original.numero}`);
+
+    // Envoi du PDF par email — fire and forget, cohérent avec generateForOrder
+    invoiceRepository.findById(avoir.id)
+      .then(avoirComplet => generateInvoicePDF(avoirComplet))
+      .then(pdfBuffer => emailService.sendInvoiceEmail({
+        destinataireEmail: original.client_email,
+        destinataireNom: original.client_nom,
+        facture: avoir,
+        pdfBuffer,
+      }))
+      .then(() => logger.info(`Email avoir envoyé : ${numero}`))
+      .catch(err => logger.error(`Email avoir échoué ${numero}:`, err.message));
+
+    return avoir;
   }
 }
 

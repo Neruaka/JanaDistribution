@@ -2,31 +2,55 @@ const { query } = require('../config/database');
 const logger = require('../config/logger');
 
 class InvoiceRepository {
-  async getNextNumber() {
+  async getNextNumber(prefix = 'FAC') {
     const year = new Date().getFullYear();
     const result = await query("SELECT nextval('facture_seq') AS seq");
     const seq = String(result.rows[0].seq).padStart(4, '0');
-    return `FAC-${year}-${seq}`;
+    return `${prefix}-${year}-${seq}`;
   }
 
-  async create({ numero, commandeId, utilisateurId, clientSnapshot, entrepriseSnapshot, totaux }) {
+  async create({ numero, commandeId, utilisateurId, clientSnapshot, entrepriseSnapshot, totaux, type = 'FACTURE' }) {
     const result = await query(
       `INSERT INTO facture
          (numero, commande_id, utilisateur_id,
           client_nom, client_email, client_adresse,
           entreprise_nom, entreprise_siret, entreprise_tva_numero, entreprise_adresse,
-          total_ht, total_tva, total_ttc)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+          total_ht, total_tva, total_ttc, type)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
        RETURNING *`,
       [
         numero, commandeId, utilisateurId,
         clientSnapshot.nom, clientSnapshot.email, clientSnapshot.adresse,
         entrepriseSnapshot.nom, entrepriseSnapshot.siret,
         entrepriseSnapshot.tvaNumero, entrepriseSnapshot.adresse,
-        totaux.ht, totaux.tva, totaux.ttc,
+        totaux.ht, totaux.tva, totaux.ttc, type,
       ]
     );
     return result.rows[0];
+  }
+
+  /**
+   * Lie un avoir à sa facture d'origine (avoir_id ne peut être défini
+   * qu'une seule fois — également garanti par le trigger trg_facture_immutable).
+   */
+  async linkAvoir(factureOriginaleId, avoirFactureId) {
+    const result = await query(
+      `UPDATE facture SET avoir_id = $2 WHERE id = $1 AND avoir_id IS NULL RETURNING *`,
+      [factureOriginaleId, avoirFactureId]
+    );
+    return result.rows[0] || null;
+  }
+
+  /**
+   * Dernière facture de type FACTURE (pas un avoir) pour une commande —
+   * c'est celle-ci qu'un avoir corrige.
+   */
+  async findOriginalByCommande(commandeId) {
+    const result = await query(
+      `SELECT * FROM facture WHERE commande_id = $1 AND type = 'FACTURE' ORDER BY date_emission DESC LIMIT 1`,
+      [commandeId]
+    );
+    return result.rows[0] || null;
   }
 
   async createLigne({ factureId, ligne }) {

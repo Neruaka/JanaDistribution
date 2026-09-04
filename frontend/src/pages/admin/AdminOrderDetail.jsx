@@ -104,7 +104,9 @@ const AdminOrderDetail = () => {
   const statutInfo = getStatutInfo(order.statut);
   const canChangeStatus = !['ANNULEE', 'LIVREE', 'REMBOURSE'].includes(order.statut);
   const nextStatut = NEXT_STATUT[order.statut];
-  const canRefund = STATUTS_REMBOURSABLES.includes(order.statut) && order.paiementStatut === 'PAID';
+  const montantDejaRembourse = order.montantRembourse || 0;
+  const resteARembourser = Math.max(0, Math.round((order.totalTtc - montantDejaRembourse) * 100) / 100);
+  const canRefund = STATUTS_REMBOURSABLES.includes(order.statut) && order.paiementStatut === 'PAID' && resteARembourser > 0;
   const currentIndex = order.statut === 'ANNULEE' ? -1 : STATUT_ORDER.indexOf(order.statut);
   const modePaiement = MODES_PAIEMENT.find((m) => m.id === order.modePaiement);
   const creneau = parseCreneau(order.instructionsLivraison);
@@ -163,7 +165,7 @@ const AdminOrderDetail = () => {
     e.preventDefault();
     const montant = parseFloat(refundMontant);
     if (!montant || montant <= 0) { toast.error('Montant invalide'); return; }
-    if (montant > order.totalTtc) { toast.error(`Le montant ne peut pas dépasser ${formatMoney(order.totalTtc)}`); return; }
+    if (montant > resteARembourser) { toast.error(`Le montant ne peut pas dépasser ${formatMoney(resteARembourser)} (reste à rembourser)`); return; }
     try {
       setRefunding(true);
       await adminService.initiateRefund(order.id, { montant, raison: refundRaison });
@@ -347,10 +349,13 @@ const AdminOrderDetail = () => {
             <div className="text-[12px] tracking-wide text-graphite-400 mb-2">RÈGLEMENT</div>
             <div className="text-[13.5px] font-semibold text-ink-900">{modePaiement?.label || order.modePaiement}</div>
             {modePaiement?.description && <div className="text-[12.5px] text-graphite-500 mt-1">{modePaiement.description}</div>}
+            {montantDejaRembourse > 0 && (
+              <div className="text-[12.5px] text-warning-text mt-2">Déjà remboursé : {formatMoney(montantDejaRembourse)}</div>
+            )}
             {canRefund && (
               <button
                 type="button"
-                onClick={() => { setRefundMontant(String(order.totalTtc)); setShowRefundModal(true); }}
+                onClick={() => { setRefundMontant(String(resteARembourser)); setShowRefundModal(true); }}
                 className="mt-3.5 w-full flex items-center justify-center gap-1.5 border border-warning-border bg-warning-bg text-warning-text text-[13px] font-semibold py-2 rounded-6 hover:opacity-90 transition-opacity"
               >
                 <RotateCcw className="w-3.5 h-3.5" /> Rembourser
@@ -371,12 +376,15 @@ const AdminOrderDetail = () => {
             </div>
             <p className="text-[13px] text-graphite-500 mb-4">
               Commande <span className="font-mono font-medium text-ink-900">{order.numeroCommande}</span> — Total : <span className="font-mono font-medium text-ink-900">{formatMoney(order.totalTtc)}</span>
+              {montantDejaRembourse > 0 && (
+                <> · Déjà remboursé : <span className="font-mono font-medium text-ink-900">{formatMoney(montantDejaRembourse)}</span> · Reste : <span className="font-mono font-medium text-ink-900">{formatMoney(resteARembourser)}</span></>
+              )}
             </p>
             <form onSubmit={handleRefundSubmit} className="flex flex-col gap-3.5">
               <div>
                 <label className="block text-[12.5px] text-graphite-600 mb-1.5">Montant à rembourser (€)</label>
                 <input
-                  type="number" step="0.01" min="0.01" max={order.totalTtc}
+                  type="number" step="0.01" min="0.01" max={resteARembourser}
                   value={refundMontant} onChange={(e) => setRefundMontant(e.target.value)} required
                   className="w-full border border-sand-250 rounded-6 h-11 px-3.5 text-[14px] text-ink-900 focus:outline-none focus:border-ink-900"
                 />

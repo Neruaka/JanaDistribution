@@ -10,7 +10,8 @@ async function generateInvoicePDF(facture) {
     doc.on('error', reject);
 
     // En-tête
-    doc.fontSize(20).font('Helvetica-Bold').text('FACTURE', { align: 'right' });
+    const isAvoir = facture.type === 'AVOIR';
+    doc.fontSize(20).font('Helvetica-Bold').text(isAvoir ? 'AVOIR' : 'FACTURE', { align: 'right' });
     doc.fontSize(10).font('Helvetica').moveDown(0.5);
     doc.text(`N° ${facture.numero}`, { align: 'right' });
     doc.text(`Date : ${new Date(facture.date_emission).toLocaleDateString('fr-FR')}`, { align: 'right' });
@@ -69,7 +70,7 @@ async function generateInvoicePDF(facture) {
     doc.text(`TVA : ${parseFloat(facture.total_tva).toFixed(2)} €`, col.tva, y, { align: 'right', width: 145 });
     y += 15;
     doc.font('Helvetica-Bold').fontSize(10);
-    doc.text(`TOTAL TTC : ${parseFloat(facture.total_ttc).toFixed(2)} €`, col.tva, y, { align: 'right', width: 145 });
+    doc.text(`TOTAL ${isAvoir ? 'AVOIR' : 'TTC'} : ${parseFloat(facture.total_ttc).toFixed(2)} €`, col.tva, y, { align: 'right', width: 145 });
 
     // Pied de page légal
     doc.fontSize(7).font('Helvetica');

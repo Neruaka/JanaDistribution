@@ -258,9 +258,11 @@ class EmailService {
    * @param {Buffer} params.pdfBuffer
    */
   async sendInvoiceEmail({ destinataireEmail, destinataireNom, facture, pdfBuffer }) {
+    const isAvoir = facture.type === 'AVOIR';
+    const montantAffiche = Math.abs(parseFloat(facture.total_ttc)).toFixed(2);
     const content = `
       <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px;">
-        Votre facture est disponible
+        ${isAvoir ? 'Votre avoir est disponible' : 'Votre facture est disponible'}
       </h2>
 
       <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
@@ -268,9 +270,13 @@ class EmailService {
       </p>
 
       <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
-        Veuillez trouver ci-joint votre facture <strong>${facture.numero}</strong>
-        d'un montant de <strong>${parseFloat(facture.total_ttc).toFixed(2)} €</strong>
-        émise le ${new Date(facture.date_emission).toLocaleDateString('fr-FR')}.
+        ${isAvoir
+          ? `Veuillez trouver ci-joint votre avoir <strong>${facture.numero}</strong>
+             d'un montant de <strong>${montantAffiche} €</strong>,
+             émis le ${new Date(facture.date_emission).toLocaleDateString('fr-FR')}.`
+          : `Veuillez trouver ci-joint votre facture <strong>${facture.numero}</strong>
+             d'un montant de <strong>${montantAffiche} €</strong>
+             émise le ${new Date(facture.date_emission).toLocaleDateString('fr-FR')}.`}
       </p>
 
       <div style="text-align: center; margin: 30px 0;">
@@ -282,13 +288,13 @@ class EmailService {
 
       <p style="margin: 20px 0 0; color: #6b7280; font-size: 12px; text-align: center;">
         Jana Distribution — SIRET ${process.env.ENTREPRISE_SIRET || '798787784'}<br>
-        Conservez cette facture 10 ans (obligation légale française).
+        Conservez ce document 10 ans (obligation légale française).
       </p>
     `;
 
     return this.sendMail({
       to: destinataireEmail,
-      subject: `Votre facture ${facture.numero} - Jana Distribution`,
+      subject: `${isAvoir ? 'Votre avoir' : 'Votre facture'} ${facture.numero} - Jana Distribution`,
       html: this.getBaseTemplate(content),
       attachment: [
         {

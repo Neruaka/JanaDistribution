@@ -25,21 +25,26 @@ const invoiceService = require('../../src/services/invoice.service');
 
 const COMMANDE_ID = 'commande-uuid-0001';
 
+// adresse_livraison est une colonne JSONB (commande.adresse_livraison, voir
+// scripts/init.sql) — le driver `pg` la renvoie déjà comme objet JS, jamais
+// comme chaîne. `utilisateur` n'a aucune colonne d'adresse (l'adresse vit
+// uniquement sur la commande, figée au moment de l'achat).
 const mockCommandeRow = {
   id: COMMANDE_ID,
   utilisateur_id: 'user-uuid-0001',
   prenom: 'Jean',
   client_nom_famille: 'Dupont',
   email: 'jean.dupont@example.com',
-  adresse_livraison: '1 rue de la Paix',
-  ville: 'Paris',
-  code_postal: '75001'
+  adresse_livraison: {
+    nom: 'Dupont', prenom: 'Jean', adresse: '1 rue de la Paix',
+    complement: '', codePostal: '75001', ville: 'Paris', telephone: '0612345678'
+  }
 };
 
 describe('InvoiceService.generateForOrder — cohérence des arrondis', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    invoiceRepository.findByCommande.mockResolvedValue([]);
+    invoiceRepository.findOriginalByCommande.mockResolvedValue(null);
     invoiceRepository.getNextNumber.mockResolvedValue('FAC-2026-0001');
     invoiceRepository.create.mockImplementation(async (data) => ({ id: 'facture-uuid-0001', ...data }));
     invoiceRepository.createLigne.mockResolvedValue();

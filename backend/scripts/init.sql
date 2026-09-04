@@ -416,6 +416,9 @@ CREATE TABLE facture (
   -- Statut
   statut VARCHAR(20) NOT NULL DEFAULT 'EMISE' CHECK (statut IN ('EMISE', 'ANNULEE')),
   avoir_id UUID REFERENCES facture(id),
+  -- Type (migration 0012, T5-15) : distingue une facture normale d'un avoir
+  -- (montants négatifs, généré après un remboursement manuel)
+  type VARCHAR(10) NOT NULL DEFAULT 'FACTURE' CHECK (type IN ('FACTURE', 'AVOIR')),
 
   -- Dates
   date_emission TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -545,6 +548,65 @@ CREATE TRIGGER trigger_commande_modification
 CREATE TRIGGER trigger_configuration_modification
   BEFORE UPDATE ON configuration
   FOR EACH ROW EXECUTE FUNCTION update_date_modification();
+
+-- ============================================================
+-- IMMUABILITÉ DES FACTURES (migration 0012, T5-14)
+-- ============================================================
+-- Filet de sécurité au niveau base de données : le code applicatif n'expose
+-- aucune route UPDATE/DELETE sur facture/facture_ligne, mais cette contrainte
+-- empêche aussi tout futur bug ou route ajoutée par erreur de violer
+-- l'immuabilité légale d'une facture émise. Voir migration 0012 pour le
+-- détail des règles.
+CREATE OR REPLACE FUNCTION facture_immutable_guard() RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP = 'DELETE' THEN
+    RAISE EXCEPTION 'Suppression interdite : une facture ne peut jamais être supprimée (conservation légale 10 ans). Utilisez un avoir pour corriger.';
+  END IF;
+
+  IF NEW.numero IS DISTINCT FROM OLD.numero
+     OR NEW.commande_id IS DISTINCT FROM OLD.commande_id
+     OR NEW.utilisateur_id IS DISTINCT FROM OLD.utilisateur_id
+     OR NEW.client_nom IS DISTINCT FROM OLD.client_nom
+     OR NEW.client_email IS DISTINCT FROM OLD.client_email
+     OR NEW.client_adresse IS DISTINCT FROM OLD.client_adresse
+     OR NEW.entreprise_nom IS DISTINCT FROM OLD.entreprise_nom
+     OR NEW.entreprise_siret IS DISTINCT FROM OLD.entreprise_siret
+     OR NEW.entreprise_tva_numero IS DISTINCT FROM OLD.entreprise_tva_numero
+     OR NEW.entreprise_adresse IS DISTINCT FROM OLD.entreprise_adresse
+     OR NEW.total_ht IS DISTINCT FROM OLD.total_ht
+     OR NEW.total_tva IS DISTINCT FROM OLD.total_tva
+     OR NEW.total_ttc IS DISTINCT FROM OLD.total_ttc
+     OR NEW.type IS DISTINCT FROM OLD.type
+     OR NEW.date_emission IS DISTINCT FROM OLD.date_emission
+  THEN
+    RAISE EXCEPTION 'Facture immuable : seuls statut (EMISE -> ANNULEE) et avoir_id (une seule fois) peuvent changer après émission. Toute correction financière passe par un avoir.';
+  END IF;
+
+  IF OLD.avoir_id IS NOT NULL AND NEW.avoir_id IS DISTINCT FROM OLD.avoir_id THEN
+    RAISE EXCEPTION 'avoir_id ne peut être défini qu''une seule fois sur une facture.';
+  END IF;
+
+  IF OLD.statut = 'ANNULEE' AND NEW.statut IS DISTINCT FROM OLD.statut THEN
+    RAISE EXCEPTION 'Une facture déjà ANNULEE ne peut pas changer de statut à nouveau.';
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_facture_immutable
+  BEFORE UPDATE OR DELETE ON facture
+  FOR EACH ROW EXECUTE FUNCTION facture_immutable_guard();
+
+CREATE OR REPLACE FUNCTION facture_ligne_immutable_guard() RETURNS TRIGGER AS $$
+BEGIN
+  RAISE EXCEPTION 'facture_ligne est immuable : aucune modification ni suppression après création. Utilisez un avoir pour corriger.';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_facture_ligne_immutable
+  BEFORE UPDATE OR DELETE ON facture_ligne
+  FOR EACH ROW EXECUTE FUNCTION facture_ligne_immutable_guard();
 
 -- ============================================================
 -- MESSAGE DE FIN
