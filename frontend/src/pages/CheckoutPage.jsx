@@ -184,7 +184,7 @@ const CheckoutPage = () => {
       toast.success('Commande enregistrée avec succès !');
     } catch (error) {
       console.error('Erreur commande:', error);
-      toast.error(error.message || 'Erreur lors de la commande. Veuillez réessayer.');
+      toast.error(error.response?.data?.message || 'Erreur lors de la commande. Veuillez réessayer.');
     } finally {
       setIsSubmitting(false);
     }
