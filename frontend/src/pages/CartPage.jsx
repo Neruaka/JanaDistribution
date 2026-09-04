@@ -140,7 +140,7 @@ const CartPage = () => {
   }
 
   return (
-    <div className="bg-sand-50 min-h-screen">
+    <div className="bg-sand-50 min-h-screen pb-[92px] md:pb-0">
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-[22px] px-4 md:px-10 py-7">
         {/* Colonne gauche */}
         <div className="flex flex-col gap-3.5 min-w-0">
@@ -199,8 +199,8 @@ const CartPage = () => {
             </div>
           )}
 
-          {/* Tableau des lignes */}
-          <div className="bg-white border border-sand-200 rounded-8 overflow-hidden">
+          {/* Tableau des lignes (desktop) */}
+          <div className="hidden md:block bg-white border border-sand-200 rounded-8 overflow-hidden">
             <div
               className="grid gap-3.5 px-[18px] py-2.5 bg-sand-100 border-b border-sand-200 text-[11.5px] tracking-wide text-graphite-400"
               style={{ gridTemplateColumns: '64px 1fr 130px 150px 110px 40px' }}
@@ -216,15 +216,22 @@ const CartPage = () => {
             <AnimatePresence mode="popLayout">
               {items.map((item) => <CartItem key={item.id} item={item} />)}
             </AnimatePresence>
+          </div>
 
-            <div className="flex justify-between px-[18px] py-3.5">
-              <button onClick={handleClearCart} className="text-[13px] text-graphite-200 hover:text-danger-text transition-colors">
-                Vider le panier
-              </button>
-              <button disabled title="Bientôt disponible" className="text-[13px] font-semibold text-graphite-300 cursor-not-allowed">
-                Enregistrer comme liste récurrente
-              </button>
-            </div>
+          {/* Lignes en cartes (mobile, M5) */}
+          <div className="md:hidden flex flex-col gap-2.5">
+            <AnimatePresence mode="popLayout">
+              {items.map((item) => <CartItem key={`m-${item.id}`} item={item} compact />)}
+            </AnimatePresence>
+          </div>
+
+          <div className="bg-white border border-sand-200 rounded-8 flex justify-between px-[18px] py-3.5">
+            <button onClick={handleClearCart} className="text-[13px] text-graphite-200 hover:text-danger-text transition-colors">
+              Vider le panier
+            </button>
+            <button disabled title="Bientôt disponible" className="text-[13px] font-semibold text-graphite-300 cursor-not-allowed">
+              Enregistrer comme liste récurrente
+            </button>
           </div>
 
           {/* Complétez votre commande */}
@@ -279,7 +286,7 @@ const CartPage = () => {
               </span>
             </div>
 
-            <div className="flex justify-between items-baseline pt-3.5 pb-1">
+            <div className="hidden md:flex justify-between items-baseline pt-3.5 pb-1">
               <span className="font-display text-[16px] font-bold text-ink-900">Total TTC</span>
               <span className="font-mono text-[26px] font-semibold text-ink-900">{formatAmount(totalFinal)}</span>
             </div>
@@ -287,7 +294,7 @@ const CartPage = () => {
             <button
               onClick={handleValidate}
               disabled={isValidating}
-              className="w-full mt-3 h-[50px] bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white rounded-6 text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
+              className="hidden md:flex w-full mt-3 h-[50px] bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white rounded-6 text-[15px] font-semibold transition-colors items-center justify-center gap-2"
             >
               {isValidating ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
               Valider ma commande
@@ -331,6 +338,22 @@ const CartPage = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Barre collee (mobile, M5) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-sand-200 px-4 py-2.5 flex items-center gap-3" style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}>
+        <div className="flex-1 min-w-0">
+          <div className="text-[11px] text-graphite-500">Total TTC</div>
+          <div className="font-mono text-[23px] font-semibold text-ink-900 truncate">{formatAmount(totalFinal)}</div>
+        </div>
+        <button
+          onClick={handleValidate}
+          disabled={isValidating}
+          className="flex-shrink-0 h-[52px] px-6 bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white rounded-6 text-[14.5px] font-semibold transition-colors flex items-center justify-center gap-2"
+        >
+          {isValidating ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+          Valider ma commande
+        </button>
       </div>
     </div>
   );
