@@ -171,7 +171,7 @@ describe('OrderService — T12-05 : transitions de statut (machine à états ser
 
     const result = await orderService.updateStatus('order-uuid-1', 'CONFIRMEE');
 
-    expect(orderRepository.updateStatus).toHaveBeenCalledWith('order-uuid-1', 'CONFIRMEE', null);
+    expect(orderRepository.updateStatus).toHaveBeenCalledWith('order-uuid-1', 'CONFIRMEE', null, 'EN_ATTENTE');
     expect(result.order.statut).toBe('CONFIRMEE');
   });
 

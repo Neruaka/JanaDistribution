@@ -132,7 +132,7 @@ describe('PATCH /api/admin/orders/:id/status — T12-05 machine à états', () =
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.statut).toBe('CONFIRMEE');
-    expect(orderRepository.updateStatus).toHaveBeenCalledWith(ORDER_ID, 'CONFIRMEE', null);
+    expect(orderRepository.updateStatus).toHaveBeenCalledWith(ORDER_ID, 'CONFIRMEE', null, 'EN_ATTENTE');
   });
 
   it('rejette un statut inconnu dès la validation express-validator (400, service jamais appelé)', async () => {

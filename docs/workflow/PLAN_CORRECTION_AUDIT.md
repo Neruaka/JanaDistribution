@@ -1253,19 +1253,19 @@ Checklist complète : `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 - **Détail :** `invoiceService.generateCreditNote()` (T5-15) envoie désormais systématiquement un email au client avec le PDF de l'avoir à chaque remboursement — vérifié en conditions réelles (messageId Gmail confirmé dans les logs). Plus besoin de correctif dédié.
 
 ### T13-13 — Code promo à usage unique jamais libéré si la commande est annulée
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** E-commerce/Backend
-- **Fichiers :** `backend/src/repositories/order.repository.js:529-591` (`cancel`)
-- **Détail :** `cancel()` restaure le stock mais ne touche jamais `code_promo_utilisation` — un client qui annule perd définitivement son usage unique sans en avoir bénéficié ; fausse aussi les statistiques admin de performance des codes promo.
+- **Statut :** DONE (2026-09-04) | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** E-commerce/Backend
+- **Fichiers :** `backend/src/repositories/order.repository.js` (`cancel`)
+- **Détail :** `cancel()` supprime désormais la ligne `code_promo_utilisation` liée à la commande dans la même transaction que la restauration de stock — le client récupère son usage et les stats admin restent correctes.
 
 ### T13-14 — Changement de statut de commande sans verrou (race condition)
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** E-commerce/Backend
-- **Fichiers :** `backend/src/services/order.service.js:297-338`
-- **Détail :** contrairement à T12-05/T12-06 (verrous `FOR UPDATE`), la transition de statut lit puis écrit sans `SELECT ... FOR UPDATE` ni condition sur l'ancien statut. Deux requêtes admin concurrentes sur la même commande peuvent produire un résultat incohérent.
+- **Statut :** DONE (2026-09-04) | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** E-commerce/Backend
+- **Fichiers :** `backend/src/repositories/order.repository.js` (`updateStatus`), `backend/src/services/order.service.js` (`updateStatus`)
+- **Détail :** `updateStatus()` du repository verrouille désormais la ligne (`SELECT ... FOR UPDATE`) dans une transaction et revérifie le statut attendu (`expectedStatut`, passé par le service) avant d'écrire — sinon `409 Conflict`. Deux requêtes admin concurrentes sur la même commande se sérialisent au lieu de produire un résultat incohérent.
 
 ### T13-15 — Incohérence HT/TTC dans `getGlobalStats()` (route actuellement morte)
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** Backend
-- **Fichiers :** `backend/src/repositories/stats.repository.js:282`
-- **Détail :** même bug que celui corrigé cette session dans `getDashboardStats()`/`getEvolution()` (T4 fix HT/TTC), laissé intact ici. Route non appelée par le frontend actuellement (vérifié), donc sans impact visible tant qu'elle reste inutilisée — à corriger avant tout câblage futur.
+- **Statut :** DONE (2026-09-04) | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** Backend
+- **Fichiers :** `backend/src/repositories/stats.repository.js`
+- **Détail :** `ca_total` utilisait `SUM(total_ttc)` alors que `getDashboardStats()` calcule le chiffre d'affaires en HT (`total_ht`) — aligné sur le même champ pour cohérence avant tout câblage futur de cette route.
 
 ### T13-16 — Message "Email ou mot de passe incorrect" trompeur en cas de panne réseau
 - **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** Frontend

@@ -322,7 +322,7 @@ class OrderService {
       return this.cancelOrder(orderId, null, true); // isAdmin = true
     }
     
-    const updatedOrder = await orderRepository.updateStatus(orderId, newStatut, instructionsLivraison);
+    const updatedOrder = await orderRepository.updateStatus(orderId, newStatut, instructionsLivraison, oldStatut);
     
     logger.info('Statut commande mis à jour', {
       orderId,

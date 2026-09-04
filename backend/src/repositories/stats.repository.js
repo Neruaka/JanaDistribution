@@ -279,7 +279,7 @@ class StatsRepository {
           (SELECT COUNT(*) FROM produit WHERE est_actif = true) as total_produits,
           (SELECT COUNT(*) FROM categorie WHERE est_actif = true) as total_categories,
           (SELECT COUNT(*) FROM commande) as total_commandes,
-          (SELECT COALESCE(SUM(total_ttc), 0) FROM commande WHERE statut != 'ANNULEE') as ca_total,
+          (SELECT COALESCE(SUM(total_ht), 0) FROM commande WHERE statut != 'ANNULEE') as ca_total,
           (SELECT COUNT(*) FROM commande WHERE statut = 'EN_ATTENTE') as commandes_en_attente,
           (SELECT COUNT(*) FROM commande WHERE statut = 'CONFIRMEE') as commandes_confirmees,
           (SELECT COUNT(*) FROM commande WHERE statut = 'EN_PREPARATION') as commandes_en_preparation,

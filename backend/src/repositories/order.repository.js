@@ -487,31 +487,63 @@ class OrderRepository {
   /**
    * Met à jour le statut d'une commande et logue la transition dans l'historique
    */
-  async updateStatus(id, statut, instructionsLivraison = null) {
-    const currentResult = await query('SELECT statut FROM commande WHERE id = $1', [id]);
-    const ancienStatut = currentResult.rows[0]?.statut || null;
+  /**
+   * @param {string} id
+   * @param {string} statut - Nouveau statut
+   * @param {string} [instructionsLivraison]
+   * @param {string} [expectedStatut] - Statut attendu avant transition (T13-14) :
+   *   verrouillé via FOR UPDATE puis revérifié dans la transaction pour éviter
+   *   que deux requêtes admin concurrentes sur la même commande n'appliquent
+   *   chacune une transition valide au moment de leur lecture initiale mais
+   *   incohérente entre elles une fois sérialisées (ex: EN_PREPARATION et
+   *   ANNULEE lancées en même temps depuis CONFIRMEE).
+   */
+  async updateStatus(id, statut, instructionsLivraison = null, expectedStatut = null) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
 
-    const sql = `
-      UPDATE commande
-      SET
-        statut = $2,
-        instructions_livraison = COALESCE($3, instructions_livraison),
-        date_modification = NOW()
-      WHERE id = $1
-      RETURNING *
-    `;
+      const currentResult = await client.query(
+        'SELECT statut FROM commande WHERE id = $1 FOR UPDATE',
+        [id]
+      );
+      const ancienStatut = currentResult.rows[0]?.statut || null;
 
-    const result = await query(sql, [id, statut, instructionsLivraison]);
+      if (expectedStatut && ancienStatut !== expectedStatut) {
+        throw ApiError.conflict(
+          `La commande a déjà changé de statut (attendu: ${expectedStatut}, actuel: ${ancienStatut}). Veuillez rafraîchir.`
+        );
+      }
 
-    if (result.rows[0]) {
-      logger.info(`Commande ${id} mise à jour: ${ancienStatut} → ${statut}`);
-      query(
-        'INSERT INTO commande_statut_historique (commande_id, ancien_statut, nouveau_statut) VALUES ($1, $2, $3)',
-        [id, ancienStatut, statut]
-      ).catch(err => logger.warn('Historique statut non logué:', err.message));
+      const sql = `
+        UPDATE commande
+        SET
+          statut = $2,
+          instructions_livraison = COALESCE($3, instructions_livraison),
+          date_modification = NOW()
+        WHERE id = $1
+        RETURNING *
+      `;
+
+      const result = await client.query(sql, [id, statut, instructionsLivraison]);
+
+      await client.query('COMMIT');
+
+      if (result.rows[0]) {
+        logger.info(`Commande ${id} mise à jour: ${ancienStatut} → ${statut}`);
+        query(
+          'INSERT INTO commande_statut_historique (commande_id, ancien_statut, nouveau_statut) VALUES ($1, $2, $3)',
+          [id, ancienStatut, statut]
+        ).catch(err => logger.warn('Historique statut non logué:', err.message));
+      }
+
+      return result.rows[0] ? this._mapOrder(result.rows[0]) : null;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
     }
-
-    return result.rows[0] ? this._mapOrder(result.rows[0]) : null;
   }
 
   /**
@@ -565,6 +597,14 @@ class OrderRepository {
         );
         logger.info(`Stock restauré: +${ligne.quantite} pour produit ${ligne.produit_id}`);
       }
+
+      // Libérer l'usage du code promo (T13-13) : sans ça un client qui annule
+      // perd définitivement son usage unique sans en avoir bénéficié, et les
+      // stats admin de performance des codes promo sont faussées.
+      await client.query(
+        'DELETE FROM code_promo_utilisation WHERE commande_id = $1',
+        [id]
+      );
 
       // Mettre à jour le statut
       const result = await client.query(
