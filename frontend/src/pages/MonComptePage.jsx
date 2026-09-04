@@ -12,7 +12,8 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 import AccountSidebar from '../components/mon-compte/AccountSidebar';
 import {
@@ -27,7 +28,14 @@ import {
 const MonComptePage = () => {
   const { user, updateProfile, changePassword, logout } = useAuth();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+    toast.success('Déconnexion réussie !');
+    navigate('/');
+  };
 
   const tab = searchParams.get('tab') || 'profil';
   const view = tab === 'securite' ? 'securite' : 'informations';
@@ -43,9 +51,11 @@ const MonComptePage = () => {
   return (
     <div className="bg-sand-50 min-h-screen">
       <div className="grid grid-cols-1 md:grid-cols-[238px_1fr] gap-[22px] px-4 md:px-10 py-7">
-        <AccountSidebar active={sidebarActive} />
+        <div className="order-2 md:order-none">
+          <AccountSidebar active={sidebarActive} />
+        </div>
 
-        <div className="flex flex-col gap-3.5 min-w-0">
+        <div className="order-1 md:order-none flex flex-col gap-3.5 min-w-0">
           <ProfilHeader user={user} />
 
           {view === 'informations' ? (
@@ -57,6 +67,15 @@ const MonComptePage = () => {
           ) : (
             <TabSecurite user={user} changePassword={changePassword} onOpenDeleteModal={() => setShowDeleteModal(true)} />
           )}
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="md:hidden w-full text-center text-[13.5px] font-semibold py-3 rounded-6 border"
+            style={{ color: '#9A3A2E', borderColor: '#E8C9C3' }}
+          >
+            Se déconnecter
+          </button>
         </div>
       </div>
 

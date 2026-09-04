@@ -135,7 +135,7 @@ button {
   cursor: pointer;
   font-family: inherit;
   font-size: inherit;
-  border: none;
+  border-width: 0;
   background: none;
 }
 
