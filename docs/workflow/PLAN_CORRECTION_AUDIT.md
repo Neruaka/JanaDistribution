@@ -9,18 +9,18 @@
 
 | Indicateur | Valeur |
 |---|---|
-| Phase active | Phase 12 — Tests, règles de gestion et audit pré-production (Phase 11 en parallèle, T11-09 toujours ouvert) |
-| Tâche active | Session 2026-07-26 : Phase 12 complète (T12-01..T12-13). Reste : décision propriétaire sur le secret git historique (P0, voir §3) avant tout commit/push. |
-| Tâches totales | 103 (90 + 13 Phase 12) |
+| Phase active | Phase 14 (déploiement) COMPLÈTE. T5-14/T5-15 (facturation) DONE. **25 tâches restent réellement TODO dans le code**, voir ligne TODO ci-dessous — "le site est en ligne" ne veut pas dire "il n'y a plus rien à coder". |
+| Tâche active | Session 2026-09-04 (suite) : **T5-14 (factures immuables) et T5-15 (avoir après remboursement) implémentées, testées en conditions réelles et déployées** — voir détail dans leurs entrées ci-dessous. Bug annexe trouvé et corrigé en cours de route : la génération de facture n'avait jamais fonctionné contre le vrai schéma (colonnes d'adresse inexistantes) — jamais exercée avant cette session. Bug annexe 2 : `.gitignore` bloquait `backend/scripts/migrations` depuis le tout premier commit du projet (règle `scripts/` trop large), corrigé — la migration 0001 et `run-migrations.js` sont enfin versionnés. 7 commits créés pour l'ensemble de cette session (audit + déploiement + facturation), sans trailer de co-autorat. Reste : DB-04 (décision propriétaire), peuplement du catalogue, et le backlog TODO réel ci-dessous. |
+| Tâches totales | 134 — recompté par comptage réel des statuts dans le document (pas par arithmétique incrémentale, qui avait introduit une erreur le 2026-09-04 — voir historique de session) |
 | READY | 0 |
-| IN_PROGRESS | 1 (T11-05) |
-| BLOCKED | 3 (T11-04, T11-07 — actions externes utilisateur ; DB-04 — décision propriétaire sur secret git historique, voir §3) |
-| TODO | 20 (19 + T11-09) |
-| DONE | 70 (57 + Phase 12 : T12-01..T12-13, 13 tâches) |
-| CANCELLED | 15 (9 + Phase 8 : T8-01..T8-06) |
-| P0 restants | 1 (DB-04 — secret réel dans l'historique git d'un dépôt GitHub public, voir §3) |
-| P1 restants | 2 (npm audit frontend react-router open redirect ; rotation SMTP_USER/SMTP_PASS legacy à confirmer — voir Phase 12 T12-10) |
-| Verdict | NON PRÊT POUR LA PRODUCTION |
+| IN_PROGRESS | 0 |
+| BLOCKED | 4 — T5-16, T5-17 (tests facture, dépendent de T5-14/15 maintenant DONE) ; T9-03 (validation légale CGV/RGPD) ; T9-04 (validation comptable TVA, = DB-03). DB-04 (secret git) est une **décision**, pas une tâche BLOCKED de ce compteur — voir §3. |
+| TODO | 25 — liste complète : T3-03, T6-04, T7-05, T7-07, T9-02, T9-06, T9-07, T9-08, T13-08..T13-24 (17 items de l'audit Phase 13, tous P2/P3) |
+| DONE | 86 |
+| CANCELLED | 19 (9 + Phase 8 : T8-01..T8-06 + T11-04, T11-05, T11-07, T11-09 supersédées par Fly.io le 2026-09-04) |
+| P0 restants | 1 (DB-04 — secret réel dans l'historique git d'un dépôt GitHub public, décision propriétaire, voir §3) |
+| P1 restants | 2 (npm audit frontend react-router open redirect [nécessite migration v7] ; rotation SMTP_USER/SMTP_PASS legacy — Phase 12 T12-10). T5-14 et T5-15 sont DONE — ce ne sont plus des P0/P1 restants. |
+| Verdict | EN PRODUCTION SUR FLY.IO et fonctionnel (jana-frontend.fly.dev / jana-backend.fly.dev), facturation légale complète (immuable + avoir). **PAS "terminé" pour autant** : 25 tâches TODO réelles dans le code, toutes P2/P3 non bloquantes (voir ligne TODO). DB-04 (P0, décision propriétaire) toujours ouvert. Catalogue à peupler. |
 
 ---
 
@@ -65,7 +65,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 | DB-01 | Provider stockage images (S3 / Cloudflare R2 / Railway Volume) | Propriétaire (coût) | T0-02 | RÉSOLU — Cloudflare R2 |
 | DB-02 | Stratégie de livraison définitive (FIXE ou DISTANCE) + zones | Propriétaire | T3-01, T3-02 | RÉSOLU — MODE DISTANCE, rayon 80km, 5€+0.80/km, franco 80€ |
 | DB-03 | Validation TVA + règles facturation + durée conservation | Comptable | T5-01..T5-17 | RÉSOLU — taux 5.5/10/20% CGI implémentés (⚠️ validation comptable requise avant prod) |
-| DB-04 | **P0 — Secret réel (`backend/.env`) committé dans l'historique git (commit `79fccb1`, scrubé plus tard par `a3ce33d` mais jamais purgé), dépôt GitHub `Neruaka/JanaDistribution` confirmé **public** (vérifié via l'API GitHub, `"private": false`, 2026-07-26). Valeurs concernées : `JWT_SECRET`, `JWT_REFRESH_SECRET`, `DB_PASSWORD`, `SMTP_USER`, `SMTP_PASS` (valeurs non répétées ici, voir règle §7 docs/workflow/CLAUDE_WORKFLOW.md). Rotation nécessaire pour tout secret encore en usage (DB_PASSWORD et SMTP_USER/SMTP_PASS legacy non confirmés comme déjà rotés ; JWT probablement déjà régénéré via T11-05 mais à confirmer). Purge de l'historique git (`git filter-repo`/BFG + force-push) = action destructive hors périmètre d'exécution automatique — décision et exécution réservées au propriétaire du dépôt. | Propriétaire | Tout commit/push ultérieur sur ce dépôt tant que la rotation n'est pas confirmée | **BLOCKED — action externe requise, voir T12-10** |
+| DB-04 | **P0 — Secret réel (`backend/.env`) committé dans l'historique git (commit `79fccb1`, scrubé plus tard par `a3ce33d` mais jamais purgé), dépôt GitHub `Neruaka/JanaDistribution` confirmé **public** (re-vérifié via l'API GitHub, `"private": false`, 2026-09-04). **Mécanisme exact confirmé (audit 2026-09-04) :** le commit `79fccb1` commente d'abord les 7 lignes `.env*` du `.gitignore` (désactivation volontaire de la protection), puis ajoute `backend/.env` réel dans le même commit ; confirmé être un ancêtre de `origin/develop` (donc réellement poussé). Valeurs concernées : `JWT_SECRET`, `JWT_REFRESH_SECRET` (chaînes de template jamais personnalisées à l'époque de ce commit), `DB_PASSWORD=postgres` (mot de passe par défaut faible), `SMTP_USER`, `SMTP_PASS` — **confirmé le 2026-09-04 qu'il s'agit d'une vraie adresse Gmail personnelle et d'un vrai mot de passe d'application Gmail (format 16 caractères), non d'un placeholder** (valeurs non répétées ici, voir règle §7 docs/workflow/CLAUDE_WORKFLOW.md). C'est la donnée la plus directement exploitable : si ce mot de passe d'application est encore actif, n'importe qui ayant cloné le dépôt public peut envoyer des emails via ce compte Gmail. Rotation nécessaire pour tout secret encore en usage (DB_PASSWORD et SMTP_USER/SMTP_PASS legacy non confirmés comme déjà rotés — priorité la plus haute vu la confirmation ci-dessus ; JWT probablement déjà régénéré via T11-05 mais à confirmer). Recherche exhaustive de l'historique git complet (214 commits, 2026-09-04) : aucun autre secret réel trouvé en dehors de ce commit. Purge de l'historique git (`git filter-repo`/BFG + force-push) = action destructive hors périmètre d'exécution automatique — décision et exécution réservées au propriétaire du dépôt. | Propriétaire | Tout commit/push ultérieur sur ce dépôt tant que la rotation n'est pas confirmée | **BLOCKED — action externe requise, voir T12-10 et Phase 13** |
 
 ---
 
@@ -722,19 +722,21 @@ Voir détails comptables : `docs/audit-finalisation/09_FACTURATION.md`
 
 ### T5-14 — Rendre les factures immuables
 
-- **Statut :** BLOCKED | **Priorité :** P1 | **Catégorie :** CODE
-- **Dépendances :** T5-04
-- **Objectif :** Aucun endpoint UPDATE sur `facture`. Tout correctif passe par un avoir.
+- **Statut :** DONE (2026-09-04) | **Priorité :** P0 (relevé depuis P1 le 2026-09-04, confirmation utilisateur que de vraies factures seront émises à de vrais clients) | **Catégorie :** CODE + DB
+- **Fichiers :** `backend/scripts/migrations/0012_facture_immutable_avoir.sql` (nouveau), `backend/scripts/init.sql`
+- **Détail :** aucune route UPDATE/DELETE n'existait déjà (confirmé T12-07), mais rien n'empêchait un futur bug ou une route ajoutée par erreur de modifier une facture émise. Migration 0012 : trigger `facture_immutable_guard` bloque toute UPDATE de `facture` hors `statut` (EMISE → ANNULEE, une fois) et `avoir_id` (une fois), et toute DELETE ; trigger `facture_ligne_immutable_guard` rend `facture_ligne` totalement immuable (aucune exception).
+- **Vérifié en conditions réelles (SQL direct, pas seulement des mocks) :** tentative de modifier `total_ttc` → rejetée ; tentative de `DELETE` → rejetée ; transition `statut` EMISE → ANNULEE → acceptée ; nouvelle tentative de transition après ANNULEE → rejetée ; `UPDATE facture_ligne` → rejetée ; `avoir_id` réglable une seule fois, tentative de le changer vers une autre valeur → rejetée. Migration appliquée en local et en production (Fly Postgres).
 
 ---
 
 ### T5-15 — Générer un avoir après remboursement
 
-- **Statut :** BLOCKED | **Priorité :** P2 | **Catégorie :** CODE
-- **Dépendances :** T5-04, T4-01
-- **Fichiers :** `invoice.service.js` méthode `generateCreditNote(orderId, motif, montant)`
-
----
+- **Statut :** DONE (2026-09-04) | **Priorité :** P1 (relevé depuis P2 le 2026-09-04, même raison que T5-14) | **Catégorie :** CODE
+- **Fichiers :** `invoice.service.js` (`generateCreditNote`), `invoice.repository.js` (`create` accepte `type`, `linkAvoir`, `findOriginalByCommande`, `getNextNumber(prefix)`), `invoice-pdf.generator.js` (titre AVOIR), `email.service.js` (formulation avoir), `admin.order.routes.js` (branché sur la route de remboursement)
+- **Détail :** `generateCreditNote(commandeId, montantTtc, raison)` génère un avoir (montants négatifs, numérotation `AV-` sur la même séquence que les factures) lié à la facture d'origine via `avoir_id`, avec répartition HT/TVA au prorata du taux moyen pondéré de la facture d'origine (le flux de remboursement ne redescend pas au niveau ligne). PDF et email envoyés au client — **couvre au passage T13-12** (absence d'email au client lors d'un remboursement, trouvée par l'audit Phase 13).
+- **Deux bugs réels trouvés en testant ce flux de bout en bout** (jamais exercé jusqu'ici — aucune facture n'avait été générée via la vraie route avant cette session) : (1) `generateForOrder()` lisait des colonnes d'adresse inexistantes sur `utilisateur` (l'adresse vit uniquement en JSON sur `commande.adresse_livraison`, figée au moment de l'achat) — corrigé ; (2) l'idempotence de `generateForOrder()` cherchait la dernière facture toutes types confondus (`findByCommande`), donc renvoyait à tort l'avoir au lieu de la facture d'origine dès qu'un avoir existait — corrigé via `findOriginalByCommande` (filtre `type = 'FACTURE'`).
+- **Vérifié en conditions réelles (API réelle, environnement de dev local) :** génération facture → remboursement partiel de 20€ → avoir `AV-2026-0002` généré avec montants HT/TVA/TTC corrects, lié à `FAC-2026-0001`, PDF généré, email réellement envoyé (messageId Gmail confirmé) ; nouvelle génération de facture pour la même commande → renvoie bien la facture d'origine (pas l'avoir).
+- **Tests :** 139/139 ✓ backend.
 
 ### T5-16 — Tests unitaires service facture
 
@@ -889,8 +891,14 @@ Détails : `docs/audit-finalisation/11_RAILWAY_PRODUCTION.md` *(obsolète)*
 
 ---
 
-## Phase 11 — Migration Railway → Homeserver (`tfredklab.dev`)
+## Phase 11 — Migration Railway → Homeserver (`tfredklab.dev`) — SUPERSÉDÉE
 
+> **⚠️ Décision utilisateur (2026-09-04) : le homeserver auto-géré est abandonné au profit
+> d'un hébergeur managé (Fly.io), voir Phase 14 ci-dessous.** Cette phase est conservée
+> pour l'historique (infrastructure Docker/Caddy/Cloudflare Tunnel déployée et documentée
+> dans `docs/deploiement/DEPLOY-HOMESERVER.md`) mais n'est plus le chemin de production
+> actif — T11-04, T11-05, T11-07, T11-09 ne seront plus poursuivis sur cette base.
+>
 > Remplace la Phase 8. Railway EN PAUSE (plan expiré) — hébergement auto-géré
 > sur le homeserver personnel de l'utilisateur (Debian 13, Docker Compose,
 > Caddy, Cloudflare Tunnel). Détails complets : `docs/deploiement/DEPLOY-HOMESERVER.md`.
@@ -927,16 +935,15 @@ Détails : `docs/audit-finalisation/11_RAILWAY_PRODUCTION.md` *(obsolète)*
 
 ### T11-04 — Cloudflare Tunnel public hostnames
 
-- **Statut :** BLOCKED (action externe utilisateur) | **Priorité :** P0 | **Catégorie :** ACTION EXTERNE
-- **Action :** Zero Trust → Networks → Tunnels → "homeserver" → Public Hostname → ajouter `jana.tfredklab.dev` et `jana-api.tfredklab.dev` → `localhost:80`. Tunnel géré à distance via token (pas de config.yml local éditable par SSH).
+- **Statut :** CANCELLED (2026-09-04) — Phase 11 (homeserver) supersédée par Phase 14 (Fly.io), voir décision utilisateur | **Priorité :** P0 | **Catégorie :** ACTION EXTERNE
+- **Action (historique, non réalisée) :** Zero Trust → Networks → Tunnels → "homeserver" → Public Hostname → ajouter `jana.tfredklab.dev` et `jana-api.tfredklab.dev` → `localhost:80`. Tunnel géré à distance via token (pas de config.yml local éditable par SSH).
 
 ---
 
 ### T11-05 — Générer secrets prod + .env homeserver
 
-- **Statut :** IN_PROGRESS | **Priorité :** P0 | **Catégorie :** CONFIGURATION + ACTION EXTERNE
-- **Fait :** `JWT_SECRET`, `JWT_REFRESH_SECRET`, `POSTGRES_PASSWORD` générés directement sur le homeserver (`openssl rand -hex 32/24`, jamais transités par ce poste ni affichés). `.env` aligné sur Gmail SMTP (le code a migré de Brevo vers Gmail SMTP le 2026-07-08, indépendamment de cette session — variables `BREVO_*` mortes retirées).
-- **Reste à renseigner (action externe utilisateur) :** `GMAIL_SENDER_EMAIL`/`GMAIL_APP_PASSWORD` (nouveau mot de passe d'application, pas celui de Railway), `R2_ACCESS_KEY_ID`/`R2_SECRET_ACCESS_KEY` (nouveau token R2 dédié), `ENTREPRISE_ADRESSE`.
+- **Statut :** CANCELLED (2026-09-04) — Phase 11 (homeserver) supersédée par Phase 14 (Fly.io) ; l'équivalent Fly (secrets régénérés from scratch + Gmail configuré) est fait, voir T14-03 et T14-04 | **Priorité :** P0 | **Catégorie :** CONFIGURATION + ACTION EXTERNE
+- **Fait (historique, sur le homeserver abandonné) :** `JWT_SECRET`, `JWT_REFRESH_SECRET`, `POSTGRES_PASSWORD` générés directement sur le homeserver (`openssl rand -hex 32/24`, jamais transités par ce poste ni affichés). `.env` aligné sur Gmail SMTP.
 
 ---
 
@@ -950,8 +957,8 @@ Détails : `docs/audit-finalisation/11_RAILWAY_PRODUCTION.md` *(obsolète)*
 
 ### T11-07 — Monitoring Uptime Kuma
 
-- **Statut :** BLOCKED (action externe utilisateur) | **Priorité :** P2 | **Catégorie :** ACTION EXTERNE
-- **Action :** Ajouter 2 moniteurs HTTP(s) dans `status.tfredklab.dev` : `https://jana.tfredklab.dev` et `https://jana-api.tfredklab.dev/api/health`. Pas d'API REST stable en Uptime Kuma v1 pour automatiser sans session authentifiée.
+- **Statut :** CANCELLED (2026-09-04) — Phase 11 (homeserver) supersédée par Phase 14 (Fly.io) ; monitoring à reconsidérer pour `jana-frontend.fly.dev`/`jana-backend.fly.dev` si besoin (nouvelle tâche, pas celle-ci) | **Priorité :** P2 | **Catégorie :** ACTION EXTERNE
+- **Action (historique, non réalisée) :** Ajouter 2 moniteurs HTTP(s) dans `status.tfredklab.dev` : `https://jana.tfredklab.dev` et `https://jana-api.tfredklab.dev/api/health`. Pas d'API REST stable en Uptime Kuma v1 pour automatiser sans session authentifiée.
 
 ---
 
@@ -966,9 +973,8 @@ Détails : `docs/audit-finalisation/11_RAILWAY_PRODUCTION.md` *(obsolète)*
 
 ### T11-09 — Cutover final Railway → homeserver
 
-- **Statut :** TODO | **Priorité :** P0 | **Catégorie :** VALIDATION
-- **Dépendances :** T11-04, T11-05 (secrets externes complets)
-- **Objectif :** Valider le flux commande complet sur `jana.tfredklab.dev`, puis bascule DNS finale et arrêt (pas suppression) de Railway.
+- **Statut :** CANCELLED (2026-09-04) — remplacé par la mise en production Fly.io (Phase 14, T14-07), voir décision utilisateur | **Priorité :** P0 | **Catégorie :** VALIDATION
+- **Objectif (historique, non réalisé) :** Valider le flux commande complet sur `jana.tfredklab.dev`, puis bascule DNS finale et arrêt (pas suppression) de Railway.
 
 ---
 
@@ -1171,6 +1177,207 @@ Checklist complète : `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
   3. Mécanisme d'avoir pour factures émises — non implémenté (T12-07), nouvelle fonctionnalité hors périmètre de durcissement.
   4. Rotation confirmée de `SMTP_USER`/`SMTP_PASS` legacy — à vérifier explicitement (T12-10).
   5. T11-04, T11-07 — actions externes utilisateur déjà trackées en Phase 11, non dupliquées ici.
+
+---
+
+## Phase 13 — Audit fonctionnel et sécurité complémentaire (2026-09-04)
+
+> Audit read-only mené en 4 investigations parallèles (sécurité backend, logique métier backend, sécurité/cohérence frontend, infrastructure/config), chacune recoupée systématiquement avec cette même page avant de signaler un point comme nouveau. Rapport complet : voir l'artefact "Audit Sécurité Jana" publié le 2026-09-04. Aucune régression trouvée sur les points DONE de Phase 12 ; DB-04 confirmé et précisé (voir §3).
+
+### T13-01 — Path traversal sur la suppression d'image produit
+- **Statut :** DONE (2026-09-04) | **Priorité :** P1 | **Catégorie :** SÉCURITÉ | **Domaine :** Backend/Cybersécurité
+- **Fichiers :** `backend/src/validators/product.validator.js` (`filenameParam`, nouveau), `backend/src/routes/product.routes.js` (validator branché sur `DELETE /image/:filename`), `backend/src/middlewares/upload.middleware.js` (`deleteImage` durci en défense en profondeur : `path.basename()` + vérification que le chemin résolu reste sous `UPLOAD_DIR`)
+- **Vérifié en conditions réelles :** `DELETE /api/products/image/..%2f..%2fsrc%2findex.js` avec un token admin valide → `400 "Nom de fichier invalide"` (avant le correctif, ce chemin aurait tenté de supprimer le fichier). Un nom de fichier légitime (`product_<uuid>.jpg`) continue de fonctionner normalement.
+- **Tests :** `tests/integration/product.routes.test.js` mis à jour (mock validator manquait `filenameParam`, causait un crash au chargement des routes) — 139/139 ✓.
+
+### T13-02 — Filtre d'upload contournable → XSS stocké possible (mode disque local)
+- **Statut :** DONE (2026-09-04) | **Priorité :** P1 | **Catégorie :** SÉCURITÉ | **Domaine :** Backend/Cybersécurité
+- **Fichiers :** `backend/src/middlewares/upload.middleware.js` (`MIME_TO_EXTENSION`, `FILE_SIGNATURES`/`matchesFileSignature`, `verifyImageSignature` — nouveaux), `backend/src/routes/product.routes.js` (`verifyImageSignature` branché entre `productImageUpload.single('image')` et `uploadToR2`)
+- **Correctif appliqué (double défense) :** (1) l'extension de stockage est désormais dérivée du `mimetype` validé par la whitelist (`MIME_TO_EXTENSION`), plus jamais de `file.originalname` (attaquant-contrôlé) ; (2) `verifyImageSignature` lit les premiers octets du fichier réellement écrit sur disque et vérifie une signature binaire (magic bytes JPEG/PNG/GIF/WEBP) correspondant à un des formats autorisés — sans dépendance externe (implémentation manuelle, pas de `file-type`). Rejette et supprime le fichier si le contenu réel ne correspond à aucune signature connue, indépendamment du `Content-Type` déclaré.
+- **Vérifié en conditions réelles :** upload d'un fichier contenant `<script>alert(1)</script>` avec `Content-Type: image/png` déclaré → `400 "Le contenu du fichier ne correspond pas à une image valide."`, fichier absent du disque après coup (confirmé). Upload d'un vrai PNG (signature `\x89PNG...` valide) → accepté par la vérification (échec constaté ensuite au niveau R2, cause indépendante : bucket R2 mal configuré dans cet environnement de dev, hors périmètre de ce correctif).
+
+### T13-03 — Régression `npm audit` backend : CVE en production (express/body-parser/qs)
+- **Statut :** DONE (2026-09-04) | **Priorité :** P1 | **Catégorie :** CODE | **Domaine :** Backend
+- **Fichiers :** `backend/package.json` (`overrides.qs: "^6.16.0"`), `backend/package-lock.json`
+- **Détail :** `npm audit fix` seul n'a pas suffi — `express@4.22.2` (dernière version 4.x publiée) pin `qs@~6.15.1` en interne, hors de la plage patchée par l'avis de sécurité (`qs` vulnérable jusqu'à 6.15.3 inclus, corrigé en 6.16.0). Un override npm (`overrides.qs`) force la résolution vers `6.16.0` sans attendre une éventuelle mise à jour d'express — bump mineur de `qs`, non-breaking, compatible avec l'API utilisée par `body-parser`/`express`.
+- **Résultat vérifié :** `npm audit --production` : 0 vulnérabilité sur `express`/`body-parser`/`qs` (auparavant 3 modérées). Il reste 1 CVE modérée sur `uuid@9.x` (dépendance directe de production, utilisée uniquement via `uuidv4()` sans le paramètre `buf` — le seul chemin réellement vulnérable de l'avis CVE-GHSA-w5hq-g745-h8pq porte sur `v3()/v5()/v6()` avec `buf` fourni, non utilisé dans ce code) ; correctif nécessiterait un bump majeur (`uuid@14`, breaking), non appliqué ici faute d'exploitabilité réelle — à réévaluer si le périmètre d'usage de `uuid` change.
+- **Tests :** 139/139 ✓ après `npm install` (override appliqué).
+
+### T13-04 — Remboursements partiels non cumulatifs (sur-remboursement possible)
+- **Statut :** DONE (2026-09-04) | **Priorité :** P1 | **Catégorie :** CODE | **Domaine :** E-commerce/Backend
+- **Décision produit (utilisateur, 2026-09-04) :** les remboursements partiels doivent se cumuler et être plafonnés strictement au total TTC de la commande — jamais un remplacement du dernier montant.
+- **Fichiers :** `backend/src/repositories/order.repository.js` (`updateRefund` remplacée par `addRefund` — transaction + `SELECT ... FOR UPDATE` pour éviter qu'un remboursement concurrent dépasse le plafond), `backend/src/routes/admin.order.routes.js` (route `/refund` simplifiée, la logique de cumul/plafond vit désormais uniquement dans le repository ; `montant_rembourse` ajouté aux deux réponses GET commande admin — champ auparavant absent de toutes les réponses API), `backend/src/repositories/order.repository.js#_mapOrder` (`montantRembourse` exposé), `frontend/src/pages/admin/AdminOrderDetail.jsx` (bouton/modal de remboursement pré-remplis avec le **reste à rembourser** au lieu du total complet, affichage "Déjà remboursé : X€", `canRefund` exige désormais `resteARembourser > 0`)
+- **Vérifié en conditions réelles (curl, séquence complète sur une commande à 51,05€ TTC) :** remboursement de 20€ → cumul 20€ ; second remboursement de 20€ → cumul **40€** (pas écrasé à 20€) ; troisième tentative de 20€ (40+20=60 > 51,05) → **rejeté 400** avec message explicite du cumul ; remboursement du solde exact (11,05€) → cumul 51,05€, statut bascule correctement en `REMBOURSE`. Vérifié également que `montantRembourse` (auparavant absent) apparaît bien dans la réponse `GET /api/admin/orders/:id` et s'affiche dans l'UI admin ("Déjà remboursé : 51,05 €").
+- **Tests :** 139/139 ✓ (aucun test unitaire/intégration dédié au cumul — dette de test à combler si ce flux devient critique). `npm run build` frontend ✓.
+
+### T13-05 — Changement de mot de passe ne révoque aucune session active
+- **Statut :** DONE (2026-09-04) | **Priorité :** P1 | **Catégorie :** SÉCURITÉ | **Domaine :** Backend/Cybersécurité
+- **Fichiers :** `backend/src/services/auth.service.js` (`changePassword`, `resetPassword`)
+- **Correctif appliqué :** `revokeAllUserRefreshTokens(userId)` (déjà implémentée pour T2-05, jusqu'ici jamais appelée) est désormais invoquée à la fin de `changePassword()` et de `resetPassword()` — tout refresh token émis avant le changement de mot de passe est révoqué en base, coupant l'accès sur les autres appareils/sessions.
+- **Tests :** 139/139 ✓ (aucun test unitaire dédié à cette invocation — à ajouter en dette technique si un durcissement supplémentaire est fait sur `auth.service.js`).
+
+### T13-06 — Le franco de port désactive le contrôle de zone de livraison à 80km
+- **Statut :** DONE (2026-09-04) | **Priorité :** P1 | **Catégorie :** CODE | **Domaine :** E-commerce/Backend
+- **Fichiers :** `backend/src/services/order.service.js` (bloc de calcul des frais de livraison, `createOrder`)
+- **Correctif appliqué :** la vérification `computeDistanceShipping()`/`hors_zone` en mode `DISTANCE` n'est plus conditionnée à `totalPanierTtc < seuil_franco` — elle s'exécute désormais systématiquement dès que le mode `DISTANCE` est actif, indépendamment du montant de la commande. Le franco de port continue de mettre les frais à 0 (via `getFraisLivraison()`, inchangée), mais ne dispense plus jamais du contrôle de zone livrable. Coût additionnel négligeable : `computeDistanceShipping()` peut être appelée une seconde fois dans le même flux (une fois pour la zone, une fois pour le tarif via `getFraisLivraison`), mais `geocodingService` cache déjà les géocodages 24h en mémoire.
+- **Tests :** 139/139 ✓ (aucun test existant n'exerçait ce chemin avec mode `DISTANCE` + franco atteint — dette de test à combler si ce flux devient critique).
+
+### T13-07 — Messages d'erreur checkout écrasés par un message générique anglais
+- **Statut :** DONE (2026-09-04) | **Priorité :** P1 | **Catégorie :** CODE | **Domaine :** Frontend
+- **Fichiers :** `frontend/src/pages/CheckoutPage.jsx`
+- **Correctif appliqué :** `toast.error(error.message || ...)` → `toast.error(error.response?.data?.message || ...)`, aligné sur le pattern déjà utilisé dans `CartContext`/`AuthContext`/`useOrdersAdmin`. Une commande qui échoue affiche désormais le message métier français du backend (stock insuffisant, promo expirée, hors zone…) plutôt qu'un message Axios technique en anglais.
+- **Build :** `npm run build` ✓ sans erreur.
+
+### T13-08 — `PUT /api/admin/settings` contourne la validation appliquée ailleurs
+- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** Backend
+- **Fichiers :** `backend/src/services/settings.service.js:161-193` vs `138-154`
+- **Détail :** `updateAll()` n'appelle jamais `_validateSettings()` (bornes négatives, format email), contrairement à `updateCategory()`. Un admin peut pousser des frais de livraison négatifs via cette seule route.
+
+### T13-09 — Révocation de refresh token silencieusement inopérante si l'écriture DB échoue
+- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** SÉCURITÉ | **Domaine :** Backend/Cybersécurité
+- **Fichiers :** `backend/src/services/auth.service.js:232-247,486-494`
+- **Détail :** `_storeRefreshToken` avale toute erreur DB ; si le stockage échoue au login, le token reste valide 30 jours sans possibilité de révocation serveur (cas limite, dégrade la garantie de T2-03..T2-05).
+
+### T13-10 — Recherche produits et import Excel hors du rate limiting dédié
+- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** SÉCURITÉ | **Domaine :** Backend
+- **Fichiers :** `backend/src/index.js`
+- **Détail :** `GET /api/products/search` (requête `ILIKE` non authentifiée) n'a que le plafond global générique (300/15min) — potentiel abus de charge DB.
+
+### T13-11 — `jwt.verify` sans `algorithms` épinglé explicitement
+- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** SÉCURITÉ | **Domaine :** Backend
+- **Fichiers :** `backend/src/middlewares/auth.middleware.js:35`, `backend/src/services/auth.service.js:545,561`
+- **Détail :** non exploitable actuellement (HS256 uniquement), mais durcissement standard à appliquer par prévention : `jwt.verify(token, secret, { algorithms: ['HS256'] })`.
+
+### T13-12 — Aucun email envoyé au client lors d'un remboursement
+- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** E-commerce/Backend
+- **Fichiers :** `backend/src/routes/admin.order.routes.js:518-596`
+- **Détail :** la route de remboursement contourne `orderService.updateStatus()` (qui envoie systématiquement un email) en appelant directement le repository.
+
+### T13-13 — Code promo à usage unique jamais libéré si la commande est annulée
+- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** E-commerce/Backend
+- **Fichiers :** `backend/src/repositories/order.repository.js:529-591` (`cancel`)
+- **Détail :** `cancel()` restaure le stock mais ne touche jamais `code_promo_utilisation` — un client qui annule perd définitivement son usage unique sans en avoir bénéficié ; fausse aussi les statistiques admin de performance des codes promo.
+
+### T13-14 — Changement de statut de commande sans verrou (race condition)
+- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** E-commerce/Backend
+- **Fichiers :** `backend/src/services/order.service.js:297-338`
+- **Détail :** contrairement à T12-05/T12-06 (verrous `FOR UPDATE`), la transition de statut lit puis écrit sans `SELECT ... FOR UPDATE` ni condition sur l'ancien statut. Deux requêtes admin concurrentes sur la même commande peuvent produire un résultat incohérent.
+
+### T13-15 — Incohérence HT/TTC dans `getGlobalStats()` (route actuellement morte)
+- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** Backend
+- **Fichiers :** `backend/src/repositories/stats.repository.js:282`
+- **Détail :** même bug que celui corrigé cette session dans `getDashboardStats()`/`getEvolution()` (T4 fix HT/TTC), laissé intact ici. Route non appelée par le frontend actuellement (vérifié), donc sans impact visible tant qu'elle reste inutilisée — à corriger avant tout câblage futur.
+
+### T13-16 — Message "Email ou mot de passe incorrect" trompeur en cas de panne réseau
+- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** Frontend
+- **Fichiers :** `frontend/src/contexts/AuthContext.jsx:110-113`
+- **Détail :** seul fallback spécifique (donc trompeur) parmi les 5 messages d'erreur d'AuthContext — en cas de panne réseau réelle, l'utilisateur croit à tort que ses identifiants sont faux.
+
+### T13-17 — Case "Rester connecté sur cet appareil" entièrement décorative
+- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** Frontend
+- **Fichiers :** `frontend/src/pages/LoginPage.jsx:29,131-134`
+- **Détail :** togglable à l'écran mais jamais lue ni transmise à `login()` — contrairement aux 7 boutons "Bientôt disponible" du code (correctement désactivés), celle-ci feint une action qui n'existe pas. Soit l'implémenter (stockage `localStorage` vs `sessionStorage` selon l'état), soit la retirer.
+
+### T13-18 — Aucun Error Boundary React global
+- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** Frontend
+- **Fichiers :** `frontend/src/main.jsx`
+- **Détail :** toute exception de rendu non catchée fait crasher tout l'arbre React vers une page blanche sans message ni retour possible, y compris sur checkout/connexion.
+
+### T13-19 — Validation de mot de passe incohérente entre inscription et changement de mot de passe
+- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** Frontend
+- **Fichiers :** `frontend/src/pages/RegisterPage.jsx:71-83`, `frontend/src/components/mon-compte/TabSecurite.jsx:29-36`
+- **Détail :** l'inscription vérifie la complexité complète, le changement de mot de passe ne vérifie que la longueur — incohérence UX entre deux formulaires du même parcours.
+
+### T13-20 — Aucun header de sécurité HTTP (CSP/HSTS/X-Frame-Options)
+- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** INFRA | **Domaine :** Infrastructure
+- **Fichiers :** `docs/deploiement/DEPLOY-HOMESERVER.md` §9 (Caddy, config réelle hors dépôt), `frontend/nginx.conf`
+- **Détail :** ni la configuration Caddy documentée ni `nginx.conf` ne fixent de header de sécurité — seuls gzip et cache statique sont configurés.
+
+### T13-21 — Node.js 20 en fin de vie depuis avril 2026
+- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** INFRA | **Domaine :** Infrastructure
+- **Fichiers :** `backend/Dockerfile`, `frontend/Dockerfile` (`node:20-alpine`)
+- **Détail :** Node 20 ("Iron") hors support LTS depuis le 30/04/2026 — ~4 mois sans correctif de sécurité officiel à la date de cet audit. Migration recommandée vers `node:22-alpine`.
+
+### T13-22 — `.gitignore` sans filet pour certificats, clés SSH, dumps DB
+- **Statut :** TODO | **Priorité :** P3 | **Catégorie :** INFRA | **Domaine :** Infrastructure
+- **Fichiers :** `.gitignore` (racine)
+- **Détail :** aucun fichier de ce type n'est actuellement tracké, mais aucun pattern ne protégerait contre un ajout accidentel futur. Ajouter `*.pem`, `*.key`, `*.crt`, `*.p12`, `*.pfx`, `id_rsa`, `*.sql.gz`, `*.dump`, `*.bak`.
+
+### T13-23 — Ports PostgreSQL/Redis exposés dans le compose de développement du dépôt
+- **Statut :** TODO | **Priorité :** P3 | **Catégorie :** INFRA | **Domaine :** Infrastructure
+- **Fichiers :** `docker-compose.yml:11-12,28-29`
+- **Détail :** non bindés en local uniquement dans le compose du dépôt (`"5432:5432"` plutôt que `"127.0.0.1:5432:5432"`) — le compose de production réel (hors dépôt) n'expose aucun port sur l'hôte, donc non exploitable en l'état actuel documenté. Risque résiduel uniquement en cas de réutilisation erronée de ce fichier pour un déploiement rapide.
+
+### T13-24 — Validateur de statut de commande accepte des valeurs toujours rejetées ensuite
+- **Statut :** TODO | **Priorité :** P3 | **Catégorie :** CODE | **Domaine :** Backend
+- **Fichiers :** `backend/src/routes/admin.order.routes.js:396`
+- **Détail :** `REMBOURSE`/`PARTIELLEMENT_REMBOURSE` passent la validation d'entrée mais sont systématiquement rejetés par `STATUT_TRANSITIONS` (le vrai chemin est `POST /:id/refund`) — sans impact fonctionnel, source de confusion pour un futur développeur.
+
+### Constats factuels de l'audit (non actionnables, pour mémoire)
+- **Prix panier hybride :** figé pour le prix normal (capturé à l'ajout au panier), dynamique pour le prix promo (relu en base au passage en caisse) — comportement voulu par l'architecture actuelle, pas un bug. `backend/src/repositories/cart.repository.js:409-441`.
+- **Pas de panier invité :** toutes les routes `/api/cart/*` exigent une authentification, le frontend bloque explicitement l'ajout au panier sans connexion — il n'y a donc rien à fusionner à la connexion, contrairement à l'hypothèse initiale de l'audit. Non actionnable.
+
+---
+
+## Phase 14 — Mise en production sur Fly.io (2026-09-04)
+
+> Remplace la Phase 11 (homeserver abandonné, décision utilisateur). Hébergeur managé
+> choisi pour son coût quasi-nul (~5-10€/mois estimé), l'absence de dépendance à un
+> repository GitHub connecté (déploiement par `flyctl deploy` depuis une image Docker
+> locale — le dépôt GitHub peut être supprimé sans casser le déploiement), et parce
+> qu'un seul compte héberge front + back + Postgres + Redis. Org Fly : `personal`,
+> région `cdg` (Paris).
+
+### T14-01 — Provisionner Postgres, Redis, apps frontend/backend
+
+- **Statut :** DONE (2026-09-04) | **Priorité :** P0 | **Catégorie :** INFRA
+- **Ressources créées :**
+  - `jana-db` — Fly Postgres (flex), 1 nœud, `shared-cpu-1x`, volume 1GB, région `cdg`. Réseau privé uniquement (`jana-db.flycast`), aucun port exposé publiquement.
+  - `jana-redis` — Upstash Redis via Fly, plan pay-as-you-go ($0.20/100K commandes, pas de coût fixe), éviction activée.
+  - `jana-backend` — app Fly, `shared-cpu-1x` / 512MB, 1 machine (scale down depuis 2 par défaut pour limiter le coût), health check sur `/api/health`.
+  - `jana-frontend` — app Fly (Nginx statique), `shared-cpu-1x` / 256MB, 1 machine.
+  - `jana-db` attachée à `jana-backend` via `flyctl postgres attach` (crée automatiquement une base + rôle dédiés `jana_backend`, injecte `DATABASE_URL` en secret).
+- **Fichiers ajoutés :** `backend/fly.toml`, `frontend/fly.toml`.
+
+### T14-02 — Bug réel trouvé : nginx frontend proxyait vers un hostname Docker Compose inexistant sur Fly
+
+- **Statut :** DONE (2026-09-04) | **Priorité :** P0 | **Catégorie :** CODE
+- **Fichier :** `frontend/nginx.conf`
+- **Détail :** les blocs `location ^~ /api/` et `location ^~ /uploads/` faisaient `proxy_pass http://backend:3000` — un hostname qui n'existe que dans le réseau Docker Compose local (nom du service). Sur Fly (apps séparées), nginx tentait de résoudre ce hostname au démarrage et **crashait immédiatement** (`exit_code=1`). Confirmé que ces blocs étaient de toute façon du code mort : le frontend appelle déjà directement l'URL absolue du backend via `VITE_API_URL` (`frontend/src/services/api.js`, `imageUtils.js`), jamais via un chemin relatif same-origin. Blocs supprimés. Probablement latent depuis la migration Railway (jamais exercé car le dev local utilise le serveur Vite, pas ce Dockerfile Nginx de prod) — pas une régression introduite par la migration Fly.
+- **Vérifié :** frontend accessible (`HTTP 200`) après correctif.
+
+### T14-03 — Secrets de production générés (jamais réutilisés depuis l'historique git compromis)
+
+- **Statut :** DONE (2026-09-04) | **Priorité :** P0 | **Catégorie :** SÉCURITÉ
+- **Détail :** `JWT_SECRET`/`JWT_REFRESH_SECRET` regénérés from scratch (`openssl rand -hex 32`, jamais transités par un fichier commité). `DB_SSL_DISABLE=true` (réseau privé Fly déjà chiffré WireGuard, cohérent avec le choix fait sur le homeserver). **Ceci constitue une rotation de fait des secrets JWT/DB exposés dans DB-04** pour ce nouvel environnement — ne lève pas DB-04 (l'historique git public reste à purger, et `SMTP_USER`/`SMTP_PASS` legacy exposés restent à révoquer, voir T14-04) mais réduit le périmètre réellement actif.
+- **Reste à faire :** T14-04 (Gmail) et confirmation que les anciens secrets homeserver/Railway sont bien révoqués/inutilisés (pas de nouvelle action, ils ne sont simplement plus en usage).
+
+### T14-04 — Configuration email Gmail SMTP
+
+- **Statut :** DONE (2026-09-04) | **Priorité :** P1 | **Catégorie :** CONFIGURATION
+- **Détail :** le compte `jannadistribpro@gmail.com` reste l'expéditeur ; nouveau mot de passe d'application Gmail généré par l'utilisateur (l'ancien étant exactement celui exposé dans l'historique git, DB-04 — inutilisable en production). Posé en secret Fly (`GMAIL_SENDER_EMAIL`, `GMAIL_APP_PASSWORD`, `GMAIL_SENDER_NAME`) sur `jana-backend`, backend redéployé.
+- **Vérifié en conditions réelles :** `POST /api/auth/forgot-password` sur le compte admin réel → log applicatif confirmant l'envoi effectif (`Email envoyé à admin@jana-distribution.fr ... messageId: <...@gmail.com>`) — Gmail SMTP a bien accepté et acheminé le message, pas seulement une initialisation de transporteur sans erreur.
+
+### T14-05 — Stockage des images produits : volume Fly persistant (pas R2)
+
+- **Statut :** DONE (2026-09-04) | **Priorité :** P1 | **Catégorie :** INFRA
+- **Décision utilisateur (2026-09-04) :** abandon de Cloudflare R2 (token cassé constaté en test, "bucket does not exist") au profit d'un volume Fly persistant attaché à `jana-backend` — un seul prestataire plutôt que deux, aucune modification de code nécessaire (`uploadToR2` bascule déjà en local disque quand les variables `R2_*` sont absentes, comportement existant réutilisé tel quel).
+- **Fichiers :** `backend/fly.toml` (`[[mounts]] source="jana_uploads" destination="/app/uploads"`). Volume 1GB, chiffré, snapshots automatiques (rétention 5) inclus par Fly.
+- **Vérifié en conditions réelles :** upload d'une image test → `200`, servie ensuite via `GET /uploads/products/...` → `200`, suppression via `DELETE /api/products/image/:filename` → `200` (re-vérifie au passage T13-01 en production). Image de test nettoyée après vérification.
+- **Limite connue :** un seul volume = une seule machine backend possible (pas de scaling horizontal du backend sans repenser le stockage). Non bloquant vu le volume de trafic attendu.
+
+### T14-06 — Compte admin de production réel (pas le seed de démo)
+
+- **Statut :** DONE (2026-09-04) | **Priorité :** P0 | **Catégorie :** SÉCURITÉ + DONNÉES
+- **Détail :** `backend/scripts/seed.js` n'a **pas** été exécuté en production — il crée des comptes de démo à mot de passe connu publiquement dans ce dépôt (`admin@jana-distribution.fr` / `Admin123!`, `client@test.fr` / `Client123!`) et des produits factices, en supprimant au passage toute donnée existante. Un script de seed minimal dédié (non commité, exécuté une fois via le proxy Fly Postgres) a créé : les 6 catégories réelles (mêmes que le seed de démo — ce sont les rayons réels du catalogue) et **un seul** compte admin réel avec un mot de passe fort généré aléatoirement, transmis à l'utilisateur en dehors de ce document.
+- **Aucun compte client ni produit de démonstration créé.** Le catalogue de production est vide (hors catégories) — à peupler par l'utilisateur via le back-office.
+- **Vérifié :** connexion admin réelle testée avec succès (`POST /api/auth/login` → 200, `role: ADMIN`).
+
+### T14-07 — Vérification end-to-end production
+
+- **Statut :** DONE (2026-09-04) | **Priorité :** P0 | **Catégorie :** VALIDATION
+- **Vérifié :** `https://jana-backend.fly.dev/api/health` → `200`, DB `up`. `https://jana-frontend.fly.dev/` → `200`, page d'accueil rendue, catégories chargées depuis l'API (CORS correctement configuré, `CORS_ORIGIN=https://jana-frontend.fly.dev`). Connexion admin réelle. Upload/suppression d'image via volume persistant. Aucune erreur console au chargement.
+- **Reste à faire :** T14-04 (email), décision optionnelle sur un nom de domaine personnalisé (actuellement `*.fly.dev` uniquement, non demandé par l'utilisateur), peuplement du catalogue réel par l'utilisateur.
 
 ---
 
