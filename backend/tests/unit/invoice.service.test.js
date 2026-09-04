@@ -127,6 +127,97 @@ describe('InvoiceService.generateForOrder — cohérence des arrondis', () => {
   });
 });
 
+describe('InvoiceService.generateCreditNote — avoir après remboursement (T5-15)', () => {
+  const FACTURE_ORIGINALE = {
+    id: 'facture-uuid-orig',
+    numero: 'FAC-2026-0042',
+    utilisateur_id: 'user-uuid-0001',
+    client_nom: 'Jean Dupont',
+    client_email: 'jean.dupont@example.com',
+    client_adresse: '1 rue de la Paix, 75001 Paris',
+    entreprise_nom: 'Jana Distribution',
+    entreprise_siret: '798787784',
+    entreprise_tva_numero: 'FR92798787784',
+    entreprise_adresse: '10 rue du Commerce',
+    total_ht: '100.00',
+    total_tva: '5.50',
+    total_ttc: '105.50'
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    invoiceRepository.getNextNumber.mockResolvedValue('AV-2026-0001');
+    invoiceRepository.create.mockImplementation(async (data) => ({ id: 'avoir-uuid-0001', ...data }));
+    invoiceRepository.createLigne.mockResolvedValue();
+    invoiceRepository.linkAvoir.mockResolvedValue();
+    invoiceRepository.findById.mockResolvedValue({ id: 'avoir-uuid-0001', lignes: [] });
+  });
+
+  it("ne génère rien et ne lève pas d'exception si aucune facture d'origine n'existe (remboursement sans facture)", async () => {
+    invoiceRepository.findOriginalByCommande.mockResolvedValue(null);
+
+    const result = await invoiceService.generateCreditNote(COMMANDE_ID, 50, 'Colis endommagé');
+
+    expect(result).toBeNull();
+    expect(invoiceRepository.create).not.toHaveBeenCalled();
+  });
+
+  it('proratise HT/TVA de l\'avoir sur le taux moyen de la facture d\'origine, montants négatifs', async () => {
+    invoiceRepository.findOriginalByCommande.mockResolvedValue(FACTURE_ORIGINALE);
+
+    // Remboursement partiel de 52.75€ TTC (moitié de la facture 105.50€ TTC,
+    // ratio HT/TTC original = 100/105.50).
+    await invoiceService.generateCreditNote(COMMANDE_ID, 52.75, 'Retour partiel');
+
+    expect(invoiceRepository.getNextNumber).toHaveBeenCalledWith('AV');
+    expect(invoiceRepository.create).toHaveBeenCalledTimes(1);
+    const avoirData = invoiceRepository.create.mock.calls[0][0];
+
+    expect(avoirData.type).toBe('AVOIR');
+    expect(avoirData.commandeId).toBe(COMMANDE_ID);
+    expect(avoirData.totaux.ttc).toBeCloseTo(-52.75, 2);
+    // Tous les montants de l'avoir doivent être négatifs (credit note)
+    expect(avoirData.totaux.ht).toBeLessThan(0);
+    expect(avoirData.totaux.tva).toBeLessThan(0);
+    // HT + TVA doit reconstituer exactement le TTC (pas d'écart d'arrondi)
+    expect(Math.round((avoirData.totaux.ht + avoirData.totaux.tva) * 100) / 100).toBe(avoirData.totaux.ttc);
+
+    expect(invoiceRepository.createLigne).toHaveBeenCalledTimes(1);
+    const ligne = invoiceRepository.createLigne.mock.calls[0][0].ligne;
+    expect(ligne.montantTtc).toBe(avoirData.totaux.ttc);
+    expect(ligne.ref).toBe(FACTURE_ORIGINALE.numero);
+
+    expect(invoiceRepository.linkAvoir).toHaveBeenCalledWith(FACTURE_ORIGINALE.id, 'avoir-uuid-0001');
+  });
+
+  it('un remboursement total (montant = TTC original) produit un avoir qui annule exactement HT et TVA', async () => {
+    invoiceRepository.findOriginalByCommande.mockResolvedValue(FACTURE_ORIGINALE);
+
+    await invoiceService.generateCreditNote(COMMANDE_ID, 105.50, null);
+
+    const avoirData = invoiceRepository.create.mock.calls[0][0];
+    expect(avoirData.totaux.ttc).toBe(-105.50);
+    expect(avoirData.totaux.ht).toBe(-100.00);
+    expect(avoirData.totaux.tva).toBe(-5.50);
+  });
+
+  it("n'a aucune valeur NaN même quand total_ttc original vaut zéro (garde-fou division)", async () => {
+    invoiceRepository.findOriginalByCommande.mockResolvedValue({
+      ...FACTURE_ORIGINALE,
+      total_ht: '0.00',
+      total_tva: '0.00',
+      total_ttc: '0.00'
+    });
+
+    await invoiceService.generateCreditNote(COMMANDE_ID, 0, 'Remboursement nul');
+
+    const avoirData = invoiceRepository.create.mock.calls[0][0];
+    expect(Number.isNaN(avoirData.totaux.ht)).toBe(false);
+    expect(Number.isNaN(avoirData.totaux.tva)).toBe(false);
+    expect(Number.isNaN(avoirData.totaux.ttc)).toBe(false);
+  });
+});
+
 describe('InvoiceRoutes — immutabilité d\'une facture émise', () => {
   it("n'expose aucune route PUT/PATCH/DELETE sur /api/invoices (seul un avoir doit pouvoir corriger une facture)", () => {
     const invoiceRoutes = require('../../src/routes/invoice.routes');
