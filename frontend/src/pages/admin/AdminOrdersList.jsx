@@ -303,16 +303,25 @@ const AdminOrdersList = () => {
                         <span className={`text-[11px] font-semibold px-1.5 py-[2px] rounded-4 ${getAdminStatutStyle(order.statut)}`}>{statutInfo.label}</span>
                       </div>
                     </div>
-                    {next && (
+                    <div className="flex gap-2">
                       <button
                         type="button"
-                        onClick={() => handleAdvance(order)}
-                        disabled={updatingStatus === order.id}
-                        className="w-full bg-green-700 hover:bg-green-800 disabled:opacity-50 text-white text-[13px] font-semibold h-10 rounded-6 transition-colors"
+                        onClick={() => navigate(`/admin/commandes/${order.id}`)}
+                        className={`${next ? 'flex-shrink-0 px-4' : 'flex-1'} bg-sand-100 hover:bg-sand-150 text-graphite-700 text-[13px] font-semibold h-10 rounded-6 transition-colors`}
                       >
-                        {NEXT_ACTION_LABEL[order.statut]}
+                        Détail
                       </button>
-                    )}
+                      {next && (
+                        <button
+                          type="button"
+                          onClick={() => handleAdvance(order)}
+                          disabled={updatingStatus === order.id}
+                          className="flex-1 bg-green-700 hover:bg-green-800 disabled:opacity-50 text-white text-[13px] font-semibold h-10 rounded-6 transition-colors"
+                        >
+                          {NEXT_ACTION_LABEL[order.statut]}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 );
               })}
