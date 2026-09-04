@@ -86,6 +86,7 @@ jest.mock('../../src/validators/product.validator', () => ({
   listQuery: [],
   idParam: [],
   slugParam: [],
+  filenameParam: [],
   create: [],
   update: [],
   updateStock: []

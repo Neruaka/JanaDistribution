@@ -226,6 +226,18 @@ const productValidators = {
   ],
 
   /**
+   * Validation du nom de fichier en paramètre (suppression d'image)
+   * Format strict généré par upload.middleware.js : product_<uuid>.<ext>
+   * Empêche tout path traversal (../) ou nom de fichier arbitraire.
+   */
+  filenameParam: [
+    param('filename')
+      .trim()
+      .notEmpty().withMessage('Le nom de fichier est obligatoire')
+      .matches(/^product_[0-9a-f-]+\.(jpg|jpeg|png|webp|gif)$/i).withMessage('Nom de fichier invalide')
+  ],
+
+  /**
    * Validation des query params de liste
    */
   listQuery: [

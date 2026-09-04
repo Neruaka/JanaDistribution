@@ -26,6 +26,33 @@ const ALLOWED_MIME_TYPES = [
   'image/gif'
 ];
 
+// Extension de stockage dérivée du mimetype validé — jamais de file.originalname
+// (attaquant-contrôlé), pour empêcher qu'un fichier arbitraire soit stocké sous une
+// extension trompeuse (ex. .html) qui serait ensuite servie avec le mauvais Content-Type.
+const MIME_TO_EXTENSION = {
+  'image/jpeg': '.jpg',
+  'image/jpg': '.jpg',
+  'image/png': '.png',
+  'image/webp': '.webp',
+  'image/gif': '.gif'
+};
+
+// Signatures binaires (magic bytes) des formats autorisés, pour vérifier que le
+// contenu réel du fichier correspond au mimetype déclaré (falsifiable côté client).
+const FILE_SIGNATURES = [
+  { mime: 'image/jpeg', bytes: [0xFF, 0xD8, 0xFF] },
+  { mime: 'image/png', bytes: [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A] },
+  { mime: 'image/gif', bytes: [0x47, 0x49, 0x46, 0x38] }
+  // WEBP : RIFF....WEBP — vérifié séparément (signature non contiguë)
+];
+
+const matchesFileSignature = (buffer) => {
+  if (buffer.length >= 12 && buffer.toString('ascii', 0, 4) === 'RIFF' && buffer.toString('ascii', 8, 12) === 'WEBP') {
+    return true;
+  }
+  return FILE_SIGNATURES.some(({ bytes }) => bytes.every((byte, i) => buffer[i] === byte));
+};
+
 // Taille max : 5 MB
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
@@ -38,8 +65,9 @@ const storage = multer.diskStorage({
     cb(null, UPLOAD_DIR);
   },
   filename: (req, file, cb) => {
-    // Générer un nom unique : product_uuid.extension
-    const ext = path.extname(file.originalname).toLowerCase();
+    // Générer un nom unique : product_uuid.extension — extension dérivée du
+    // mimetype validé (whitelist), jamais de file.originalname (attaquant-contrôlé).
+    const ext = MIME_TO_EXTENSION[file.mimetype] || '.jpg';
     const filename = `product_${uuidv4()}${ext}`;
     cb(null, filename);
   }
@@ -100,12 +128,17 @@ const productGalleryUpload = multer({
  */
 const deleteImage = (filename) => {
   if (!filename) return;
-  
-  const filepath = path.join(UPLOAD_DIR, filename);
-  
+
+  // Défense en profondeur contre le path traversal : on ne retient que le nom de
+  // fichier (aucun séparateur de répertoire) et on vérifie que le chemin résolu
+  // reste bien sous UPLOAD_DIR, même si l'appelant n'a pas validé filename en amont.
+  const safeName = path.basename(filename);
+  const filepath = path.join(UPLOAD_DIR, safeName);
+  if (path.dirname(filepath) !== UPLOAD_DIR) return;
+
   if (fs.existsSync(filepath)) {
     fs.unlinkSync(filepath);
-    console.log(`Image supprimée: ${filename}`);
+    console.log(`Image supprimée: ${safeName}`);
   }
 };
 
@@ -128,6 +161,43 @@ const getFilenameFromUrl = (imageUrl) => {
  */
 const isLocalImage = (url) => {
   return url && url.includes('/uploads/products/');
+};
+
+// ==========================================
+// VÉRIFICATION DU CONTENU RÉEL (magic bytes)
+// ==========================================
+
+/**
+ * Middleware à chaîner juste après productImageUpload.single('image')/.array(...).
+ * Multer a déjà écrit le fichier sur disque à ce stade (storage: diskStorage) ; on lit
+ * ses premiers octets pour vérifier que le contenu réel correspond bien à une image,
+ * indépendamment du Content-Type déclaré par le client (falsifiable). Rejette et
+ * supprime le fichier si la signature ne correspond à aucun format autorisé.
+ */
+const verifyImageSignature = (req, res, next) => {
+  const files = req.files || (req.file ? [req.file] : []);
+  if (files.length === 0) return next();
+
+  for (const file of files) {
+    let handle;
+    try {
+      handle = fs.openSync(file.path, 'r');
+      const buffer = Buffer.alloc(12);
+      fs.readSync(handle, buffer, 0, 12, 0);
+      fs.closeSync(handle);
+
+      if (!matchesFileSignature(buffer)) {
+        fs.unlink(file.path, () => {});
+        return res.status(400).json({ success: false, message: 'Le contenu du fichier ne correspond pas à une image valide.' });
+      }
+    } catch (error) {
+      if (handle !== undefined) { try { fs.closeSync(handle); } catch (_) { /* déjà fermé */ } }
+      fs.unlink(file.path, () => {});
+      return next(new Error(`Vérification du fichier échouée: ${error.message}`));
+    }
+  }
+
+  next();
 };
 
 // ==========================================
@@ -185,6 +255,7 @@ module.exports = {
   productImageUpload,
   productGalleryUpload,
   uploadToR2,
+  verifyImageSignature,
   deleteImage,
   getFilenameFromUrl,
   isLocalImage,
