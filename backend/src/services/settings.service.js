@@ -172,6 +172,17 @@ class SettingsService {
     // Transformer le format frontend vers le format BDD
     const dbSettings = this._transformToDbFormat(allSettings);
 
+    // Valider chaque catégorie transmise — jusqu'ici uniquement fait sur
+    // PUT /admin/:category, jamais sur cette route globale : un admin
+    // pouvait pousser des frais de livraison négatifs via ce seul endpoint.
+    // Les clés de _transformToDbFormat (livraison, commande) diffèrent des
+    // noms de catégorie attendus par _validateSettings (delivery, orders) —
+    // mapping explicite ci-dessous.
+    const validationMap = { delivery: dbSettings.livraison, orders: dbSettings.commande, emails: dbSettings.emails };
+    for (const [categorie, settings] of Object.entries(validationMap)) {
+      if (settings) this._validateSettings(categorie, settings);
+    }
+
     // Mettre à jour en BDD
     const updated = await settingsRepository.updateAll(dbSettings);
 

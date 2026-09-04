@@ -233,18 +233,24 @@ class AuthService {
     // Vérification JWT (signature + expiration)
     const payload = this.verifyRefreshToken(oldRefreshToken);
 
-    // Vérification DB : token existe et non révoqué
+    // Vérification DB : token existe et non révoqué. Fail-closed (T13-09) :
+    // un token légitimement émis doit toujours avoir été stocké (voir
+    // _storeRefreshToken) ; s'il est absent — échec de stockage silencieux
+    // au login, ou erreur de lecture ici — on ne peut pas garantir qu'il
+    // n'a pas été révoqué, donc on refuse plutôt que de se fier à la seule
+    // signature JWT (qui resterait valide 30 jours sans recours serveur).
     const tokenHash = crypto.createHash('sha256').update(oldRefreshToken).digest('hex');
-    const stored = await userRepository.findRefreshToken(tokenHash).catch(() => null);
-    if (stored) {
-      if (stored.revoked_at) {
-        throw ApiError.unauthorized('Refresh token révoqué');
-      }
-      if (new Date() > new Date(stored.expires_at)) {
-        throw ApiError.unauthorized('Refresh token expiré');
-      }
-      await userRepository.revokeRefreshToken(tokenHash);
+    const stored = await userRepository.findRefreshToken(tokenHash);
+    if (!stored) {
+      throw ApiError.unauthorized('Session introuvable, veuillez vous reconnecter');
     }
+    if (stored.revoked_at) {
+      throw ApiError.unauthorized('Refresh token révoqué');
+    }
+    if (new Date() > new Date(stored.expires_at)) {
+      throw ApiError.unauthorized('Refresh token expiré');
+    }
+    await userRepository.revokeRefreshToken(tokenHash);
 
     // Récupérer l'utilisateur frais
     const user = await userRepository.findById(payload.id);
