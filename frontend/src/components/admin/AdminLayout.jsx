@@ -18,6 +18,10 @@ import categoryService from '../../services/categoryService';
 import toast from 'react-hot-toast';
 import AdminMobileTabBar from './AdminMobileTabBar';
 
+// Ecrans "tunnel" mobile : la page fournit sa propre barre d'action collee en bas,
+// donc on masque la barre d'onglets admin (meme motif que PublicLayout cote client).
+const TASK_FLOW_PATTERNS = [/^\/admin\/commandes\/[^/]+$/];
+
 const NAV_ITEMS = [
   { name: 'Dashboard', href: '/admin', exact: true },
   { name: 'Commandes', href: '/admin/commandes', statKey: 'commandes' },
@@ -125,6 +129,8 @@ const AdminLayout = () => {
     return location.pathname.startsWith(item.href);
   };
 
+  const isTaskFlow = TASK_FLOW_PATTERNS.some((re) => re.test(location.pathname));
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -163,7 +169,7 @@ const AdminLayout = () => {
         </div>
       )}
 
-      <div className="flex-1 min-w-0 lg:ml-[236px] flex flex-col pb-[76px] lg:pb-0">
+      <div className={`flex-1 min-w-0 lg:ml-[236px] flex flex-col lg:pb-0 ${isTaskFlow ? '' : 'pb-[76px]'}`}>
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
@@ -174,7 +180,7 @@ const AdminLayout = () => {
         <Outlet />
       </div>
 
-      <AdminMobileTabBar />
+      {!isTaskFlow && <AdminMobileTabBar />}
     </div>
   );
 };

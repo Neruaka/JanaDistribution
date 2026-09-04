@@ -181,7 +181,7 @@ const AdminOrderDetail = () => {
   };
 
   return (
-    <div className="p-[26px] flex flex-col gap-3.5">
+    <div className="p-[26px] flex flex-col gap-3.5 pb-[86px] lg:pb-[26px]">
       <Link to="/admin/commandes" className="text-[13.5px] font-semibold text-ink-900 hover:text-green-800 w-fit">← Commandes</Link>
 
       <div className="bg-white border border-sand-200 rounded-8 p-5 flex flex-col md:flex-row md:items-center gap-4">
@@ -189,7 +189,7 @@ const AdminOrderDetail = () => {
           <h1 className="font-mono text-[14px] font-semibold text-ink-900">{order.numeroCommande}</h1>
           <span className={`text-[12px] font-semibold px-2.5 py-1 rounded-4 ${getAdminStatutStyle(order.statut)}`}>{statutInfo.label}</span>
         </div>
-        <div className="flex gap-2.5 flex-wrap">
+        <div className="hidden lg:flex gap-2.5 flex-wrap">
           <button type="button" disabled title="Bientôt disponible" className="border border-sand-250 text-ink-900 text-[13.5px] font-semibold px-4 py-2.5 rounded-6 opacity-40 cursor-not-allowed">
             Imprimer bon de préparation
           </button>
@@ -207,12 +207,34 @@ const AdminOrderDetail = () => {
             </button>
           )}
         </div>
+        <button type="button" onClick={handleDownloadInvoice} disabled={downloadingInvoice} className="lg:hidden w-full border border-sand-250 text-ink-900 text-[13.5px] font-semibold px-4 py-2.5 rounded-6 disabled:opacity-50 transition-colors">
+          {downloadingInvoice ? 'Téléchargement…' : 'Facture PDF'}
+        </button>
       </div>
 
       {order.statut !== 'ANNULEE' && (
         <div className="bg-white border border-sand-200 rounded-8 p-[22px]">
           <div className="font-display text-[16px] font-bold text-ink-900 mb-5">Avancement</div>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
+          <div className="flex flex-col gap-3.5 sm:hidden">
+            {TIMELINE_STEPS.map((step, index) => {
+              const ts = stepTimestamp(step.statut);
+              const done = index <= currentIndex;
+              const isCurrent = index === currentIndex;
+              return (
+                <div key={step.statut} className="flex gap-3 items-start">
+                  <div className="flex flex-col items-center pt-1 flex-shrink-0">
+                    <span className={`w-[10px] h-[10px] rounded-full ${done ? 'bg-green-700' : 'bg-sand-300'}`} />
+                    {index < TIMELINE_STEPS.length - 1 && <span className={`w-[2px] flex-1 min-h-[20px] mt-1 ${index < currentIndex ? 'bg-green-700' : 'bg-sand-300'}`} />}
+                  </div>
+                  <div className="pb-0.5">
+                    <span className={`text-[13px] ${isCurrent ? 'font-bold text-[#10231A]' : done ? 'font-semibold text-ink-900' : 'text-[#9AA69F]'}`}>{step.titre}</span>
+                    <span className="font-mono text-[11px] text-graphite-400 block">{ts ? formatDateTime(ts) : ''}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="hidden sm:grid grid-cols-5 gap-3.5">
             {TIMELINE_STEPS.map((step, index) => {
               const ts = stepTimestamp(step.statut);
               return (
@@ -286,10 +308,22 @@ const AdminOrderDetail = () => {
             <div className="text-[12.5px] text-graphite-500 mt-1">{order.client?.email}</div>
             {order.client?.telephone && <div className="text-[12.5px] text-graphite-500">{order.client.telephone}</div>}
             {order.client?.id && (
-              <Link to={`/admin/clients?clientId=${order.client.id}`} className="text-[12.5px] font-semibold text-green-700 hover:text-green-800 mt-2 inline-block">
+              <Link to={`/admin/clients?clientId=${order.client.id}`} className="hidden lg:inline-block text-[12.5px] font-semibold text-green-700 hover:text-green-800 mt-2">
                 Voir la fiche client →
               </Link>
             )}
+            <div className="lg:hidden flex gap-2 mt-3">
+              {order.client?.telephone && (
+                <a href={`tel:${order.client.telephone}`} className="flex-1 text-center bg-green-700 hover:bg-green-800 text-white text-[13px] font-semibold h-10 rounded-6 flex items-center justify-center transition-colors">
+                  Appeler
+                </a>
+              )}
+              {order.client?.id && (
+                <Link to={`/admin/clients?clientId=${order.client.id}`} className="flex-1 text-center bg-sand-100 hover:bg-sand-150 text-graphite-700 text-[13px] font-semibold h-10 rounded-6 flex items-center justify-center transition-colors">
+                  Fiche client
+                </Link>
+              )}
+            </div>
           </div>
 
           <div className="bg-white border border-sand-200 rounded-8 p-[18px]">
@@ -365,6 +399,29 @@ const AdminOrderDetail = () => {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {canChangeStatus && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-sand-200 px-4 py-2.5 flex gap-2.5" style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}>
+          <button
+            type="button"
+            onClick={handleCancel}
+            disabled={updating}
+            className="flex-1 h-[52px] border border-danger-border text-danger-text text-[13.5px] font-semibold rounded-6 disabled:opacity-50 transition-colors"
+          >
+            Annuler
+          </button>
+          {nextStatut && (
+            <button
+              type="button"
+              onClick={handleAdvance}
+              disabled={updating}
+              className="flex-1 h-[52px] bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white text-[13.5px] font-semibold rounded-6 transition-colors"
+            >
+              {updating ? 'Mise à jour…' : getStatutInfo(nextStatut).label}
+            </button>
+          )}
         </div>
       )}
     </div>
