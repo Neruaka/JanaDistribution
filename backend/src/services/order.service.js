@@ -131,9 +131,12 @@ class OrderService {
         ville: data.adresseLivraison.ville
       });
 
-      // Vérifier que la zone est livrable si mode DISTANCE
+      // Vérifier que la zone est livrable si mode DISTANCE — toujours, y compris
+      // quand le franco de port rend la livraison gratuite : la gratuité ne
+      // dispense jamais de vérifier que l'adresse est dans le rayon livrable
+      // (livraison uniquement, pas de retrait entrepôt).
       const mode = await settingsService.get('livraison_mode_calcul');
-      if (mode === 'DISTANCE' && totalPanierTtc < (await settingsService.get('livraison_seuil_franco') || 150)) {
+      if (mode === 'DISTANCE') {
         const details = await settingsService.computeDistanceShipping({
           adresse: data.adresseLivraison.adresse,
           codePostal: data.adresseLivraison.codePostal,
