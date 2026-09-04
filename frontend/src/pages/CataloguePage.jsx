@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, SlidersHorizontal } from 'lucide-react';
 
 // Services
 import productService from '../services/productService';
@@ -14,7 +14,8 @@ import categoryService from '../services/categoryService';
 
 // Components
 import ProductGrid from '../components/ProductGrid';
-import CatalogFilters from '../components/CatalogFilters';
+import CatalogFilters, { AVAILABLE_LABELS } from '../components/CatalogFilters';
+import MobileFilterSheet from '../components/MobileFilterSheet';
 import Pagination from '../components/Pagination';
 import ProductListRow from '../components/ProductListRow';
 
@@ -36,6 +37,7 @@ const CataloguePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState('grille');
+  const [showFilterSheet, setShowFilterSheet] = useState(false);
 
   const resolveCategoryId = useCallback((categoryRef, categoryList) => {
     if (!categoryRef) return undefined;
@@ -136,6 +138,27 @@ const CataloguePage = () => {
   const rangeStart = pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.limit + 1;
   const rangeEnd = Math.min(pagination.page * pagination.limit, pagination.total);
 
+  // Pastilles "filtres actifs" reprises pour la barre mobile (M2) — meme logique que CatalogFilters
+  const activeLabelValues = filters.labels ? filters.labels.split(',').filter(Boolean) : [];
+  const mobileActivePills = [];
+  if (activeCategory) {
+    mobileActivePills.push({ key: 'categorieId', label: activeCategory.nom, onRemove: () => handleFilterChange({ ...filters, categorieId: undefined }) });
+  }
+  activeLabelValues.forEach((value) => {
+    mobileActivePills.push({
+      key: `label-${value}`,
+      label: AVAILABLE_LABELS.find((l) => l.value === value)?.label || value,
+      onRemove: () => handleFilterChange({ ...filters, labels: activeLabelValues.filter((l) => l !== value).join(',') || undefined })
+    });
+  });
+  if (filters.enStock === 'true') {
+    mobileActivePills.push({ key: 'enStock', label: 'En stock', onRemove: () => handleFilterChange({ ...filters, enStock: undefined }) });
+  }
+  if (filters.minPrice || filters.maxPrice) {
+    mobileActivePills.push({ key: 'price', label: `${filters.minPrice || 0}–${filters.maxPrice || '∞'} € HT`, onRemove: () => handleFilterChange({ ...filters, minPrice: undefined, maxPrice: undefined }) });
+  }
+  const activeFilterCount = mobileActivePills.length;
+
   return (
     <div className="bg-sand-50 min-h-screen">
       {/* Barre de titre */}
@@ -192,6 +215,37 @@ const CataloguePage = () => {
           </div>
         </div>
       </div>
+
+      {/* Barre filtres mobile (M2) : chip declencheur + pastilles actives */}
+      <div className="md:hidden bg-white border-b border-sand-200 px-4 py-3 flex items-center gap-2 overflow-x-auto">
+        <button
+          type="button"
+          onClick={() => setShowFilterSheet(true)}
+          className="flex-shrink-0 flex items-center gap-1.5 bg-ink-900 text-white px-3.5 py-2 rounded-[16px] text-[13px] font-semibold"
+        >
+          <SlidersHorizontal className="w-3.5 h-3.5" /> Filtres{activeFilterCount > 0 ? ` · ${activeFilterCount}` : ''}
+        </button>
+        {mobileActivePills.map((pill) => (
+          <button
+            key={pill.key}
+            type="button"
+            onClick={pill.onRemove}
+            className="flex-shrink-0 bg-success-bg border border-success-border text-success-text text-[12px] px-[9px] py-[7px] rounded-[16px] whitespace-nowrap"
+          >
+            {pill.label} ✕
+          </button>
+        ))}
+      </div>
+
+      <MobileFilterSheet
+        open={showFilterSheet}
+        onClose={() => setShowFilterSheet(false)}
+        categories={categories}
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onReset={handleResetFilters}
+        resultCount={pagination.total}
+      />
 
       {/* Corps : filtres + résultats */}
       <div className="grid grid-cols-1 md:grid-cols-[262px_1fr] gap-[22px] px-4 md:px-10 py-[22px] pb-10">

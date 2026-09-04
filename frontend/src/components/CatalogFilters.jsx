@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import Checkbox from './Checkbox';
 
-const AVAILABLE_LABELS = [
+export const AVAILABLE_LABELS = [
   { value: 'BIO', label: 'Bio' },
   { value: 'LOCAL', label: 'Local' },
   { value: 'PROMO', label: 'Promo' },
@@ -85,7 +85,7 @@ const CatalogFilters = ({
   }
 
   return (
-    <div className="flex flex-col gap-3.5">
+    <div className="hidden md:flex md:flex-col gap-3.5">
       {/* Filtres actifs */}
       <div className="bg-white border border-sand-200 rounded-8 p-4">
         <div className="flex items-center justify-between mb-3">
