@@ -84,17 +84,17 @@ const OrderConfirmationPage = () => {
   const totalRegler = order.totalTtc;
 
   return (
-    <div className="bg-sand-50 min-h-screen">
+    <div className="bg-sand-50 min-h-screen pb-[86px] md:pb-0">
       {/* Bandeau succès */}
       <section className="bg-ink-900 px-4 md:px-10 py-[34px] flex flex-col sm:flex-row items-start sm:items-center gap-5">
-        <div className="w-[52px] h-[52px] rounded-full bg-green-700 text-white flex items-center justify-center text-[24px] flex-shrink-0">✓</div>
+        <div className="w-[46px] h-[46px] md:w-[52px] md:h-[52px] rounded-full bg-green-700 text-white flex items-center justify-center text-[22px] md:text-[24px] flex-shrink-0">✓</div>
         <div className="flex-1">
           <h1 className="font-display text-[26px] md:text-[30px] font-extrabold tracking-tighter text-white">Votre demande est enregistrée</h1>
           <p className="text-[14.5px] text-[#A6BEB1] mt-1.5">
             Le devis <span className="font-mono text-white">{order.numeroCommande}</span> vient de partir vers {order.utilisateur?.email || 'votre adresse email'}. Notre équipe vous appelle avant 18 h pour confirmer le créneau.
           </p>
         </div>
-        <div className="flex gap-2.5 flex-shrink-0">
+        <div className="hidden md:flex gap-2.5 flex-shrink-0">
           <button
             type="button"
             disabled
@@ -114,7 +114,21 @@ const OrderConfirmationPage = () => {
           {/* Ce qui se passe maintenant */}
           <div className="bg-white border border-sand-200 rounded-8 p-5">
             <div className="font-display text-[16px] font-bold text-ink-900 mb-4">Ce qui se passe maintenant</div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+            <div className="flex flex-col gap-3.5 sm:hidden">
+              {ETAPES.map((etape, index) => (
+                <div key={etape.titre} className="flex gap-3 items-start">
+                  <div className="flex flex-col items-center gap-1 pt-0.5 flex-shrink-0">
+                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono font-semibold ${index < completedSteps ? 'bg-green-700 text-white' : 'bg-sand-300 text-graphite-500'}`}>{index + 1}</span>
+                    {index < ETAPES.length - 1 && <span className={`w-[2px] flex-1 min-h-[24px] ${index < completedSteps - 1 ? 'bg-green-700' : 'bg-sand-300'}`} />}
+                  </div>
+                  <div className="pb-1">
+                    <span className="text-[14px] font-semibold text-ink-900 block">{etape.titre}</span>
+                    <span className="text-[12.5px] text-graphite-600 leading-[1.5]">{etape.desc}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="hidden sm:grid grid-cols-4 gap-3.5">
               {ETAPES.map((etape, index) => (
                 <div key={etape.titre} className="flex flex-col gap-1.5">
                   <div className="h-1 rounded-full bg-sand-300 overflow-hidden">
@@ -202,6 +216,21 @@ const OrderConfirmationPage = () => {
         <Link to={`/mes-commandes/${order.id}`} className="font-semibold text-green-700 hover:text-green-800">Voir le détail de la commande</Link>
         <span className="text-graphite-300">·</span>
         <Link to="/catalogue" className="font-semibold text-green-700 hover:text-green-800">Continuer mes achats</Link>
+      </div>
+
+      {/* Barre collée (mobile, M8) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-sand-200 px-4 py-2.5 flex gap-2.5" style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}>
+        <button
+          type="button"
+          disabled
+          title="Disponible dès que la commande est confirmée (voir Mes factures)"
+          className="flex-1 h-[52px] border border-sand-250 text-ink-900 text-[13.5px] font-semibold rounded-6 opacity-40 cursor-not-allowed"
+        >
+          Devis (PDF)
+        </button>
+        <Link to={`/mes-commandes/${order.id}`} className="flex-1 h-[52px] bg-green-700 hover:bg-green-800 text-white text-[13.5px] font-semibold rounded-6 transition-colors flex items-center justify-center">
+          Suivre ma commande
+        </Link>
       </div>
     </div>
   );
