@@ -5,6 +5,7 @@
  */
 
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const router = express.Router();
 
 const productController = require('../controllers/product.controller');
@@ -12,6 +13,29 @@ const productValidators = require('../validators/product.validator');
 const validate = require('../middlewares/validate.middleware');
 const { authenticate, isAdmin, optionalAuth } = require('../middlewares/auth.middleware');
 const { productImageUpload, uploadToR2, verifyImageSignature } = require('../middlewares/upload.middleware');
+
+// T13-10 : GET /search est non authentifiée et lance une requête ILIKE en
+// base à chaque appel — le plafond global (300/15min, partagé par toute
+// l'API) ne suffit pas à empêcher un abus de charge DB ciblé sur cette
+// seule route.
+const searchLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  message: { success: false, message: 'Trop de recherches, veuillez reessayer plus tard.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+// T13-10 : import Excel = potentiellement des centaines d'écritures DB en
+// une requête ; un admin compromis ou un script buggé ne doit pas pouvoir
+// le déclencher en boucle serrée.
+const importLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { success: false, message: 'Trop d imports, veuillez reessayer plus tard.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
 
 // ==========================================
 // ROUTES PUBLIQUES
@@ -34,6 +58,7 @@ router.get('/',
  * @access  Public
  */
 router.get('/search',
+  searchLimiter,
   productController.search
 );
 
@@ -100,6 +125,7 @@ router.get('/admin/export',
 router.post('/admin/import',
   authenticate,
   isAdmin,
+  importLimiter,
   productController.importProducts
 );
 

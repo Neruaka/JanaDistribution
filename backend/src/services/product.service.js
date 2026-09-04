@@ -125,6 +125,23 @@ class ProductService {
 
     for (const product of products) {
       try {
+        // Validation des champs obligatoires (T13-06/T6-04) : une ligne Excel
+        // incomplète ne doit pas silencieusement créer un produit avec un nom
+        // vide ou un prix à 0 — elle est rejetée et reportée dans errors.
+        const reference = typeof product.reference === 'string' ? product.reference.trim() : '';
+        const nom = typeof product.nom === 'string' ? product.nom.trim() : '';
+        const prix = parseFloat(product.prix);
+
+        if (!reference) {
+          throw new Error('Référence manquante');
+        }
+        if (!nom) {
+          throw new Error('Nom manquant');
+        }
+        if (!Number.isFinite(prix) || prix <= 0) {
+          throw new Error('Prix invalide (doit être un nombre positif)');
+        }
+
         // Déterminer la catégorie
         let categorieId = defaultCategoryId;
         if (product.categorie) {
@@ -135,20 +152,20 @@ class ProductService {
         }
 
         // Vérifier si le produit existe déjà (par référence)
-        const existing = await productRepository.findByReference(product.reference);
+        const existing = await productRepository.findByReference(reference);
 
         const productData = {
-          reference: product.reference,
-          nom: product.nom,
+          reference,
+          nom,
           description: product.description || '',
-          prix: parseFloat(product.prix) || 0,
+          prix,
           categorieId,
           origine: product.origine || '',
           uniteMesure: product.uniteMesure || 'kg',
           stockQuantite: parseInt(product.stockQuantite) || 100,
           stockMinAlerte: 10,
           estActif: true,
-          slug: this.generateSlug(product.nom)
+          slug: this.generateSlug(nom)
         };
 
         if (existing) {

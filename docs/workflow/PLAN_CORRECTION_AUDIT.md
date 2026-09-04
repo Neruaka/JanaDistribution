@@ -523,8 +523,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 ### T3-03 — Ajouter poids produit si calcul au poids
 
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE
-- **Dépendances :** T3-01 (si le mode poids est choisi)
+- **Statut :** CANCELLED (2026-09-04) — condition de dépendance jamais remplie : T3-01 a tranché pour le MODE DISTANCE (rayon 80km, 5€+0.80/km), pas le mode poids. Sans objet tant que cette décision business n'est pas révisée. | **Priorité :** P2 | **Catégorie :** CODE
 - **Fichiers :** Migration SQL (`poids_kg` sur `produit`), admin produit
 
 ---
@@ -780,8 +779,9 @@ Voir détails comptables : `docs/audit-finalisation/09_FACTURATION.md`
 
 ### T6-04 — Validation import produits Excel côté backend
 
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE
-- **Fichiers :** `backend/src/routes/product.routes.js`
+- **Statut :** DONE (2026-09-04) | **Priorité :** P2 | **Catégorie :** CODE
+- **Fichiers :** `backend/src/services/product.service.js`, `backend/src/controllers/product.controller.js`
+- **Détail :** `importProducts()` validait déjà les champs au niveau contrôleur (tableau non vide, catégorie par défaut) mais pas ligne par ligne : une ligne Excel sans référence/nom créait silencieusement un produit avec un nom vide, et un prix non numérique tombait à 0€ (`parseFloat(...) || 0`). Ajout d'une validation par ligne (référence/nom obligatoires, prix > 0) qui rejette la ligne dans `results.errors` au lieu de créer un produit invalide, plus un plafond de 1000 lignes par import.
 
 ---
 
@@ -1239,9 +1239,9 @@ Checklist complète : `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 - **Détail :** `refreshTokens()` passe en fail-closed : si `findRefreshToken()` ne retrouve pas le hash en DB (stockage silencieusement échoué au login, ou erreur de lecture), la requête est rejetée (`401 Session introuvable`) au lieu de se fier à la seule signature JWT valable 30 jours.
 
 ### T13-10 — Recherche produits et import Excel hors du rate limiting dédié
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** SÉCURITÉ | **Domaine :** Backend
-- **Fichiers :** `backend/src/index.js`
-- **Détail :** `GET /api/products/search` (requête `ILIKE` non authentifiée) n'a que le plafond global générique (300/15min) — potentiel abus de charge DB.
+- **Statut :** DONE (2026-09-04) | **Priorité :** P2 | **Catégorie :** SÉCURITÉ | **Domaine :** Backend
+- **Fichiers :** `backend/src/routes/product.routes.js`
+- **Détail :** ajout de deux limiteurs dédiés : `GET /api/products/search` (60/15min, public non authentifié) et `POST /api/products/admin/import` (10/15min, admin) en plus du plafond global générique (300/15min).
 
 ### T13-11 — `jwt.verify` sans `algorithms` épinglé explicitement
 - **Statut :** DONE (2026-09-04) | **Priorité :** P2 | **Catégorie :** SÉCURITÉ | **Domaine :** Backend

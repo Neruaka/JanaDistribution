@@ -247,6 +247,13 @@ class ProductController {
         });
       }
 
+      if (products.length > 1000) {
+        return res.status(400).json({
+          success: false,
+          message: 'Trop de produits (maximum 1000 par import)'
+        });
+      }
+
       if (!defaultCategoryId) {
         return res.status(400).json({
           success: false,
