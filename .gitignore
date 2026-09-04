@@ -80,9 +80,14 @@ redis_data/
 # uploads/
 
 # ==========================================
-# FICHIERS SCRTIPS
+# FICHIERS SCRIPTS (dossier scripts/ a la racine uniquement — outils locaux
+# hors perimetre applicatif. Sans le "/" en tete, ce motif matchait aussi
+# backend/scripts/ a n'importe quelle profondeur : ca a silencieusement
+# empeche backend/scripts/run-migrations.js et la migration 0001 d'etre
+# jamais commites depuis le tout premier commit du projet, cause racine
+# de la dette technique "npm run migrate inutilisable sur un env propre")
 # ==========================================
-scripts/
+/scripts/
 
 # ==========================================
 # OUTILS LOCAUX (hors périmètre applicatif)
