@@ -12,6 +12,7 @@ import { useSettings } from '../contexts/SettingsContext';
 import { createOrder, MODES_PAIEMENT } from '../services/orderService';
 import { estimateShipping } from '../services/shippingService';
 import { validerCodePromo } from '../services/promoService';
+import { formatAmount } from '../utils/priceUtils';
 import toast from 'react-hot-toast';
 
 import { InfosContact, AdresseLivraison, CreneauLivraison, MoyenPaiement, Recapitulatif } from '../components/checkout';
@@ -21,7 +22,7 @@ const PROMO_STORAGE_KEY = 'jana_promo_code';
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { items, subtotalHT, totalTVA, totalTTC, isEmpty, resetCartLocal } = useCart();
+  const { items, subtotalHT, totalTVA, totalTTC, isEmpty, isLoading: cartLoading, resetCartLocal } = useCart();
   const { getFraisLivraison, telephoneSite, loading: settingsLoading } = useSettings();
 
   const today = useMemo(() => new Date(), []);
@@ -58,8 +59,8 @@ const CheckoutPage = () => {
   }, [user]);
 
   useEffect(() => {
-    if (isEmpty) navigate('/panier');
-  }, [isEmpty, navigate]);
+    if (!cartLoading && isEmpty) navigate('/panier');
+  }, [cartLoading, isEmpty, navigate]);
 
   useEffect(() => {
     if (!user) {
@@ -114,6 +115,7 @@ const CheckoutPage = () => {
   }, [formData.codePostal, formData.ville, formData.adresse, totalTTC, getFraisLivraison]);
 
   const totalCommande = totalTTC + fraisLivraison;
+  const totalFinalMobile = codePromoValide ? codePromoValide.total_apres_rabais : totalCommande;
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -191,14 +193,14 @@ const CheckoutPage = () => {
   if (!user || isEmpty || settingsLoading) return null;
 
   return (
-    <div className="bg-sand-50 min-h-screen font-sans">
+    <div className="bg-sand-50 min-h-screen font-sans pb-[90px] md:pb-0">
       {/* En-tête dédié checkout — pas de nav rayons, pas de footer */}
       <div className="bg-white border-b border-sand-200 px-4 md:px-10 py-4 flex flex-wrap items-center gap-6 md:gap-9">
         <Link to="/" className="flex items-center gap-2.5 flex-shrink-0">
           <div className="w-8 h-8 rounded-6 bg-green-700 flex items-center justify-center text-white font-display font-extrabold text-[16px]">J</div>
-          <span className="font-display font-extrabold text-[18px] tracking-tight text-ink-900">JANA DISTRIBUTION</span>
+          <span className="hidden sm:inline font-display font-extrabold text-[18px] tracking-tight text-ink-900">JANA DISTRIBUTION</span>
         </Link>
-        <div className="flex items-center gap-3.5 text-[13.5px]">
+        <div className="hidden md:flex items-center gap-3.5 text-[13.5px]">
           <Link to="/panier" className="text-green-700 font-semibold hover:text-green-800">1. Panier</Link>
           <span className="text-[#C3CBC6]">—</span>
           <span className="text-ink-900 font-semibold">2. Livraison &amp; paiement</span>
@@ -208,6 +210,16 @@ const CheckoutPage = () => {
         <div className="ml-auto text-[13px] text-graphite-500">
           Besoin d'aide ? <span className="font-mono text-ink-900">{telephoneSite}</span>
         </div>
+      </div>
+
+      {/* Progression mobile (M6) : 3 segments + "Étape 2 sur 3" */}
+      <div className="md:hidden bg-white border-b border-sand-200 px-4 pb-3.5">
+        <div className="flex gap-1.5">
+          <div className="flex-1 h-1 rounded-full bg-green-700" />
+          <div className="flex-1 h-1 rounded-full bg-green-700" />
+          <div className="flex-1 h-1 rounded-full bg-sand-300" />
+        </div>
+        <div className="text-[12px] text-graphite-500 mt-1.5">Étape 2 sur 3 · Livraison &amp; paiement</div>
       </div>
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-[22px] px-4 md:px-10 py-6 pb-10">
@@ -240,6 +252,21 @@ const CheckoutPage = () => {
           isSubmitting={isSubmitting}
           codePromoValide={codePromoValide}
         />
+
+        {/* Barre collee (mobile, M6) */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-sand-200 px-4 py-2.5 flex items-center gap-3" style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}>
+          <div className="flex-1 min-w-0">
+            <div className="text-[11px] text-graphite-500">Total à régler</div>
+            <div className="font-mono text-[20px] font-semibold text-ink-900 truncate">{formatAmount(totalFinalMobile)}</div>
+          </div>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex-shrink-0 h-[52px] px-5 bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white rounded-6 text-[14px] font-semibold transition-colors flex items-center justify-center gap-2"
+          >
+            {isSubmitting ? 'Envoi…' : 'Recevoir mon devis'}
+          </button>
+        </div>
       </form>
     </div>
   );

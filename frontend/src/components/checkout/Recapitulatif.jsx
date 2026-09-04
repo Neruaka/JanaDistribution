@@ -110,12 +110,12 @@ const Recapitulatif = ({
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full mt-3 h-[50px] bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white rounded-6 text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
+        className="hidden md:flex w-full mt-3 h-[50px] bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white rounded-6 text-[15px] font-semibold transition-colors items-center justify-center gap-2"
       >
         {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
         Recevoir mon devis
       </button>
-      <p className="text-[12px] text-graphite-300 text-center mt-2">Sans engagement — vous confirmez après réception du devis</p>
+      <p className="hidden md:block text-[12px] text-graphite-300 text-center mt-2">Sans engagement — vous confirmez après réception du devis</p>
     </div>
   );
 };

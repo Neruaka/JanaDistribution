@@ -11,7 +11,7 @@ const MoyenPaiement = ({ formData, onChange, modesPaiement }) => (
     <div className="font-display text-[16px] font-bold text-ink-900 mb-1">Règlement à la livraison</div>
     <p className="text-[13px] text-graphite-500 mb-3.5">Indiquez le mode prévu, aucun débit maintenant.</p>
 
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
       {modesPaiement.map((mode) => {
         const selected = formData.modePaiement === mode.id;
         return (
