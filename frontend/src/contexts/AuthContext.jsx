@@ -93,22 +93,28 @@ export const AuthProvider = ({ children }) => {
    * Connexion d'un utilisateur
    * @param {string} email - Email
    * @param {string} motDePasse - Mot de passe
+   * @param {boolean} rememberMe - Si true, session persistee dans localStorage (survit a la fermeture de l'onglet)
    * @returns {Object} Données utilisateur
    */
-  const login = async (email, motDePasse) => {
+  const login = async (email, motDePasse, rememberMe = false) => {
     try {
       setError(null);
-      
+
       const response = await api.post('/auth/login', { email, motDePasse });
       const { user: loggedUser, token, refreshToken } = response.data.data;
-      
+
       // Stocke le token et les infos utilisateur
-      setAuthData(token, loggedUser, refreshToken);
+      setAuthData(token, loggedUser, refreshToken, rememberMe);
       setUser(loggedUser);
       
       return loggedUser;
     } catch (err) {
-      const message = err.response?.data?.message || 'Email ou mot de passe incorrect';
+      // T13-16 : err.response absent = panne reseau/timeout, pas des identifiants
+      // invalides (le backend renvoie toujours un message explicite sur 401,
+      // voir T12-08) - un fallback "identifiants incorrects" y serait trompeur.
+      const message = err.response
+        ? (err.response.data?.message || 'Email ou mot de passe incorrect')
+        : 'Connexion impossible, verifiez votre reseau et reessayez';
       setError(message);
       throw new Error(message);
     }
@@ -142,10 +148,9 @@ export const AuthProvider = ({ children }) => {
       const response = await api.put('/auth/profile', updates);
       const updatedUser = response.data.data;
       
-      // Met à jour l'état et le localStorage
+      // Met à jour l'état et le stockage (preserve le mode "rester connecte")
       setUser(updatedUser);
-      sessionStorage.setItem('user', JSON.stringify(updatedUser));
-      localStorage.removeItem('user');
+      setAuthData(null, updatedUser, null);
       
       return updatedUser;
     } catch (err) {

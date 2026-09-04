@@ -15,20 +15,24 @@ const BACKEND_URL = API_URL.replace(/\/api\/?$/, '');
 const readAuthStorage = (key) => {
   const sessionValue = sessionStorage.getItem(key);
   if (sessionValue !== null) return sessionValue;
-
-  const legacyValue = localStorage.getItem(key);
-  if (legacyValue !== null) {
-    sessionStorage.setItem(key, legacyValue);
-    localStorage.removeItem(key);
-    return legacyValue;
-  }
-
-  return null;
+  return localStorage.getItem(key);
 };
 
-const writeAuthStorage = (key, value) => {
-  sessionStorage.setItem(key, value);
-  localStorage.removeItem(key);
+// T13-17 : `persist` explicite (true = "rester connecte", localStorage ;
+// false = session courante, sessionStorage) uniquement au login/inscription.
+// Sans argument (rotation de refresh token), on preserve le stockage deja
+// utilise pour cette cle plutot que de la reecrire en sessionStorage par
+// defaut - sinon une session "memorisee" retombait en session-only des le
+// premier refresh de token silencieux.
+const writeAuthStorage = (key, value, persist) => {
+  const useLocalStorage = persist !== undefined ? persist : localStorage.getItem(key) !== null;
+  if (useLocalStorage) {
+    localStorage.setItem(key, value);
+    sessionStorage.removeItem(key);
+  } else {
+    sessionStorage.setItem(key, value);
+    localStorage.removeItem(key);
+  }
 };
 
 const removeAuthStorage = (key) => {
@@ -58,15 +62,15 @@ const api = axios.create({
 /**
  * Stocke les donnees d'authentification
  */
-export const setAuthData = (token, user, refreshToken) => {
+export const setAuthData = (token, user, refreshToken, persist) => {
   if (token) {
-    writeAuthStorage('token', token);
+    writeAuthStorage('token', token, persist);
   }
   if (user) {
-    writeAuthStorage('user', JSON.stringify(user));
+    writeAuthStorage('user', JSON.stringify(user), persist);
   }
   if (refreshToken) {
-    writeAuthStorage('refreshToken', refreshToken);
+    writeAuthStorage('refreshToken', refreshToken, persist);
   }
 };
 

@@ -40,7 +40,7 @@ const LoginPage = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await login(formData.email, formData.motDePasse);
+      await login(formData.email, formData.motDePasse, rememberMe);
       toast.success('Connexion réussie !');
       navigate(from, { replace: true });
     } catch (err) {

@@ -30,8 +30,26 @@ const TabSecurite = ({ user, changePassword, onOpenDeleteModal }) => {
       toast.error('Les mots de passe ne correspondent pas');
       return;
     }
+    // T13-19 : memes regles que RegisterPage (inscription) - la complexite
+    // n'etait verifiee qu'a l'inscription, pas au changement de mot de passe.
     if (form.nouveauMotDePasse.length < 8) {
       toast.error('Le mot de passe doit contenir au moins 8 caractères');
+      return;
+    }
+    if (!/[a-z]/.test(form.nouveauMotDePasse)) {
+      toast.error('Le mot de passe doit contenir une minuscule');
+      return;
+    }
+    if (!/[A-Z]/.test(form.nouveauMotDePasse)) {
+      toast.error('Le mot de passe doit contenir une majuscule');
+      return;
+    }
+    if (!/[0-9]/.test(form.nouveauMotDePasse)) {
+      toast.error('Le mot de passe doit contenir un chiffre');
+      return;
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(form.nouveauMotDePasse)) {
+      toast.error('Le mot de passe doit contenir un caractère spécial');
       return;
     }
     try {

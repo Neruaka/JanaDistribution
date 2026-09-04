@@ -1268,24 +1268,24 @@ Checklist complète : `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 - **Détail :** `ca_total` utilisait `SUM(total_ttc)` alors que `getDashboardStats()` calcule le chiffre d'affaires en HT (`total_ht`) — aligné sur le même champ pour cohérence avant tout câblage futur de cette route.
 
 ### T13-16 — Message "Email ou mot de passe incorrect" trompeur en cas de panne réseau
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** Frontend
-- **Fichiers :** `frontend/src/contexts/AuthContext.jsx:110-113`
-- **Détail :** seul fallback spécifique (donc trompeur) parmi les 5 messages d'erreur d'AuthContext — en cas de panne réseau réelle, l'utilisateur croit à tort que ses identifiants sont faux.
+- **Statut :** DONE (2026-09-05) | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** Frontend
+- **Fichiers :** `frontend/src/contexts/AuthContext.jsx`
+- **Détail :** `login()` distingue désormais `err.response` absent (panne réseau/timeout → "Connexion impossible, vérifiez votre réseau") de `err.response` présent (identifiants réellement rejetés par le backend).
 
 ### T13-17 — Case "Rester connecté sur cet appareil" entièrement décorative
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** Frontend
-- **Fichiers :** `frontend/src/pages/LoginPage.jsx:29,131-134`
-- **Détail :** togglable à l'écran mais jamais lue ni transmise à `login()` — contrairement aux 7 boutons "Bientôt disponible" du code (correctement désactivés), celle-ci feint une action qui n'existe pas. Soit l'implémenter (stockage `localStorage` vs `sessionStorage` selon l'état), soit la retirer.
+- **Statut :** DONE (2026-09-05) | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** Frontend
+- **Fichiers :** `frontend/src/pages/LoginPage.jsx`, `frontend/src/contexts/AuthContext.jsx`, `frontend/src/services/api.js`
+- **Détail :** implémentée : `login(email, motDePasse, rememberMe)` transmet le flag à `setAuthData(..., persist)` qui écrit en `localStorage` (persisté) ou `sessionStorage` (session courante) selon le choix. La rotation silencieuse du refresh token (sans `persist` explicite) préserve désormais le stockage déjà utilisé pour chaque clé au lieu de retomber en session-only au premier refresh — bug qu'une implémentation naïve aurait introduit.
 
 ### T13-18 — Aucun Error Boundary React global
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** Frontend
-- **Fichiers :** `frontend/src/main.jsx`
-- **Détail :** toute exception de rendu non catchée fait crasher tout l'arbre React vers une page blanche sans message ni retour possible, y compris sur checkout/connexion.
+- **Statut :** DONE (2026-09-05) | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** Frontend
+- **Fichiers :** `frontend/src/components/ErrorBoundary.jsx` (nouveau), `frontend/src/main.jsx`
+- **Détail :** `ErrorBoundary` (composant classe, seule API React pour ça) enveloppe `<BrowserRouter><App /></BrowserRouter>` dans `main.jsx` — une exception de rendu affiche un écran de récupération (recharger / retour accueil) au lieu d'une page blanche.
 
 ### T13-19 — Validation de mot de passe incohérente entre inscription et changement de mot de passe
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** Frontend
-- **Fichiers :** `frontend/src/pages/RegisterPage.jsx:71-83`, `frontend/src/components/mon-compte/TabSecurite.jsx:29-36`
-- **Détail :** l'inscription vérifie la complexité complète, le changement de mot de passe ne vérifie que la longueur — incohérence UX entre deux formulaires du même parcours.
+- **Statut :** DONE (2026-09-05) | **Priorité :** P2 | **Catégorie :** CODE | **Domaine :** Frontend
+- **Fichiers :** `frontend/src/components/mon-compte/TabSecurite.jsx`
+- **Détail :** `handleSubmit()` applique désormais les mêmes règles que `RegisterPage.jsx` (minuscule, majuscule, chiffre, caractère spécial), pas seulement la longueur minimale.
 
 ### T13-20 — Aucun header de sécurité HTTP (CSP/HSTS/X-Frame-Options)
 - **Statut :** TODO | **Priorité :** P2 | **Catégorie :** INFRA | **Domaine :** Infrastructure
