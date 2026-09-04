@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { useSettings } from '../contexts/SettingsContext';
@@ -18,6 +18,8 @@ import { formatAmount } from '../utils/priceUtils';
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isHome = location.pathname === '/';
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const { itemCount, openDrawer, subtotalHT, totalTTC } = useCart();
   const { site, telephoneSite } = useSettings();
@@ -103,14 +105,14 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Bande 2 — barre principale */}
-      <div className="flex items-center gap-8 px-4 md:px-10 py-3 md:py-[18px] border-b border-sand-200">
+      {/* Bande 2 — barre principale (fond sombre sur mobile pour l'accueil, cf. maquette M1) */}
+      <div className={`flex items-center gap-8 px-4 md:px-10 py-3 md:py-[18px] border-b ${isHome ? 'bg-ink-900 border-ink-700 md:bg-white md:border-sand-200' : 'border-sand-200'}`}>
         <Link to="/" className="flex items-center gap-[11px] flex-shrink-0">
           <div className="w-[34px] h-[34px] rounded-7 bg-green-700 flex items-center justify-center text-white font-display font-extrabold text-[17px] tracking-tight">
             J
           </div>
           <div className="hidden sm:flex flex-col leading-none">
-            <span className="font-display font-extrabold text-[19px] tracking-tight text-ink-900">JANA</span>
+            <span className={`font-display font-extrabold text-[19px] tracking-tight ${isHome ? 'text-white md:text-ink-900' : 'text-ink-900'}`}>JANA</span>
             <span className="text-[9.5px] tracking-widest text-graphite-500 mt-[3px]">DISTRIBUTION</span>
           </div>
         </Link>
@@ -191,6 +193,25 @@ const Navbar = () => {
             )}
           </div>
 
+          {isHome && (
+            <div className="md:hidden flex bg-ink-700 rounded p-0.5 flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => setPriceMode('HT')}
+                className={`px-[9px] py-[3px] rounded-[3px] text-[11.5px] font-semibold transition-colors ${priceMode === 'HT' ? 'bg-sand-50 text-ink-900' : 'text-mist-3'}`}
+              >
+                HT
+              </button>
+              <button
+                type="button"
+                onClick={() => setPriceMode('TTC')}
+                className={`px-[9px] py-[3px] rounded-[3px] text-[11.5px] font-semibold transition-colors ${priceMode === 'TTC' ? 'bg-sand-50 text-ink-900' : 'text-mist-3'}`}
+              >
+                TTC
+              </button>
+            </div>
+          )}
+
           <button
             type="button"
             onClick={openDrawer}
@@ -207,7 +228,7 @@ const Navbar = () => {
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen((v) => !v)}
-            className="md:hidden p-2 text-ink-900"
+            className={`md:hidden order-first p-2 ${isHome ? 'text-white' : 'text-ink-900'}`}
             aria-label="Menu"
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

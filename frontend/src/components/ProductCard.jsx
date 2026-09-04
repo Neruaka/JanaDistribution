@@ -103,7 +103,7 @@ const ProductCard = ({ product, imageHeight = 150, onAdded }) => {
   return (
     <div className="group bg-white border border-sand-200 hover:border-sand-250 rounded-8 flex flex-col overflow-hidden transition-colors">
       {/* Image */}
-      <Link to={`/produit/${slug}`} className="relative block flex-shrink-0" style={{ height: imageHeight }}>
+      <Link to={`/produit/${slug}`} className="relative block flex-shrink-0" style={{ height: `clamp(120px, 30vw, ${imageHeight}px)` }}>
         {fullImageUrl ? (
           <img src={fullImageUrl} alt={nom} className="w-full h-full object-cover" />
         ) : (

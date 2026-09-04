@@ -190,11 +190,11 @@ const HomePage = () => {
         )}
       </section>
 
-      {/* Rail rayons */}
-      <section className="flex gap-2.5 px-4 md:px-10 py-4 bg-white border-b border-sand-200 overflow-x-auto">
+      {/* Rail rayons — grille 2×3 sur mobile (M1), rangée horizontale au-dela */}
+      <section className="grid grid-cols-2 md:flex gap-2.5 px-4 md:px-10 py-4 bg-white border-b border-sand-200 md:overflow-x-auto">
         {loadingRayons ? (
           Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="flex-1 min-w-[110px] border border-sand-200 rounded-8 p-3 flex flex-col gap-2 animate-pulse">
+            <div key={i} className="md:flex-1 md:min-w-[110px] border border-sand-200 rounded-8 p-3 flex flex-col gap-2 animate-pulse">
               <div className="h-[52px] rounded-5 bg-sand-100" />
               <div className="h-3 w-2/3 bg-sand-100 rounded" />
             </div>
@@ -204,7 +204,7 @@ const HomePage = () => {
             <Link
               key={rayon.id}
               to={`/catalogue?categorie=${rayon.id}`}
-              className="flex-1 min-w-[110px] border border-sand-200 hover:border-sand-250 rounded-8 p-3 flex flex-col gap-2 bg-sand-50 transition-colors"
+              className="md:flex-1 md:min-w-[110px] border border-sand-200 hover:border-sand-250 rounded-8 p-3 flex flex-col gap-2 bg-sand-50 transition-colors"
             >
               <div className="h-[52px] rounded-5 placeholder-stripe" />
               <span className="text-[13px] font-semibold text-ink-900">{rayon.nom}</span>
