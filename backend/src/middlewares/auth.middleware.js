@@ -32,7 +32,7 @@ const authenticate = async (req, res, next) => {
     // Vérifier le token
     let decoded;
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
+      decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     } catch (error) {
       if (error.name === 'TokenExpiredError') {
         throw ApiError.unauthorized('Token expiré, veuillez vous reconnecter');
@@ -85,7 +85,7 @@ const optionalAuth = async (req, res, next) => {
     const token = parts[1];
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
       const user = await userRepository.findById(decoded.id);
 
       if (user && user.estActif) {

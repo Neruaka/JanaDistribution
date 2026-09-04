@@ -391,7 +391,7 @@ describe('AuthService', () => {
       const result = authService.verifyToken('valid-token');
 
       // Assert
-      expect(jwt.verify).toHaveBeenCalledWith('valid-token', expect.any(String));
+      expect(jwt.verify).toHaveBeenCalledWith('valid-token', expect.any(String), { algorithms: ['HS256'] });
       expect(result).toEqual(payload);
     });
 

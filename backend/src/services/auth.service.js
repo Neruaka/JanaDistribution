@@ -557,7 +557,7 @@ class AuthService {
    */
   verifyToken(token) {
     try {
-      return jwt.verify(token, this.jwtSecret);
+      return jwt.verify(token, this.jwtSecret, { algorithms: ['HS256'] });
     } catch (error) {
       if (error.name === 'TokenExpiredError') {
         throw ApiError.unauthorized('Token expiré');
@@ -573,7 +573,7 @@ class AuthService {
    */
   verifyRefreshToken(refreshToken) {
     try {
-      const payload = jwt.verify(refreshToken, this.jwtRefreshSecret);
+      const payload = jwt.verify(refreshToken, this.jwtRefreshSecret, { algorithms: ['HS256'] });
 
       if (payload.tokenType !== 'refresh') {
         throw ApiError.unauthorized('Refresh token invalide');
