@@ -157,30 +157,32 @@ const AdminDashboard = () => {
           </div>
         ) : (
         <>
-        <div className="grid grid-cols-4 gap-3.5">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
           <KPICard label="Chiffre d'affaires HT" value={formatMoney(stats?.chiffreAffaires?.total)} delta={comparison?.variation?.chiffreAffaires} />
           <KPICard label="Commandes" value={stats?.commandes?.total ?? 0} delta={comparison?.variation?.commandes} />
           <KPICard label="Panier moyen HT" value={formatMoney(stats?.panierMoyen?.total)} delta={comparison?.variation?.panierMoyen} />
           <KPICard label="Clients" value={stats?.clients?.total ?? 0} delta={comparison?.variation?.clients} />
         </div>
 
-        <div className="bg-white border border-sand-200 rounded-8 px-[18px] py-4 flex items-center gap-[26px]">
+        <div className="bg-white border border-sand-200 rounded-8 px-[18px] py-4 flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-[26px]">
           <div className="font-display text-[15px] font-bold text-ink-900 flex-shrink-0">À traiter aujourd'hui</div>
-          {banniere.map((it, i) => (
-            <div key={it.label} className={i > 0 ? 'border-l border-sand-300 pl-5' : ''}>
-              <div className={`font-mono text-[20px] font-semibold ${it.warn && it.value > 0 ? 'text-warning-text' : 'text-ink-900'}`}>{it.value}</div>
-              <div className="text-[13px] text-graphite-700">{it.label}</div>
-            </div>
-          ))}
+          <div className="grid grid-cols-2 lg:flex lg:items-center gap-4 lg:gap-[26px]">
+            {banniere.map((it, i) => (
+              <div key={it.label} className={i > 0 ? 'lg:border-l lg:border-sand-300 lg:pl-5' : ''}>
+                <div className={`font-mono text-[20px] font-semibold ${it.warn && it.value > 0 ? 'text-warning-text' : 'text-ink-900'}`}>{it.value}</div>
+                <div className="text-[13px] text-graphite-700">{it.label}</div>
+              </div>
+            ))}
+          </div>
           <Link
             to="/admin/commandes?statut=EN_ATTENTE"
-            className="ml-auto flex-shrink-0 bg-ink-900 hover:bg-ink-800 text-white text-[13px] font-semibold h-[38px] px-4 rounded-6 flex items-center transition-colors"
+            className="lg:ml-auto flex-shrink-0 bg-ink-900 hover:bg-ink-800 text-white text-[13px] font-semibold h-[38px] px-4 rounded-6 flex items-center justify-center transition-colors"
           >
             Ouvrir la file de traitement
           </Link>
         </div>
 
-        <div className="grid grid-cols-[1.55fr_1fr] gap-3.5">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.55fr_1fr] gap-3.5">
           <div className="bg-white border border-sand-200 rounded-8 p-[18px] flex flex-col">
             <div className="flex items-start justify-between mb-4">
               <div>
@@ -237,7 +239,7 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-[1.55fr_1fr] gap-3.5">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.55fr_1fr] gap-3.5">
           <div className="bg-white border border-sand-200 rounded-8 flex flex-col">
             <div className="flex items-center justify-between px-[18px] pt-[18px] pb-3.5">
               <h3 className="font-display text-[16px] font-bold text-ink-900">Dernières commandes</h3>
@@ -250,7 +252,7 @@ const AdminDashboard = () => {
                   <Link
                     key={o.id}
                     to={`/admin/commandes/${o.id}`}
-                    className="grid items-center gap-3 px-[18px] py-2.5 border-t border-sand-150 hover:bg-sand-50 transition-colors"
+                    className="hidden lg:grid items-center gap-3 px-[18px] py-2.5 border-t border-sand-150 hover:bg-sand-50 transition-colors"
                     style={{ gridTemplateColumns: '170px minmax(0,1fr) 62px 92px 104px' }}
                   >
                     <span className="font-mono text-[12.5px] text-ink-900">{o.numeroCommande}</span>
@@ -261,6 +263,26 @@ const AdminDashboard = () => {
                     <span className="text-[12.5px] text-graphite-600">{formatDateShort(o.dateCommande)}</span>
                     <span className="font-mono text-[13.5px] text-ink-900 text-right">{formatMoney(o.totalTtc)}</span>
                     <span className={`justify-self-end text-[12px] font-semibold px-2 py-[3px] rounded-4 ${getAdminStatutStyle(o.statut)}`}>{statutInfo.label}</span>
+                  </Link>
+                );
+              }) : null}
+              {recentOrders.length > 0 ? recentOrders.map((o) => {
+                const statutInfo = getStatutInfo(o.statut);
+                return (
+                  <Link
+                    key={`m-${o.id}`}
+                    to={`/admin/commandes/${o.id}`}
+                    className="lg:hidden flex items-center justify-between gap-3 px-[18px] py-2.5 border-t border-sand-150 hover:bg-sand-50 transition-colors"
+                  >
+                    <div className="min-w-0">
+                      <div className="font-mono text-[12px] text-ink-900">{o.numeroCommande}</div>
+                      <div className="text-[13px] font-medium text-ink-900 truncate">{o.client?.prenom} {o.client?.nom}</div>
+                      <div className="text-[11.5px] text-graphite-400">{formatDateShort(o.dateCommande)}</div>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <div className="font-mono text-[13.5px] text-ink-900">{formatMoney(o.totalTtc)}</div>
+                      <span className={`text-[11px] font-semibold px-1.5 py-[2px] rounded-4 ${getAdminStatutStyle(o.statut)}`}>{statutInfo.label}</span>
+                    </div>
                   </Link>
                 );
               }) : (

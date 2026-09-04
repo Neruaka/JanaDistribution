@@ -30,20 +30,20 @@ const AdminTopBar = ({ search, children }) => {
   }, []);
 
   return (
-    <div className="flex items-center gap-4 bg-white border-b border-sand-200 px-[26px] py-3.5">
+    <div className="flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-4 bg-white border-b border-sand-200 px-4 lg:px-[26px] py-3 lg:py-3.5">
       {search ?? (
         <button
           type="button"
           onClick={() => setSearchOpen(true)}
-          className="flex-1 max-w-[420px] h-[38px] flex items-center gap-2 border border-sand-250 rounded-6 px-3.5 text-[13.5px] text-graphite-200 hover:border-sand-300 transition-colors"
+          className="flex-1 lg:max-w-[420px] h-[38px] flex items-center gap-2 border border-sand-250 rounded-6 px-3.5 text-[13.5px] text-graphite-200 hover:border-sand-300 transition-colors"
         >
           <Search className="w-3.5 h-3.5 flex-shrink-0" />
           <span className="truncate">Rechercher une commande, un produit, un client…</span>
-          <kbd className="ml-auto text-[10.5px] text-graphite-300 border border-sand-250 rounded-3 px-1.5 py-0.5">⌘K</kbd>
+          <kbd className="ml-auto text-[10.5px] text-graphite-300 border border-sand-250 rounded-3 px-1.5 py-0.5 hidden sm:inline">⌘K</kbd>
         </button>
       )}
 
-      {children && <div className="ml-auto flex items-center gap-2.5">{children}</div>}
+      {children && <div className="flex flex-wrap items-center gap-2 lg:gap-2.5 lg:ml-auto">{children}</div>}
 
       <AnimatePresence>
         {searchOpen && <GlobalSearch isOpen={searchOpen} onClose={() => setSearchOpen(false)} />}

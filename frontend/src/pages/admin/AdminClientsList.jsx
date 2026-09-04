@@ -165,7 +165,7 @@ const AdminClientsList = () => {
         </div>
 
         {stats && (
-          <div className="grid grid-cols-4 gap-3.5">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
             <KPI label="Comptes actifs" value={stats.actifs} />
             <KPI label="Professionnels" value={stats.professionnels} />
             <KPI label="Particuliers" value={stats.particuliers} />
@@ -174,7 +174,7 @@ const AdminClientsList = () => {
         )}
 
         <div className="bg-white border border-sand-200 rounded-8 overflow-hidden">
-          <div className="grid gap-3 px-[18px] py-2.5 bg-sand-100 border-b border-sand-200 text-[11.5px] tracking-wide text-graphite-400" style={{ gridTemplateColumns: '1fr 220px 130px 110px 130px 120px 80px' }}>
+          <div className="hidden lg:grid gap-3 px-[18px] py-2.5 bg-sand-100 border-b border-sand-200 text-[11.5px] tracking-wide text-graphite-400" style={{ gridTemplateColumns: '1fr 220px 130px 110px 130px 120px 80px' }}>
             <span>CLIENT</span><span>CONTACT</span><span>TYPE</span><span className="text-center">CMD.</span><span className="text-right">CA TOTAL</span><span>STATUT</span><span />
           </div>
 
@@ -184,7 +184,7 @@ const AdminClientsList = () => {
             <div className="text-center py-16 text-[13.5px] text-graphite-400">Aucun client trouvé</div>
           ) : (
             clients.map((client) => (
-              <div key={client.id} className="grid gap-3 items-center px-[18px] py-3 border-b border-sand-150 last:border-b-0 hover:bg-sand-50 transition-colors" style={{ gridTemplateColumns: '1fr 220px 130px 110px 130px 120px 80px' }}>
+              <div key={client.id} className="hidden lg:grid gap-3 items-center px-[18px] py-3 border-b border-sand-150 last:border-b-0 hover:bg-sand-50 transition-colors" style={{ gridTemplateColumns: '1fr 220px 130px 110px 130px 120px 80px' }}>
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="w-[34px] h-[34px] rounded-full bg-sand-150 text-graphite-600 flex items-center justify-center text-[12px] font-semibold flex-shrink-0">
                     {client.prenom?.[0]}{client.nom?.[0]}
@@ -222,6 +222,33 @@ const AdminClientsList = () => {
                 </div>
               </div>
             ))
+          )}
+
+          {!loading && clients.length > 0 && (
+            <div className="lg:hidden flex flex-col">
+              {clients.map((client) => (
+                <div key={`m-${client.id}`} className="flex items-center gap-2.5 px-[18px] py-3 border-b border-sand-150 last:border-b-0" onClick={() => handleViewDetail(client)}>
+                  <div className="w-[34px] h-[34px] rounded-full bg-sand-150 text-graphite-600 flex items-center justify-center text-[12px] font-semibold flex-shrink-0">
+                    {client.prenom?.[0]}{client.nom?.[0]}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[13.5px] font-medium text-ink-900 truncate">{client.prenom} {client.nom}</span>
+                      <span className={`flex-shrink-0 text-[10.5px] font-semibold px-1.5 py-[1px] rounded-4 ${client.typeClient === 'PROFESSIONNEL' ? 'bg-pro-bg text-pro-text' : 'bg-particulier-bg text-particulier-text'}`}>
+                        {client.typeClient === 'PROFESSIONNEL' ? 'Pro' : 'Particulier'}
+                      </span>
+                    </div>
+                    <div className="text-[12px] text-graphite-400 truncate">{client.email}</div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="font-mono text-[13px] text-ink-900">{formatMoney(client.caTotal)}</div>
+                    <span className={`text-[10.5px] font-semibold px-1.5 py-[1px] rounded-4 ${client.estActif ? 'bg-success-bg text-success-text' : 'bg-danger-bg text-danger-text'}`}>
+                      {client.estActif ? 'Actif' : 'Bloqué'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
 

@@ -230,11 +230,11 @@ const AdminOrderDetail = () => {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-3.5">
         <div className="flex flex-col gap-3.5">
           <div className="bg-white border border-sand-200 rounded-8 overflow-hidden">
-            <div className="hidden sm:grid gap-3 px-[18px] py-2.5 bg-sand-100 border-b border-sand-200 text-[11.5px] tracking-wide text-graphite-400" style={{ gridTemplateColumns: '52px 1fr 110px 90px 100px 110px' }}>
+            <div className="hidden lg:grid gap-3 px-[18px] py-2.5 bg-sand-100 border-b border-sand-200 text-[11.5px] tracking-wide text-graphite-400" style={{ gridTemplateColumns: '52px 1fr 110px 90px 100px 110px' }}>
               <span /><span>PRODUIT</span><span>PRIX HT</span><span>QTÉ</span><span>STOCK</span><span className="text-right">TOTAL HT</span>
             </div>
             {order.lignes?.map((ligne) => (
-              <div key={ligne.id} className="grid gap-3 px-[18px] py-3 border-b border-sand-150 last:border-b-0 items-center" style={{ gridTemplateColumns: '52px 1fr 110px 90px 100px 110px' }}>
+              <div key={ligne.id} className="hidden lg:grid gap-3 px-[18px] py-3 border-b border-sand-150 last:border-b-0 items-center" style={{ gridTemplateColumns: '52px 1fr 110px 90px 100px 110px' }}>
                 <div className="w-[52px] h-[52px] rounded-4 overflow-hidden placeholder-stripe flex-shrink-0">
                   {getImageUrl(ligne.produit?.imageUrl) && <img src={getImageUrl(ligne.produit.imageUrl)} alt="" className="w-full h-full object-cover" />}
                 </div>
@@ -248,6 +248,21 @@ const AdminOrderDetail = () => {
                   {ligne.produit?.stockQuantite ?? '—'}
                 </span>
                 <span className="font-mono text-[13.5px] text-ink-900 text-right">{formatMoney(ligne.totalHt)}</span>
+              </div>
+            ))}
+            {order.lignes?.map((ligne) => (
+              <div key={`m-${ligne.id}`} className="lg:hidden flex items-center gap-3 px-[18px] py-3 border-b border-sand-150 last:border-b-0">
+                <div className="w-11 h-11 rounded-4 overflow-hidden placeholder-stripe flex-shrink-0">
+                  {getImageUrl(ligne.produit?.imageUrl) && <img src={getImageUrl(ligne.produit.imageUrl)} alt="" className="w-full h-full object-cover" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13.5px] font-medium text-ink-900 truncate">{ligne.produit?.nom}</div>
+                  <div className="text-[11.5px] text-graphite-400">
+                    {formatMoney(ligne.prixUnitaireHt)} × {ligne.quantite} · stock{' '}
+                    <span className={`font-mono font-semibold ${stockColor(ligne.produit?.stockQuantite)}`}>{ligne.produit?.stockQuantite ?? '—'}</span>
+                  </div>
+                </div>
+                <span className="font-mono text-[13.5px] text-ink-900 flex-shrink-0">{formatMoney(ligne.totalHt)}</span>
               </div>
             ))}
             <div className="bg-sand-100 px-[18px] py-3.5 flex flex-col gap-1.5 items-end">

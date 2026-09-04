@@ -185,21 +185,24 @@ const AdminCategoriesList = () => {
                 onDragStart={() => { dragIndex.current = index; }}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={() => { if (dragIndex.current !== null) handleReorder(dragIndex.current, index); dragIndex.current = null; }}
-                className={`flex items-center gap-3.5 px-[18px] py-3.5 border-b border-sand-150 last:border-b-0 hover:bg-sand-50 transition-colors ${!category.estActif ? 'opacity-60' : ''}`}
+                className={`flex flex-col lg:flex-row lg:items-center gap-2.5 lg:gap-3.5 px-[18px] py-3.5 border-b border-sand-150 last:border-b-0 hover:bg-sand-50 transition-colors ${!category.estActif ? 'opacity-60' : ''}`}
               >
-                <GripVertical className="w-4 h-4 text-graphite-200 cursor-grab flex-shrink-0" />
-                <div className="w-[38px] h-[38px] rounded-6 flex items-center justify-center text-[18px] flex-shrink-0" style={{ backgroundColor: `${category.couleur}20` }}>
-                  {category.icone || '📦'}
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <GripVertical className="w-4 h-4 text-graphite-200 cursor-grab flex-shrink-0" />
+                  <div className="w-[38px] h-[38px] rounded-6 flex items-center justify-center text-[18px] flex-shrink-0" style={{ backgroundColor: `${category.couleur}20` }}>
+                    {category.icone || '📦'}
+                  </div>
+                  <div className="flex-1 lg:flex-1 min-w-0">
+                    <div className="text-[13.5px] font-semibold text-ink-900 truncate">{category.nom}</div>
+                    <div className="font-mono text-[11.5px] text-graphite-300 truncate">{category.slug}</div>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[13.5px] font-semibold text-ink-900">{category.nom}</div>
-                  <div className="font-mono text-[11.5px] text-graphite-300">{category.slug}</div>
-                </div>
-                <span className="font-mono text-[13px] text-graphite-500 w-24 flex-shrink-0">{category.nbProduits || 0} réf.</span>
-                <span className={`text-[12px] font-semibold px-2 py-[3px] rounded-4 flex-shrink-0 ${category.estActif ? 'bg-success-bg text-success-text' : 'bg-neutral-status-bg text-neutral-status-text'}`}>
-                  {category.estActif ? 'Visible' : 'Masquée'}
-                </span>
-                <div className="relative flex-shrink-0">
+                <div className="flex items-center gap-2.5 pl-[45px] lg:pl-0 flex-shrink-0">
+                  <span className="font-mono text-[13px] text-graphite-500 lg:w-24 flex-shrink-0">{category.nbProduits || 0} réf.</span>
+                  <span className={`text-[12px] font-semibold px-2 py-[3px] rounded-4 flex-shrink-0 ${category.estActif ? 'bg-success-bg text-success-text' : 'bg-neutral-status-bg text-neutral-status-text'}`}>
+                    {category.estActif ? 'Visible' : 'Masquée'}
+                  </span>
+                  <div className="relative flex-shrink-0 ml-auto lg:ml-0">
                   <button type="button" onClick={() => setOpenMenu(openMenu === category.id ? null : category.id)} className="p-1.5 text-graphite-300 hover:text-ink-900 transition-colors">
                     <MoreVertical className="w-4 h-4" />
                   </button>
@@ -216,6 +219,7 @@ const AdminCategoriesList = () => {
                       </div>
                     </>
                   )}
+                  </div>
                 </div>
               </div>
             ))

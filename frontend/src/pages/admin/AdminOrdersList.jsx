@@ -212,15 +212,15 @@ const AdminOrdersList = () => {
           </p>
         </div>
 
-        <div className="bg-white border border-sand-200 rounded-8 flex overflow-hidden">
+        <div className="bg-white border border-sand-200 rounded-8 flex overflow-x-auto lg:overflow-hidden">
           {STATUT_RAIL.map((s, i) => (
             <button
               key={s.key}
               type="button"
               onClick={() => handleStatutClick(s.key)}
-              className={`flex-1 text-left px-[18px] py-3.5 ${i > 0 ? 'border-l border-sand-150' : ''} ${statut === s.key ? 'bg-[#FDFBF5]' : 'hover:bg-sand-50'} transition-colors`}
+              className={`flex-shrink-0 lg:flex-1 text-left px-[18px] py-3.5 ${i > 0 ? 'border-l border-sand-150' : ''} ${statut === s.key ? 'bg-[#FDFBF5]' : 'hover:bg-sand-50'} transition-colors`}
             >
-              <div className="text-[12.5px] text-graphite-500">{s.label}</div>
+              <div className="text-[12.5px] text-graphite-500 whitespace-nowrap">{s.label}</div>
               <div className={`font-mono text-[22px] font-semibold mt-0.5 ${s.color}`}>{stats?.parStatut?.[s.countKey] ?? 0}</div>
             </button>
           ))}
@@ -228,7 +228,7 @@ const AdminOrdersList = () => {
 
         <div className="bg-white border border-sand-200 rounded-8 overflow-hidden">
           <div
-            className="grid gap-3 px-[18px] py-2.5 bg-sand-100 border-b border-sand-200 text-[11.5px] tracking-wide text-graphite-400"
+            className="hidden lg:grid gap-3 px-[18px] py-2.5 bg-sand-100 border-b border-sand-200 text-[11.5px] tracking-wide text-graphite-400"
             style={{ gridTemplateColumns: '180px 1fr 130px 80px 120px 140px 90px' }}
           >
             <span>COMMANDE</span>
@@ -253,7 +253,7 @@ const AdminOrdersList = () => {
               return (
                 <div
                   key={order.id}
-                  className={`grid gap-3 items-center px-[18px] py-3.5 border-b border-sand-150 last:border-b-0 hover:bg-sand-50 transition-colors cursor-pointer ${updatingStatus === order.id ? 'opacity-50' : ''}`}
+                  className={`hidden lg:grid gap-3 items-center px-[18px] py-3.5 border-b border-sand-150 last:border-b-0 hover:bg-sand-50 transition-colors cursor-pointer ${updatingStatus === order.id ? 'opacity-50' : ''}`}
                   style={{ gridTemplateColumns: '180px 1fr 130px 80px 120px 140px 90px' }}
                   onClick={() => navigate(`/admin/commandes/${order.id}`)}
                 >
@@ -283,6 +283,40 @@ const AdminOrdersList = () => {
                 </div>
               );
             })
+          )}
+
+          {!loading && orders.length > 0 && (
+            <div className="lg:hidden flex flex-col">
+              {orders.map((order) => {
+                const statutInfo = getStatutInfo(order.statut);
+                const next = NEXT_STATUT[order.statut];
+                return (
+                  <div key={`m-${order.id}`} className={`p-[18px] border-b border-sand-150 last:border-b-0 flex flex-col gap-2.5 ${updatingStatus === order.id ? 'opacity-50' : ''}`}>
+                    <div className="flex items-start justify-between gap-2" onClick={() => navigate(`/admin/commandes/${order.id}`)}>
+                      <div className="min-w-0">
+                        <div className="font-mono text-[12.5px] text-ink-900">{order.numeroCommande}</div>
+                        <div className="text-[13.5px] font-medium text-ink-900 truncate">{order.client?.prenom} {order.client?.nom}</div>
+                        <div className="text-[11.5px] text-graphite-400">{formatDate(order.dateCommande)} · {order.nbArticles || 0} art.</div>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <div className="font-mono text-[14px] text-ink-900">{formatMoney(order.totalTtc)}</div>
+                        <span className={`text-[11px] font-semibold px-1.5 py-[2px] rounded-4 ${getAdminStatutStyle(order.statut)}`}>{statutInfo.label}</span>
+                      </div>
+                    </div>
+                    {next && (
+                      <button
+                        type="button"
+                        onClick={() => handleAdvance(order)}
+                        disabled={updatingStatus === order.id}
+                        className="w-full bg-green-700 hover:bg-green-800 disabled:opacity-50 text-white text-[13px] font-semibold h-10 rounded-6 transition-colors"
+                      >
+                        {NEXT_ACTION_LABEL[order.statut]}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
 

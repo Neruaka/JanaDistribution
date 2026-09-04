@@ -4,7 +4,7 @@
  * @see design_handoff_jana_refonte/README.md (A4 — Produits)
  */
 
-const selectClass = 'h-[38px] border border-sand-250 rounded-6 px-3 text-[13.5px] text-graphite-900 bg-white focus:outline-none focus:border-ink-900';
+const selectClass = 'h-[38px] border border-sand-250 rounded-6 px-3 text-[13.5px] text-graphite-900 bg-white focus:outline-none focus:border-ink-900 flex-1 min-w-0 sm:flex-none';
 
 const ProductsFilters = ({
   selectedCategory,
@@ -15,7 +15,7 @@ const ProductsFilters = ({
   onStockFilterChange,
   onStatutFilterChange
 }) => (
-  <div className="flex gap-2.5">
+  <div className="flex gap-2 sm:gap-2.5 w-full sm:w-auto">
     <select value={selectedCategory} onChange={(e) => onCategoryChange(e.target.value)} className={selectClass}>
       <option value="">Tous les rayons</option>
       {categories.map((cat) => (
