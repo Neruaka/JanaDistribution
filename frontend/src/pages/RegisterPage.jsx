@@ -28,7 +28,7 @@ const FieldError = ({ error }) => {
 };
 
 const inputClass = (hasError) =>
-  `w-full border rounded-6 h-11 px-3.5 text-[14px] text-ink-900 placeholder:text-graphite-200 focus:outline-none transition-colors ${
+  `w-full border rounded-6 h-[50px] px-3.5 text-[14px] text-ink-900 placeholder:text-graphite-200 focus:outline-none transition-colors ${
     hasError ? 'border-danger-border bg-danger-bg' : 'border-sand-250 focus:border-ink-900'
   }`;
 
@@ -119,15 +119,30 @@ const RegisterPage = () => {
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 font-sans">
+      {/* En-tete sombre mobile (M7) : accroche + segment Se connecter / Creer un compte */}
+      <div className="lg:hidden bg-ink-900 px-6 pt-8 pb-7">
+        <Link to="/" className="flex items-center gap-[11px] mb-6">
+          <div className="w-8 h-8 rounded-6 bg-green-700 flex items-center justify-center text-white font-display font-extrabold text-[16px]">J</div>
+          <span className="font-display font-extrabold text-[16px] tracking-tight text-white">JANA DISTRIBUTION</span>
+        </Link>
+        <h1 className="font-display text-[26px] font-extrabold tracking-tighter text-white leading-[1.15]">
+          Particulier ou professionnel,<br />les mêmes prix.
+        </h1>
+        <div className="flex bg-ink-700 rounded-6 p-1 mt-5 w-fit">
+          <Link to="/login" className="text-mist-3 px-4 py-2 rounded-5 text-[13px] font-semibold">Se connecter</Link>
+          <span className="bg-white text-ink-900 px-4 py-2 rounded-5 text-[13px] font-semibold">Créer un compte</span>
+        </div>
+      </div>
+
       {/* Gauche — formulaire */}
-      <div className="bg-white flex flex-col justify-center px-6 sm:px-10 lg:px-[72px] py-14">
+      <div className="bg-white flex flex-col justify-center px-6 sm:px-10 lg:px-[72px] py-8 lg:py-14">
         <div className="max-w-[460px] w-full mx-auto lg:mx-0">
-          <Link to="/" className="flex items-center gap-[11px] mb-6">
+          <Link to="/" className="hidden lg:flex items-center gap-[11px] mb-6">
             <div className="w-8 h-8 rounded-6 bg-green-700 flex items-center justify-center text-white font-display font-extrabold text-[16px]">J</div>
             <span className="font-display font-extrabold text-[18px] tracking-tight text-ink-900">JANA DISTRIBUTION</span>
           </Link>
 
-          <h1 className="font-display text-[32px] font-extrabold tracking-tighter text-ink-900">Créer un compte</h1>
+          <h1 className="font-display text-[23px] lg:text-[32px] font-extrabold tracking-tighter text-ink-900">Créer un compte</h1>
           <p className="text-[14.5px] text-graphite-600 mt-1.5 mb-6">
             Déjà inscrit ? <Link to="/login" className="text-green-700 hover:text-green-800 font-semibold">Connectez-vous</Link>
           </p>
@@ -246,7 +261,7 @@ const RegisterPage = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="h-[50px] bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white rounded-6 text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
+              className="h-[52px] lg:h-[50px] bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white rounded-6 text-[15px] font-semibold transition-colors flex items-center justify-center gap-2"
             >
               {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
               Créer mon compte
@@ -255,8 +270,8 @@ const RegisterPage = () => {
         </div>
       </div>
 
-      {/* Droite — argumentaire compte */}
-      <div className="bg-ink-900 flex flex-col justify-center px-6 sm:px-10 lg:px-[72px] py-14 gap-[26px]">
+      {/* Droite — argumentaire compte (desktop) */}
+      <div className="hidden lg:flex bg-ink-900 flex-col justify-center px-6 sm:px-10 lg:px-[72px] py-14 gap-[26px]">
         <div>
           <span className="font-mono text-[11.5px] tracking-wider text-accent-light">POURQUOI JANA</span>
           <h2 className="font-display text-[26px] sm:text-[30px] font-extrabold tracking-tighter text-white mt-3 leading-[1.15]">
@@ -279,6 +294,19 @@ const RegisterPage = () => {
         <p className="text-[13.5px] text-mist-2">
           Déjà un compte ? <Link to="/login" className="text-white font-semibold hover:text-mist">Se connecter</Link>
         </p>
+      </div>
+
+      {/* Bas de page mobile (M7) : 3 arguments numerotes sur fond clair */}
+      <div className="lg:hidden bg-[#EDEAE1] px-6 py-7 flex flex-col gap-4">
+        {ARGS_COMPTE.slice(0, 3).map((arg, index) => (
+          <div key={arg.titre} className="flex gap-3 items-start">
+            <span className="font-mono text-[12px] text-green-700 mt-0.5 flex-shrink-0">{index + 1}</span>
+            <div>
+              <div className="text-[13.5px] font-semibold text-ink-900">{arg.titre}</div>
+              <div className="text-[12.5px] text-graphite-600 mt-0.5 leading-[1.5]">{arg.desc}</div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
