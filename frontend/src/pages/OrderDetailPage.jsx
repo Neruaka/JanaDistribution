@@ -137,7 +137,7 @@ const OrderDetailPage = () => {
   const creneau = parseCreneau(order.instructionsLivraison);
 
   return (
-    <div className="bg-sand-50 min-h-screen">
+    <div className="bg-sand-50 min-h-screen pb-[86px] md:pb-0">
       <div className="flex flex-col gap-3.5 px-4 md:px-10 py-7">
         <Link to="/mes-commandes" className="text-[13.5px] font-semibold text-ink-900 hover:text-green-800 w-fit">
           ← Retour à mes commandes
@@ -158,7 +158,7 @@ const OrderDetailPage = () => {
               Passée le {formatDateTime(order.dateCommande)}{creneau ? ` · Livraison souhaitée ${creneau}` : ''}
             </p>
           </div>
-          <div className="flex gap-2.5 flex-wrap">
+          <div className="hidden md:flex gap-2.5 flex-wrap">
             <button type="button" disabled title="Disponible dès que la commande est confirmée" className="border border-sand-250 text-ink-900 text-[13.5px] font-semibold px-4 py-2.5 rounded-6 opacity-40 cursor-not-allowed">
               Devis PDF
             </button>
@@ -184,12 +184,40 @@ const OrderDetailPage = () => {
               {reordering ? 'Ajout…' : 'Recommander'}
             </button>
           </div>
+          {canCancel && (
+            <button
+              type="button"
+              onClick={handleCancelOrder}
+              disabled={cancelling}
+              className="md:hidden w-full border border-danger-border text-danger-text text-[13.5px] font-semibold px-4 py-2.5 rounded-6 hover:bg-danger-bg disabled:opacity-50 transition-colors"
+            >
+              {cancelling ? 'Annulation…' : 'Annuler la commande'}
+            </button>
+          )}
         </div>
 
         {order.statut !== 'ANNULEE' && (
           <div className="bg-white border border-sand-200 rounded-8 p-[22px]">
             <div className="font-display text-[16px] font-bold text-ink-900 mb-5">Suivi</div>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
+            <div className="flex flex-col gap-3.5 sm:hidden">
+              {TIMELINE_STEPS.map((step, index) => {
+                const done = index <= currentIndex;
+                const isCurrent = index === currentIndex;
+                return (
+                  <div key={step.statut} className="flex gap-3 items-start">
+                    <div className="flex flex-col items-center pt-1 flex-shrink-0">
+                      <span className={`w-[10px] h-[10px] rounded-full ${done ? 'bg-green-700' : 'bg-sand-300'}`} />
+                      {index < TIMELINE_STEPS.length - 1 && <span className={`w-[2px] flex-1 min-h-[20px] mt-1 ${index < currentIndex ? 'bg-green-700' : 'bg-sand-300'}`} />}
+                    </div>
+                    <div className="pb-0.5">
+                      <span className={`text-[13.5px] ${isCurrent ? 'font-bold text-[#10231A]' : done ? 'font-semibold text-ink-900' : 'text-[#9AA69F]'}`}>{step.titre}</span>
+                      {isCurrent && <span className="font-mono text-[11.5px] text-graphite-400 block">En cours</span>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="hidden sm:grid grid-cols-5 gap-3.5">
               {TIMELINE_STEPS.map((step, index) => (
                 <div key={step.statut} className="flex flex-col gap-2.5 pr-3.5">
                   <div className={`h-1 rounded-full ${index <= currentIndex ? 'bg-green-700' : 'bg-sand-300'}`} />
@@ -207,7 +235,7 @@ const OrderDetailPage = () => {
               <span /><span>PRODUIT</span><span>PRIX UNITAIRE</span><span>QTÉ</span><span className="text-right">TOTAL HT</span>
             </div>
             {order.lignes?.map((ligne) => (
-              <div key={ligne.id} className="grid gap-3.5 px-[18px] py-3.5 border-b border-[#F0EEE7] last:border-b-0 items-center" style={{ gridTemplateColumns: '56px 1fr 120px 80px 110px' }}>
+              <div key={ligne.id} className="hidden sm:grid gap-3.5 px-[18px] py-3.5 border-b border-[#F0EEE7] last:border-b-0 items-center" style={{ gridTemplateColumns: '56px 1fr 120px 80px 110px' }}>
                 <div className="w-14 h-14 rounded-4 overflow-hidden placeholder-stripe">
                   {getImageUrl(ligne.produit?.imageUrl) && <img src={getImageUrl(ligne.produit.imageUrl)} alt="" className="w-full h-full object-cover" />}
                 </div>
@@ -218,6 +246,20 @@ const OrderDetailPage = () => {
                 <span className="font-mono text-[13.5px] text-graphite-700">{formatAmount(ligne.prixUnitaireHt)}</span>
                 <span className="font-mono text-[13.5px] text-graphite-700">{ligne.quantite}</span>
                 <span className="font-mono text-[14px] text-ink-900 text-right">{formatAmount(ligne.totalHt)}</span>
+              </div>
+            ))}
+            {order.lignes?.map((ligne) => (
+              <div key={`m-${ligne.id}`} className="sm:hidden flex gap-3 px-4 py-3.5 border-b border-[#F0EEE7] last:border-b-0 items-center">
+                <div className="w-12 h-12 rounded-4 overflow-hidden placeholder-stripe flex-shrink-0">
+                  {getImageUrl(ligne.produit?.imageUrl) && <img src={getImageUrl(ligne.produit.imageUrl)} alt="" className="w-full h-full object-cover" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[14px] font-semibold text-ink-900">{ligne.produit?.nom || ligne.nomProduit}</div>
+                  <div className="font-mono text-[11.5px] text-graphite-300">
+                    {ligne.produit?.reference && `${ligne.produit.reference} · `}{formatAmount(ligne.prixUnitaireHt)} HT · ×{ligne.quantite}
+                  </div>
+                </div>
+                <span className="font-mono text-[14px] text-ink-900 flex-shrink-0">{formatAmount(ligne.totalHt)}</span>
               </div>
             ))}
           </div>
@@ -261,6 +303,26 @@ const OrderDetailPage = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Barre collée (mobile, M10) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-sand-200 px-4 py-2.5 flex gap-2.5" style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}>
+        <button
+          type="button"
+          disabled
+          title="Voir Mes factures une fois la facture générée"
+          className="flex-1 h-[52px] border border-sand-250 text-ink-900 text-[13.5px] font-semibold rounded-6 opacity-40 cursor-not-allowed"
+        >
+          Facture
+        </button>
+        <button
+          type="button"
+          onClick={handleReorder}
+          disabled={reordering}
+          className="flex-1 h-[52px] bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white text-[13.5px] font-semibold rounded-6 transition-colors"
+        >
+          {reordering ? 'Ajout…' : 'Recommander'}
+        </button>
       </div>
     </div>
   );
