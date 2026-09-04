@@ -394,7 +394,11 @@ router.get('/:id/history',
 router.patch('/:id/status',
   [
     param('id').isUUID(),
-    body('statut').isIn(['EN_ATTENTE', 'CONFIRMEE', 'EN_PREPARATION', 'EXPEDIEE', 'LIVREE', 'ANNULEE', 'REMBOURSE', 'PARTIELLEMENT_REMBOURSE']),
+    // T13-24 : REMBOURSE/PARTIELLEMENT_REMBOURSE retires - ces statuts ne
+    // passent que par POST /:id/refund (STATUT_TRANSITIONS les rejette
+    // systematiquement ici), les accepter en validation d'entree ne faisait
+    // que preter a confusion sur le vrai chemin a utiliser.
+    body('statut').isIn(['EN_ATTENTE', 'CONFIRMEE', 'EN_PREPARATION', 'EXPEDIEE', 'LIVREE', 'ANNULEE']),
     body('instructionsLivraison').optional().isString().trim().isLength({ max: 500 })
   ],
   validate,
