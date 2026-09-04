@@ -90,6 +90,22 @@ redis_data/
 /scripts/
 
 # ==========================================
+# SECRETS (filet de securite, T13-22 — aucun de ces fichiers n'est
+# actuellement tracke, mais aucun pattern ne protegeait contre un ajout
+# accidentel futur)
+# ==========================================
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+id_rsa
+id_rsa.pub
+*.sql.gz
+*.dump
+*.bak
+
+# ==========================================
 # OUTILS LOCAUX (hors périmètre applicatif)
 # ==========================================
 # tools/star-office-ui : dashboard de supervision multi-agents, clone tiers avec son

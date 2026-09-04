@@ -1288,29 +1288,29 @@ Checklist complète : `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 - **Détail :** `handleSubmit()` applique désormais les mêmes règles que `RegisterPage.jsx` (minuscule, majuscule, chiffre, caractère spécial), pas seulement la longueur minimale.
 
 ### T13-20 — Aucun header de sécurité HTTP (CSP/HSTS/X-Frame-Options)
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** INFRA | **Domaine :** Infrastructure
-- **Fichiers :** `docs/deploiement/DEPLOY-HOMESERVER.md` §9 (Caddy, config réelle hors dépôt), `frontend/nginx.conf`
-- **Détail :** ni la configuration Caddy documentée ni `nginx.conf` ne fixent de header de sécurité — seuls gzip et cache statique sont configurés.
+- **Statut :** DONE partiellement (2026-09-05) | **Priorité :** P2 | **Catégorie :** INFRA | **Domaine :** Infrastructure
+- **Fichiers :** `frontend/nginx.conf`
+- **Détail :** `nginx.conf` ajoute désormais `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security` et un `Content-Security-Policy` (testé : build Docker réel + conteneur lancé, `nginx -t` OK, headers vérifiés via `curl -I`, page chargée dans un navigateur réel sans violation CSP en console). La config Caddy réelle du homeserver (hors dépôt, `docs/deploiement/DEPLOY-HOMESERVER.md` §9) n'est pas modifiable depuis ce dépôt — mêmes headers à répliquer manuellement si ce chemin de déploiement est encore utilisé.
 
 ### T13-21 — Node.js 20 en fin de vie depuis avril 2026
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** INFRA | **Domaine :** Infrastructure
-- **Fichiers :** `backend/Dockerfile`, `frontend/Dockerfile` (`node:20-alpine`)
-- **Détail :** Node 20 ("Iron") hors support LTS depuis le 30/04/2026 — ~4 mois sans correctif de sécurité officiel à la date de cet audit. Migration recommandée vers `node:22-alpine`.
+- **Statut :** DONE (2026-09-05) | **Priorité :** P2 | **Catégorie :** INFRA | **Domaine :** Infrastructure
+- **Fichiers :** `backend/Dockerfile`, `backend/Dockerfile.dev`, `frontend/Dockerfile`, `frontend/Dockerfile.dev`
+- **Détail :** migré vers `node:22-alpine` sur les 4 Dockerfiles (prod + dev, backend + frontend étaient sur deux fichiers distincts). Vérifié en conditions réelles : rebuild complet de la stack dev (`docker compose build backend frontend`), conteneurs relancés (`node --version` confirme v22.22.3), 139/139 tests backend passent dans le conteneur, frontend chargé et fonctionnel dans un navigateur réel.
 
 ### T13-22 — `.gitignore` sans filet pour certificats, clés SSH, dumps DB
-- **Statut :** TODO | **Priorité :** P3 | **Catégorie :** INFRA | **Domaine :** Infrastructure
+- **Statut :** DONE (2026-09-05) | **Priorité :** P3 | **Catégorie :** INFRA | **Domaine :** Infrastructure
 - **Fichiers :** `.gitignore` (racine)
-- **Détail :** aucun fichier de ce type n'est actuellement tracké, mais aucun pattern ne protégerait contre un ajout accidentel futur. Ajouter `*.pem`, `*.key`, `*.crt`, `*.p12`, `*.pfx`, `id_rsa`, `*.sql.gz`, `*.dump`, `*.bak`.
+- **Détail :** ajout de `*.pem`, `*.key`, `*.crt`, `*.p12`, `*.pfx`, `id_rsa`, `id_rsa.pub`, `*.sql.gz`, `*.dump`, `*.bak`. Vérifié : aucun fichier tracké ne correspondait à ces patterns (pas de perte accidentelle).
 
 ### T13-23 — Ports PostgreSQL/Redis exposés dans le compose de développement du dépôt
-- **Statut :** TODO | **Priorité :** P3 | **Catégorie :** INFRA | **Domaine :** Infrastructure
-- **Fichiers :** `docker-compose.yml:11-12,28-29`
-- **Détail :** non bindés en local uniquement dans le compose du dépôt (`"5432:5432"` plutôt que `"127.0.0.1:5432:5432"`) — le compose de production réel (hors dépôt) n'expose aucun port sur l'hôte, donc non exploitable en l'état actuel documenté. Risque résiduel uniquement en cas de réutilisation erronée de ce fichier pour un déploiement rapide.
+- **Statut :** DONE partiellement (2026-09-05) | **Priorité :** P3 | **Catégorie :** INFRA | **Domaine :** Infrastructure
+- **Fichiers :** `docker-compose.yml`
+- **Détail :** Redis restreint à `127.0.0.1:6379:6379`, vérifié (conteneur sain, backend s'y connecte toujours). PostgreSQL laissé en `0.0.0.0:5432:5432` : en conditions réelles sur ce poste de dev, un service PostgreSQL natif Windows préexistant squatte déjà `0.0.0.0:5432` et empêche Docker de réserver le loopback exclusivement (`bind: An attempt was made to access a socket in a way forbidden by its access permissions` à la tentative `127.0.0.1:5432:5432`) — confirmé en revenant au binding non restreint (fonctionne) puis en testant le binding restreint isolément (échoue). Sans impact en production (le compose réel n'expose aucun port sur l'hôte) ; à restreindre en `127.0.0.1` sur tout hôte sans ce conflit natif.
 
 ### T13-24 — Validateur de statut de commande accepte des valeurs toujours rejetées ensuite
-- **Statut :** TODO | **Priorité :** P3 | **Catégorie :** CODE | **Domaine :** Backend
-- **Fichiers :** `backend/src/routes/admin.order.routes.js:396`
-- **Détail :** `REMBOURSE`/`PARTIELLEMENT_REMBOURSE` passent la validation d'entrée mais sont systématiquement rejetés par `STATUT_TRANSITIONS` (le vrai chemin est `POST /:id/refund`) — sans impact fonctionnel, source de confusion pour un futur développeur.
+- **Statut :** DONE (2026-09-05) | **Priorité :** P3 | **Catégorie :** CODE | **Domaine :** Backend
+- **Fichiers :** `backend/src/routes/admin.order.routes.js`
+- **Détail :** `REMBOURSE`/`PARTIELLEMENT_REMBOURSE` retirés de la whitelist `isIn(...)` — vérifié qu'aucune entrée de `STATUT_TRANSITIONS` ne les autorise comme cible (le vrai chemin reste `POST /:id/refund`).
 
 ### Constats factuels de l'audit (non actionnables, pour mémoire)
 - **Prix panier hybride :** figé pour le prix normal (capturé à l'ajout au panier), dynamique pour le prix promo (relu en base au passage en caisse) — comportement voulu par l'architecture actuelle, pas un bug. `backend/src/repositories/cart.repository.js:409-441`.

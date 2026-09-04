@@ -6,7 +6,7 @@
 # =============================================
 # STAGE 1: Dependencies
 # =============================================
-FROM node:20-alpine AS dependencies
+FROM node:22-alpine AS dependencies
 
 WORKDIR /app
 
@@ -19,7 +19,7 @@ RUN npm ci --only=production && npm cache clean --force
 # =============================================
 # STAGE 2: Production
 # =============================================
-FROM node:20-alpine AS production
+FROM node:22-alpine AS production
 
 # Métadonnées de l'image
 LABEL maintainer="Frederick Toufik <frederick@jana-distribution.fr>"
