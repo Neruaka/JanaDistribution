@@ -119,7 +119,14 @@ Le rollback ne touche que le code — si la version cassée avait aussi appliqu�
 
 ---
 
-## 7. Ce qui n'est PAS automatique
+## 7. Nom de domaine personnalisé
+
+Voir `docs/guides/GUIDE_NOM_DOMAINE_FLYIO.md` (achat du domaine, certificats
+`flyctl certs`, DNS, mise à jour de `CORS_ORIGIN`/`FRONTEND_URL`/`VITE_API_URL`).
+
+---
+
+## 8. Ce qui n'est PAS automatique
 
 - **Pas de déploiement sur push GitHub.** `.github/workflows/deploy.yml` cible encore l'ancien homeserver et est désactivé (déclencheur manuel uniquement) — voir `docs/deploiement/README-CI-CD.md`. Un `git push` seul ne change rien en production.
 - **Pas de migration automatique.** Voir §3.

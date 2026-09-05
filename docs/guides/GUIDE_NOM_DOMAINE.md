@@ -1,5 +1,12 @@
 # Guide d'achat et de configuration du nom de domaine jana-distribution.fr
 
+> ⚠️ **Section 3 obsolète (2026-09-05)** — décrit le branchement sur Railway,
+> abandonné depuis la Phase 14 (production sur Fly.io). Pour la configuration
+> du domaine sur l'infrastructure réelle actuelle, voir
+> `docs/guides/GUIDE_NOM_DOMAINE_FLYIO.md`. Les sections 1 (achat du domaine),
+> 2 (comprendre le DNS) et 7 (dernier paragraphe, DNS partagé email) restent
+> valables telles quelles.
+
 Ce guide explique, étape par étape et sans jargon technique inutile, comment acheter
 le nom de domaine `jana-distribution.fr` et le brancher sur les services déployés sur
 Railway (frontend + backend) pour que le site soit accessible à cette adresse, en HTTPS.
