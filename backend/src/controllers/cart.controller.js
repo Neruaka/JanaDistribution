@@ -4,7 +4,6 @@
  */
 
 const cartService = require('../services/cart.service');
-const logger = require('../config/logger');
 
 class CartController {
   

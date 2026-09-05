@@ -11,7 +11,6 @@ const { authenticate } = require('../middlewares/auth.middleware');
 const validate = require('../middlewares/validate.middleware');
 const {
   createOrderValidation,
-  updateStatusValidation,
   orderIdValidation,
   orderNumeroValidation,
   listOrdersValidation

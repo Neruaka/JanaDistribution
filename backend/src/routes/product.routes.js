@@ -11,7 +11,7 @@ const router = express.Router();
 const productController = require('../controllers/product.controller');
 const productValidators = require('../validators/product.validator');
 const validate = require('../middlewares/validate.middleware');
-const { authenticate, isAdmin, optionalAuth } = require('../middlewares/auth.middleware');
+const { authenticate, isAdmin } = require('../middlewares/auth.middleware');
 const { productImageUpload, uploadToR2, verifyImageSignature } = require('../middlewares/upload.middleware');
 
 // T13-10 : GET /search est non authentifiée et lance une requête ILIKE en

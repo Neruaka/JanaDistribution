@@ -50,7 +50,7 @@ class ApiError extends Error {
 /**
  * Middleware de gestion des erreurs
  */
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (err, req, res, _next) => {
   // Log de l'erreur
   logger.error('Erreur capturée:', {
     message: err.message,
@@ -87,7 +87,7 @@ const errorHandler = (err, req, res, next) => {
         success: false,
         message: 'Cette ressource existe déjà',
         details: err.detail
-     });
+      });
     case '23503': // Violation de clé étrangère
       return res.status(400).json({
         success: false,

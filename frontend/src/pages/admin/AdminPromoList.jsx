@@ -107,7 +107,6 @@ const AdminPromoList = () => {
 
   useEffect(() => {
     loadPromos(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actifFilter]);
 
   const goToPage = (page) => {

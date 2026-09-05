@@ -41,7 +41,6 @@ const AdresseLivraison = ({ formData, errors, onChange, userId }) => {
     } catch {
       setUseNewAddress(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const applyAddress = (address) => {

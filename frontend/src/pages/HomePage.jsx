@@ -98,7 +98,6 @@ const HomePage = () => {
     let skipped = 0;
     for (const ligne of lastOrder.lignes) {
       if (!ligne.produitId) { skipped += 1; continue; }
-      // eslint-disable-next-line no-await-in-loop
       const ok = await addItem(ligne.produitId, ligne.quantite, false);
       if (ok) added += 1; else skipped += 1;
     }

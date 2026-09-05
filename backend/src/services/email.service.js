@@ -271,10 +271,10 @@ class EmailService {
 
       <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
         ${isAvoir
-          ? `Veuillez trouver ci-joint votre avoir <strong>${facture.numero}</strong>
+    ? `Veuillez trouver ci-joint votre avoir <strong>${facture.numero}</strong>
              d'un montant de <strong>${montantAffiche} €</strong>,
              émis le ${new Date(facture.date_emission).toLocaleDateString('fr-FR')}.`
-          : `Veuillez trouver ci-joint votre facture <strong>${facture.numero}</strong>
+    : `Veuillez trouver ci-joint votre facture <strong>${facture.numero}</strong>
              d'un montant de <strong>${montantAffiche} €</strong>
              émise le ${new Date(facture.date_emission).toLocaleDateString('fr-FR')}.`}
       </p>
@@ -299,9 +299,9 @@ class EmailService {
       attachment: [
         {
           name: `${facture.numero}.pdf`,
-          content: pdfBuffer.toString('base64'),
-        },
-      ],
+          content: pdfBuffer.toString('base64')
+        }
+      ]
     });
   }
 

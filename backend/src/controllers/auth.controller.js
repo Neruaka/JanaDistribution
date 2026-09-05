@@ -178,7 +178,7 @@ class AuthController {
    * POST /api/auth/forgot-password
    * Demande de réinitialisation de mot de passe
    */
-  async forgotPassword(req, res, next) {
+  async forgotPassword(req, res) {
     try {
       const { email } = req.body;
 

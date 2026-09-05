@@ -1,10 +1,9 @@
 const { query } = require('../config/database');
-const logger = require('../config/logger');
 
 class InvoiceRepository {
   async getNextNumber(prefix = 'FAC') {
     const year = new Date().getFullYear();
-    const result = await query("SELECT nextval('facture_seq') AS seq");
+    const result = await query('SELECT nextval(\'facture_seq\') AS seq');
     const seq = String(result.rows[0].seq).padStart(4, '0');
     return `${prefix}-${year}-${seq}`;
   }
@@ -23,7 +22,7 @@ class InvoiceRepository {
         clientSnapshot.nom, clientSnapshot.email, clientSnapshot.adresse,
         entrepriseSnapshot.nom, entrepriseSnapshot.siret,
         entrepriseSnapshot.tvaNumero, entrepriseSnapshot.adresse,
-        totaux.ht, totaux.tva, totaux.ttc, type,
+        totaux.ht, totaux.tva, totaux.ttc, type
       ]
     );
     return result.rows[0];
@@ -35,7 +34,7 @@ class InvoiceRepository {
    */
   async linkAvoir(factureOriginaleId, avoirFactureId) {
     const result = await query(
-      `UPDATE facture SET avoir_id = $2 WHERE id = $1 AND avoir_id IS NULL RETURNING *`,
+      'UPDATE facture SET avoir_id = $2 WHERE id = $1 AND avoir_id IS NULL RETURNING *',
       [factureOriginaleId, avoirFactureId]
     );
     return result.rows[0] || null;
@@ -47,7 +46,7 @@ class InvoiceRepository {
    */
   async findOriginalByCommande(commandeId) {
     const result = await query(
-      `SELECT * FROM facture WHERE commande_id = $1 AND type = 'FACTURE' ORDER BY date_emission DESC LIMIT 1`,
+      'SELECT * FROM facture WHERE commande_id = $1 AND type = \'FACTURE\' ORDER BY date_emission DESC LIMIT 1',
       [commandeId]
     );
     return result.rows[0] || null;
@@ -62,7 +61,7 @@ class InvoiceRepository {
       [
         factureId, ligne.nom, ligne.ref, ligne.quantite,
         ligne.prixUnitaireHt, ligne.tauxTva,
-        ligne.montantHt, ligne.montantTva, ligne.montantTtc,
+        ligne.montantHt, ligne.montantTva, ligne.montantTtc
       ]
     );
   }

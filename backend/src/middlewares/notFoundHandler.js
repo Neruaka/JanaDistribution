@@ -3,7 +3,7 @@
  * @description Renvoie une erreur 404 pour les routes inexistantes
  */
 
-const notFoundHandler = (req, res, next) => {
+const notFoundHandler = (req, res) => {
   res.status(404).json({
     success: false,
     message: `Route non trouvée: ${req.method} ${req.originalUrl}`,

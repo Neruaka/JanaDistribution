@@ -93,7 +93,6 @@ const OrderDetailPage = () => {
     let added = 0;
     for (const ligne of order.lignes) {
       if (!ligne.produitId) continue;
-      // eslint-disable-next-line no-await-in-loop
       const ok = await addItem(ligne.produitId, ligne.quantite, false);
       if (ok) added += 1;
     }

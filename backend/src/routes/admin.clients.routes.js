@@ -85,7 +85,7 @@ router.get('/',
       const offset = (page - 1) * limit;
       const params = [];
       let paramIndex = 1;
-      let whereConditions = ["role = 'CLIENT'"];
+      let whereConditions = ['role = \'CLIENT\''];
 
       // Filtre recherche
       if (search) {
@@ -471,7 +471,7 @@ router.delete('/:id',
 
       // Vérifier que le client existe
       const checkResult = await client.query(
-       'SELECT id, email FROM utilisateur WHERE id = $1 AND role = \'CLIENT\'',
+        'SELECT id, email FROM utilisateur WHERE id = $1 AND role = \'CLIENT\'',
         [id]
       );
 

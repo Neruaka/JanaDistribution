@@ -69,15 +69,12 @@ const AdminClientsList = () => {
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, typeClient, estActif, pagination.limit]);
 
   useEffect(() => { loadClients(1); }, [typeClient, estActif]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const timer = setTimeout(() => loadClients(1), 500);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   const handleViewDetail = useCallback(async (client) => {
@@ -103,7 +100,6 @@ const AdminClientsList = () => {
       params.delete('clientId');
       setSearchParams(params, { replace: true });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   const handleToggleStatus = async (client) => {

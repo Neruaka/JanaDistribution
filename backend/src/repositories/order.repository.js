@@ -230,7 +230,7 @@ class OrderRepository {
     // Utiliser la séquence si elle existe, sinon compter les commandes du jour
     try {
       const result = await client.query(
-        "SELECT 'CMD-' || TO_CHAR(NOW(), 'YYYYMMDD') || '-' || LPAD(NEXTVAL('commande_numero_seq')::text, 4, '0') as numero"
+        'SELECT \'CMD-\' || TO_CHAR(NOW(), \'YYYYMMDD\') || \'-\' || LPAD(NEXTVAL(\'commande_numero_seq\')::text, 4, \'0\') as numero'
       );
       return result.rows[0].numero;
     } catch (error) {
@@ -742,7 +742,7 @@ class OrderRepository {
    * Récupère les statistiques des commandes
    */
   async getStats(dateDebut = null, dateFin = null) {
-    let whereClause = "WHERE statut != 'ANNULEE'";
+    let whereClause = 'WHERE statut != \'ANNULEE\'';
     const params = [];
     let paramIndex = 1;
 

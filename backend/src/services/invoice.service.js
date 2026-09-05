@@ -13,7 +13,7 @@ const ENTREPRISE = {
   nom: process.env.ENTREPRISE_NOM || 'Jana Distribution',
   siret: process.env.ENTREPRISE_SIRET || '798787784',
   tvaNumero: process.env.ENTREPRISE_TVA_NUMERO || 'FR92798787784',
-  adresse: process.env.ENTREPRISE_ADRESSE || null,       // ⚠️ OBLIGATOIRE en prod
+  adresse: process.env.ENTREPRISE_ADRESSE || null       // ⚠️ OBLIGATOIRE en prod
 };
 
 class InvoiceService {
@@ -96,7 +96,7 @@ class InvoiceService {
         tauxTva,
         montantHt,
         montantTva,
-        montantTtc,
+        montantTtc
       };
     });
 
@@ -115,13 +115,13 @@ class InvoiceService {
         email: commande.email,
         adresse: adresseLivraison
           ? [
-              [adresseLivraison.adresse, adresseLivraison.complement].filter(Boolean).join(' '),
-              [adresseLivraison.codePostal, adresseLivraison.ville].filter(Boolean).join(' '),
-            ].filter(Boolean).join(', ')
-          : null,
+            [adresseLivraison.adresse, adresseLivraison.complement].filter(Boolean).join(' '),
+            [adresseLivraison.codePostal, adresseLivraison.ville].filter(Boolean).join(' ')
+          ].filter(Boolean).join(', ')
+          : null
       },
       entrepriseSnapshot: ENTREPRISE,
-      totaux: { ht: totalHt, tva: totalTva, ttc: totalTtc },
+      totaux: { ht: totalHt, tva: totalTva, ttc: totalTtc }
     });
 
     for (const ligne of lignesFacture) {
@@ -137,7 +137,7 @@ class InvoiceService {
         destinataireEmail: commande.email,
         destinataireNom: `${commande.prenom || ''} ${commande.client_nom_famille || ''}`.trim(),
         facture,
-        pdfBuffer,
+        pdfBuffer
       }))
       .then(() => logger.info(`Email facture envoyé : ${numero}`))
       .catch(err => logger.error(`Email facture échoué ${numero}:`, err.message));
@@ -192,16 +192,16 @@ class InvoiceService {
       clientSnapshot: {
         nom: original.client_nom,
         email: original.client_email,
-        adresse: original.client_adresse,
+        adresse: original.client_adresse
       },
       entrepriseSnapshot: {
         nom: original.entreprise_nom,
         siret: original.entreprise_siret,
         tvaNumero: original.entreprise_tva_numero,
-        adresse: original.entreprise_adresse,
+        adresse: original.entreprise_adresse
       },
       totaux: { ht: -montantHtAvoir, tva: -montantTvaAvoir, ttc: -montantTtcAvoir },
-      type: 'AVOIR',
+      type: 'AVOIR'
     });
 
     await invoiceRepository.createLigne({
@@ -214,8 +214,8 @@ class InvoiceService {
         tauxTva: tauxMoyen,
         montantHt: -montantHtAvoir,
         montantTva: -montantTvaAvoir,
-        montantTtc: -montantTtcAvoir,
-      },
+        montantTtc: -montantTtcAvoir
+      }
     });
 
     await invoiceRepository.linkAvoir(original.id, avoir.id);
@@ -229,7 +229,7 @@ class InvoiceService {
         destinataireEmail: original.client_email,
         destinataireNom: original.client_nom,
         facture: avoir,
-        pdfBuffer,
+        pdfBuffer
       }))
       .then(() => logger.info(`Email avoir envoyé : ${numero}`))
       .catch(err => logger.error(`Email avoir échoué ${numero}:`, err.message));

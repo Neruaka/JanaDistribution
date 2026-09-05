@@ -90,7 +90,6 @@ const AdminOrdersList = () => {
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, statut, pagination.limit]);
 
   useEffect(() => {
@@ -101,11 +100,9 @@ const AdminOrdersList = () => {
   }, [loadStats]);
 
   useEffect(() => { loadOrders(1); }, [statut]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const timer = setTimeout(() => loadOrders(1), 500);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   useEffect(() => {

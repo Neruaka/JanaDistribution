@@ -74,7 +74,6 @@ const OrderHistoryPage = () => {
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, statut, periode, pagination.limit]);
 
   useEffect(() => { loadOrders(); }, [loadOrders]);
@@ -87,7 +86,6 @@ const OrderHistoryPage = () => {
       let added = 0;
       for (const ligne of lignes) {
         if (!ligne.produitId) continue;
-        // eslint-disable-next-line no-await-in-loop
         const ok = await addItem(ligne.produitId, ligne.quantite, false);
         if (ok) added += 1;
       }

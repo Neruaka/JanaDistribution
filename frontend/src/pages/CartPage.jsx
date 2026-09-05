@@ -56,7 +56,6 @@ const CartPage = () => {
       const inCartIds = new Set(items.map((i) => i.productId));
       setSuggestions(response.data.filter((p) => !inCartIds.has(p.id)).slice(0, 4));
     }).catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items.length]);
 
   const subtotalHT = summary?.subtotalHT || 0;

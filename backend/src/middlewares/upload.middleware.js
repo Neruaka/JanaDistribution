@@ -229,8 +229,8 @@ const uploadToR2 = async (req, res, next) => {
         Bucket: bucketName,
         Key: key,
         Body: fileBuffer,
-        ContentType: req.file.mimetype,
-      },
+        ContentType: req.file.mimetype
+      }
     });
 
     await uploadInstance.done();

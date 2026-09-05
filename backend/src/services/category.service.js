@@ -4,7 +4,6 @@
  */
 
 const categoryRepository = require('../repositories/category.repository');
-const logger = require('../config/logger');
 const { ApiError } = require('../middlewares/errorHandler');
 
 class CategoryService {

@@ -7,7 +7,7 @@
  * - Ajout filtre estMisEnAvant dans findAll()
  */
 
-const { query, getClient } = require('../config/database');
+const { query } = require('../config/database');
 const logger = require('../config/logger');
 
 class ProductRepository {

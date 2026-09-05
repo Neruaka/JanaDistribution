@@ -78,7 +78,6 @@ const CheckoutPage = () => {
       if (result.success) setCodePromoValide(result.data);
       else sessionStorage.removeItem(PROMO_STORAGE_KEY);
     }).catch(() => sessionStorage.removeItem(PROMO_STORAGE_KEY));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalTTC > 0]);
 
   // Estimation dynamique des frais de livraison dès que l'adresse est complète.

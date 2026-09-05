@@ -6,7 +6,6 @@
  */
 
 const settingsService = require('../services/settings.service');
-const logger = require('../config/logger');
 
 class SettingsController {
   /**

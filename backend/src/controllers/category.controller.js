@@ -4,7 +4,6 @@
  */
 
 const categoryService = require('../services/category.service');
-const logger = require('../config/logger');
 
 class CategoryController {
   /**
