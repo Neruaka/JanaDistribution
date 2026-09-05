@@ -472,6 +472,19 @@ class UserRepository {
   }
 
   /**
+   * Purge les refresh tokens expirés (gap RGPD identifié : les lignes
+   * n'étaient jamais supprimées, seulement marquées revoked_at, donc
+   * accumulation indéfinie de hash de token + utilisateur_id).
+   * Un token expiré est de toute façon rejeté (vérification JWT + fail-closed
+   * T13-09), le supprimer ne change aucun comportement fonctionnel.
+   * @returns {number} Nombre de lignes supprimées
+   */
+  async purgeExpiredRefreshTokens() {
+    const result = await query('DELETE FROM refresh_token WHERE expires_at < NOW()');
+    return result.rowCount;
+  }
+
+  /**
    * Formate un utilisateur depuis la BDD
    * @private
    */

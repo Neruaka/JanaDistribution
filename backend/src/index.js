@@ -14,6 +14,7 @@ const rateLimit = require('express-rate-limit');
 const { connectDB, query } = require('./config/database');
 const { connectRedis } = require('./config/redis');
 const logger = require('./config/logger');
+const userRepository = require('./repositories/user.repository');
 
 // Import des routes
 const authRoutes = require('./routes/auth.routes');
@@ -188,6 +189,18 @@ const startServer = async () => {
       logger.info('Serveur démarre sur le port ' + PORT);
       logger.info('Environment: ' + process.env.NODE_ENV);
     });
+
+    // Purge des refresh tokens expirés (minimisation des données, RGPD) :
+    // au démarrage puis toutes les 24h. Les lignes n'étaient auparavant
+    // jamais supprimées (seulement marquées revoked_at), voir
+    // docs/produit/RGPD_ACCESSIBILITE.md.
+    const purgeExpiredTokens = () => {
+      userRepository.purgeExpiredRefreshTokens()
+        .then((count) => { if (count > 0) logger.info(`Purge refresh tokens expirés : ${count} ligne(s) supprimée(s)`); })
+        .catch((err) => logger.warn('Purge refresh tokens expirés échouée:', err.message));
+    };
+    purgeExpiredTokens();
+    setInterval(purgeExpiredTokens, 24 * 60 * 60 * 1000).unref();
 
     logger.info('✔ Serveur prêt - toutes les connexions établies');
   } catch (error) {

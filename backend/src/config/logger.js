@@ -4,6 +4,7 @@
  */
 
 const winston = require('winston');
+require('winston-daily-rotate-file');
 const path = require('path');
 
 // ==========================================
@@ -52,23 +53,36 @@ const logger = winston.createLogger({
   ]
 });
 
-// En production, ajouter les fichiers de log
+// En production, ajouter les fichiers de log.
+// Rotation quotidienne + purge par ANCIENNETÉ (90 jours) en plus de la
+// taille : la config précédente (maxFiles: 5 fichiers de 5MB) ne purgeait
+// que par taille, donc sans garantie qu'une entrée de log donnée (contenant
+// des IP, des emails, des actions utilisateur) soit un jour supprimée sur
+// une instance à faible trafic — gap RGPD identifié dans
+// docs/produit/RGPD_ACCESSIBILITE.md. Note : sur Fly.io, le filesystem des
+// machines est éphémère (pas de volume monté sur ce dossier, contrairement
+// à /app/uploads) — ces fichiers ne survivent de toute façon pas à un
+// redéploiement ; cette politique reste utile en local/homeserver ou si un
+// volume de logs est ajouté plus tard.
 if (process.env.NODE_ENV === 'production') {
   const logsDir = path.join(__dirname, '../../logs');
-  
+  const LOG_RETENTION_DAYS = '90d';
+
   // Logs d'erreurs
-  logger.add(new winston.transports.File({
-    filename: path.join(logsDir, 'error.log'),
+  logger.add(new winston.transports.DailyRotateFile({
+    filename: path.join(logsDir, 'error-%DATE%.log'),
+    datePattern: 'YYYY-MM-DD',
     level: 'error',
-    maxsize: 5242880, // 5MB
-    maxFiles: 5
+    maxSize: '5m',
+    maxFiles: LOG_RETENTION_DAYS
   }));
-  
+
   // Tous les logs
-  logger.add(new winston.transports.File({
-    filename: path.join(logsDir, 'combined.log'),
-    maxsize: 5242880, // 5MB
-    maxFiles: 5
+  logger.add(new winston.transports.DailyRotateFile({
+    filename: path.join(logsDir, 'combined-%DATE%.log'),
+    datePattern: 'YYYY-MM-DD',
+    maxSize: '5m',
+    maxFiles: LOG_RETENTION_DAYS
   }));
 }
 
