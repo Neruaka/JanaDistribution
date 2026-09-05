@@ -154,6 +154,13 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
+      - name: 🔑 Generate .env for the compose stack
+        # docker-compose.yml (env_file: .env sur le service backend) exige que
+        # ce fichier existe. .env.example fournit des valeurs de dev non
+        # sensibles (JWT_SECRET/JWT_REFRESH_SECRET placeholders) suffisantes
+        # pour demarrer la stack en CI - jamais utilisees en production.
+        run: cp .env.example .env
+
       - name: 🐳 Start services with Docker Compose
         run: |
           docker compose up -d --build

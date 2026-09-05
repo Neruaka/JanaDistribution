@@ -58,6 +58,7 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+junit.xml
 
 # ==========================================
 # DOCKER (données locales)
