@@ -94,14 +94,22 @@ class InvoiceRepository {
     return result.rows[0] || null;
   }
 
-  async findAll({ page = 1, limit = 20, type = null } = {}) {
+  async findAll({ page = 1, limit = 20, types = null } = {}) {
     const offset = (page - 1) * limit;
-    const params = type ? [type, limit, offset] : [limit, offset];
-    const sql = type
-      ? 'SELECT * FROM facture WHERE type = $1 ORDER BY date_emission DESC LIMIT $2 OFFSET $3'
+    const params = types ? [types, limit, offset] : [limit, offset];
+    const sql = types
+      ? 'SELECT * FROM facture WHERE type = ANY($1::text[]) ORDER BY date_emission DESC LIMIT $2 OFFSET $3'
       : 'SELECT * FROM facture ORDER BY date_emission DESC LIMIT $1 OFFSET $2';
     const result = await query(sql, params);
     return result.rows;
+  }
+
+  async countAll({ types = null } = {}) {
+    const sql = types
+      ? 'SELECT COUNT(*) FROM facture WHERE type = ANY($1::text[])'
+      : 'SELECT COUNT(*) FROM facture';
+    const result = await query(sql, types ? [types] : []);
+    return parseInt(result.rows[0].count, 10);
   }
 
   async findByUtilisateur(utilisateurId) {

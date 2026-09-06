@@ -28,6 +28,7 @@ const NAV_ITEMS = [
   { name: 'Produits', href: '/admin/produits', statKey: 'produits' },
   { name: 'Catégories', href: '/admin/categories', statKey: 'categories' },
   { name: 'Codes promo', href: '/admin/promo' },
+  { name: 'Devis/Facture', href: '/admin/factures' },
   { name: 'Clients', href: '/admin/clients', statKey: 'clients' },
   { name: 'Paramètres', href: '/admin/parametres' },
 ];

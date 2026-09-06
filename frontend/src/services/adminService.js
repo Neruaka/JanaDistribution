@@ -275,6 +275,34 @@ const adminService = {
     window.URL.revokeObjectURL(url);
   },
 
+  /**
+   * Ouvre le PDF d'une facture/devis/avoir dans un nouvel onglet (viewer natif du navigateur).
+   * L'onglet est ouvert de façon synchrone (avant l'appel réseau) pour ne pas être bloqué
+   * comme popup par le navigateur.
+   */
+  async viewFacturePDF(factureId) {
+    const win = window.open('', '_blank');
+    try {
+      const response = await api.get(`/invoices/${factureId}/pdf`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      if (win) win.location.href = url;
+    } catch (e) {
+      if (win) win.close();
+      throw e;
+    }
+  },
+
+  /**
+   * Liste paginée des devis/factures/avoirs (back-office).
+   * @param {Object} params - { page, limit, type } — type accepte une liste séparée par des virgules
+   */
+  async getFactures({ page = 1, limit = 20, type } = {}) {
+    const params = new URLSearchParams({ page, limit });
+    if (type) params.set('type', type);
+    const response = await api.get(`/invoices/admin?${params.toString()}`);
+    return response.data;
+  },
+
   // ==========================================
   // CODES PROMO
   // ==========================================

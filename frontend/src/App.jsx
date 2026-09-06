@@ -58,6 +58,7 @@ import AdminClientsList from './pages/admin/AdminClientsList';
 import AdminOrdersList from './pages/admin/AdminOrdersList';
 import AdminOrderDetail from './pages/admin/AdminOrderDetail';
 import AdminPromoList from './pages/admin/AdminPromoList';
+import AdminInvoicesList from './pages/admin/AdminInvoicesList';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 import AdminProfilePage from './pages/admin/AdminProfilePage';
 
@@ -215,6 +216,9 @@ function App() {
 
               {/* Codes promo */}
               <Route path="promo" element={<AdminPromoList />} />
+
+              {/* Devis / Facture */}
+              <Route path="factures" element={<AdminInvoicesList />} />
 
               {/* Clients */}
               <Route path="clients" element={<AdminClientsList />} />
