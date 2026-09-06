@@ -9,6 +9,7 @@ import { Link, useParams } from 'react-router-dom';
 import { Loader2, AlertCircle, Copy, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getOrderById, cancelOrder, getStatutInfo, canCancelOrder, MODES_PAIEMENT } from '../services/orderService';
+import { getMesFactures, downloadFacturePDF } from '../services/api';
 import { useCart } from '../contexts/CartContext';
 import { getImageUrl } from '../utils/imageUtils';
 import { formatAmount } from '../utils/priceUtils';
@@ -47,6 +48,9 @@ const OrderDetailPage = () => {
   const [copied, setCopied] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [reordering, setReordering] = useState(false);
+  const [devis, setDevis] = useState(null);
+  const [facture, setFacture] = useState(null);
+  const [downloadingType, setDownloadingType] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -58,6 +62,30 @@ const OrderDetailPage = () => {
     }).catch((err) => mounted && setError(err.message || 'Erreur lors du chargement')).finally(() => mounted && setLoading(false));
     return () => { mounted = false; };
   }, [orderId]);
+
+  useEffect(() => {
+    let mounted = true;
+    getMesFactures().then((res) => {
+      if (!mounted) return;
+      const documents = res.data?.data || [];
+      const ofOrder = documents.filter((doc) => doc.commande_id === orderId);
+      setDevis(ofOrder.find((doc) => doc.type === 'DEVIS') || null);
+      setFacture(ofOrder.find((doc) => doc.type === 'FACTURE') || null);
+    }).catch(() => {});
+    return () => { mounted = false; };
+  }, [orderId]);
+
+  const handleDownloadDocument = async (doc, type) => {
+    if (!doc || downloadingType) return;
+    setDownloadingType(type);
+    try {
+      await downloadFacturePDF(doc.id, doc.numero);
+    } catch {
+      toast.error('Erreur lors du téléchargement');
+    } finally {
+      setDownloadingType(null);
+    }
+  };
 
   const handleCopyNumero = () => {
     if (!order?.numeroCommande) return;
@@ -158,11 +186,23 @@ const OrderDetailPage = () => {
             </p>
           </div>
           <div className="hidden md:flex gap-2.5 flex-wrap">
-            <button type="button" disabled title="Disponible dès que la commande est confirmée" className="border border-sand-250 text-ink-900 text-[13.5px] font-semibold px-4 py-2.5 rounded-6 opacity-40 cursor-not-allowed">
-              Devis PDF
+            <button
+              type="button"
+              onClick={() => handleDownloadDocument(devis, 'DEVIS')}
+              disabled={!devis || !!downloadingType}
+              title={devis ? 'Télécharger le devis (PDF)' : 'Génération du devis en cours…'}
+              className="border border-sand-250 text-ink-900 text-[13.5px] font-semibold px-4 py-2.5 rounded-6 hover:border-sand-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              {downloadingType === 'DEVIS' ? 'Téléchargement…' : 'Devis PDF'}
             </button>
-            <button type="button" disabled title="Voir Mes factures une fois la facture générée" className="border border-sand-250 text-ink-900 text-[13.5px] font-semibold px-4 py-2.5 rounded-6 opacity-40 cursor-not-allowed">
-              Facture
+            <button
+              type="button"
+              onClick={() => handleDownloadDocument(facture, 'FACTURE')}
+              disabled={!facture || !!downloadingType}
+              title={facture ? 'Télécharger la facture (PDF)' : 'Disponible une fois la commande facturée'}
+              className="border border-sand-250 text-ink-900 text-[13.5px] font-semibold px-4 py-2.5 rounded-6 hover:border-sand-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              {downloadingType === 'FACTURE' ? 'Téléchargement…' : 'Facture'}
             </button>
             {canCancel && (
               <button
@@ -308,11 +348,12 @@ const OrderDetailPage = () => {
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-sand-200 px-4 py-2.5 flex gap-2.5" style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}>
         <button
           type="button"
-          disabled
-          title="Voir Mes factures une fois la facture générée"
-          className="flex-1 h-[52px] border border-sand-250 text-ink-900 text-[13.5px] font-semibold rounded-6 opacity-40 cursor-not-allowed"
+          onClick={() => handleDownloadDocument(facture || devis, facture ? 'FACTURE' : 'DEVIS')}
+          disabled={(!facture && !devis) || !!downloadingType}
+          title={facture ? 'Télécharger la facture (PDF)' : devis ? 'Télécharger le devis (PDF)' : 'Disponible une fois la commande facturée'}
+          className="flex-1 h-[52px] border border-sand-250 text-ink-900 text-[13.5px] font-semibold rounded-6 disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          Facture
+          {downloadingType ? 'Téléchargement…' : facture ? 'Facture' : 'Devis (PDF)'}
         </button>
         <button
           type="button"

@@ -30,16 +30,21 @@ router.get('/:id/pdf', authenticate, [param('id').isUUID()], validate, async (re
   } catch (e) { next(e); }
 });
 
-// Admin — toutes les factures (filtre optionnel par commande_id)
+// Admin — toutes les factures (filtre optionnel par commande_id et/ou type)
+const VALID_TYPES = ['FACTURE', 'AVOIR', 'DEVIS'];
 router.get('/admin', authenticate, isAdmin, async (req, res, next) => {
   try {
-    const { commande_id } = req.query;
+    const { commande_id, type } = req.query;
+    if (type && !VALID_TYPES.includes(type)) {
+      return res.status(400).json({ error: `type doit être l'un de : ${VALID_TYPES.join(', ')}` });
+    }
     let factures;
     if (commande_id) {
       factures = await invoiceRepository.findByCommande(commande_id);
+      if (type) factures = factures.filter(f => f.type === type);
     } else {
       const page = parseInt(req.query.page) || 1;
-      factures = await invoiceRepository.findAll({ page, limit: 20 });
+      factures = await invoiceRepository.findAll({ page, limit: 20, type: type || null });
     }
     res.json({ success: true, data: factures });
   } catch (e) { next(e); }

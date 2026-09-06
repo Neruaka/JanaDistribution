@@ -12,6 +12,7 @@ const userRepository = require('../repositories/user.repository');
 const emailService = require('./email.service');
 const settingsService = require('./settings.service');
 const promoService = require('./promo.service');
+const invoiceService = require('./invoice.service');
 const logger = require('../config/logger');
 const { ApiError } = require('../middlewares/errorHandler');
 
@@ -219,7 +220,13 @@ class OrderService {
 
     // ✅ Envoyer email de confirmation de commande
     await this._sendOrderNotification(userId, order, null, 'EN_ATTENTE');
-    
+
+    // Devis (retour de test) : genere immediatement, en plus de l'email de
+    // confirmation ci-dessus - fire-and-forget, ne doit jamais bloquer ni
+    // faire echouer la creation de la commande elle-meme.
+    invoiceService.generateQuoteForOrder(order.id)
+      .catch(err => logger.error(`Génération devis échouée pour commande ${order.id}:`, err.message));
+
     return {
       order,
       message: `Commande ${order.numeroCommande} créée avec succès`

@@ -17,10 +17,15 @@ const ENTREPRISE = {
 };
 
 class InvoiceService {
-  async generateForOrder(commandeId) {
+  /**
+   * Charge la commande + calcule les lignes et totaux HT/TVA/TTC - partagé
+   * entre generateForOrder() (facture) et generateQuoteForOrder() (devis) :
+   * meme donnees sources, seul le type/numero/destinataire du document differe.
+   */
+  async _buildLignesAndTotals(commandeId) {
     // L'adresse n'est jamais lue sur `utilisateur` (qui n'a pas de colonnes
     // d'adresse — elles vivent dans la table `adresse`, séparée) : la seule
-    // adresse pertinente pour une facture est celle réellement utilisée pour
+    // adresse pertinente pour un document est celle réellement utilisée pour
     // CETTE commande, déjà figée en JSON sur `commande.adresse_livraison` au
     // moment de la commande (voir order.repository.js). Utiliser l'adresse
     // courante du profil utilisateur serait de toute façon incorrect si le
@@ -39,23 +44,12 @@ class InvoiceService {
       ? JSON.parse(commande.adresse_livraison)
       : commande.adresse_livraison;
 
-    // Idempotency — ne pas créer deux fois la même facture. Doit chercher
-    // spécifiquement une facture de type FACTURE : findByCommande renvoie
-    // aussi les avoirs (type AVOIR, générés après un remboursement), triés
-    // par date décroissante — un avoir plus récent que la facture d'origine
-    // serait sinon retourné à tort ici.
-    const existing = await invoiceRepository.findOriginalByCommande(commandeId);
-    if (existing) {
-      logger.info(`Facture déjà existante pour commande ${commandeId}`);
-      return existing;
-    }
-
     // NOTE : on ne sélectionne QUE p.reference depuis produit — le taux de
     // TVA facturé doit être celui figé sur la ligne de commande au moment de
     // l'achat (lc.taux_tva), jamais le taux courant du produit (qui peut
     // changer depuis). Sélectionner aussi p.taux_tva ici écraserait
-    // silencieusement lc.taux_tva (même nom de colonne) et ferait dériver la
-    // facture du prix réellement payé.
+    // silencieusement lc.taux_tva (même nom de colonne) et ferait dériver le
+    // document du prix réellement payé.
     const lignesResult = await query(
       `SELECT lc.*, p.reference
        FROM ligne_commande lc
@@ -73,10 +67,10 @@ class InvoiceService {
     // 754 issu de l'addition, sans changer la valeur déjà arrondie). Voir
     // cart.repository.js#_mapCartItem et #_calculateSummary qui appliquent la
     // même règle — évite tout écart de quelques centimes entre panier,
-    // commande et facture PDF.
-    const lignesFacture = lignesResult.rows.map(ligne => {
+    // commande et document PDF.
+    const lignes = lignesResult.rows.map(ligne => {
       // lc.prix_unitaire_ht et lc.taux_tva sont figés à la création de la
-      // commande (order.repository.js) — la facture doit rester fidèle à ce
+      // commande (order.repository.js) — le document doit rester fidèle à ce
       // qui a été réellement facturé au client, indépendamment de toute
       // évolution ultérieure du prix ou du taux du produit.
       const tauxTva = parseFloat(ligne.taux_tva) || 5.5;
@@ -103,6 +97,24 @@ class InvoiceService {
     totalHt = Math.round(totalHt * 100) / 100;
     totalTva = Math.round(totalTva * 100) / 100;
     const totalTtc = Math.round((totalHt + totalTva) * 100) / 100;
+
+    return { commande, adresseLivraison, lignes, totalHt, totalTva, totalTtc };
+  }
+
+  async generateForOrder(commandeId) {
+    // Idempotency — ne pas créer deux fois la même facture. Doit chercher
+    // spécifiquement une facture de type FACTURE : findByCommande renvoie
+    // aussi les avoirs (type AVOIR, générés après un remboursement), triés
+    // par date décroissante — un avoir plus récent que la facture d'origine
+    // serait sinon retourné à tort ici.
+    const existing = await invoiceRepository.findOriginalByCommande(commandeId);
+    if (existing) {
+      logger.info(`Facture déjà existante pour commande ${commandeId}`);
+      return existing;
+    }
+
+    const { commande, adresseLivraison, lignes: lignesFacture, totalHt, totalTva, totalTtc } =
+      await this._buildLignesAndTotals(commandeId);
 
     const numero = await invoiceRepository.getNextNumber();
 
@@ -143,6 +155,73 @@ class InvoiceService {
       .catch(err => logger.error(`Email facture échoué ${numero}:`, err.message));
 
     return facture;
+  }
+
+  /**
+   * Génère un devis (estimation non contractuelle) immédiatement à la
+   * création de la commande — avant toute confirmation/paiement, contrairement
+   * à generateForOrder() (facture réelle, générée plus tard sur transition de
+   * statut par l'admin, voir admin.order.routes.js). Réutilise le même
+   * calcul HT/TVA que la facture (_buildLignesAndTotals) : au moment de la
+   * commande, les deux partent des mêmes lignes figées.
+   * @param {string} commandeId
+   * @returns {Promise<Object>} Le devis créé
+   */
+  async generateQuoteForOrder(commandeId) {
+    // Idempotency, même logique que generateForOrder — un devis ne doit être
+    // émis qu'une fois par commande.
+    const existing = await invoiceRepository.findQuoteByCommande(commandeId);
+    if (existing) {
+      logger.info(`Devis déjà existant pour commande ${commandeId}`);
+      return existing;
+    }
+
+    const { commande, adresseLivraison, lignes, totalHt, totalTva, totalTtc } =
+      await this._buildLignesAndTotals(commandeId);
+
+    const numero = await invoiceRepository.getNextNumber('DEV');
+    const destinataireNom = `${commande.prenom || ''} ${commande.client_nom_famille || ''}`.trim();
+
+    const devis = await invoiceRepository.create({
+      numero,
+      commandeId,
+      utilisateurId: commande.utilisateur_id,
+      clientSnapshot: {
+        nom: destinataireNom,
+        email: commande.email,
+        adresse: adresseLivraison
+          ? [
+            [adresseLivraison.adresse, adresseLivraison.complement].filter(Boolean).join(' '),
+            [adresseLivraison.codePostal, adresseLivraison.ville].filter(Boolean).join(', ')
+          ].filter(Boolean).join(', ')
+          : null
+      },
+      entrepriseSnapshot: ENTREPRISE,
+      totaux: { ht: totalHt, tva: totalTva, ttc: totalTtc },
+      type: 'DEVIS'
+    });
+
+    for (const ligne of lignes) {
+      await invoiceRepository.createLigne({ factureId: devis.id, ligne });
+    }
+
+    logger.info(`Devis ${numero} généré pour commande ${commandeId}`);
+
+    // Envoi du PDF par email — fire and forget, en plus (pas a la place) de
+    // l'email de confirmation de commande deja envoye par ailleurs.
+    invoiceRepository.findById(devis.id)
+      .then(devisComplet => generateInvoicePDF(devisComplet))
+      .then(pdfBuffer => emailService.sendQuoteEmail({
+        destinataireEmail: commande.email,
+        destinataireNom,
+        devis,
+        commandeId,
+        pdfBuffer
+      }))
+      .then(() => logger.info(`Email devis envoyé : ${numero}`))
+      .catch(err => logger.error(`Email devis échoué ${numero}:`, err.message));
+
+    return devis;
   }
 
   /**

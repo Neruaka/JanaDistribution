@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Loader2, AlertCircle, FileText } from 'lucide-react';
 import { getOrderById, MODES_PAIEMENT } from '../services/orderService';
+import { getMesFactures, downloadFacturePDF } from '../services/api';
 import { useSettings } from '../contexts/SettingsContext';
 import { getImageUrl } from '../utils/imageUtils';
 import { formatAmount } from '../utils/priceUtils';
@@ -41,6 +42,8 @@ const OrderConfirmationPage = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [devis, setDevis] = useState(null);
+  const [downloadingDevis, setDownloadingDevis] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -52,6 +55,29 @@ const OrderConfirmationPage = () => {
     }).catch(() => mounted && setError('Erreur lors du chargement')).finally(() => mounted && setLoading(false));
     return () => { mounted = false; };
   }, [orderId]);
+
+  useEffect(() => {
+    let mounted = true;
+    getMesFactures().then((res) => {
+      if (!mounted) return;
+      const documents = res.data?.data || [];
+      const found = documents.find((doc) => doc.commande_id === orderId && doc.type === 'DEVIS');
+      if (found) setDevis(found);
+    }).catch(() => {});
+    return () => { mounted = false; };
+  }, [orderId]);
+
+  const handleDownloadDevis = async () => {
+    if (!devis || downloadingDevis) return;
+    setDownloadingDevis(true);
+    try {
+      await downloadFacturePDF(devis.id, devis.numero);
+    } catch {
+      // Le téléchargement échoue silencieusement ici, le bouton reste disponible pour réessayer.
+    } finally {
+      setDownloadingDevis(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -97,11 +123,12 @@ const OrderConfirmationPage = () => {
         <div className="hidden md:flex gap-2.5 flex-shrink-0">
           <button
             type="button"
-            disabled
-            title="Disponible dès que la commande est confirmée (voir Mes factures)"
-            className="border border-ink-500 text-white text-[14px] font-semibold px-5 py-3 rounded-6 opacity-40 cursor-not-allowed"
+            onClick={handleDownloadDevis}
+            disabled={!devis || downloadingDevis}
+            title={devis ? 'Télécharger le devis (PDF)' : 'Génération du devis en cours…'}
+            className="border border-ink-500 text-white text-[14px] font-semibold px-5 py-3 rounded-6 disabled:opacity-40 disabled:cursor-not-allowed transition-colors hover:bg-white/10"
           >
-            Télécharger le devis (PDF)
+            {downloadingDevis ? 'Téléchargement…' : 'Télécharger le devis (PDF)'}
           </button>
           <Link to={`/mes-commandes/${order.id}`} className="bg-green-700 hover:bg-green-800 text-white text-[14px] font-semibold px-5 py-3 rounded-6 transition-colors">
             Suivre ma commande
@@ -222,11 +249,12 @@ const OrderConfirmationPage = () => {
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-sand-200 px-4 py-2.5 flex gap-2.5" style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}>
         <button
           type="button"
-          disabled
-          title="Disponible dès que la commande est confirmée (voir Mes factures)"
-          className="flex-1 h-[52px] border border-sand-250 text-ink-900 text-[13.5px] font-semibold rounded-6 opacity-40 cursor-not-allowed"
+          onClick={handleDownloadDevis}
+          disabled={!devis || downloadingDevis}
+          title={devis ? 'Télécharger le devis (PDF)' : 'Génération du devis en cours…'}
+          className="flex-1 h-[52px] border border-sand-250 text-ink-900 text-[13.5px] font-semibold rounded-6 disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          Devis (PDF)
+          {downloadingDevis ? 'Téléchargement…' : 'Devis (PDF)'}
         </button>
         <Link to={`/mes-commandes/${order.id}`} className="flex-1 h-[52px] bg-green-700 hover:bg-green-800 text-white text-[13.5px] font-semibold rounded-6 transition-colors flex items-center justify-center">
           Suivre ma commande

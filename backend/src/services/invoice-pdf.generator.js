@@ -11,7 +11,8 @@ async function generateInvoicePDF(facture) {
 
     // En-tête
     const isAvoir = facture.type === 'AVOIR';
-    doc.fontSize(20).font('Helvetica-Bold').text(isAvoir ? 'AVOIR' : 'FACTURE', { align: 'right' });
+    const isDevis = facture.type === 'DEVIS';
+    doc.fontSize(20).font('Helvetica-Bold').text(isAvoir ? 'AVOIR' : isDevis ? 'DEVIS' : 'FACTURE', { align: 'right' });
     doc.fontSize(10).font('Helvetica').moveDown(0.5);
     doc.text(`N° ${facture.numero}`, { align: 'right' });
     doc.text(`Date : ${new Date(facture.date_emission).toLocaleDateString('fr-FR')}`, { align: 'right' });
@@ -27,7 +28,7 @@ async function generateInvoicePDF(facture) {
     const clientBoxY = doc.y + 10;
     doc.moveDown(1);
     doc.rect(300, clientBoxY, 245, 70).stroke();
-    doc.fontSize(10).font('Helvetica-Bold').text('Facturer à :', 310, clientBoxY + 5);
+    doc.fontSize(10).font('Helvetica-Bold').text(isDevis ? 'Adressé à :' : 'Facturer à :', 310, clientBoxY + 5);
     doc.fontSize(9).font('Helvetica');
     doc.text(facture.client_nom, 310, clientBoxY + 20);
     doc.text(facture.client_email, 310);
@@ -70,10 +71,16 @@ async function generateInvoicePDF(facture) {
     doc.text(`TVA : ${parseFloat(facture.total_tva).toFixed(2)} €`, col.tva, y, { align: 'right', width: 145 });
     y += 15;
     doc.font('Helvetica-Bold').fontSize(10);
-    doc.text(`TOTAL ${isAvoir ? 'AVOIR' : 'TTC'} : ${parseFloat(facture.total_ttc).toFixed(2)} €`, col.tva, y, { align: 'right', width: 145 });
+    doc.text(`TOTAL ${isAvoir ? 'AVOIR' : isDevis ? 'ESTIMÉ' : 'TTC'} : ${parseFloat(facture.total_ttc).toFixed(2)} €`, col.tva, y, { align: 'right', width: 145 });
 
     // Pied de page légal
     doc.fontSize(7).font('Helvetica');
+    if (isDevis) {
+      doc.text(
+        'Devis sans engagement, non contractuel — les montants et la disponibilité sont confirmés par notre équipe avant expédition. Ne constitue pas une facture.',
+        50, 735, { width: 495, align: 'center' }
+      );
+    }
     doc.text(
       '⚠️ Taux de TVA appliqués conformément au CGI — à valider par un expert-comptable pour chaque référence produit.',
       50, 750, { width: 495, align: 'center' }

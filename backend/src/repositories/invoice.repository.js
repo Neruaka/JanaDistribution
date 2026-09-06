@@ -52,6 +52,14 @@ class InvoiceRepository {
     return result.rows[0] || null;
   }
 
+  async findQuoteByCommande(commandeId) {
+    const result = await query(
+      'SELECT * FROM facture WHERE commande_id = $1 AND type = \'DEVIS\' ORDER BY date_emission DESC LIMIT 1',
+      [commandeId]
+    );
+    return result.rows[0] || null;
+  }
+
   async createLigne({ factureId, ligne }) {
     await query(
       `INSERT INTO facture_ligne
@@ -86,12 +94,13 @@ class InvoiceRepository {
     return result.rows[0] || null;
   }
 
-  async findAll({ page = 1, limit = 20 } = {}) {
+  async findAll({ page = 1, limit = 20, type = null } = {}) {
     const offset = (page - 1) * limit;
-    const result = await query(
-      'SELECT * FROM facture ORDER BY date_emission DESC LIMIT $1 OFFSET $2',
-      [limit, offset]
-    );
+    const params = type ? [type, limit, offset] : [limit, offset];
+    const sql = type
+      ? 'SELECT * FROM facture WHERE type = $1 ORDER BY date_emission DESC LIMIT $2 OFFSET $3'
+      : 'SELECT * FROM facture ORDER BY date_emission DESC LIMIT $1 OFFSET $2';
+    const result = await query(sql, params);
     return result.rows;
   }
 

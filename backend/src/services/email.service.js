@@ -305,6 +305,55 @@ class EmailService {
     });
   }
 
+  /**
+   * Envoie le devis (estimation non contractuelle) genere a la creation de
+   * commande - en plus de l'email de confirmation de commande, pas a sa
+   * place (voir order.service.js#createOrder).
+   */
+  async sendQuoteEmail({ destinataireEmail, destinataireNom, devis, commandeId, pdfBuffer }) {
+    const montantAffiche = parseFloat(devis.total_ttc).toFixed(2);
+    const content = `
+      <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px;">
+        Votre devis est disponible
+      </h2>
+
+      <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+        Bonjour ${destinataireNom},
+      </p>
+
+      <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+        Veuillez trouver ci-joint votre devis <strong>${devis.numero}</strong>
+        d'un montant de <strong>${montantAffiche} €</strong>,
+        émis le ${new Date(devis.date_emission).toLocaleDateString('fr-FR')}.
+        Ce devis est sans engagement — notre équipe vous recontacte pour confirmer
+        la disponibilité et le créneau de livraison.
+      </p>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/mes-commandes/${commandeId}"
+           style="display: inline-block; background-color: #22C55E; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+          Voir ma commande
+        </a>
+      </div>
+
+      <p style="margin: 20px 0 0; color: #6b7280; font-size: 12px; text-align: center;">
+        Jana Distribution — SIRET ${process.env.ENTREPRISE_SIRET || '798787784'}
+      </p>
+    `;
+
+    return this.sendMail({
+      to: destinataireEmail,
+      subject: `Votre devis ${devis.numero} - Jana Distribution`,
+      html: this.getBaseTemplate(content),
+      attachment: [
+        {
+          name: `${devis.numero}.pdf`,
+          content: pdfBuffer.toString('base64')
+        }
+      ]
+    });
+  }
+
   // ==========================================
   // EMAILS MOT DE PASSE
   // ==========================================

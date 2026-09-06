@@ -416,9 +416,10 @@ CREATE TABLE facture (
   -- Statut
   statut VARCHAR(20) NOT NULL DEFAULT 'EMISE' CHECK (statut IN ('EMISE', 'ANNULEE')),
   avoir_id UUID REFERENCES facture(id),
-  -- Type (migration 0012, T5-15) : distingue une facture normale d'un avoir
-  -- (montants négatifs, généré après un remboursement manuel)
-  type VARCHAR(10) NOT NULL DEFAULT 'FACTURE' CHECK (type IN ('FACTURE', 'AVOIR')),
+  -- Type (migration 0012, T5-15 ; DEVIS ajouté migration 0013) : distingue
+  -- une facture normale, d'un avoir (montants négatifs, remboursement) et
+  -- d'un devis (estimation non contractuelle, généré à la création de commande)
+  type VARCHAR(10) NOT NULL DEFAULT 'FACTURE' CHECK (type IN ('FACTURE', 'AVOIR', 'DEVIS')),
 
   -- Dates
   date_emission TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
