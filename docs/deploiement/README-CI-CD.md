@@ -7,9 +7,10 @@ Configuration complète des workflows GitHub Actions pour l'automatisation des t
 ```
 .github/
 └── workflows/
-    ├── ci.yml          # 🧪 Tests et qualité de code
-    ├── docker.yml      # 🐳 Build images Docker
-    └── deploy.yml      # 🚀 Déploiement (staging/production)
+    ├── ci.yml             # 🧪 Tests et qualité de code
+    ├── docker.yml         # 🐳 Build images Docker
+    ├── deploy-flyio.yml   # 🪂 Déploiement Fly.io (actif — auto-deploy temporaire)
+    └── deploy.yml         # 🚀 Déploiement homeserver (DÉSACTIVÉ, voir section dédiée)
 ```
 
 ## 🧪 CI Pipeline (`ci.yml`)
@@ -76,21 +77,46 @@ ghcr.io/<username>/jana-distribution/frontend:latest
 
 ---
 
-## 🚀 Deploy Pipeline (`deploy.yml`)
+## 🪂 Deploy to Fly.io Pipeline (`deploy-flyio.yml`)
+
+**Actif.** Auto-deploy **temporaire** pendant la phase de développement/tests
+(décision utilisateur, 2026-09-05) — à désactiver (retirer le déclencheur
+`push`, garder `workflow_dispatch`) une fois le site jugé fini. Équivalent
+manuel : `flyctl deploy` — voir `docs/deploiement/DEPLOY-FLYIO.md`.
+
+### Déclencheurs
+- **Push** sur `develop`, si `backend/**`, `frontend/**` ou le workflow lui-même a changé
+- **Manuel** (`workflow_dispatch`)
+
+### Jobs exécutés
+
+| Job | Description |
+|-----|-------------|
+| `deploy-backend` | `flyctl deploy --app jana-backend --remote-only` |
+| `deploy-frontend` | `flyctl deploy --app jana-frontend --remote-only` |
+| `smoke-test` | `curl` sur `/api/health` (backend) et `/` (frontend) après un court délai |
+
+Les deux jobs de déploiement tournent dans l'environnement GitHub `flyio`
+(secret `FLY_API_TOKEN`, voir §Configuration ci-dessous) et il n'y a pas
+d'environnement de staging séparé — chaque push sur `develop` redéploie
+directement `jana-backend`/`jana-frontend` en production.
+
+---
+
+## 🚀 Deploy Pipeline homeserver (`deploy.yml`)
 
 > ⚠️ **SUPERSÉDÉ ET DÉSACTIVÉ (2026-09-05, décision utilisateur explicite).**
 > Le homeserver `tfredklab.dev` a été abandonné avant mise en service au
-> profit de Fly.io (Phase 14), déployé manuellement (`flyctl deploy` — voir
-> `docs/deploiement/DEPLOY-FLYIO.md`, pas de
-> CI/CD — choix délibéré pour ne pas dépendre de GitHub Actions). Le
+> profit de Fly.io (Phase 14) — voir la section `deploy-flyio.yml`
+> ci-dessus pour le pipeline réellement actif aujourd'hui. Le
 > déclencheur automatique sur push `develop` a été retiré de
 > `.github/workflows/deploy.yml` (ne reste que `workflow_dispatch` manuel) ;
 > le job pointe toujours vers le homeserver et nécessiterait une
-> revalidation complète avant réactivation. Voir `docs/deploiement/DEPLOY-HOMESERVER.md`.
+> revalidation complète avant réactivation. Voir `docs/archive/deploiement/DEPLOY-HOMESERVER.md`.
 >
 > Section originale ci-dessous, conservée à titre historique :
 >
-> Mis à jour 2026-07-26 (Phase 11, migration Railway → homeserver auto-géré `tfredklab.dev`). Voir `docs/deploiement/DEPLOY-HOMESERVER.md` pour l'infrastructure cible.
+> Mis à jour 2026-07-26 (Phase 11, migration Railway → homeserver auto-géré `tfredklab.dev`). Voir `docs/archive/deploiement/DEPLOY-HOMESERVER.md` pour l'infrastructure cible.
 
 ### Déclencheurs
 - **Push** sur `develop` (branche réellement déployée — pas de staging Railway distinct)
@@ -127,10 +153,11 @@ Aller dans **Settings > Secrets and variables > Actions** :
 | Secret | Description | Requis |
 |--------|-------------|--------|
 | `GITHUB_TOKEN` | Fourni automatiquement | ✅ Auto |
-| `TS_AUTHKEY` | Clé Tailscale éphémère (générée sur [login.tailscale.com/admin/settings/keys](https://login.tailscale.com/admin/settings/keys)) pour que le runner rejoigne le tailnet | ✅ |
-| `HOMESERVER_TAILSCALE_IP` | IP Tailscale du homeserver (`100.100.203.0`) | ✅ |
-| `HOMESERVER_SSH_USER` | Utilisateur SSH du homeserver | ✅ |
-| `HOMESERVER_SSH_KEY` | Clé privée SSH dédiée CI (restreinte côté serveur à une forced command) | ✅ |
+| `FLY_API_TOKEN` | Token de déploiement Fly.io (`flyctl tokens create org`), scopé dans l'environnement `flyio` | ✅ (deploy-flyio.yml) |
+| `TS_AUTHKEY` | Clé Tailscale éphémère (générée sur [login.tailscale.com/admin/settings/keys](https://login.tailscale.com/admin/settings/keys)) pour que le runner rejoigne le tailnet | ⚠️ historique (deploy.yml désactivé) |
+| `HOMESERVER_TAILSCALE_IP` | IP Tailscale du homeserver (`100.100.203.0`) | ⚠️ historique (deploy.yml désactivé) |
+| `HOMESERVER_SSH_USER` | Utilisateur SSH du homeserver | ⚠️ historique (deploy.yml désactivé) |
+| `HOMESERVER_SSH_KEY` | Clé privée SSH dédiée CI (restreinte côté serveur à une forced command) | ⚠️ historique (deploy.yml désactivé) |
 | `DOCKERHUB_USERNAME` | (optionnel) Username Docker Hub | ❌ |
 | `DOCKERHUB_TOKEN` | (optionnel) Token Docker Hub | ❌ |
 
@@ -138,8 +165,9 @@ Aller dans **Settings > Secrets and variables > Actions** :
 
 Aller dans **Settings > Environments** :
 
-1. Créer l'environnement `production` (pointant vers le homeserver — un seul environnement, pas de staging Railway distinct)
+1. Créer l'environnement `flyio` (utilisé par `deploy-flyio.yml`, secret `FLY_API_TOKEN` scopé dessus)
    - Ajouter **Required reviewers** (approbateurs), optionnel
+2. *(Historique, deploy.yml désactivé)* L'environnement `production` pointait vers le homeserver — plus utilisé activement.
 
 ### 3. Structure du projet requise
 
@@ -161,6 +189,7 @@ janadistribution/
     └── workflows/
         ├── ci.yml
         ├── docker.yml
+        ├── deploy-flyio.yml
         └── deploy.yml
 ```
 
@@ -192,10 +221,15 @@ gh workflow run ci.yml --ref main
 ### Déclencher un déploiement
 
 ```bash
-# Déploiement homeserver (automatique sur push develop)
+# Déploiement Fly.io (automatique sur push develop, tant que deploy-flyio.yml
+# garde son déclencheur push — voir décision 2026-09-05 en tête de section)
 git push origin develop
 
-# Déploiement manuel
+# Déploiement Fly.io manuel
+gh workflow run deploy-flyio.yml
+
+# Déploiement homeserver manuel (déclencheur automatique retiré, job non
+# revalidé depuis l'abandon du homeserver — voir section deploy.yml)
 gh workflow run deploy.yml
 ```
 

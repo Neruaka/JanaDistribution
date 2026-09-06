@@ -9,28 +9,31 @@
 
 | Indicateur | Valeur |
 |---|---|
-| Phase active | Phase 14 (déploiement Fly.io) COMPLÈTE. Les 27 tâches TODO identifiées en début de session (facturation T5-14/T5-15 + 25 items de re-vérification) sont toutes DONE. **0 tâche TODO restante dans le document** — reste uniquement DB-04 (décision propriétaire, non une tâche de code) et les 4 BLOCKED (dépendances externes : validation légale/comptable). |
-| Tâche active | Session 2026-09-04/05 : re-vérification une par une des 25+2 tâches TODO. 3 reclassées CANCELLED car obsolètes (condition de dépendance jamais remplie ou décision supersédée) ; le reste corrigé et vérifié en conditions réelles (tests unitaires, builds Docker réels, requêtes live sur l'infra Fly.io, navigateur réel). Sans trailer de co-autorat, comme demandé. Détail complet dans les entrées individuelles ci-dessous. |
-| Tâches totales | 134 — recompté par comptage réel des statuts dans le document (pas par arithmétique incrémentale, qui avait introduit une erreur le 2026-09-04 — voir historique de session) |
+| Phase active | Phase 15 (retours de la première phase de tests utilisateur) COMPLÈTE — 12/12 tâches DONE (T15-01..T15-12, voir §5). **0 tâche TODO restante dans le document** — reste uniquement DB-04 (décision propriétaire, non une tâche de code) et les 4 BLOCKED (dépendances externes : validation légale/comptable). |
+| Tâche active | Session 2026-09-05/06 : 11 bugs remontés par l'utilisateur en test réel + nettoyage documentation, tous investigués (lecture directe du code avant tout correctif), plan écrit et validé avant exécution. Le plus gros morceau (T15-03) a nécessité une fonctionnalité neuve (devis) inexistante côté backend jusqu'ici. Sans trailer de co-autorat, comme demandé. Détail complet dans les entrées individuelles Phase 15. |
+| Tâches totales | 146 — 134 (état au 2026-09-05) + 12 nouvelles tâches Phase 15 (T15-01..T15-12) |
 | READY | 0 |
 | IN_PROGRESS | 0 |
 | BLOCKED | 4 — T5-16, T5-17 (tests facture, dépendent de T5-14/15 maintenant DONE) ; T9-03 (validation légale CGV/RGPD) ; T9-04 (validation comptable TVA, = DB-03). DB-04 (secret git) est une **décision**, pas une tâche BLOCKED de ce compteur — voir §3. |
 | TODO | 0 |
-| DONE | 110 |
+| DONE | 122 (110 + 12 Phase 15) |
 | CANCELLED | 20 (9 + Phase 8 : T8-01..T8-06 + T11-04, T11-05, T11-07, T11-09 supersédées par Fly.io + T3-03 supersédée par la décision MODE DISTANCE, le 2026-09-04/05) |
 | P0 restants | 1 (DB-04 — rotation Gmail confirmée le 2026-09-05, ne reste que la décision de purge de l'historique git d'un dépôt GitHub public, voir §3) |
-| P1 restants | 1 (npm audit frontend react-router open redirect [nécessite migration v7, breaking change non appliqué par prudence]). Rotation SMTP_USER/SMTP_PASS legacy (Phase 12 T12-10, = DB-04) confirmée le 2026-09-05. Tout le reste des P1 identifiés (T5-14, T5-15, T7-05, T9-07, T9-08) sont DONE. |
-| Verdict | EN PRODUCTION SUR FLY.IO et fonctionnel (jana-frontend.fly.dev / jana-backend.fly.dev), facturation légale complète (immuable + avoir), backlog de code entièrement traité (0 TODO). `.github/workflows/deploy.yml` désactivé (2026-09-05, décision propriétaire). **PAS "terminé" pour autant** : DB-04 (P0) réduit à la seule décision de purge de l'historique git (rotation secret déjà faite), 3 validations externes bloquantes (légal, comptable, tests facture), catalogue à peupler. |
+| P1 restants | 1 (npm audit frontend react-router open redirect [nécessite migration v7, breaking change non appliqué par prudence]). Rotation SMTP_USER/SMTP_PASS legacy (Phase 12 T12-10, = DB-04) confirmée le 2026-09-05. Tout le reste des P1 identifiés (T5-14, T5-15, T7-05, T9-07, T9-08, Phase 15) sont DONE. |
+| Verdict | EN PRODUCTION SUR FLY.IO et fonctionnel (jana-frontend.fly.dev / jana-backend.fly.dev), facturation légale complète (immuable + avoir + devis, T15-03), backlog de code entièrement traité (0 TODO). Auto-deploy Fly.io actif sur push `develop` (`deploy-flyio.yml`, temporaire — voir T9-08) ; `.github/workflows/deploy.yml` (homeserver) désactivé (2026-09-05, décision propriétaire). **PAS "terminé" pour autant** : DB-04 (P0) réduit à la seule décision de purge de l'historique git (rotation secret déjà faite), 3 validations externes bloquantes (légal, comptable, tests facture), catalogue à peupler, T15-01 (panier mobile) à reconfirmer sur device réel. |
 
 ---
 
 ## 2. Chemin critique
 
-Tâches qui empêchent directement la mise en production :
+> Diagramme figé au 2026-09-06 — reflète les statuts réels du document (voir
+> §5 pour le détail de chaque tâche). Le backlog de code est intégralement
+> traité ; ce qui reste ouvert est soit une décision propriétaire (DB-04),
+> soit une validation externe (§3 BLOCKED).
 
 ```
 T0-01  Message checkout trompeur        → DONE ✓
-T0-02  Stockage images persistant       → BLOCKED (décision DB-01)
+T0-02  Stockage images persistant       → DONE ✓ (volume Fly.io, Phase 14)
 T0-03  JWT_REFRESH_SECRET distinct      → DONE ✓
 T0-04  Payload stripe_event réduit      → DONE ✓
 T0-05  Validation mot de passe          → DONE ✓
@@ -39,21 +42,22 @@ T0-07  CORS * sur /uploads             → DONE ✓
   ↓
 T1-01  Panier dans transaction          → DONE ✓
 T1-02  hasPermission fonctionnel        → DONE ✓
-T1-05  Migrations versionnées           → TODO
+T1-05  Migrations versionnées           → DONE ✓
   ↓
-T2-03..T2-05  Refresh tokens DB         → TODO (Phase 2)
+T2-03..T2-05  Refresh tokens DB         → DONE ✓
   ↓
-T4-01  refund.created webhook           → TODO (Phase 4)
-T4-03  Interface remboursement admin    → TODO
+T4-01  refund.created webhook           → CANCELLED (Stripe retiré, T4-07)
+T4-03  Interface remboursement admin    → CANCELLED (remboursement manuel, T4-07)
   ↓
-T5-01  Validation comptable TVA         → BLOCKED (comptable)
-T5-02..T5-17  Facturation complète      → BLOCKED (cascade T5-01)
+T5-01  Validation comptable TVA         → RÉSOLU en l'état (taux CGI implémentés) — ⚠️ validation comptable finale toujours BLOCKED (DB-03/T9-04)
+T5-02..T5-17  Facturation complète      → DONE ✓ (immuabilité + avoir + devis)
   ↓
-T7-01..T7-02  Tests intégration         → TODO (Phase 7)
+T7-01  Tests intégration commande       → DONE ✓
+T7-02  Tests intégration webhook Stripe → CANCELLED (Stripe retiré)
   ↓
-T8-01..T8-06  Staging Railway           → TODO (Phase 8)
+T8-01..T8-06  Staging Railway           → CANCELLED (Phase 8, supersédée par Phase 11 puis Fly.io)
   ↓
-T9-01..T9-08  Go-live                   → TODO (Phase 9)
+T9-01..T9-08  Go-live                   → DONE ✓ sauf T9-03/T9-04 BLOCKED (validations légale/comptable externes) ; T9-01/T9-05 CANCELLED (Stripe retiré)
 ```
 
 ---
@@ -99,12 +103,12 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 - **Domaine :** Frontend
 - **Objectif :** Rendre le bandeau "Comment ça marche" conditionnel selon `formData.modePaiement`
 - **Raison :** Les utilisateurs choisissant CARTE voient un message "devis par email / paiement à la livraison" alors que Stripe les facture immédiatement. Risque juridique et confusion client.
-- **Source audit :** `docs/audit-finalisation/05_AUDIT_FRONTEND.md`, `docs/audit-finalisation/00_RESUME_EXECUTIF.md` P0-3
+- **Source audit :** `docs/archive/audit-finalisation/05_AUDIT_FRONTEND.md`, `docs/archive/audit-finalisation/00_RESUME_EXECUTIF.md` P0-3
 - **Prérequis :** Aucun
 - **Dépendances :** Aucune
 - **Bloque :** Rien (correction indépendante)
 - **Décision requise :** Aucune
-- **Documents à lire :** `docs/audit-finalisation/05_AUDIT_FRONTEND.md`
+- **Documents à lire :** `docs/archive/audit-finalisation/05_AUDIT_FRONTEND.md`
 - **Fichiers d'entrée :** `frontend/src/pages/CheckoutPage.jsx` (lignes 347-362, ligne 83)
 - **Autres fichiers potentiellement concernés :** `frontend/src/components/checkout/Recapitulatif.jsx` (à confirmer par recherche ciblée)
 - **Requirements :**
@@ -145,7 +149,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 - **Domaine :** Backend / Infrastructure
 - **Objectif :** Remplacer le stockage Multer sur disque local par un stockage persistant
 - **Raison :** Railway utilise un système de fichiers éphémère. Toutes les images uploadées sont perdues à chaque redéploiement. Le catalogue devient visuellement cassé.
-- **Source audit :** `docs/audit-finalisation/11_RAILWAY_PRODUCTION.md`
+- **Source audit :** `docs/archive/audit-finalisation/11_RAILWAY_PRODUCTION.md`
 - **Prérequis :** Décision DB-01 (provider : S3 / Cloudflare R2 / Railway Volume)
 - **Bloque :** T0-02 est un prérequis implicite de T8-01 (staging) et T9-01 (go-live)
 - **Décision requise :** DB-01 — choix du provider
@@ -179,7 +183,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 - **Domaine :** Backend — Sécurité
 - **Objectif :** Remplacer le fallback silencieux par une erreur explicite au démarrage
 - **Raison :** Si `JWT_REFRESH_SECRET` n'est pas configuré, les refresh tokens sont signés avec la même clé que les access tokens, réduisant la sécurité sans aucun avertissement.
-- **Source audit :** `docs/audit-finalisation/07_AUDIT_SECURITE.md`
+- **Source audit :** `docs/archive/audit-finalisation/07_AUDIT_SECURITE.md`
 - **Fichiers d'entrée :** `backend/src/services/auth.service.js` (ligne 24)
 - **Étapes d'implémentation :**
   1. Remplacer la ligne 24 : `this.jwtRefreshSecret = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET;`
@@ -206,7 +210,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 - **Domaine :** Backend — Sécurité / Stripe
 - **Objectif :** Ne stocker que `event_id`, `type`, `processed_at` dans `stripe_event` — pas le payload complet
 - **Raison :** `event.data` (le payload JSONB complet) peut contenir des données sensibles Stripe. L'idempotency ne nécessite que l'event_id.
-- **Source audit :** `docs/audit-finalisation/08_STRIPE_PAIEMENTS.md`
+- **Source audit :** `docs/archive/audit-finalisation/08_STRIPE_PAIEMENTS.md`
 - **Fichiers d'entrée :** `backend/src/services/payment.service.js` (ligne 146-149), `backend/scripts/init.sql` (table stripe_event)
 - **Étapes d'implémentation :**
   1. Dans `init.sql` : retirer la colonne `payload JSONB NOT NULL` de `stripe_event` — créer une migration `backend/migrations/001_stripe_event_no_payload.sql`
@@ -230,7 +234,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 - **Catégorie :** CODE
 - **Domaine :** Backend — Sécurité
 - **Objectif :** Rejeter les mots de passe trop faibles à l'inscription et au changement de mot de passe
-- **Source audit :** `docs/audit-finalisation/07_AUDIT_SECURITE.md`
+- **Source audit :** `docs/archive/audit-finalisation/07_AUDIT_SECURITE.md`
 - **Fichiers d'entrée :** `backend/src/services/auth.service.js`, `backend/src/validators/auth.validator.js` (à confirmer par `rg`)
 - **Étapes d'implémentation :**
   1. Définir les règles : longueur ≥ 8 caractères, au moins 1 chiffre, 1 majuscule (à valider avec le propriétaire)
@@ -252,7 +256,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 - **Catégorie :** CODE
 - **Domaine :** Backend / Frontend
 - **Objectif :** Remplacer les séquences corrompues `Ã©`, `â‚¬`, `â€™` par les caractères corrects
-- **Source audit :** `docs/audit-finalisation/01_INVENTAIRE_PROJET.md`
+- **Source audit :** `docs/archive/audit-finalisation/01_INVENTAIRE_PROJET.md`
 - **Fichiers d'entrée :** À identifier via `rg "Ã©\|â€™\|â‚¬" backend/src/`
 - **Étapes d'implémentation :**
   1. `rg "Ã©" backend/src/ --files-with-matches`
@@ -274,7 +278,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 - **Domaine :** Backend — Sécurité
 - **Objectif :** Remplacer `Access-Control-Allow-Origin: *` sur la route `/uploads` par l'origine autorisée
 - **Raison :** Toute origine peut lire les images, y compris des sites tiers. Risque de hotlinking et d'exposition non contrôlée.
-- **Source audit :** `docs/audit-finalisation/07_AUDIT_SECURITE.md`, `docs/audit-finalisation/00_RESUME_EXECUTIF.md` P0-4
+- **Source audit :** `docs/archive/audit-finalisation/07_AUDIT_SECURITE.md`, `docs/archive/audit-finalisation/00_RESUME_EXECUTIF.md` P0-4
 - **Source dans le code :** `backend/src/index.js` ligne 117
 - **Prérequis :** Aucun (indépendant de T0-02)
 - **Décision requise :** Aucune (remplacer `*` par `process.env.CORS_ORIGIN`)
@@ -303,7 +307,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 - **Catégorie :** CODE
 - **Domaine :** Backend
 - **Objectif :** S'assurer que le panier est vidé atomiquement avec la création de commande, ou gérer l'incohérence de manière idempotente
-- **Source audit :** `docs/audit-finalisation/06_AUDIT_BACKEND_BDD.md`
+- **Source audit :** `docs/archive/audit-finalisation/06_AUDIT_BACKEND_BDD.md`
 - **Fichiers d'entrée :** `backend/src/services/order.service.js` (ligne 183), `backend/src/repositories/order.repository.js`, `backend/src/repositories/cart.repository.js`
 - **Étapes d'implémentation :**
   1. Inspecter `cart.repository.js` pour vérifier si `clearCart` accepte un client de transaction
@@ -326,7 +330,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 - **Domaine :** Backend — Sécurité
 - **Objectif :** Rendre `hasPermission()` cohérent avec le modèle DB
 - **Raison :** `auth.middleware.js:159` teste `req.user.permissions` qui n'existe pas dans la table `utilisateur` (vérification `init.sql`). Ce middleware retourne toujours 403 si appelé.
-- **Source audit :** `docs/audit-finalisation/07_AUDIT_SECURITE.md`
+- **Source audit :** `docs/archive/audit-finalisation/07_AUDIT_SECURITE.md`
 - **Fichiers d'entrée :** `backend/src/middlewares/auth.middleware.js` (lignes 149-165), `backend/scripts/init.sql` (table utilisateur)
 - **Étapes d'implémentation :**
   1. `rg "hasPermission" backend/src/` — identifier tous les appelants
@@ -385,7 +389,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 - **Domaine :** Backend — Base de données
 - **Objectif :** Créer un répertoire `backend/migrations/` avec un système de migration incrémental
 - **Raison :** `init.sql` contient des `DROP TABLE IF EXISTS` — destructif en production. Toute modification de schéma doit passer par une migration versionnée.
-- **Source audit :** `docs/audit-finalisation/06_AUDIT_BACKEND_BDD.md`, `docs/audit-finalisation/11_RAILWAY_PRODUCTION.md`
+- **Source audit :** `docs/archive/audit-finalisation/06_AUDIT_BACKEND_BDD.md`, `docs/archive/audit-finalisation/11_RAILWAY_PRODUCTION.md`
 - **Fichiers d'entrée :** `backend/package.json`, `backend/scripts/init.sql`
 - **Étapes :**
   1. Choisir un outil : `node-pg-migrate` (recommandé) ou script custom
@@ -549,7 +553,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 - **Statut :** CANCELLED (2026-07-02) — Stripe retiré du projet, voir T4-07 | **Priorité :** P1 | **Catégorie :** CODE | **Domaine :** Backend / Stripe
 - **Objectif :** Utiliser l'événement Stripe `refund.created` pour une gestion plus précise (remboursements partiels)
-- **Source audit :** `docs/audit-finalisation/08_STRIPE_PAIEMENTS.md`
+- **Source audit :** `docs/archive/audit-finalisation/08_STRIPE_PAIEMENTS.md`
 - **Fichiers d'entrée :** `backend/src/services/payment.service.js` (ligne 174), `backend/src/routes/webhook.routes.js`
 - **Étapes :**
   1. Inspecter le handler `_onChargeRefunded` actuel
@@ -618,7 +622,7 @@ T9-01..T9-08  Go-live                   → TODO (Phase 9)
 
 ### Phase 5 — Facturation
 
-Voir détails comptables : `docs/audit-finalisation/09_FACTURATION.md`
+Voir détails comptables : `docs/archive/audit-finalisation/09_FACTURATION.md`
 
 ---
 
@@ -794,7 +798,7 @@ Voir détails comptables : `docs/audit-finalisation/09_FACTURATION.md`
 
 ### Phase 7 — Tests automatisés
 
-Détails : `docs/audit-finalisation/12_STRATEGIE_TESTS.md`
+Détails : `docs/archive/audit-finalisation/12_STRATEGIE_TESTS.md`
 
 ---
 
@@ -855,7 +859,7 @@ Détails : `docs/audit-finalisation/12_STRATEGIE_TESTS.md`
 
 - **Statut : CANCELLED (2026-07-26)** — Railway abandonné comme chemin critique vers la production (plan expiré, décision de migrer vers un homeserver auto-géré). Remplacée par la **Phase 11 — Migration Railway → Homeserver**, voir plus bas.
 
-Détails : `docs/audit-finalisation/11_RAILWAY_PRODUCTION.md` *(obsolète)*
+Détails : `docs/archive/audit-finalisation/11_RAILWAY_PRODUCTION.md` *(obsolète)*
 
 ---
 
@@ -900,12 +904,12 @@ Détails : `docs/audit-finalisation/11_RAILWAY_PRODUCTION.md` *(obsolète)*
 > **⚠️ Décision utilisateur (2026-09-04) : le homeserver auto-géré est abandonné au profit
 > d'un hébergeur managé (Fly.io), voir Phase 14 ci-dessous.** Cette phase est conservée
 > pour l'historique (infrastructure Docker/Caddy/Cloudflare Tunnel déployée et documentée
-> dans `docs/deploiement/DEPLOY-HOMESERVER.md`) mais n'est plus le chemin de production
+> dans `docs/archive/deploiement/DEPLOY-HOMESERVER.md`) mais n'est plus le chemin de production
 > actif — T11-04, T11-05, T11-07, T11-09 ne seront plus poursuivis sur cette base.
 >
 > Remplace la Phase 8. Railway EN PAUSE (plan expiré) — hébergement auto-géré
 > sur le homeserver personnel de l'utilisateur (Debian 13, Docker Compose,
-> Caddy, Cloudflare Tunnel). Détails complets : `docs/deploiement/DEPLOY-HOMESERVER.md`.
+> Caddy, Cloudflare Tunnel). Détails complets : `docs/archive/deploiement/DEPLOY-HOMESERVER.md`.
 > Session du 2026-07-26.
 
 ---
@@ -985,13 +989,13 @@ Détails : `docs/audit-finalisation/11_RAILWAY_PRODUCTION.md` *(obsolète)*
 ### T11-10 — Synchronisation documentaire complète
 
 - **Statut :** DONE (2026-07-26) | **Priorité :** P1 | **Catégorie :** DOCUMENTATION
-- **Fichiers :** `backend/railway.json` + `frontend/railway.json` supprimés, `docs/deploiement/DEPLOY-HOMESERVER.md` créé, `docs/deploiement/DEPLOY-RAILWAY.md` + `docs/deploiement/RAILWAY_CONFIG_READY.md` marqués obsolètes (bandeau, conservés en référence historique tant que Railway reste actif), `CLAUDE.md` mis à jour (déploiement homeserver, Phase 11), `docs/workflow/ETAT_ACTUEL_PROJET.md` et `docs/workflow/PLAN_CORRECTION_AUDIT.md` (ce fichier) mis à jour.
+- **Fichiers :** `backend/railway.json` + `frontend/railway.json` supprimés, `docs/archive/deploiement/DEPLOY-HOMESERVER.md` créé, `docs/archive/deploiement/DEPLOY-RAILWAY.md` + `docs/archive/deploiement/RAILWAY_CONFIG_READY.md` marqués obsolètes (bandeau, conservés en référence historique tant que Railway reste actif), `CLAUDE.md` mis à jour (déploiement homeserver, Phase 11), `docs/workflow/ETAT_ACTUEL_PROJET.md` et `docs/workflow/PLAN_CORRECTION_AUDIT.md` (ce fichier) mis à jour.
 
 ---
 
 ### Phase 9 — Go-live
 
-Checklist complète : `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
+Checklist complète : `docs/archive/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 
 ---
 
@@ -1047,7 +1051,7 @@ Checklist complète : `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 ### T9-08 — Documentation déploiement à jour
 
 - **Statut :** DONE (2026-09-05) | **Priorité :** P1
-- **Détail :** `CLAUDE.md` (ligne "Déploiement") pointait encore vers le homeserver comme cible active alors que la Phase 11 a été supersédée par la Phase 14 (Fly.io) le 2026-09-04 — corrigé, plus de pourcentage d'avancement figé (source unique : ce fichier §1). Bandeaux "SUPERSÉDÉ" ajoutés sur `docs/deploiement/DEPLOY-HOMESERVER.md` et la section deploy de `docs/deploiement/README-CI-CD.md`. **Risque réel trouvé le 2026-09-05, corrigé le jour même sur autorisation explicite du propriétaire :** `.github/workflows/deploy.yml` se déclenchait sur chaque push `develop` et tentait de joindre le homeserver abandonné (Tailscale + SSH) — déclencheur `push` retiré, ne reste que `workflow_dispatch` manuel ; en-tête du fichier documente la désactivation et pourquoi (Fly.io déployé manuellement via `flyctl deploy`, décision délibérée de ne pas dépendre de GitHub Actions).
+- **Détail :** `CLAUDE.md` (ligne "Déploiement") pointait encore vers le homeserver comme cible active alors que la Phase 11 a été supersédée par la Phase 14 (Fly.io) le 2026-09-04 — corrigé, plus de pourcentage d'avancement figé (source unique : ce fichier §1). Bandeaux "SUPERSÉDÉ" ajoutés sur `docs/archive/deploiement/DEPLOY-HOMESERVER.md` et la section deploy de `docs/deploiement/README-CI-CD.md`. **Risque réel trouvé le 2026-09-05, corrigé le jour même sur autorisation explicite du propriétaire :** `.github/workflows/deploy.yml` se déclenchait sur chaque push `develop` et tentait de joindre le homeserver abandonné (Tailscale + SSH) — déclencheur `push` retiré, ne reste que `workflow_dispatch` manuel ; en-tête du fichier documente la désactivation et pourquoi. **Mise à jour 2026-09-06 :** un second workflow, `.github/workflows/deploy-flyio.yml`, a depuis été ajouté et déclenche un déploiement Fly.io réel (`flyctl deploy --app jana-backend`/`jana-frontend`) à chaque push sur `develop` — auto-deploy temporaire assumé (décision propriétaire 2026-09-05, à désactiver une fois le site jugé fini), donc le projet dépend bien de GitHub Actions pour son déploiement courant, contrairement à ce qu'affirmait cette entrée à l'origine.
 
 ---
 
@@ -1116,7 +1120,7 @@ Checklist complète : `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 
 ### T12-04 — Documentation résultats tests d'intégration
 - **Statut :** DONE (2026-07-26) | **Priorité :** P2 | **Catégorie :** DOC
-- **Fichiers :** `docs/workflow/ETAT_ACTUEL_PROJET.md`, `docs/audit-finalisation/12_STRATEGIE_TESTS.md`
+- **Fichiers :** `docs/workflow/ETAT_ACTUEL_PROJET.md`, `docs/archive/audit-finalisation/12_STRATEGIE_TESTS.md`
 
 ### T12-05 — Durcir les transitions de statut commande
 - **Statut :** DONE (2026-07-26) | **Priorité :** P0 | **Catégorie :** CODE | **Domaine :** E-commerce/Backend
@@ -1172,9 +1176,9 @@ Checklist complète : `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 - **Statut :** DONE (2026-07-26) | **Priorité :** P2 | **Catégorie :** DOC
 - **Détail :** sections Stripe (webhook, Stripe CLI, cartes de test) supprimées, remplacées par le parcours réel (commande → statut positionné manuellement par un admin ESPECES/VIREMENT/CHEQUE → email → facture). Sections auth/panier/upload R2/livraison DISTANCE/admin conservées et enrichies des durcissements de cette session (idempotence, cloisonnement rôles, audit_log). Section tests d'intégration réels ajoutée.
 
-### T12-12 — Figer `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
+### T12-12 — Figer `docs/archive/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 - **Statut :** DONE (2026-07-26) | **Priorité :** P2 | **Catégorie :** DOC
-- **Détail :** bandeau renforcé (« FIGÉ — ne plus mettre à jour »), pointe désormais uniquement vers `docs/workflow/ETAT_ACTUEL_PROJET.md` comme source de vérité go-live. `docs/checklists/RESTE_A_FAIRE_PROD.md` (lui aussi partiellement obsolète, antérieur à la migration homeserver) a reçu le même bandeau pour éviter toute checklist go-live contradictoire.
+- **Détail :** bandeau renforcé (« FIGÉ — ne plus mettre à jour »), pointe désormais uniquement vers `docs/workflow/ETAT_ACTUEL_PROJET.md` comme source de vérité go-live. `docs/archive/checklists/RESTE_A_FAIRE_PROD.md` (lui aussi partiellement obsolète, antérieur à la migration homeserver) a reçu le même bandeau pour éviter toute checklist go-live contradictoire.
 
 ### T12-13 — Synchronisation documentaire finale Phase 12
 - **Statut :** DONE (2026-07-26) | **Priorité :** P1 | **Catégorie :** DOC
@@ -1298,7 +1302,7 @@ Checklist complète : `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 ### T13-20 — Aucun header de sécurité HTTP (CSP/HSTS/X-Frame-Options)
 - **Statut :** DONE partiellement (2026-09-05) | **Priorité :** P2 | **Catégorie :** INFRA | **Domaine :** Infrastructure
 - **Fichiers :** `frontend/nginx.conf`
-- **Détail :** `nginx.conf` ajoute désormais `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security` et un `Content-Security-Policy` (testé : build Docker réel + conteneur lancé, `nginx -t` OK, headers vérifiés via `curl -I`, page chargée dans un navigateur réel sans violation CSP en console). La config Caddy réelle du homeserver (hors dépôt, `docs/deploiement/DEPLOY-HOMESERVER.md` §9) n'est pas modifiable depuis ce dépôt — mêmes headers à répliquer manuellement si ce chemin de déploiement est encore utilisé.
+- **Détail :** `nginx.conf` ajoute désormais `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security` et un `Content-Security-Policy` (testé : build Docker réel + conteneur lancé, `nginx -t` OK, headers vérifiés via `curl -I`, page chargée dans un navigateur réel sans violation CSP en console). La config Caddy réelle du homeserver (hors dépôt, `docs/archive/deploiement/DEPLOY-HOMESERVER.md` §9) n'est pas modifiable depuis ce dépôt — mêmes headers à répliquer manuellement si ce chemin de déploiement est encore utilisé.
 
 ### T13-21 — Node.js 20 en fin de vie depuis avril 2026
 - **Statut :** DONE (2026-09-05) | **Priorité :** P2 | **Catégorie :** INFRA | **Domaine :** Infrastructure
@@ -1385,6 +1389,97 @@ Checklist complète : `docs/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 - **Statut :** DONE (2026-09-04) | **Priorité :** P0 | **Catégorie :** VALIDATION
 - **Vérifié :** `https://jana-backend.fly.dev/api/health` → `200`, DB `up`. `https://jana-frontend.fly.dev/` → `200`, page d'accueil rendue, catégories chargées depuis l'API (CORS correctement configuré, `CORS_ORIGIN=https://jana-frontend.fly.dev`). Connexion admin réelle. Upload/suppression d'image via volume persistant. Aucune erreur console au chargement.
 - **Reste à faire :** T14-04 (email), décision optionnelle sur un nom de domaine personnalisé (actuellement `*.fly.dev` uniquement, non demandé par l'utilisateur), peuplement du catalogue réel par l'utilisateur.
+
+---
+
+## Phase 15 — Retours de la première phase de tests utilisateur (2026-09-05/06)
+
+> Premier passage utilisateur réel sur le site en production (Fly.io). 11 problèmes
+> remontés en une fois ; investigation systématique (lecture directe du code, pas de
+> supposition) avant tout correctif, plan écrit et validé par le propriétaire avant
+> exécution. Un point (validation téléphone) tranché explicitement par le propriétaire :
+> format français large (mobile + fixe), pas mobile uniquement.
+
+### T15-01 — Bouton fermer le panier invisible en mobile
+
+- **Statut :** DONE, non confirmé sur device réel (2026-09-05) | **Priorité :** P2 | **Catégorie :** CODE
+- **Détail :** aucune classe cachant le bouton trouvée dans `CartDrawer.jsx` — impossible de reproduire avec les outils d'automatisation disponibles (l'émulation mobile du navigateur ne changeait pas réellement le viewport rendu, vérifié via `window.innerWidth`). Correctif défensif appliqué : header du drawer en `sticky top-0` + `padding-top: env(safe-area-inset-top)`, zone de clic du bouton agrandie.
+- **Fichier :** `frontend/src/components/CartDrawer.jsx`
+- **Reste à faire :** revalidation sur un vrai téléphone par le propriétaire.
+
+### T15-02 — Aucune validation de format téléphone
+
+- **Statut :** DONE (2026-09-05) | **Priorité :** P1 | **Catégorie :** CODE
+- **Détail :** 3 comportements différents en frontend (aucune validation sur Inscription/Profil/Adresses, validation stricte seulement au submit du Checkout) ; backend (`order.validator.js`) utilisait un regex bien plus permissif que celui de l'inscription. Nouvel util partagé `frontend/src/utils/phoneUtils.js` (regex français large, mobile + fixe — décision explicite du propriétaire), appliqué en filtre de saisie + validation sur les 4 emplacements frontend ; `backend/src/validators/order.validator.js` aligné sur le même regex que `auth.validator.js`.
+- **Fichiers :** `frontend/src/utils/phoneUtils.js` (nouveau), `RegisterPage.jsx`, `InfosContact.jsx`/`CheckoutPage.jsx`, `TabProfil.jsx`, `TabAdresses.jsx`, `backend/src/validators/order.validator.js`.
+
+### T15-03 — Devis et facture inaccessibles depuis le détail de commande ; devis inexistant
+
+- **Statut :** DONE (2026-09-06) | **Priorité :** P1 | **Catégorie :** CODE (feature)
+- **Détail :** les boutons "Devis"/"Facture" du détail commande client étaient codés en dur `disabled`, jamais reliés à quoi que ce soit. Plus profond : le "devis" n'existait nulle part côté backend (`facture.type` limité à `FACTURE`/`AVOIR`) alors que la page de confirmation affirmait déjà "le devis est parti par email" — faux. Un vrai devis PDF est maintenant généré et envoyé par email (en plus, pas à la place, du mail de confirmation) dès la création de la commande, et téléchargeable depuis la page de confirmation et le détail de commande.
+- **Fichiers :** migration `backend/scripts/migrations/0013_facture_type_devis.sql` + `init.sql` (contrainte `facture.type` élargie à `DEVIS`), `invoice.service.js` (`generateQuoteForOrder`, extraction `_buildLignesAndTotals` partagée), `invoice-pdf.generator.js` (branche DEVIS, mention non-contractuelle), `email.service.js` (`sendQuoteEmail`), `order.service.js` (génération fire-and-forget à la création de commande), `invoice.repository.js` (`findQuoteByCommande`), `OrderConfirmationPage.jsx`, `OrderDetailPage.jsx`.
+- **Vérifié en conditions réelles (bout en bout) :** commande créée via l'UI réelle → devis généré en DB (`type=DEVIS`) → PDF généré sans erreur → **deux** emails Gmail distincts effectivement envoyés (confirmation + devis, messageId réels confirmés dans les logs) → téléchargement du PDF vérifié depuis la page de confirmation et le détail de commande (requêtes réseau `200`).
+
+### T15-04 — Nouvel onglet admin "Devis/Facture"
+
+- **Statut :** DONE (2026-09-06) | **Priorité :** P2 | **Catégorie :** CODE (feature)
+- **Détail :** nouvelle page back-office listant séparément devis et factures (avoirs inclus sous "Facture" avec un badge distinct), avec consultation du PDF dans un nouvel onglet (viewer natif du navigateur, pas de dépendance PDF.js ajoutée) ou téléchargement direct.
+- **Fichiers :** `backend/src/routes/invoice.routes.js` (`GET /admin` accepte désormais plusieurs types séparés par des virgules + pagination), `invoice.repository.js` (`findAll`/`countAll` par tableau de types), `frontend/src/services/adminService.js` (`getFactures`, `viewFacturePDF`), `frontend/src/pages/admin/AdminInvoicesList.jsx` (nouveau), route `/admin/factures` + entrée nav dans `AdminLayout.jsx`.
+- **Vérifié en conditions réelles :** onglet Devis et onglet Facture testés séparément (filtrage serveur confirmé via requêtes réseau), actions Voir (PDF ouvert dans un nouvel onglet, `200`) et Télécharger (`200`) testées sur un vrai document.
+
+### T15-05 — Codes promo inutilisables (créés mais rejetés comme expirés)
+
+- **Statut :** DONE (2026-09-05) | **Priorité :** P1 | **Catégorie :** CODE
+- **Détail :** le champ "Date de fin" est un `<input type="date">` qui envoie une date nue `YYYY-MM-DD`, castée à minuit (`00:00:00`) dans la colonne `timestamptz` — un code créé avec une date de fin = aujourd'hui était donc déjà "expiré" dès sa création. `date_fin` reçoit désormais implicitement `23:59:59` du jour choisi.
+- **Fichier :** `backend/src/repositories/promo.repository.js`
+- **Vérifié en conditions réelles :** code promo créé avec date de fin = aujourd'hui, appliqué avec succès au panier (réduction reflétée), nettoyé après test.
+
+### T15-06 — Menu "..." invisible sur la liste clients admin (desktop)
+
+- **Statut :** DONE (2026-09-05) | **Priorité :** P2 | **Catégorie :** CODE
+- **Détail :** le menu déroulant fonctionnait (clic câblé), mais `overflow-hidden` sur le conteneur du tableau coupait le menu pour les lignes proches du bas. `overflow-hidden` retiré, coins arrondis repris directement sur l'en-tête.
+- **Fichier :** `frontend/src/pages/admin/AdminClientsList.jsx`
+- **Vérifié en conditions réelles :** menu "Voir le profil" visible et cliquable sur la dernière ligne du tableau.
+
+### T15-07 — Sauvegardes base de données insuffisantes
+
+- **Statut :** DONE (2026-09-06) | **Priorité :** P1 | **Catégorie :** INFRA
+- **Détail :** les snapshots automatiques quotidiens étaient déjà actifs sur Fly.io mais avec une rétention par défaut de 5 jours. Rétention portée à 30 jours (demande explicite du propriétaire suite aux retours de test — doublon de T9-06, mis à jour au même endroit).
+- **Commande :** `flyctl volumes update vol_r1j5xkkojdz03xpr --snapshot-retention 30 --app jana-db`, confirmé via `flyctl volumes show`.
+
+### T15-08 — "Ouvrir un compte pro" casse la session d'un utilisateur déjà connecté
+
+- **Statut :** DONE (2026-09-05) | **Priorité :** P1 | **Catégorie :** CODE
+- **Détail :** aucun garde-fou : le bouton restait visible et menait vers `/register` (sans même le paramètre `?type=PROFESSIONNEL` prévu à l'origine — bug distinct trouvé au passage) même connecté. Bouton masqué quand `isAuthenticated`, lien corrigé.
+- **Fichiers :** `frontend/src/pages/HomePage.jsx`, `frontend/src/components/Footer.jsx`
+
+### T15-09 — Page register accessible en étant déjà connecté
+
+- **Statut :** DONE (2026-09-05) | **Priorité :** P1 | **Catégorie :** CODE
+- **Détail :** la route `/register` n'était pas protégée (contrairement à `/checkout` qui utilise déjà `PrivateRoute`). Nouveau composant `GuestOnlyRoute` (miroir inverse de `PrivateRoute`), appliqué à `/register`.
+- **Fichiers :** `frontend/src/components/GuestOnlyRoute.jsx` (nouveau), `frontend/src/App.jsx`
+- **Vérifié en conditions réelles :** navigation vers `/register` connecté → redirection immédiate vers `/`.
+
+### T15-10 — Adresse enregistrée dans les paramètres invisible au checkout
+
+- **Statut :** DONE (2026-09-05) | **Priorité :** P1 | **Catégorie :** CODE
+- **Détail :** pas un bug de format — les deux écrans utilisaient `sessionStorage`, isolé par onglet, alors que l'interface promettait explicitement "enregistrées sur cet appareil". Passage à `localStorage` (avec lecture `sessionStorage` en fallback/migration).
+- **Fichiers :** `frontend/src/components/mon-compte/TabAdresses.jsx`, `frontend/src/components/checkout/AdresseLivraison.jsx`
+- **Non actionné (hors périmètre du bug rapporté) :** une vraie synchronisation multi-appareils nécessiterait de construire l'API CRUD `adresse` déjà en base mais jamais exposée — chantier plus large, non demandé.
+
+### T15-11 — "Raison sociale" visible au checkout même pour un particulier
+
+- **Statut :** DONE (2026-09-05) | **Priorité :** P2 | **Catégorie :** CODE
+- **Détail :** `InfosContact.jsx` ne recevait même pas `typeClient` en props. Champ conditionné sur `typeClient === 'PROFESSIONNEL'`, même logique que `RegisterPage.jsx`/`TabProfil.jsx`.
+- **Fichiers :** `frontend/src/components/checkout/InfosContact.jsx`, `frontend/src/pages/CheckoutPage.jsx`
+- **Vérifié en conditions réelles :** testé avec un compte PARTICULIER (champ absent) et un compte PROFESSIONNEL (champ présent, pré-rempli).
+
+### T15-12 — Nettoyage documentation (`docs/`)
+
+- **Statut :** DONE (2026-09-06) | **Priorité :** P2 | **Catégorie :** DOCUMENTATION
+- **Détail :** audit complet des 39 fichiers de `docs/`. Contenu corrigé (pas seulement un bandeau) dans les fichiers encore actifs mais partiellement obsolètes : `docs/guides/GUIDE_GMAIL_SMTP.md` (Railway → secrets Fly.io), `docs/workflow/ETAT_ACTUEL_PROJET.md` §2/§3/§4 (verdict/stack/archi pointaient encore vers le homeserver/Railway), `docs/workflow/PLAN_CORRECTION_AUDIT.md` §2 (chemin critique listait des tâches en TODO en réalité DONE/CANCELLED depuis longtemps), `docs/workflow/CLAUDE_WORKFLOW.md` (stack Railway, règle webhook Stripe morte, convention migrations incorrecte), `docs/deploiement/README-CI-CD.md` (`deploy-flyio.yml`, le pipeline réellement actif, n'était pas documenté), root `README.md` et `CLAUDE.md` (affirmaient un déploiement manuel sans CI/CD, alors que `deploy-flyio.yml` redéploie automatiquement à chaque push `develop` depuis le 2026-09-05 — incohérence trouvée en vérifiant l'exécution réelle du pipeline pendant cette session, pas seulement en lisant le texte).
+- **Archivage** (déplacés tels quels vers `docs/archive/`, structure d'origine conservée, liens internes mis à jour) : `docs/audit-finalisation/` (17 fichiers), `docs/deploiement/DEPLOY-HOMESERVER.md`, `docs/deploiement/DEPLOY-RAILWAY.md`, `docs/deploiement/RAILWAY_CONFIG_READY.md`, `docs/guides/GUIDE_BREVO_CONFIGURATION.md`, `docs/checklists/RESTE_A_FAIRE_PROD.md`, `docs/sessions/` (2 fichiers), `docs/workflow/README_AGENTS.md`.
+- **Laissés inchangés (vérifiés à jour, contrairement au doute initial) :** `docs/checklists/CHECKLIST_TEST_LOCAL.md`, `docs/deploiement/DEPLOY-FLYIO.md`, `docs/guides/GUIDE_NOM_DOMAINE*.md`, `docs/produit/*`.
 
 ---
 

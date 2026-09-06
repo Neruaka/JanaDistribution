@@ -4,11 +4,12 @@ Ce guide explique, étape par étape, comment configurer **Gmail SMTP** (via `no
 pour que Jana Distribution puisse envoyer automatiquement ses emails : bienvenue,
 suivi de commande, factures, réinitialisation de mot de passe, etc.
 
-> Ce guide remplace `docs/guides/GUIDE_BREVO_CONFIGURATION.md` — Brevo a été retiré du projet le
+> Ce guide remplace `docs/archive/guides/GUIDE_BREVO_CONFIGURATION.md` — Brevo a été retiré du projet le
 > 2026-07-08 au profit de Gmail SMTP (voir `docs/workflow/ETAT_ACTUEL_PROJET.md`).
 
 Aucune compétence technique poussée n'est requise pour suivre ce guide — vous aurez
-seulement besoin d'un compte Gmail (ou Google Workspace) et de votre interface Railway.
+seulement besoin d'un compte Gmail (ou Google Workspace) et d'un accès à `flyctl`
+(CLI Fly.io, voir `docs/deploiement/DEPLOY-FLYIO.md`).
 
 ---
 
@@ -62,17 +63,17 @@ commité sur Git (pas dans `.env`, pas dans le code, pas dans un commit, même p
 fichier `backend/.env.example` du projet contient uniquement un exemple vide — c'est
 normal et voulu.
 
-Le mot de passe doit être configuré **uniquement** comme variable d'environnement sur
-Railway :
+Le mot de passe doit être configuré **uniquement** comme secret Fly.io sur l'app backend
+(`jana-backend`), jamais dans un fichier commité :
 
-1. Ouvrez votre projet sur https://railway.app
-2. Sélectionnez le **service backend**.
-3. Allez dans l'onglet **"Variables"**.
-4. Ajoutez :
-   - `GMAIL_SENDER_EMAIL` = l'adresse Gmail choisie à l'étape 1
-   - `GMAIL_APP_PASSWORD` = le mot de passe d'application généré à l'étape 3
-   - `GMAIL_SENDER_NAME` = `Jana Distribution`
-5. Cliquez sur **"Deploy"** / laissez Railway redéployer automatiquement le service.
+```bash
+printf 'GMAIL_SENDER_EMAIL=votre.adresse@gmail.com\n' | flyctl secrets import --app jana-backend
+printf 'GMAIL_APP_PASSWORD=le_mot_de_passe_genere_a_l_etape_3\n' | flyctl secrets import --app jana-backend
+printf 'GMAIL_SENDER_NAME=Jana Distribution\n' | flyctl secrets import --app jana-backend
+```
+
+Poser un secret Fly.io redéploie automatiquement l'app backend (voir
+`docs/deploiement/DEPLOY-FLYIO.md` §4 "Secrets").
 
 Si `GMAIL_SENDER_EMAIL` ou `GMAIL_APP_PASSWORD` est absent, l'application démarre quand
 même mais n'enverra aucun email (le backend écrit un avertissement dans ses logs :
@@ -170,10 +171,8 @@ Tous ces emails partagent le même gabarit visuel défini dans `getBaseTemplate(
 - [ ] Compte Gmail dédié créé (ou Google Workspace configuré, selon l'option choisie §1)
 - [ ] Validation en 2 étapes activée sur ce compte
 - [ ] Mot de passe d'application généré et copié dans un gestionnaire de mots de passe
-- [ ] `GMAIL_SENDER_EMAIL` et `GMAIL_APP_PASSWORD` ajoutés dans Railway (service backend)
-- [ ] `GMAIL_SENDER_NAME` ajouté dans Railway (`Jana Distribution`)
-- [ ] `FRONTEND_URL` défini sur Railway avec l'URL réelle du site en production
+- [ ] `GMAIL_SENDER_EMAIL` et `GMAIL_APP_PASSWORD` ajoutés comme secrets Fly.io (`jana-backend`)
+- [ ] `GMAIL_SENDER_NAME` ajouté comme secret Fly.io (`Jana Distribution`)
+- [ ] `FRONTEND_URL` défini sur Fly.io avec l'URL réelle du site en production
 - [ ] (Option B uniquement) SPF/DKIM/DMARC configurés dans Google Admin Console + DNS OVH
 - [ ] Test d'envoi effectué avec succès, email reçu (hors spam)
-- [ ] Variable `BREVO_API_KEY` retirée de Railway une fois la bascule confirmée (voir
-      checkpoint de bascule production — action manuelle, non automatisée)

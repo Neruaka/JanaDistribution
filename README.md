@@ -318,7 +318,8 @@ Le script SQL cree aussi:
 Workflows GitHub Actions:
 - `ci.yml`: lint, tests backend, build frontend, audit securite npm.
 - `docker.yml`: build/push images backend/frontend et test compose.
-- `deploy.yml`: deploiement automatique sur le homeserver auto-gere `tfredklab.dev` (push sur `develop`), via Tailscale + SSH. Voir `docs/deploiement/DEPLOY-HOMESERVER.md`.
+- `deploy-flyio.yml`: deploiement automatique sur Fly.io (`jana-backend`/`jana-frontend`) a chaque push sur `develop` — auto-deploy temporaire pendant la phase de developpement (decision utilisateur 2026-09-05), a desactiver une fois le site juge fini. Voir `docs/deploiement/DEPLOY-FLYIO.md`.
+- `deploy.yml`: DESACTIVE — ciblait un homeserver auto-gere (`tfredklab.dev`) abandonne avant mise en service (Phase 11 supersedee par la Phase 14, voir `docs/archive/deploiement/DEPLOY-HOMESERVER.md`). Conserve en `workflow_dispatch` manuel uniquement.
 
 Documentation detaillee CI/CD:
 - voir `docs/deploiement/README-CI-CD.md`.

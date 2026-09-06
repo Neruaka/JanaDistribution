@@ -31,7 +31,7 @@ cd backend && npm run test:integration
 ```
 - [ ] Toutes les suites passent : `order.create.test.js`, `order.idempotency.test.js`, `order.status.routes.test.js`, `auth.test.js`, `auth.routes.test.js`, `stock.concurrent.test.js`, `product.routes.test.js`, `admin.clients.routes.test.js`, `shipping.test.js`
 - [ ] Si `testcontainers` échoue à démarrer un conteneur (permissions, réseau Docker, timeout) : documenter l'erreur exacte, ne pas désactiver les tests
-- Exécuté pour la première fois avec succès sur cette machine le 2026-07-26 (T12-03) — voir `docs/audit-finalisation/12_STRATEGIE_TESTS.md`. Pas encore automatisé en CI.
+- Exécuté pour la première fois avec succès sur cette machine le 2026-07-26 (T12-03) — voir `docs/archive/audit-finalisation/12_STRATEGIE_TESTS.md`. Pas encore automatisé en CI.
 
 ---
 
@@ -123,5 +123,5 @@ cd ../frontend && npm audit --production --audit-level=high
 | Temps build frontend | ___ s |
 | Taille bundle JS | ~1.2 MB (warning non bloquant) |
 | Tests backend (mockés) | voir `docs/workflow/PLAN_CORRECTION_AUDIT.md` pour le dernier total connu |
-| Tests backend (intégration réelle) | voir `docs/audit-finalisation/12_STRATEGIE_TESTS.md` |
+| Tests backend (intégration réelle) | voir `docs/archive/audit-finalisation/12_STRATEGIE_TESTS.md` |
 | Tests frontend | ___ |

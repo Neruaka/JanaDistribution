@@ -19,12 +19,12 @@
 | Email | Gmail SMTP | nodemailer ^9 | Voir `docs/guides/GUIDE_GMAIL_SMTP.md` |
 | Paiements | Aucun paiement en ligne (MVP) | — | ESPECES/VIREMENT/CHEQUE, statut positionné manuellement par un admin ; Stripe retiré (T4-07, 2026-07-02) |
 | Géocodage | BAN API (adresse.data.gouv.fr) | gratuit | pour mode DISTANCE |
-| Déploiement | Railway | — | NIXPACKS backend, Dockerfile frontend |
+| Déploiement | Fly.io | — | apps `jana-frontend`/`jana-backend` + Postgres `jana-db` ; auto-deploy temporaire sur push `develop` (`deploy-flyio.yml`), voir `docs/deploiement/DEPLOY-FLYIO.md` |
 | Tests | Jest (backend) + Vitest (frontend) | — | DB mockée — P1 |
 
 Architecture détaillée : `docs/workflow/ETAT_ACTUEL_PROJET.md`
 Tâches et corrections : `docs/workflow/PLAN_CORRECTION_AUDIT.md`
-Audits détaillés : `docs/audit-finalisation/`
+Audits détaillés : `docs/archive/audit-finalisation/`
 
 ---
 
@@ -49,16 +49,16 @@ Audits détaillés : `docs/audit-finalisation/`
 
 | Domaine | Documents à lire | Audit détaillé |
 |---|---|---|
-| Frontend | `docs/workflow/ETAT_ACTUEL_PROJET.md` → fichiers clés | `docs/audit-finalisation/05_AUDIT_FRONTEND.md` |
-| Backend / API | `docs/workflow/ETAT_ACTUEL_PROJET.md` → points d'entrée | `docs/audit-finalisation/06_AUDIT_BACKEND_BDD.md` |
-| Sécurité | `docs/workflow/PLAN_CORRECTION_AUDIT.md` phase 0 + 2 | `docs/audit-finalisation/07_AUDIT_SECURITE.md` |
-| Stripe | Fiche tâche T4-xx | `docs/audit-finalisation/08_STRIPE_PAIEMENTS.md` |
-| Facturation | Fiche tâche T5-xx | `docs/audit-finalisation/09_FACTURATION.md` |
-| Livraison | Fiche tâche T3-xx | `docs/audit-finalisation/10_LIVRAISON.md` |
-| Railway | Fiche tâche T8-xx | `docs/audit-finalisation/11_RAILWAY_PRODUCTION.md` |
-| Tests | Fiche tâche T7-xx | `docs/audit-finalisation/12_STRATEGIE_TESTS.md` |
-| Base de données | `docs/workflow/ETAT_ACTUEL_PROJET.md` + `backend/scripts/init.sql` | `docs/audit-finalisation/06_AUDIT_BACKEND_BDD.md` |
-| Roadmap / priorisation | `docs/workflow/PLAN_CORRECTION_AUDIT.md` | `docs/audit-finalisation/13_ROADMAP_FINALISATION.md` |
+| Frontend | `docs/workflow/ETAT_ACTUEL_PROJET.md` → fichiers clés | `docs/archive/audit-finalisation/05_AUDIT_FRONTEND.md` |
+| Backend / API | `docs/workflow/ETAT_ACTUEL_PROJET.md` → points d'entrée | `docs/archive/audit-finalisation/06_AUDIT_BACKEND_BDD.md` |
+| Sécurité | `docs/workflow/PLAN_CORRECTION_AUDIT.md` phase 0 + 2 | `docs/archive/audit-finalisation/07_AUDIT_SECURITE.md` |
+| Stripe | Fiche tâche T4-xx | `docs/archive/audit-finalisation/08_STRIPE_PAIEMENTS.md` |
+| Facturation | Fiche tâche T5-xx | `docs/archive/audit-finalisation/09_FACTURATION.md` |
+| Livraison | Fiche tâche T3-xx | `docs/archive/audit-finalisation/10_LIVRAISON.md` |
+| Railway | Fiche tâche T8-xx | `docs/archive/audit-finalisation/11_RAILWAY_PRODUCTION.md` |
+| Tests | Fiche tâche T7-xx | `docs/archive/audit-finalisation/12_STRATEGIE_TESTS.md` |
+| Base de données | `docs/workflow/ETAT_ACTUEL_PROJET.md` + `backend/scripts/init.sql` | `docs/archive/audit-finalisation/06_AUDIT_BACKEND_BDD.md` |
+| Roadmap / priorisation | `docs/workflow/PLAN_CORRECTION_AUDIT.md` | `docs/archive/audit-finalisation/13_ROADMAP_FINALISATION.md` |
 
 ---
 
@@ -180,12 +180,11 @@ Une tâche ne passe à `DONE` que si :
 
 ## 7. Règles de sécurité absolues
 
-- Ne jamais afficher la valeur d'un secret (`STRIPE_SECRET_KEY`, `JWT_SECRET`, etc.)
+- Ne jamais afficher la valeur d'un secret (`JWT_SECRET`, `GMAIL_APP_PASSWORD`, `FLY_API_TOKEN`, etc.)
 - Ne jamais lire ou recopier un fichier `.env` complet
-- Ne jamais enregistrer une clé Stripe, un secret JWT, un mot de passe, un token session
+- Ne jamais enregistrer un secret JWT, un mot de passe, un token session ou de déploiement
 - Ne jamais stocker de données bancaires ou personnelles dans les documents
 - Ne jamais considérer une redirection frontend comme preuve de paiement
-- Toujours vérifier la signature des webhooks Stripe côté serveur
 - Toujours recalculer prix, taxes, stock et livraison côté serveur
 - Ne jamais exécuter `init.sql` destructif sur une base de production
 - Ne jamais exécuter une migration destructive sans sauvegarde préalable
@@ -199,8 +198,8 @@ Une tâche ne passe à `DONE` que si :
 - Conserver l'architecture `routes → controllers → services → repositories`
 - Privilégier une évolution progressive sans réécriture complète
 - Utiliser une vraie base PostgreSQL pour les tests d'intégration (pas de mocks)
-- Utiliser des migrations versionnées dans `backend/migrations/` (ne pas modifier `init.sql`)
-- Rendre les images produits persistantes (S3 / Cloudflare R2 / Railway Volume)
+- Ne jamais modifier une migration déjà exécutée en prod — créer une nouvelle migration versionnée dans `backend/scripts/migrations/`, puis répercuter le même changement dans `backend/scripts/init.sql` (convention du projet : les migrations sont aussi refondues dans le schéma d'installation fraîche, voir migrations existantes 0001-0013)
+- Images produits persistées sur le volume Fly.io de `jana-backend` (remplace Cloudflare R2, décision Phase 14) — Multer en écrit une copie locale, `R2_ACCOUNT_ID` reste un fallback optionnel non configuré en prod aujourd'hui
 - Générer les factures côté application (PDFKit recommandé)
 - Les factures sont immuables après émission — tout correctif = avoir
 - Faire valider les règles de TVA et de facturation par un professionnel comptable

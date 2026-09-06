@@ -4,10 +4,11 @@
 # ⚠️ DÉSACTIVÉ (2026-09-05, décision utilisateur) — le homeserver
 # tfredklab.dev ciblé ci-dessous a été abandonné avant mise en service
 # (Phase 11 supersédée par la Phase 14, voir docs/workflow/ETAT_ACTUEL_PROJET.md
-# et docs/deploiement/DEPLOY-HOMESERVER.md). La production réelle est Fly.io
-# (jana-frontend.fly.dev / jana-backend.fly.dev), déployée manuellement via
-# `flyctl deploy` — décision explicite de ne pas dépendre de GitHub Actions
-# pour le déploiement (voir Phase 14, T14-*).
+# et docs/archive/deploiement/DEPLOY-HOMESERVER.md). La production réelle est
+# Fly.io (jana-frontend.fly.dev / jana-backend.fly.dev), déployée
+# automatiquement à chaque push `develop` par deploy-flyio.yml (auto-deploy
+# temporaire, décision utilisateur 2026-09-05 — voir ce fichier pour le
+# détail) ; équivalent manuel : `flyctl deploy` (voir Phase 14, T14-*).
 #
 # Déclencheur automatique retiré pour ne plus tenter de joindre une cible qui
 # n'existe plus à chaque push `develop`. Le job reste disponible en manuel

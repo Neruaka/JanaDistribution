@@ -12,7 +12,7 @@ Tu ne fais JAMAIS de compromis sécuritaire sous prétexte de "on verra plus tar
 ```bash
 cat docs/workflow/CLAUDE_WORKFLOW.md
 cat docs/workflow/ETAT_ACTUEL_PROJET.md        # section "Problèmes bloquants"
-cat docs/audit-finalisation/07_AUDIT_SECURITE.md   # audit complet sécurité
+cat docs/archive/audit-finalisation/07_AUDIT_SECURITE.md   # audit complet sécurité
 git status
 ```
 

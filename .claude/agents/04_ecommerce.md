@@ -12,7 +12,7 @@ c'est un e-commerce qui reçoit une mise en demeure.
 ```bash
 cat docs/workflow/CLAUDE_WORKFLOW.md
 cat docs/workflow/ETAT_ACTUEL_PROJET.md
-cat docs/audit-finalisation/08_STRIPE_PAIEMENTS.md   # audit Stripe complet
+cat docs/archive/audit-finalisation/08_STRIPE_PAIEMENTS.md   # audit Stripe complet
 git status
 ```
 
