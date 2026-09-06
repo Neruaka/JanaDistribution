@@ -53,8 +53,12 @@ export default function CartDrawer() {
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
         className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white shadow-xl flex flex-col font-sans"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-sand-200">
+        {/* Header - sticky + safe-area (T-BUGS-2026-09) : bouton fermer signale
+            invisible sur mobile lors des tests. Pas de classe qui le cachait
+            deja, mais rien ne garantissait non plus qu'il reste dans la zone
+            visible sur un ecran avec encoche/dynamic island - durci par
+            precaution (aucun repro fiable obtenu avec les outils dispo). */}
+        <div className="sticky top-0 flex items-center justify-between px-4 py-4 border-b border-sand-200 bg-white z-10" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
           <div className="flex items-center gap-2 font-display text-[17px] font-bold text-ink-900">
             <ShoppingCart className="w-5 h-5 text-green-700" />
             Mon panier
@@ -66,7 +70,8 @@ export default function CartDrawer() {
           </div>
           <button
             onClick={closeDrawer}
-            className="p-2 text-graphite-300 hover:text-ink-900 hover:bg-sand-50 rounded-6 transition-colors"
+            aria-label="Fermer le panier"
+            className="p-2.5 text-graphite-300 hover:text-ink-900 hover:bg-sand-50 rounded-6 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
