@@ -20,13 +20,15 @@ const AdresseLivraison = ({ formData, errors, onChange, userId }) => {
   useEffect(() => {
     if (!userId) return;
     const storageKey = `addresses_${userId}`;
-    const storedAddresses = sessionStorage.getItem(storageKey) || localStorage.getItem(storageKey);
+    // localStorage prioritaire (persistance par appareil, pas par onglet) ;
+    // ancien sessionStorage lu en repli + migre.
+    const storedAddresses = localStorage.getItem(storageKey) || sessionStorage.getItem(storageKey);
     if (!storedAddresses) {
       setUseNewAddress(true);
       return;
     }
-    sessionStorage.setItem(storageKey, storedAddresses);
-    localStorage.removeItem(storageKey);
+    localStorage.setItem(storageKey, storedAddresses);
+    sessionStorage.removeItem(storageKey);
     try {
       const addresses = JSON.parse(storedAddresses);
       setSavedAddresses(addresses);
