@@ -10,6 +10,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Eye, EyeOff, Loader2, AlertCircle, User, Building2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Checkbox from '../components/Checkbox';
+import { formatPhoneInput, isValidFrenchPhone } from '../utils/phoneUtils';
 
 const ARGS_COMPTE = [
   { titre: 'Mêmes prix pour tous', desc: 'Particuliers et professionnels achètent aux mêmes tarifs, sans carte de grossiste.' },
@@ -87,6 +88,7 @@ const RegisterPage = () => {
     }
     if (!formData.nom || formData.nom.length < 2) errors.nom = 'Le nom est obligatoire';
     if (!formData.prenom || formData.prenom.length < 2) errors.prenom = 'Le prénom est obligatoire';
+    if (formData.telephone && !isValidFrenchPhone(formData.telephone)) errors.telephone = 'Numéro de téléphone invalide';
 
     if (formData.typeClient === 'PROFESSIONNEL') {
       if (!formData.siret || formData.siret.length !== 14) errors.siret = 'Le SIRET doit contenir 14 chiffres';
@@ -190,7 +192,8 @@ const RegisterPage = () => {
 
             <div>
               <label htmlFor="telephone" className="text-[12.5px] text-graphite-600">Téléphone <span className="text-graphite-300">(optionnel)</span></label>
-              <input id="telephone" name="telephone" type="tel" value={formData.telephone} onChange={handleChange} placeholder="06 12 34 56 78" className={`${inputClass(false)} mt-1.5`} />
+              <input id="telephone" name="telephone" type="tel" value={formData.telephone} onChange={(e) => handleChange({ target: { name: 'telephone', value: formatPhoneInput(e.target.value) } })} placeholder="06 12 34 56 78" className={`${inputClass(validationErrors.telephone)} mt-1.5`} />
+              <FieldError error={validationErrors.telephone} />
             </div>
 
             {formData.typeClient === 'PROFESSIONNEL' && (

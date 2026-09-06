@@ -3,14 +3,19 @@
  * @see design_handoff_jana_refonte/README.md ("10 — Mon compte")
  *
  * Pas d'API adresses côté backend (table réelle mais sans CRUD exposé) : la persistance
- * reste 100% sessionStorage, comme dans le checkout. On le signale explicitement à l'écran
+ * reste 100% localStorage, comme dans le checkout. On le signale explicitement à l'écran
  * plutôt que de laisser croire à une synchronisation serveur.
+ *
+ * localStorage (pas sessionStorage) : le texte "enregistrées sur cet appareil" promettait
+ * une persistance par appareil, mais sessionStorage est isole par ONGLET - une adresse
+ * enregistree ici pouvait ne jamais apparaitre au checkout ouvert dans un autre onglet.
  */
 
 import { useState, useEffect } from 'react';
 import { Check, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Checkbox from '../Checkbox';
+import { formatPhoneInput, isValidFrenchPhone } from '../../utils/phoneUtils';
 
 const inputClass = 'border border-sand-250 rounded-6 h-11 px-3.5 text-[14px] text-ink-900 focus:outline-none focus:border-ink-900 transition-colors';
 const EMPTY_FORM = { id: null, nom: '', adresse: '', complement: '', codePostal: '', ville: '', telephone: '', estDefaut: false };
@@ -25,18 +30,19 @@ const TabAdresses = ({ userId }) => {
   useEffect(() => {
     if (!userId) return;
     const storageKey = `addresses_${userId}`;
-    const saved = sessionStorage.getItem(storageKey) || localStorage.getItem(storageKey);
+    // localStorage prioritaire ; ancien sessionStorage lu en repli + migre.
+    const saved = localStorage.getItem(storageKey) || sessionStorage.getItem(storageKey);
     if (saved) {
       setAdresses(JSON.parse(saved));
-      sessionStorage.setItem(storageKey, saved);
-      localStorage.removeItem(storageKey);
+      localStorage.setItem(storageKey, saved);
+      sessionStorage.removeItem(storageKey);
     }
   }, [userId]);
 
   const saveToStorage = (newAdresses) => {
     const storageKey = `addresses_${userId}`;
-    sessionStorage.setItem(storageKey, JSON.stringify(newAdresses));
-    localStorage.removeItem(storageKey);
+    localStorage.setItem(storageKey, JSON.stringify(newAdresses));
+    sessionStorage.removeItem(storageKey);
     setAdresses(newAdresses);
   };
 
@@ -52,6 +58,10 @@ const TabAdresses = ({ userId }) => {
   const handleSave = () => {
     if (!form.nom || !form.adresse || !form.codePostal || !form.ville) {
       toast.error('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+    if (form.telephone && !isValidFrenchPhone(form.telephone)) {
+      toast.error('Numéro de téléphone invalide');
       return;
     }
     setSaving(true);
@@ -112,7 +122,7 @@ const TabAdresses = ({ userId }) => {
             </div>
             <div className="flex flex-col gap-1.5">
               <span className="text-[12.5px] text-graphite-600">Téléphone</span>
-              <input type="tel" value={form.telephone} onChange={(e) => setForm({ ...form, telephone: e.target.value })} placeholder="06 12 34 56 78" className={`${inputClass} bg-white`} />
+              <input type="tel" value={form.telephone} onChange={(e) => setForm({ ...form, telephone: formatPhoneInput(e.target.value) })} placeholder="06 12 34 56 78" className={`${inputClass} bg-white`} />
             </div>
             <div className="sm:col-span-2 flex flex-col gap-1.5">
               <span className="text-[12.5px] text-graphite-600">Adresse</span>

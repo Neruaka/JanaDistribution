@@ -13,6 +13,7 @@ import { createOrder, MODES_PAIEMENT } from '../services/orderService';
 import { estimateShipping } from '../services/shippingService';
 import { validerCodePromo } from '../services/promoService';
 import { formatAmount } from '../utils/priceUtils';
+import { isValidFrenchPhone } from '../utils/phoneUtils';
 import toast from 'react-hot-toast';
 
 import { InfosContact, AdresseLivraison, CreneauLivraison, MoyenPaiement, Recapitulatif } from '../components/checkout';
@@ -133,7 +134,7 @@ const CheckoutPage = () => {
     if (!formData.nom.trim()) newErrors.nom = 'Nom requis';
     if (!formData.telephone.trim()) {
       newErrors.telephone = 'Téléphone requis';
-    } else if (!/^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$/.test(formData.telephone.replace(/\s/g, ''))) {
+    } else if (!isValidFrenchPhone(formData.telephone)) {
       newErrors.telephone = 'Numéro de téléphone invalide';
     }
     if (!formData.adresse.trim()) newErrors.adresse = 'Adresse requise';
@@ -227,7 +228,7 @@ const CheckoutPage = () => {
             <strong className="text-ink-900">Commande sans paiement en ligne.</strong> Vous recevez un devis par email dans la minute. Notre équipe confirme la disponibilité et le créneau, puis vous réglez à la livraison.
           </div>
 
-          <InfosContact formData={formData} errors={errors} onChange={handleChange} />
+          <InfosContact formData={formData} errors={errors} onChange={handleChange} typeClient={user?.typeClient} />
           <AdresseLivraison formData={formData} errors={errors} onChange={handleChange} userId={user?.id} />
           <CreneauLivraison
             today={today}

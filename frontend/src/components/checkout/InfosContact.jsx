@@ -4,6 +4,7 @@
  */
 
 import { AlertCircle } from 'lucide-react';
+import { formatPhoneInput } from '../../utils/phoneUtils';
 
 const Field = ({ label, optional, error, children }) => (
   <div className={`flex flex-col gap-1.5 ${error ? 'error-field' : ''}`}>
@@ -24,7 +25,7 @@ const inputClass = (hasError) =>
     hasError ? 'border-danger-border bg-danger-bg' : 'border-sand-250 focus:border-ink-900'
   }`;
 
-const InfosContact = ({ formData, errors, onChange }) => (
+const InfosContact = ({ formData, errors, onChange, typeClient }) => (
   <div className="bg-white border border-sand-200 rounded-8 p-5">
     <div className="font-display text-[16px] font-bold text-ink-900 mb-4">Coordonnées</div>
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -35,11 +36,13 @@ const InfosContact = ({ formData, errors, onChange }) => (
         <input type="text" value={formData.nom} onChange={(e) => onChange('nom', e.target.value)} className={inputClass(errors.nom)} placeholder="Dupont" />
       </Field>
       <Field label="Téléphone" error={errors.telephone}>
-        <input type="tel" value={formData.telephone} onChange={(e) => onChange('telephone', e.target.value)} className={inputClass(errors.telephone)} placeholder="06 12 34 56 78" />
+        <input type="tel" value={formData.telephone} onChange={(e) => onChange('telephone', formatPhoneInput(e.target.value))} className={inputClass(errors.telephone)} placeholder="06 12 34 56 78" />
       </Field>
-      <Field label="Raison sociale" optional>
-        <input type="text" value={formData.entreprise} onChange={(e) => onChange('entreprise', e.target.value)} className={inputClass(false)} placeholder="Ma société SARL" />
-      </Field>
+      {typeClient === 'PROFESSIONNEL' && (
+        <Field label="Raison sociale" optional>
+          <input type="text" value={formData.entreprise} onChange={(e) => onChange('entreprise', e.target.value)} className={inputClass(false)} placeholder="Ma société SARL" />
+        </Field>
+      )}
     </div>
   </div>
 );

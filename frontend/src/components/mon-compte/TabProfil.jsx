@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { formatPhoneInput, isValidFrenchPhone } from '../../utils/phoneUtils';
 
 const inputClass = 'border border-sand-250 rounded-6 h-11 px-3.5 text-[14px] text-ink-900 focus:outline-none focus:border-ink-900 transition-colors';
 
@@ -28,6 +29,10 @@ const TabProfil = ({ user, updateProfile }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (form.telephone && !isValidFrenchPhone(form.telephone)) {
+      toast.error('Numéro de téléphone invalide');
+      return;
+    }
     try {
       setSaving(true);
       await updateProfile(form);
@@ -64,7 +69,7 @@ const TabProfil = ({ user, updateProfile }) => {
         </div>
         <div className="flex flex-col gap-1.5">
           <span className="text-[12.5px] text-graphite-600">Téléphone</span>
-          <input type="tel" value={form.telephone} onChange={(e) => setForm({ ...form, telephone: e.target.value })} placeholder="06 12 34 56 78" className={inputClass} />
+          <input type="tel" value={form.telephone} onChange={(e) => setForm({ ...form, telephone: formatPhoneInput(e.target.value) })} placeholder="06 12 34 56 78" className={inputClass} />
         </div>
       </div>
 

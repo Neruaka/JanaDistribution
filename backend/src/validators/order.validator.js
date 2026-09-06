@@ -66,8 +66,8 @@ const createOrderValidation = [
   body('adresseLivraison.telephone')
     .optional()
     .trim()
-    .matches(/^[0-9+\s-]{10,20}$/)
-    .withMessage('Le numéro de téléphone n\'est pas valide'),
+    .matches(/^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$/)
+    .withMessage('Le numéro de téléphone doit être au format français'),
   
   // Adresse de facturation (optionnelle)
   body('adresseFacturation')
