@@ -135,9 +135,11 @@ const HomePage = () => {
             <Link to="/catalogue" className="bg-green-700 hover:bg-green-800 text-white text-[14.5px] font-semibold px-6 py-[13px] rounded-6 transition-colors">
               Parcourir le catalogue
             </Link>
-            <Link to="/register" className="border border-ink-500 hover:bg-white/5 text-white text-[14.5px] font-semibold px-6 py-[13px] rounded-6 transition-colors">
-              Ouvrir un compte pro
-            </Link>
+            {!isAuthenticated && (
+              <Link to="/register?type=PROFESSIONNEL" className="border border-ink-500 hover:bg-white/5 text-white text-[14.5px] font-semibold px-6 py-[13px] rounded-6 transition-colors">
+                Ouvrir un compte pro
+              </Link>
+            )}
           </div>
           <div className="flex flex-wrap gap-[26px] mt-3 pt-4 border-t border-ink-600">
             <Stat value={totalReferences ? totalReferences.toLocaleString('fr-FR') : '—'} label="références" />

@@ -7,6 +7,7 @@
 
 import { Link } from 'react-router-dom';
 import { useSettings } from '../contexts/SettingsContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const FooterLink = ({ to, children }) => (
   <Link to={to} className="text-[13.5px] text-mist hover:text-white transition-colors">
@@ -21,6 +22,7 @@ const FooterStub = ({ children }) => (
 
 const Footer = () => {
   const { site, loading } = useSettings();
+  const { isAuthenticated } = useAuth();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -74,7 +76,7 @@ const Footer = () => {
           <div className="flex flex-col gap-[11px]">
             <div className="text-[11px] tracking-wide text-mist-4 uppercase">Infos</div>
             <FooterStub>Livraison</FooterStub>
-            <FooterLink to="/register">Ouvrir un compte pro</FooterLink>
+            {!isAuthenticated && <FooterLink to="/register?type=PROFESSIONNEL">Ouvrir un compte pro</FooterLink>}
             <FooterLink to="/cgv">CGV</FooterLink>
             <FooterLink to="/mentions-legales">Mentions légales</FooterLink>
           </div>

@@ -19,6 +19,7 @@ import { PriceModeProvider } from './contexts/PriceModeContext';
 
 // Components
 import PrivateRoute from './components/PrivateRoute';
+import GuestOnlyRoute from './components/GuestOnlyRoute';
 import CartDrawer from './components/CartDrawer';
 import PublicLayout from './components/PublicLayout';
 import CookieBanner from './components/CookieBanner';
@@ -135,7 +136,7 @@ function App() {
             {/* Pages auth (sans Navbar/Footer) */}
             {/* ==================== */}
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/register" element={<GuestOnlyRoute><RegisterPage /></GuestOnlyRoute>} />
             <Route path="/mot-de-passe-oublie" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
 
