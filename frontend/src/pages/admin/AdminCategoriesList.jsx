@@ -172,7 +172,9 @@ const AdminCategoriesList = () => {
           </label>
         </div>
 
-        <div className="bg-white border border-sand-200 rounded-8 overflow-hidden">
+        {/* pas de overflow-hidden ici (meme bug que la liste clients, T15-06) : ca
+            coupait le menu "..." des lignes proches du bas de la liste. */}
+        <div className="bg-white border border-sand-200 rounded-8">
           {loading ? (
             <div className="py-16 text-center text-[13.5px] text-graphite-400">Chargement…</div>
           ) : filtered.length === 0 ? (
