@@ -169,8 +169,11 @@ const AdminClientsList = () => {
           </div>
         )}
 
-        <div className="bg-white border border-sand-200 rounded-8 overflow-hidden">
-          <div className="hidden lg:grid gap-3 px-[18px] py-2.5 bg-sand-100 border-b border-sand-200 text-[11.5px] tracking-wide text-graphite-400" style={{ gridTemplateColumns: '1fr 220px 130px 110px 130px 120px 80px' }}>
+        {/* pas de overflow-hidden ici (T-BUGS-2026-09) : coupait le menu "..." des
+            lignes proches du bas du tableau (dropdown absolute rendu hors de la
+            zone visible/clippee). rounded-t-8 sur l'en-tete suffit visuellement. */}
+        <div className="bg-white border border-sand-200 rounded-8">
+          <div className="hidden lg:grid gap-3 px-[18px] py-2.5 bg-sand-100 border-b border-sand-200 rounded-t-8 text-[11.5px] tracking-wide text-graphite-400" style={{ gridTemplateColumns: '1fr 220px 130px 110px 130px 120px 80px' }}>
             <span>CLIENT</span><span>CONTACT</span><span>TYPE</span><span className="text-center">CMD.</span><span className="text-right">CA TOTAL</span><span>STATUT</span><span />
           </div>
 
