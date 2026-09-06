@@ -82,7 +82,12 @@ redis_data/
 # reports/
 # screenshots/
 # tests/
-# uploads/
+
+# Images produits uploadees (stockage local dev / volume Fly en prod) - donnees
+# runtime binaires, jamais versionnees. Chemin rooté pour eviter le meme piege
+# que "scripts/" plus bas (un motif non-rooté aurait aussi matché tout dossier
+# "uploads" a n'importe quelle profondeur).
+/backend/uploads/
 
 # ==========================================
 # FICHIERS SCRIPTS (dossier scripts/ a la racine uniquement — outils locaux
