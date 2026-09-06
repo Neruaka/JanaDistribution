@@ -22,6 +22,19 @@ const UPDATABLE_FIELDS = {
   actif: 'actif'
 };
 
+// T-BUGS-2026-09 : le formulaire admin envoie une date-only "YYYY-MM-DD"
+// (<input type="date">) pour date_fin. Insérée telle quelle dans une colonne
+// timestamptz, elle vaut minuit (00:00:00) ce jour-là - un code dont la date
+// de fin est "aujourd'hui" est donc deja "expiré" des 00:00:00, invalidant le
+// code quasiment toute sa journée de création. On la pousse a la fin de la
+// journée choisie ; date_debut reste a 00:00:00 (deja le comportement voulu).
+const toEndOfDay = (value) => {
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return `${value}T23:59:59`;
+  }
+  return value;
+};
+
 class PromoRepository {
   /**
    * Récupère un code promo par son code (insensible à la casse)
@@ -184,7 +197,7 @@ class PromoRepository {
       data.maxUtilisationsGlobal ?? null,
       data.maxUtilisationsParClient ?? 1,
       data.dateDebut || null,
-      data.dateFin || null,
+      toEndOfDay(data.dateFin) || null,
       data.actif === undefined ? true : data.actif,
       data.createdBy || null
     ];
@@ -204,7 +217,7 @@ class PromoRepository {
     for (const [jsField, column] of Object.entries(UPDATABLE_FIELDS)) {
       if (Object.prototype.hasOwnProperty.call(data, jsField)) {
         sets.push(`${column} = $${paramIndex++}`);
-        params.push(data[jsField]);
+        params.push(jsField === 'dateFin' ? toEndOfDay(data[jsField]) : data[jsField]);
       }
     }
 
