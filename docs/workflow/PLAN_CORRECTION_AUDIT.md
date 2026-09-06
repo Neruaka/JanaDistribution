@@ -20,7 +20,7 @@
 | CANCELLED | 20 (9 + Phase 8 : T8-01..T8-06 + T11-04, T11-05, T11-07, T11-09 supersédées par Fly.io + T3-03 supersédée par la décision MODE DISTANCE, le 2026-09-04/05) |
 | P0 restants | 1 (DB-04 — rotation Gmail confirmée le 2026-09-05, ne reste que la décision de purge de l'historique git d'un dépôt GitHub public, voir §3) |
 | P1 restants | 1 (npm audit frontend react-router open redirect [nécessite migration v7, breaking change non appliqué par prudence]). Rotation SMTP_USER/SMTP_PASS legacy (Phase 12 T12-10, = DB-04) confirmée le 2026-09-05. Tout le reste des P1 identifiés (T5-14, T5-15, T7-05, T9-07, T9-08, Phase 15) sont DONE. |
-| Verdict | EN PRODUCTION SUR FLY.IO et fonctionnel (jana-frontend.fly.dev / jana-backend.fly.dev), facturation légale complète (immuable + avoir + devis, T15-03), backlog de code entièrement traité (0 TODO). Auto-deploy Fly.io actif sur push `develop` (`deploy-flyio.yml`, temporaire — voir T9-08) ; `.github/workflows/deploy.yml` (homeserver) désactivé (2026-09-05, décision propriétaire). **PAS "terminé" pour autant** : DB-04 (P0) réduit à la seule décision de purge de l'historique git (rotation secret déjà faite), 3 validations externes bloquantes (légal, comptable, tests facture), catalogue à peupler, T15-01 (panier mobile) à reconfirmer sur device réel. |
+| Verdict | EN PRODUCTION SUR FLY.IO et fonctionnel (jana-frontend.fly.dev / jana-backend.fly.dev), facturation légale complète (immuable + avoir + devis, T15-03), backlog de code entièrement traité (0 TODO). Auto-deploy Fly.io actif sur push `develop` (`deploy-flyio.yml`, temporaire — voir T9-08) ; `.github/workflows/deploy.yml` (homeserver) désactivé (2026-09-05, décision propriétaire). **PAS "terminé" pour autant** : DB-04 (P0) réduit à la seule décision de purge de l'historique git (rotation secret déjà faite), 3 validations externes bloquantes (légal, comptable, tests facture), catalogue à peupler. |
 
 ---
 
@@ -1402,10 +1402,12 @@ Checklist complète : `docs/archive/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 
 ### T15-01 — Bouton fermer le panier invisible en mobile
 
-- **Statut :** DONE, non confirmé sur device réel (2026-09-05) | **Priorité :** P2 | **Catégorie :** CODE
-- **Détail :** aucune classe cachant le bouton trouvée dans `CartDrawer.jsx` — impossible de reproduire avec les outils d'automatisation disponibles (l'émulation mobile du navigateur ne changeait pas réellement le viewport rendu, vérifié via `window.innerWidth`). Correctif défensif appliqué : header du drawer en `sticky top-0` + `padding-top: env(safe-area-inset-top)`, zone de clic du bouton agrandie.
+- **Statut :** DONE, confirmé (2026-09-06) | **Priorité :** P2 | **Catégorie :** CODE
+- **Détail (round 1, 2026-09-05) :** aucune classe cachant le bouton trouvée dans `CartDrawer.jsx` — impossible de reproduire avec les outils d'automatisation disponibles à l'époque (l'émulation mobile du navigateur ne changeait pas réellement le viewport rendu, vérifié via `window.innerWidth`). Correctif défensif appliqué (header sticky + safe-area), livré comme non confirmé.
+- **Cause réelle trouvée (round 2, 2026-09-06, sur capture d'écran réelle fournie par le propriétaire depuis son téléphone) :** ce n'était pas un problème de classe cachant le bouton mais un conflit d'empilement CSS. `CartDrawer` (`z-50`) est monté **avant** `<Routes>` dans `App.jsx`, et `Navbar.jsx` a un `<header>` `sticky top-0 z-50` — à `z-index` égal, l'ordre du DOM tranche l'empilement, donc le header de Navbar (monté après) passait au-dessus du panneau du drawer, cachant son propre header (titre + bouton fermer) tout en laissant apparaître en dessous le contenu du drawer (visible car plus haut que le header masquant) — exactement ce que montrait la capture : la barre du site en haut, "Votre panier est vide" en dessous, aucun bouton fermer nulle part.
+- **Correctif :** `CartDrawer.jsx` passé à `z-[80]` (overlay + panneau), au-dessus de `Navbar` (`z-50`), `MobileTabBar` (`z-[60]`) et `MobileFilterSheet` (`z-[70]`) — reste strictement au-dessus quel que soit l'ordre de montage.
 - **Fichier :** `frontend/src/components/CartDrawer.jsx`
-- **Reste à faire :** revalidation sur un vrai téléphone par le propriétaire.
+- **Vérifié en conditions réelles :** `document.elementFromPoint()` sur les coordonnées exactes du bouton fermer renvoie désormais l'icône du bouton lui-même (plus le header de Navbar) ; clic déclenché sur le bouton → drawer fermé.
 
 ### T15-02 — Aucune validation de format téléphone
 

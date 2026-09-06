@@ -41,7 +41,7 @@ export default function CartDrawer() {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[80]"
         onClick={closeDrawer}
       />
 
@@ -51,13 +51,15 @@ export default function CartDrawer() {
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white shadow-xl flex flex-col font-sans"
+        className="fixed inset-y-0 right-0 z-[80] w-full max-w-md bg-white shadow-xl flex flex-col font-sans"
       >
-        {/* Header - sticky + safe-area (T-BUGS-2026-09) : bouton fermer signale
-            invisible sur mobile lors des tests. Pas de classe qui le cachait
-            deja, mais rien ne garantissait non plus qu'il reste dans la zone
-            visible sur un ecran avec encoche/dynamic island - durci par
-            precaution (aucun repro fiable obtenu avec les outils dispo). */}
+        {/* Header sticky + safe-area (T15-01) : le bouton fermer existait deja
+            mais etait recouvert par le <header> sticky de Navbar.jsx (meme
+            z-50, et Navbar est monte apres CartDrawer dans App.jsx - a
+            z-index egal, l'ordre du DOM tranche et Navbar gagnait le
+            dessus). Drawer passe a z-[80] (au-dessus de MobileTabBar
+            z-[60] et MobileFilterSheet z-[70]) pour rester strictement
+            au-dessus de tout le reste, quel que soit l'ordre de montage. */}
         <div className="sticky top-0 flex items-center justify-between px-4 py-4 border-b border-sand-200 bg-white z-10" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
           <div className="flex items-center gap-2 font-display text-[17px] font-bold text-ink-900">
             <ShoppingCart className="w-5 h-5 text-green-700" />
