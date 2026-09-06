@@ -10,7 +10,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Loader2, X, RotateCcw } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+// X, RotateCcw retires avec le bouton "Rembourser" (desactive - paiement face-a-face
+// a la livraison, pas de remboursement admin, voir plus bas dans ce fichier)
 import toast from 'react-hot-toast';
 import adminService from '../../services/adminService';
 import { getStatutInfo, MODES_PAIEMENT } from '../../services/orderService';
@@ -27,7 +29,9 @@ const TIMELINE_STEPS = [
 ];
 const STATUT_ORDER = TIMELINE_STEPS.map((s) => s.statut);
 const NEXT_STATUT = { EN_ATTENTE: 'CONFIRMEE', CONFIRMEE: 'EN_PREPARATION', EN_PREPARATION: 'EXPEDIEE', EXPEDIEE: 'LIVREE' };
-const STATUTS_REMBOURSABLES = ['CONFIRMEE', 'EN_PREPARATION', 'EXPEDIEE', 'LIVREE', 'PARTIELLEMENT_REMBOURSE'];
+// Remboursement admin desactive (paiement face-a-face a la livraison, decision
+// proprietaire 2026-09-06) - const conservee pour reactivation eventuelle.
+// const STATUTS_REMBOURSABLES = ['CONFIRMEE', 'EN_PREPARATION', 'EXPEDIEE', 'LIVREE', 'PARTIELLEMENT_REMBOURSE'];
 
 const formatMoney = (amount) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount || 0);
 const formatDateTime = (isoDate) => new Date(isoDate).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -53,10 +57,12 @@ const AdminOrderDetail = () => {
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [downloadingInvoice, setDownloadingInvoice] = useState(false);
-  const [showRefundModal, setShowRefundModal] = useState(false);
-  const [refundMontant, setRefundMontant] = useState('');
-  const [refundRaison, setRefundRaison] = useState('');
-  const [refunding, setRefunding] = useState(false);
+  // Remboursement admin desactive (paiement face-a-face a la livraison, decision
+  // proprietaire 2026-09-06) - state conserve pour reactivation eventuelle.
+  // const [showRefundModal, setShowRefundModal] = useState(false);
+  // const [refundMontant, setRefundMontant] = useState('');
+  // const [refundRaison, setRefundRaison] = useState('');
+  // const [refunding, setRefunding] = useState(false);
 
   const loadOrder = useCallback(async () => {
     try {
@@ -105,8 +111,10 @@ const AdminOrderDetail = () => {
   const canChangeStatus = !['ANNULEE', 'LIVREE', 'REMBOURSE'].includes(order.statut);
   const nextStatut = NEXT_STATUT[order.statut];
   const montantDejaRembourse = order.montantRembourse || 0;
-  const resteARembourser = Math.max(0, Math.round((order.totalTtc - montantDejaRembourse) * 100) / 100);
-  const canRefund = STATUTS_REMBOURSABLES.includes(order.statut) && order.paiementStatut === 'PAID' && resteARembourser > 0;
+  // Remboursement admin desactive (paiement face-a-face a la livraison, decision
+  // proprietaire 2026-09-06) - conserve pour reactivation eventuelle.
+  // const resteARembourser = Math.max(0, Math.round((order.totalTtc - montantDejaRembourse) * 100) / 100);
+  // const canRefund = STATUTS_REMBOURSABLES.includes(order.statut) && order.paiementStatut === 'PAID' && resteARembourser > 0;
   const currentIndex = order.statut === 'ANNULEE' ? -1 : STATUT_ORDER.indexOf(order.statut);
   const modePaiement = MODES_PAIEMENT.find((m) => m.id === order.modePaiement);
   const creneau = parseCreneau(order.instructionsLivraison);
@@ -161,26 +169,28 @@ const AdminOrderDetail = () => {
     }
   };
 
-  const handleRefundSubmit = async (e) => {
-    e.preventDefault();
-    const montant = parseFloat(refundMontant);
-    if (!montant || montant <= 0) { toast.error('Montant invalide'); return; }
-    if (montant > resteARembourser) { toast.error(`Le montant ne peut pas dépasser ${formatMoney(resteARembourser)} (reste à rembourser)`); return; }
-    try {
-      setRefunding(true);
-      await adminService.initiateRefund(order.id, { montant, raison: refundRaison });
-      toast.success(`Remboursement de ${formatMoney(montant)} initié`);
-      setShowRefundModal(false);
-      setRefundMontant('');
-      setRefundRaison('');
-      loadOrder();
-      loadHistory();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Erreur lors du remboursement');
-    } finally {
-      setRefunding(false);
-    }
-  };
+  // Remboursement admin desactive (paiement face-a-face a la livraison, decision
+  // proprietaire 2026-09-06) - handler conserve pour reactivation eventuelle.
+  // const handleRefundSubmit = async (e) => {
+  //   e.preventDefault();
+  //   const montant = parseFloat(refundMontant);
+  //   if (!montant || montant <= 0) { toast.error('Montant invalide'); return; }
+  //   if (montant > resteARembourser) { toast.error(`Le montant ne peut pas dépasser ${formatMoney(resteARembourser)} (reste à rembourser)`); return; }
+  //   try {
+  //     setRefunding(true);
+  //     await adminService.initiateRefund(order.id, { montant, raison: refundRaison });
+  //     toast.success(`Remboursement de ${formatMoney(montant)} initié`);
+  //     setShowRefundModal(false);
+  //     setRefundMontant('');
+  //     setRefundRaison('');
+  //     loadOrder();
+  //     loadHistory();
+  //   } catch (error) {
+  //     toast.error(error.response?.data?.message || 'Erreur lors du remboursement');
+  //   } finally {
+  //     setRefunding(false);
+  //   }
+  // };
 
   return (
     <div className="p-[26px] flex flex-col gap-3.5 pb-[86px] lg:pb-[26px]">
@@ -352,6 +362,9 @@ const AdminOrderDetail = () => {
             {montantDejaRembourse > 0 && (
               <div className="text-[12.5px] text-warning-text mt-2">Déjà remboursé : {formatMoney(montantDejaRembourse)}</div>
             )}
+            {/* Remboursement admin desactive (paiement face-a-face a la livraison,
+                decision proprietaire 2026-09-06) - bouton conserve en commentaire
+                pour reactivation eventuelle.
             {canRefund && (
               <button
                 type="button"
@@ -361,10 +374,14 @@ const AdminOrderDetail = () => {
                 <RotateCcw className="w-3.5 h-3.5" /> Rembourser
               </button>
             )}
+            */}
           </div>
         </div>
       </div>
 
+      {/* Remboursement admin desactive (paiement face-a-face a la livraison, decision
+          proprietaire 2026-09-06) - modal conservee en commentaire pour reactivation
+          eventuelle.
       {showRefundModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay-desktop" onClick={() => setShowRefundModal(false)}>
           <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-10 shadow-modal max-w-[440px] w-full p-5">
@@ -409,6 +426,7 @@ const AdminOrderDetail = () => {
           </div>
         </div>
       )}
+      */}
 
       {canChangeStatus && (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-sand-200 px-4 py-2.5 flex gap-2.5" style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}>
