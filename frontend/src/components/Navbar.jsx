@@ -13,7 +13,7 @@ import { usePriceMode } from '../contexts/PriceModeContext';
 import SearchBar from './SearchBar';
 import categoryService from '../services/categoryService';
 import toast from 'react-hot-toast';
-import { ChevronDown, Menu, X, LogOut, User, Package, FileText, Settings } from 'lucide-react';
+import { ChevronDown, Menu, X, LogOut, User, Package, Settings } from 'lucide-react';
 import { formatAmount } from '../utils/priceUtils';
 
 const Navbar = () => {
@@ -162,9 +162,6 @@ const Navbar = () => {
                     </Link>
                     <Link to="/mes-commandes" className="flex items-center gap-2 px-4 py-2 text-[13.5px] text-graphite-700 hover:bg-sand-50" onClick={() => setIsUserMenuOpen(false)}>
                       <Package className="w-4 h-4 text-graphite-400" /> Mes commandes
-                    </Link>
-                    <Link to="/mes-factures" className="flex items-center gap-2 px-4 py-2 text-[13.5px] text-graphite-700 hover:bg-sand-50" onClick={() => setIsUserMenuOpen(false)}>
-                      <FileText className="w-4 h-4 text-graphite-400" /> Mes factures
                     </Link>
                     {isAdmin && (
                       <>

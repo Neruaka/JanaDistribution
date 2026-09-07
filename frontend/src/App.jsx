@@ -40,7 +40,6 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 
 // Pages client
 import MonComptePage from './pages/MonComptePage';
-import MesFacturesPage from './pages/MesFacturesPage';
 
 // Pages légales
 import CGVPage from './pages/CGVPage';
@@ -183,14 +182,6 @@ function App() {
                 </PublicLayout>
               </PrivateRoute>
             } />
-            <Route path="/mes-factures" element={
-              <PrivateRoute>
-                <PublicLayout>
-                  <MesFacturesPage />
-                </PublicLayout>
-              </PrivateRoute>
-            } />
-            
             {/* ==================== */}
             {/* Pages Admin avec AdminLayout */}
             {/* ==================== */}

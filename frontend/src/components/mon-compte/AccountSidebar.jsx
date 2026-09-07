@@ -9,7 +9,6 @@ import { ChevronRight } from 'lucide-react';
 const ITEMS = [
   { key: 'commandes', label: 'Mes commandes', desc: 'Historique, suivi et factures', to: '/mes-commandes' },
   { key: 'listes', label: 'Mes listes récurrentes', desc: 'Bientôt disponible', to: null },
-  { key: 'factures', label: 'Mes factures', desc: 'Devis et factures générés', to: '/mes-factures' },
   { key: 'adresses', label: 'Mes adresses', desc: 'Jusqu\'à 3 adresses de livraison', to: '/mon-compte?tab=adresses' },
   { key: 'informations', label: 'Mes informations', desc: 'Identité, contact, préférences', to: '/mon-compte?tab=profil' },
   { key: 'securite', label: 'Sécurité', desc: 'Mot de passe, RGPD, suppression', to: '/mon-compte?tab=securite' }
