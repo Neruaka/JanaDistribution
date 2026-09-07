@@ -32,26 +32,30 @@ class UserRepository {
       numeroTva = null,
       accepteCgu = false,
       accepteNewsletter = false,
-      notificationsCommandes = true // ✅ Par défaut activé
+      notificationsCommandes = true, // ✅ Par défaut activé
+      // T16-09 : un compte PROFESSIONNEL démarre EN_ATTENTE (checkout
+      // bloqué jusqu'à validation admin) ; un particulier n'a jamais besoin
+      // de validation, colonne non applicable pour lui.
+      statutValidationPro = typeClient === 'PROFESSIONNEL' ? 'EN_ATTENTE' : 'NON_APPLICABLE'
     } = userData;
 
     const sql = `
       INSERT INTO utilisateur (
         email, mot_de_passe_hash, nom, prenom, telephone,
         role, type_client, siret, raison_sociale, numero_tva,
-        accepte_cgu, accepte_newsletter, notifications_commandes
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-      RETURNING 
+        accepte_cgu, accepte_newsletter, notifications_commandes, statut_validation_pro
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      RETURNING
         id, email, nom, prenom, telephone,
         role, type_client, siret, raison_sociale, numero_tva,
         accepte_cgu, accepte_newsletter, notifications_commandes, est_actif,
-        date_creation, date_modification
+        statut_validation_pro, date_creation, date_modification
     `;
 
     const values = [
       email, motDePasseHash, nom, prenom, telephone,
       role, typeClient, siret, raisonSociale, numeroTva,
-      accepteCgu, accepteNewsletter, notificationsCommandes
+      accepteCgu, accepteNewsletter, notificationsCommandes, statutValidationPro
     ];
 
     const result = await query(sql, values);
@@ -66,11 +70,11 @@ class UserRepository {
    */
   async findByEmail(email) {
     const sql = `
-      SELECT 
+      SELECT
         id, email, mot_de_passe_hash, nom, prenom, telephone,
         role, type_client, siret, raison_sociale, numero_tva,
         accepte_cgu, accepte_newsletter, notifications_commandes, est_actif,
-        date_creation, date_modification, derniere_connexion,
+        statut_validation_pro, date_creation, date_modification, derniere_connexion,
         reset_token, reset_token_expiry
       FROM utilisateur
       WHERE email = $1
@@ -92,11 +96,11 @@ class UserRepository {
    */
   async findById(id) {
     const sql = `
-      SELECT 
+      SELECT
         id, email, nom, prenom, telephone,
         role, type_client, siret, raison_sociale, numero_tva,
         accepte_cgu, accepte_newsletter, notifications_commandes, est_actif,
-        date_creation, date_modification, derniere_connexion
+        statut_validation_pro, date_creation, date_modification, derniere_connexion
       FROM utilisateur
       WHERE id = $1
     `;
@@ -506,6 +510,7 @@ class UserRepository {
       accepteNewsletter: row.accepte_newsletter,
       notificationsCommandes: row.notifications_commandes ?? true, // ✅ Par défaut true
       estActif: row.est_actif,
+      statutValidationPro: row.statut_validation_pro,
       dateCreation: row.date_creation,
       dateModification: row.date_modification,
       derniereConnexion: row.derniere_connexion

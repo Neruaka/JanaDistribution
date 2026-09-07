@@ -38,6 +38,15 @@ class OrderService {
    * @returns {Object} La commande créée
    */
   async createFromCart(userId, data) {
+    // T16-09 : un compte PROFESSIONNEL en attente de validation admin ne
+    // peut pas passer commande (SIRET jamais vérifié au-delà du format).
+    const user = await userRepository.findById(userId);
+    if (user?.typeClient === 'PROFESSIONNEL' && user.statutValidationPro !== 'VALIDE') {
+      throw ApiError.badRequest(
+        'Votre compte professionnel est en attente de validation par notre équipe. Vous pourrez passer commande dès que votre SIRET aura été vérifié.'
+      );
+    }
+
     // Récupérer le panier
     const cart = await cartRepository.getOrCreateCart(userId);
     
