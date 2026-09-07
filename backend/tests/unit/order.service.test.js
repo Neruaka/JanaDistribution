@@ -126,6 +126,42 @@ describe('OrderService — T1-01 : atomicité panier/commande', () => {
   });
 });
 
+describe('OrderService — T16-09 : checkout bloqué pour un compte pro non validé', () => {
+  const userRepository = require('../../src/repositories/user.repository');
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    cartRepository.getOrCreateCart.mockResolvedValue(mockCart);
+    orderRepository.create.mockResolvedValue(mockOrder);
+  });
+
+  it('bloque le checkout si le compte est PROFESSIONNEL et non validé (EN_ATTENTE)', async () => {
+    userRepository.findById.mockResolvedValue({ typeClient: 'PROFESSIONNEL', statutValidationPro: 'EN_ATTENTE' });
+
+    await expect(orderService.createFromCart(USER_ID, validOrderData))
+      .rejects.toThrow(/en attente de validation/);
+
+    expect(cartRepository.getOrCreateCart).not.toHaveBeenCalled();
+    expect(orderRepository.create).not.toHaveBeenCalled();
+  });
+
+  it('autorise le checkout une fois le compte PROFESSIONNEL validé', async () => {
+    userRepository.findById.mockResolvedValue({ typeClient: 'PROFESSIONNEL', statutValidationPro: 'VALIDE' });
+
+    await orderService.createFromCart(USER_ID, validOrderData);
+
+    expect(orderRepository.create).toHaveBeenCalledTimes(1);
+  });
+
+  it('n\'applique aucun blocage pour un compte PARTICULIER (statut non applicable)', async () => {
+    userRepository.findById.mockResolvedValue({ typeClient: 'PARTICULIER', statutValidationPro: 'NON_APPLICABLE' });
+
+    await orderService.createFromCart(USER_ID, validOrderData);
+
+    expect(orderRepository.create).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('OrderService — T12-05 : transitions de statut (machine à états serveur)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
