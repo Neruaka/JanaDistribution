@@ -50,6 +50,7 @@ const OrderDetailPage = () => {
   const [reordering, setReordering] = useState(false);
   const [devis, setDevis] = useState(null);
   const [facture, setFacture] = useState(null);
+  const [avoir, setAvoir] = useState(null);
   const [downloadingType, setDownloadingType] = useState(null);
 
   useEffect(() => {
@@ -71,6 +72,7 @@ const OrderDetailPage = () => {
       const ofOrder = documents.filter((doc) => doc.commande_id === orderId);
       setDevis(ofOrder.find((doc) => doc.type === 'DEVIS') || null);
       setFacture(ofOrder.find((doc) => doc.type === 'FACTURE') || null);
+      setAvoir(ofOrder.find((doc) => doc.type === 'AVOIR') || null);
     }).catch(() => {});
     return () => { mounted = false; };
   }, [orderId]);
@@ -204,6 +206,17 @@ const OrderDetailPage = () => {
             >
               {downloadingType === 'FACTURE' ? 'Téléchargement…' : 'Facture'}
             </button>
+            {avoir && (
+              <button
+                type="button"
+                onClick={() => handleDownloadDocument(avoir, 'AVOIR')}
+                disabled={!!downloadingType}
+                title="Télécharger l'avoir (PDF)"
+                className="border border-sand-250 text-ink-900 text-[13.5px] font-semibold px-4 py-2.5 rounded-6 hover:border-sand-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                {downloadingType === 'AVOIR' ? 'Téléchargement…' : 'Avoir'}
+              </button>
+            )}
             {canCancel && (
               <button
                 type="button"
