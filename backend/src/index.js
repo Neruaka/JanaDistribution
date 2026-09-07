@@ -28,6 +28,7 @@ const adminClientsRoutes = require('./routes/admin.clients.routes');
 const settingsRoutes = require('./routes/settings.routes');
 const invoiceRoutes = require('./routes/invoice.routes');
 const promoRoutes = require('./routes/promo.routes');
+const listeRecurrenteRoutes = require('./routes/liste-recurrente.routes');
 const path = require('path');
 const fs = require('fs');
 
@@ -155,6 +156,7 @@ app.use('/api/orders', orderRoutes);
 
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/promo', promoRoutes);
+app.use('/api/listes-recurrentes', listeRecurrenteRoutes);
 
 // Routes API Admin
 app.use('/api/admin/orders', adminOrderRoutes);
