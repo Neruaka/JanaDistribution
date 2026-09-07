@@ -621,6 +621,26 @@ CREATE TRIGGER trg_facture_ligne_immutable
   FOR EACH ROW EXECUTE FUNCTION facture_ligne_immutable_guard();
 
 -- ============================================================
+-- TABLE: liste_recurrente / liste_recurrente_produit (migration 0016, T16-13)
+-- ============================================================
+CREATE TABLE liste_recurrente (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  utilisateur_id UUID NOT NULL REFERENCES utilisateur(id) ON DELETE CASCADE,
+  nom VARCHAR(100) NOT NULL,
+  date_creation TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE liste_recurrente_produit (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  liste_id UUID NOT NULL REFERENCES liste_recurrente(id) ON DELETE CASCADE,
+  produit_id UUID NOT NULL REFERENCES produit(id) ON DELETE CASCADE,
+  quantite INTEGER NOT NULL DEFAULT 1 CHECK (quantite > 0)
+);
+
+CREATE INDEX idx_liste_recurrente_utilisateur ON liste_recurrente(utilisateur_id);
+CREATE INDEX idx_liste_recurrente_produit_liste ON liste_recurrente_produit(liste_id);
+
+-- ============================================================
 -- MESSAGE DE FIN
 -- ============================================================
 DO $$
@@ -638,6 +658,7 @@ BEGIN
   RAISE NOTICE '  • refresh_token / audit_log';
   RAISE NOTICE '  • facture / facture_ligne';
   RAISE NOTICE '  • code_promo / code_promo_utilisation';
+  RAISE NOTICE '  • liste_recurrente / liste_recurrente_produit';
   RAISE NOTICE '  • configuration / schema_migrations';
   RAISE NOTICE '';
   RAISE NOTICE 'Prochaine étape: node scripts/seed.js';
