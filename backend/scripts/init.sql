@@ -413,6 +413,12 @@ CREATE TABLE facture (
   total_tva NUMERIC(10,2) NOT NULL,
   total_ttc NUMERIC(10,2) NOT NULL,
 
+  -- Remise (migration 0014, T16-12) : snapshot de la remise code promo deja
+  -- deduite dans total_ht/total_tva/total_ttc ci-dessus, uniquement pour
+  -- affichage transparent sur le PDF.
+  remise_montant NUMERIC(10,2),
+  remise_code VARCHAR(50),
+
   -- Statut
   statut VARCHAR(20) NOT NULL DEFAULT 'EMISE' CHECK (statut IN ('EMISE', 'ANNULEE')),
   avoir_id UUID REFERENCES facture(id),
