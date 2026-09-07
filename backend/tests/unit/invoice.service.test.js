@@ -56,7 +56,10 @@ describe('InvoiceService.generateForOrder — cohérence des arrondis', () => {
     // (0.10 * 3 * 0.20 = 0.060000000000000005) : la ligne doit rester à 0.06 €
     // et le total doit être la somme EXACTE des lignes déjà arrondies.
     database.query
-      .mockResolvedValueOnce({ rows: [mockCommandeRow] }) // SELECT commande
+      // total_ttc (T16-12) : source de verite reprise telle quelle par le
+      // service — aucune remise ici (montant_rabais absent du mock), donc
+      // egal a la somme HT+TVA attendue des lignes ci-dessous (11.44).
+      .mockResolvedValueOnce({ rows: [{ ...mockCommandeRow, total_ttc: 11.44 }] }) // SELECT commande
       .mockResolvedValueOnce({
         rows: [
           { prix_unitaire_ht: '3.50', taux_tva: '5.50', quantite: 3, nom_produit: 'Pommes', reference: 'FRL-0001' },
@@ -85,7 +88,7 @@ describe('InvoiceService.generateForOrder — cohérence des arrondis', () => {
 
   it('reprend le prix HT et le taux de TVA figés sur la ligne de commande (pas ceux, courants, du produit)', async () => {
     database.query
-      .mockResolvedValueOnce({ rows: [mockCommandeRow] })
+      .mockResolvedValueOnce({ rows: [{ ...mockCommandeRow, total_ttc: 10.55 }] })
       .mockResolvedValueOnce({
         rows: [
           { prix_unitaire_ht: '5.00', taux_tva: '5.50', quantite: 2, nom_produit: 'Riz', reference: 'FRL-0003' }
@@ -111,7 +114,7 @@ describe('InvoiceService.generateForOrder — cohérence des arrondis', () => {
 
   it("n'a aucune valeur NaN dans les montants générés (régression : mauvaise colonne / mauvais sens de conversion)", async () => {
     database.query
-      .mockResolvedValueOnce({ rows: [mockCommandeRow] })
+      .mockResolvedValueOnce({ rows: [{ ...mockCommandeRow, total_ttc: 2.42 }] })
       .mockResolvedValueOnce({
         rows: [
           { prix_unitaire_ht: '2.20', taux_tva: '10.00', quantite: 1, nom_produit: 'Sauce', reference: 'FRL-0004' }
@@ -124,6 +127,65 @@ describe('InvoiceService.generateForOrder — cohérence des arrondis', () => {
     expect(Number.isNaN(totaux.ht)).toBe(false);
     expect(Number.isNaN(totaux.tva)).toBe(false);
     expect(Number.isNaN(totaux.ttc)).toBe(false);
+  });
+});
+
+describe('InvoiceService.generateForOrder — remise code promo (T16-12)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    invoiceRepository.findOriginalByCommande.mockResolvedValue(null);
+    invoiceRepository.getNextNumber.mockResolvedValue('FAC-2026-0001');
+    invoiceRepository.create.mockImplementation(async (data) => ({ id: 'facture-uuid-0001', ...data }));
+    invoiceRepository.createLigne.mockResolvedValue();
+    invoiceRepository.findById.mockResolvedValue({ id: 'facture-uuid-0001', lignes: [] });
+  });
+
+  it('applique le ratio de remise réellement subi par la commande et retombe exactement sur commande.total_ttc, livraison payante comprise', async () => {
+    // Reproduit le scénario du retour de test T16-12 : produits 25.00 € TTC
+    // (23.70 HT / 1.30 TVA) + 5.90 € de livraison payante = 30.90 € avant
+    // remise, remise de 10% (3.09 €) -> commande.total_ttc = 27.81 €.
+    // Avant le correctif, la facture re-sommait les lignes et ignorait la
+    // remise (retombait à 25.00 €, différent de la commande).
+    database.query
+      .mockResolvedValueOnce({
+        rows: [{
+          ...mockCommandeRow,
+          montant_rabais: '3.09',
+          total_avant_rabais: '30.90',
+          total_ttc: '27.81',
+          code_promo_texte: 'BIENVENUE10'
+        }]
+      })
+      .mockResolvedValueOnce({
+        rows: [
+          { prix_unitaire_ht: '7.90', taux_tva: '5.50', quantite: 3, nom_produit: 'Mozzarella', reference: 'FRL-0005' }
+        ]
+      });
+
+    await invoiceService.generateForOrder(COMMANDE_ID);
+
+    const { totaux, remise } = invoiceRepository.create.mock.calls[0][0];
+
+    // Le document doit afficher exactement le montant réellement dû par le
+    // client (commande.total_ttc), livraison incluse — jamais une simple
+    // re-somme des lignes produits qui ignorerait remise et livraison.
+    expect(totaux.ttc).toBe(27.81);
+    expect(remise).toEqual({ montant: 3.09, code: 'BIENVENUE10' });
+  });
+
+  it("n'applique aucune remise quand montant_rabais est absent ou nul (commande sans code promo)", async () => {
+    database.query
+      .mockResolvedValueOnce({ rows: [{ ...mockCommandeRow, montant_rabais: null, total_ttc: 11.44 }] })
+      .mockResolvedValueOnce({
+        rows: [
+          { prix_unitaire_ht: '5.00', taux_tva: '5.50', quantite: 2, nom_produit: 'Riz', reference: 'FRL-0003' }
+        ]
+      });
+
+    await invoiceService.generateForOrder(COMMANDE_ID);
+
+    const { remise } = invoiceRepository.create.mock.calls[0][0];
+    expect(remise).toBeNull();
   });
 });
 
