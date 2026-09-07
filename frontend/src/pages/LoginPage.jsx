@@ -9,7 +9,6 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import Checkbox from '../components/Checkbox';
 
 const ARGS_COMPTE = [
   { titre: 'Mêmes prix pour tous', desc: 'Particuliers et professionnels achètent aux mêmes tarifs, sans carte de grossiste.' },
@@ -26,7 +25,6 @@ const LoginPage = () => {
   const [formData, setFormData] = useState({ email: '', motDePasse: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
 
   const from = location.state?.from?.pathname || '/';
 
@@ -40,7 +38,7 @@ const LoginPage = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await login(formData.email, formData.motDePasse, rememberMe);
+      await login(formData.email, formData.motDePasse);
       toast.success('Connexion réussie !');
       navigate(from, { replace: true });
     } catch (err) {
@@ -127,11 +125,6 @@ const LoginPage = () => {
                 {error}
               </div>
             )}
-
-            <button type="button" onClick={() => setRememberMe((v) => !v)} className="flex items-center gap-2.5 text-left">
-              <Checkbox checked={rememberMe} />
-              <span className="text-[13.5px] text-graphite-700">Rester connecté sur cet appareil</span>
-            </button>
 
             <button
               type="submit"

@@ -77,10 +77,11 @@ export const AuthProvider = ({ children }) => {
       const response = await api.post('/auth/register', userData);
       const { user: newUser, token, refreshToken } = response.data.data;
       
-      // Stocke le token et les infos utilisateur
-      setAuthData(token, newUser, refreshToken);
+      // T16-11 : toujours persister en localStorage (partagé entre onglets) —
+      // voir login() ci-dessous pour le détail du bug corrigé.
+      setAuthData(token, newUser, refreshToken, true);
       setUser(newUser);
-      
+
       return newUser;
     } catch (err) {
       const message = err.response?.data?.message || 'Erreur lors de l\'inscription';
@@ -93,20 +94,24 @@ export const AuthProvider = ({ children }) => {
    * Connexion d'un utilisateur
    * @param {string} email - Email
    * @param {string} motDePasse - Mot de passe
-   * @param {boolean} rememberMe - Si true, session persistee dans localStorage (survit a la fermeture de l'onglet)
    * @returns {Object} Données utilisateur
    */
-  const login = async (email, motDePasse, rememberMe = false) => {
+  const login = async (email, motDePasse) => {
     try {
       setError(null);
 
       const response = await api.post('/auth/login', { email, motDePasse });
       const { user: loggedUser, token, refreshToken } = response.data.data;
 
-      // Stocke le token et les infos utilisateur
-      setAuthData(token, loggedUser, refreshToken, rememberMe);
+      // T16-11 : toujours persister en localStorage (partagé entre onglets),
+      // au lieu de dépendre d'une case "Rester connecté" décochée par défaut
+      // qui écrivait dans sessionStorage — jamais partagé entre onglets même
+      // de même origine, d'où la perte de session systématique sur un
+      // nouvel onglet malgré une session toujours active sur l'onglet
+      // d'origine.
+      setAuthData(token, loggedUser, refreshToken, true);
       setUser(loggedUser);
-      
+
       return loggedUser;
     } catch (err) {
       // T13-16 : err.response absent = panne reseau/timeout, pas des identifiants
