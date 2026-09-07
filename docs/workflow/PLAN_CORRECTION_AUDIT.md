@@ -9,18 +9,18 @@
 
 | Indicateur | Valeur |
 |---|---|
-| Phase active | Phase 16 (deuxième phase de tests utilisateur) — exécution EN COURS (voir §5, T16-01..T16-13). T16-03, T16-04, T16-05, T16-06, T16-10, T16-11, T16-12 DONE. Phase 15 reste COMPLÈTE (12/12, T15-01..T15-12). |
-| Tâche active | Session 2026-09-07 : 13 points remontés, investigués puis plan approuvé. T16-12, le lot T16-03/T16-04/T16-05/T16-06/T16-11 et T16-10 corrigés, testés et **déployés en production**, chacun en commit séparé. Prochain lot : T16-09 (validation comptes pro) puis T16-13 (liste récurrente). |
+| Phase active | Phase 16 (deuxième phase de tests utilisateur) — exécution EN COURS (voir §5, T16-01..T16-13). T16-03, T16-04, T16-05, T16-06, T16-09, T16-10, T16-11, T16-12 DONE. Phase 15 reste COMPLÈTE (12/12, T15-01..T15-12). |
+| Tâche active | Session 2026-09-07 : 13 points remontés, investigués puis plan approuvé. T16-12, le lot T16-03/T16-04/T16-05/T16-06/T16-11, T16-10 et T16-09 (validation comptes pro, checkout bloqué) corrigés et testés, chacun en commit séparé — **T16-09 pas encore déployé en production** (migration 0015 à appliquer). Prochain lot : T16-13 (liste récurrente) puis le lot design (T16-01/02/07/08). |
 | Tâches totales | 159 — 146 (état fin Phase 15) + 13 nouvelles tâches Phase 16 (T16-01..T16-13) |
 | READY | 0 |
 | IN_PROGRESS | 0 |
 | BLOCKED | 4 — T5-16, T5-17 (tests facture, dépendent de T5-14/15 maintenant DONE) ; T9-03 (validation légale CGV/RGPD) ; T9-04 (validation comptable TVA, = DB-03). DB-04 (secret git) est une **décision**, pas une tâche BLOCKED de ce compteur — voir §3. |
-| TODO | 6 (Phase 16 : T16-01, T16-02, T16-07, T16-08, T16-09, T16-13 — voir §5 pour le détail et les priorités P0/P1/P2/P3) |
-| DONE | 130 (110 + 12 Phase 15 + T16-03/T16-04/T16-05/T16-06/T16-10/T16-11/T16-12) |
+| TODO | 5 (Phase 16 : T16-01, T16-02, T16-07, T16-08, T16-13 — voir §5 pour le détail et les priorités P0/P1/P2/P3) |
+| DONE | 131 (110 + 12 Phase 15 + T16-03/T16-04/T16-05/T16-06/T16-09/T16-10/T16-11/T16-12) |
 | CANCELLED | 20 (9 + Phase 8 : T8-01..T8-06 + T11-04, T11-05, T11-07, T11-09 supersédées par Fly.io + T3-03 supersédée par la décision MODE DISTANCE, le 2026-09-04/05) |
 | P0 restants | 1 — DB-04 (rotation Gmail confirmée le 2026-09-05, ne reste que la décision de purge de l'historique git d'un dépôt GitHub public, voir §3). T16-12 est DONE et déployé en production. |
-| P1 restants | 1 — T16-09 (validation comptes pro, terrain vierge). npm audit frontend react-router open redirect [nécessite migration v7, breaking change non appliqué par prudence] toujours présent. Rotation SMTP_USER/SMTP_PASS legacy (Phase 12 T12-10, = DB-04) confirmée le 2026-09-05. |
-| Verdict | EN PRODUCTION SUR FLY.IO et fonctionnel (jana-frontend.fly.dev / jana-backend.fly.dev), facturation légale complète (immuable + avoir + devis + **T16-12 corrigé et déployé**), 7/13 tâches Phase 16 déployées (T16-03/04/05/06/10/11/12). Auto-deploy Fly.io actif sur push `develop` (`deploy-flyio.yml`, temporaire — voir T9-08) ; `.github/workflows/deploy.yml` (homeserver) désactivé (2026-09-05, décision propriétaire). **PAS "terminé" pour autant** : DB-04 (P0) réduit à la seule décision de purge de l'historique git (rotation secret déjà faite), 3 validations externes bloquantes (légal, comptable, tests facture), catalogue à peupler, 6 tâches Phase 16 restantes. |
+| P1 restants | 0 — T16-09 (validation comptes pro) DONE. npm audit frontend react-router open redirect [nécessite migration v7, breaking change non appliqué par prudence] toujours présent. Rotation SMTP_USER/SMTP_PASS legacy (Phase 12 T12-10, = DB-04) confirmée le 2026-09-05. |
+| Verdict | EN PRODUCTION SUR FLY.IO et fonctionnel (jana-frontend.fly.dev / jana-backend.fly.dev), facturation légale complète (immuable + avoir + devis + **T16-12 corrigé et déployé**), 7/13 tâches Phase 16 déployées (T16-03/04/05/06/10/11/12) + T16-09 corrigé et testé mais **pas encore déployé** (migration 0015 à appliquer en prod avant push). Auto-deploy Fly.io actif sur push `develop` (`deploy-flyio.yml`, temporaire — voir T9-08) ; `.github/workflows/deploy.yml` (homeserver) désactivé (2026-09-05, décision propriétaire). **PAS "terminé" pour autant** : DB-04 (P0) réduit à la seule décision de purge de l'historique git (rotation secret déjà faite), 3 validations externes bloquantes (légal, comptable, tests facture), catalogue à peupler, 5 tâches Phase 16 restantes. |
 
 ---
 
@@ -1540,8 +1540,11 @@ Checklist complète : `docs/archive/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 
 ### T16-09 — Système de validation des comptes professionnels
 
-- **Statut :** TODO | **Priorité :** P1 | **Catégorie :** CODE (fonctionnalité, terrain vierge)
-- **Root cause :** `auth.service.js:113-115` valide seulement le format du SIRET (14 chiffres), aucune vérification d'authenticité, et le compte est actif immédiatement (`est_actif` par défaut `true`, pas de traitement spécial pour `typeClient='PROFESSIONNEL'`). Aucune autre colonne de statut sur `utilisateur`. `AdminClientsList.jsx` n'a qu'une action Bloquer/Activer qui réutilise ce même `est_actif` avec une sémantique de bannissement — l'utiliser aussi pour "en attente de validation" créerait une ambiguïté (un pro bloqué et un pro non-validé seraient indiscernables). **Décision à prendre :** nouvelle colonne/enum de statut dédiée, action admin de validation, et blocage/restriction du compte tant que non validé (checkout ? connexion ?).
+- **Statut :** DONE (2026-09-07) | **Priorité :** P1 | **Catégorie :** CODE (fonctionnalité, terrain vierge)
+- **Root cause :** `auth.service.js` validait seulement le format du SIRET (14 chiffres), aucune vérification d'authenticité, et le compte était actif immédiatement. Aucune colonne de statut dédiée sur `utilisateur`. **Décision tranchée avec l'utilisateur avant implémentation :** le checkout est bloqué (pas la connexion) tant qu'un compte pro n'est pas validé.
+- **Correctif appliqué :** migration `0015_validation_compte_pro.sql` — colonne `statut_validation_pro` (`NON_APPLICABLE`/`EN_ATTENTE`/`VALIDE`), comptes PROFESSIONNEL déjà existants grandfathered en `VALIDE`. `userRepository.create()` démarre tout nouveau compte PROFESSIONNEL à `EN_ATTENTE`. `order.service.js#createFromCart` rejette la commande (400, message explicite) tant que non validé. Route admin `PATCH /api/admin/clients/:id/valider-pro` (audit log + email de notification). `AdminClientsList.jsx` : badge "En attente", action "Valider ce compte pro" (menu + modale détail), KPI "Pros en attente".
+- **Testé :** unitaires (`order.service.test.js`, 3 nouveaux cas) + script E2E direct (inscription pro réelle → checkout bloqué avec le message exact → validation admin → checkout réussi) + vérification navigateur complète (inscription, blocage, badge/KPI admin, validation, déblocage).
+- **Fichiers :** `backend/scripts/migrations/0015_validation_compte_pro.sql`, `backend/scripts/init.sql`, `backend/src/repositories/user.repository.js`, `backend/src/services/order.service.js`, `backend/src/routes/admin.clients.routes.js`, `backend/src/services/email.service.js`, `backend/tests/unit/order.service.test.js`, `frontend/src/pages/admin/AdminClientsList.jsx`, `frontend/src/services/adminService.js`.
 
 ### T16-10 — Page "Mes factures" : intégration ou suppression
 
