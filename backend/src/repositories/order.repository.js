@@ -93,6 +93,7 @@ class OrderRepository {
         c.code_promo_id,
         c.montant_rabais,
         c.total_avant_rabais,
+        cp.code as code_promo_texte,
         c.date_modification,
         u.nom as utilisateur_nom,
         u.prenom as utilisateur_prenom,
@@ -101,6 +102,7 @@ class OrderRepository {
         (SELECT COUNT(*) FROM ligne_commande lc WHERE lc.commande_id = c.id) as nb_articles
       FROM commande c
       LEFT JOIN utilisateur u ON c.utilisateur_id = u.id
+      LEFT JOIN code_promo cp ON cp.id = c.code_promo_id
       ${whereClause}
       ORDER BY ${orderColumn} ${direction}
       LIMIT $${paramIndex++} OFFSET $${paramIndex++}
@@ -160,6 +162,7 @@ class OrderRepository {
         c.code_promo_id,
         c.montant_rabais,
         c.total_avant_rabais,
+        cp.code as code_promo_texte,
         c.date_modification,
         u.nom as utilisateur_nom,
         u.prenom as utilisateur_prenom,
@@ -168,6 +171,7 @@ class OrderRepository {
         u.type_client as utilisateur_type
       FROM commande c
       LEFT JOIN utilisateur u ON c.utilisateur_id = u.id
+      LEFT JOIN code_promo cp ON cp.id = c.code_promo_id
       WHERE c.id = $1
     `;
 
@@ -831,6 +835,7 @@ class OrderRepository {
       payeLe: row.paye_le || null,
       montantRembourse: row.montant_rembourse !== undefined && row.montant_rembourse !== null ? parseFloat(row.montant_rembourse) : 0,
       codePromoId: row.code_promo_id || null,
+      codePromoCode: row.code_promo_texte || null,
       montantRabais: row.montant_rabais !== undefined && row.montant_rabais !== null ? parseFloat(row.montant_rabais) : 0,
       totalAvantRabais: row.total_avant_rabais !== undefined && row.total_avant_rabais !== null ? parseFloat(row.total_avant_rabais) : null,
       nbArticles: row.nb_articles ? parseInt(row.nb_articles) : undefined,

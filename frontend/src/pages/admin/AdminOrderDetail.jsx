@@ -303,6 +303,12 @@ const AdminOrderDetail = () => {
               <div className="flex justify-between w-full max-w-[220px] text-[13px]"><span className="text-graphite-600">Sous-total HT</span><span className="font-mono text-ink-900">{formatMoney(order.totalHt)}</span></div>
               <div className="flex justify-between w-full max-w-[220px] text-[13px]"><span className="text-graphite-600">TVA</span><span className="font-mono text-ink-900">{formatMoney(order.totalTva)}</span></div>
               <div className="flex justify-between w-full max-w-[220px] text-[13px]"><span className="text-graphite-600">Livraison</span><span className="font-mono text-ink-900">{formatMoney(order.fraisLivraison)}</span></div>
+              {order.montantRabais > 0 && (
+                <div className="flex justify-between w-full max-w-[220px] text-[13px]">
+                  <span className="text-amber-700">Remise{order.codePromoCode ? ` (code ${order.codePromoCode})` : ''}</span>
+                  <span className="font-mono text-amber-700">-{formatMoney(order.montantRabais)}</span>
+                </div>
+              )}
               <div className="flex justify-between w-full max-w-[220px] text-[15px] pt-1.5"><span className="font-semibold text-ink-900">Total TTC</span><span className="font-mono font-semibold text-ink-900">{formatMoney(order.totalTtc)}</span></div>
             </div>
           </div>

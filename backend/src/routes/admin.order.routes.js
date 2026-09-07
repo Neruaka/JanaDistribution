@@ -242,8 +242,9 @@ router.get('/:id',
 
       // Requête commande avec client
       const orderSql = `
-        SELECT 
+        SELECT
           c.*,
+          cp.code as code_promo_texte,
           u.id as client_id,
           u.nom as client_nom,
           u.prenom as client_prenom,
@@ -252,6 +253,7 @@ router.get('/:id',
           u.type_client as client_type
         FROM commande c
         LEFT JOIN utilisateur u ON c.utilisateur_id = u.id
+        LEFT JOIN code_promo cp ON cp.id = c.code_promo_id
         WHERE c.id = $1
       `;
 
@@ -312,6 +314,10 @@ router.get('/:id',
         modePaiement: row.mode_paiement,
         paiementStatut: row.paiement_statut || 'PENDING',
         montantRembourse: row.montant_rembourse !== undefined && row.montant_rembourse !== null ? parseFloat(row.montant_rembourse) : 0,
+        codePromoId: row.code_promo_id || null,
+        codePromoCode: row.code_promo_texte || null,
+        montantRabais: row.montant_rabais !== undefined && row.montant_rabais !== null ? parseFloat(row.montant_rabais) : 0,
+        totalAvantRabais: row.total_avant_rabais !== undefined && row.total_avant_rabais !== null ? parseFloat(row.total_avant_rabais) : null,
         adresseLivraison,
         instructionsLivraison: row.instructions_livraison,
         dateCommande: row.date_commande,

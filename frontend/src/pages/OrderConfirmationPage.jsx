@@ -198,10 +198,16 @@ const OrderConfirmationPage = () => {
               <span className="text-graphite-600">TVA</span>
               <span className="font-mono text-ink-900">{formatAmount(order.totalTva)}</span>
             </div>
-            <div className="flex justify-between px-[18px] pt-1 pb-3.5 text-[13.5px]">
+            <div className={`flex justify-between px-[18px] pt-1 text-[13.5px] ${order.montantRabais > 0 ? '' : 'pb-3.5'}`}>
               <span className="text-graphite-600">Livraison</span>
               <span className="font-mono text-ink-900">{order.fraisLivraison > 0 ? formatAmount(order.fraisLivraison) : 'Offerte'}</span>
             </div>
+            {order.montantRabais > 0 && (
+              <div className="flex justify-between px-[18px] pt-1 pb-3.5 text-[13.5px]">
+                <span className="text-amber-700">Remise{order.codePromoCode ? ` (code ${order.codePromoCode})` : ''}</span>
+                <span className="font-mono text-amber-700">-{formatAmount(order.montantRabais)}</span>
+              </div>
+            )}
             <div className="flex justify-between items-baseline px-[18px] py-3.5 bg-sand-100 border-t border-sand-200">
               <span className="font-display text-[16px] font-bold text-ink-900">Total à régler à la livraison</span>
               <span className="font-mono text-[25px] font-semibold text-ink-900">{formatAmount(totalRegler)}</span>
