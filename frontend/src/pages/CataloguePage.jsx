@@ -63,6 +63,16 @@ const CataloguePage = () => {
 
   const [filters, setFilters] = useState(getFiltersFromUrl);
 
+  // T16-03 : useState(getFiltersFromUrl) n'exécute son initialiseur qu'au
+  // montage — un clic sur une autre catégorie depuis Navbar.jsx met à jour
+  // l'URL sans démonter ce composant déjà monté, donc `filters` (dont
+  // dépend loadProducts) ne se resynchronisait jamais. Cet effet resynchronise
+  // filters à chaque changement d'URL, externe (navigation) ou interne
+  // (updateUrl ci-dessous, no-op puisque filters correspond déjà).
+  useEffect(() => {
+    setFilters(getFiltersFromUrl());
+  }, [searchParams, getFiltersFromUrl]);
+
   const updateUrl = useCallback((newFilters) => {
     const params = new URLSearchParams();
     if (newFilters.page && newFilters.page > 1) params.set('page', newFilters.page);

@@ -1506,8 +1506,9 @@ Checklist complète : `docs/archive/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 
 ### T16-03 — Navigation catégorie catalogue cassée après le premier clic
 
-- **Statut :** TODO | **Priorité :** P1 | **Catégorie :** CODE (bug)
-- **Root cause confirmée :** `frontend/src/pages/CataloguePage.jsx:64` — `useState(getFiltersFromUrl)` n'exécute son initialiseur qu'au **montage**. Les liens catégorie de `Navbar.jsx` (lignes 254/269/312) pointent tous vers `/catalogue?categorie=X` : React Router met à jour `searchParams` sans démonter `CataloguePage` (même composant déjà monté), donc l'état local `filters` (dont dépend `loadProducts`) ne se resynchronise jamais sur une navigation externe suivante. Seules les interactions internes (clic sur un filtre déjà affiché, `handleFilterChange`) fonctionnent car elles appellent `setFilters` directement. Reproductible depuis n'importe quelle catégorie de départ.
+- **Statut :** DONE (2026-09-07) | **Priorité :** P1 | **Catégorie :** CODE (bug)
+- **Root cause confirmée :** `frontend/src/pages/CataloguePage.jsx:64` — `useState(getFiltersFromUrl)` n'exécute son initialiseur qu'au **montage**. Les liens catégorie de `Navbar.jsx` pointent tous vers `/catalogue?categorie=X` : React Router met à jour `searchParams` sans démonter `CataloguePage` (même composant déjà monté), donc l'état local `filters` (dont dépend `loadProducts`) ne se resynchronise jamais sur une navigation externe suivante.
+- **Correctif :** ajout d'un `useEffect(() => { setFilters(getFiltersFromUrl()); }, [searchParams, getFiltersFromUrl])`. Vérifié en navigateur : Produits Laitiers → Boulangerie change bien la liste au deuxième clic.
 - **Fichier :** `frontend/src/pages/CataloguePage.jsx`
 
 ### T16-04 — Image produit trop grande sur desktop (fiche produit)
