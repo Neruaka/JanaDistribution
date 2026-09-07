@@ -1518,8 +1518,8 @@ Checklist complète : `docs/archive/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 
 ### T16-05 — Miniatures placeholder fantômes sur la fiche produit
 
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE (bug)
-- **Root cause confirmée :** `ProductDetailPage.jsx:158-163` — `Array.from({ length: 4 }).map(...)` génère 4 cases vides codées en dur, **pas** une boucle sur de vraies images. Constat plus profond : il n'existe aucun modèle multi-image dans toute l'app — `product.imageUrl` est un champ chaîne unique partout (DB, repository, frontend). Il n'y a donc jamais eu de vraie galerie à masquer partiellement ; c'est du scaffolding de maquette jamais raccordé à de vraies données. **Décision à prendre :** supprimer purement cette rangée de miniatures fictive (correspond à la demande, portée minimale) plutôt que construire un vrai système multi-image (hors périmètre du retour utilisateur, chantier bien plus large).
+- **Statut :** DONE (2026-09-07) | **Priorité :** P2 | **Catégorie :** CODE (bug)
+- **Root cause confirmée :** `ProductDetailPage.jsx:158-163` — `Array.from({ length: 4 }).map(...)` générait 4 cases vides codées en dur, jamais reliées à de vraies images (`product.imageUrl` est un champ chaîne unique partout, aucun modèle multi-image n'existe). **Correctif :** rangée de miniatures supprimée (portée minimale, correspond à la demande — un vrai système multi-image reste hors périmètre). Vérifié en navigateur.
 
 ### T16-06 — Retirer le bloc "service client" de la page d'accueil
 

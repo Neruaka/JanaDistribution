@@ -155,22 +155,18 @@ const ProductDetailPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-[1fr_430px] gap-9 px-4 md:px-10 pt-7 pb-[34px]">
         {/* Colonne galerie + onglets */}
         <div className="flex flex-col gap-[22px]">
-          <div className="hidden md:grid grid-cols-[84px_1fr] gap-3">
-            <div className="flex flex-col gap-2.5">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className={`h-[84px] rounded-6 placeholder-stripe ${i === 0 ? 'border-2 border-ink-900' : 'border border-sand-250'}`} />
-              ))}
-            </div>
-            {/* T16-04 : hauteur plafonnée (max-h-420px + aspect-square) pour
-                tenir sans scroll sur un écran desktop standard — le
-                conteneur n'avait avant que min-h-[450px], sans plafond. */}
-            <div className="max-h-[420px] aspect-square rounded-8 border border-sand-200 placeholder-stripe flex items-end p-3.5 overflow-hidden">
-              {fullImageUrl ? (
-                <img src={fullImageUrl} alt={product.nom} className="w-full h-full object-cover" />
-              ) : (
+          {/* T16-05 : plus de rangée de vignettes — aucun système multi-image
+              n'existe (product.imageUrl est un champ chaîne unique partout),
+              c'était du scaffolding de maquette jamais raccordé à de vraies
+              données. */}
+          <div className="hidden md:block max-h-[420px] aspect-square rounded-8 border border-sand-200 placeholder-stripe overflow-hidden">
+            {fullImageUrl ? (
+              <img src={fullImageUrl} alt={product.nom} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-end p-3.5">
                 <span className="font-mono text-[11px] text-graphite-300">photo produit — 1200 × 1200, fond neutre</span>
-              )}
-            </div>
+              </div>
+            )}
           </div>
           {/* Mobile : image unique 300px, sans bandeau de vignettes (pas de galerie multi-photos reelle) */}
           <div className="md:hidden h-[300px] rounded-8 border border-sand-200 placeholder-stripe flex items-end p-3.5 overflow-hidden">
