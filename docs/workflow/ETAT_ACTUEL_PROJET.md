@@ -1,6 +1,6 @@
 # ÉTAT ACTUEL DU PROJET — Jana Distribution
 
-> Mise à jour : 2026-09-06. Source : inspection statique du code + git status + audit fonctionnel/sécurité complémentaire (Phase 13) + mise en production Fly.io (Phase 14) + retours de test utilisateur (Phase 15).
+> Mise à jour : 2026-09-07. Source : inspection statique du code + git status + audit fonctionnel/sécurité complémentaire (Phase 13) + mise en production Fly.io (Phase 14) + retours de test utilisateur (Phase 15, Phase 16 en cours).
 > Mettre à jour après chaque tâche DONE.
 
 ---
@@ -11,11 +11,11 @@
 |---|---|
 | Projet | Jana Distribution — e-commerce alimentaire B2C/B2B |
 | Branche active | `develop` |
-| Dernier commit | Session Phase 15 (2026-09-06) — génération/téléchargement du devis, page admin Devis/Facture, nettoyage documentation |
-| Fichiers modifiés non commités | Aucun à la fin de la session Phase 15 |
-| Phase active | Phase 15 — Retours de la première phase de tests utilisateur, COMPLÈTE (12/12 tâches DONE, voir `PLAN_CORRECTION_AUDIT.md` Phase 15) |
-| Tâche active | Session 2026-09-05/06 : 11 bugs remontés par l'utilisateur en test réel sur le site en production + nettoyage complet de `docs/`. Le plus gros correctif (T15-03) a ajouté une fonctionnalité neuve — génération et envoi réel d'un devis PDF à la création de commande, téléchargeable côté client, plus une nouvelle page admin "Devis/Facture" (T15-04). Auto-deploy Fly.io confirmé actif sur push `develop` (`deploy-flyio.yml`, décision 2026-09-05) pendant cette session — corrigé au passage dans la documentation, qui affirmait encore un déploiement manuel sans CI/CD. |
-| Verdict | **EN PRODUCTION SUR FLY.IO et fonctionnel, facturation légale complète** (T5-14 immuabilité + T5-15 avoir + T15-03 devis). **Backlog de code entièrement traité (0 tâche TODO)** — voir `PLAN_CORRECTION_AUDIT.md` §1. DB-04 : rotation Gmail confirmée le 2026-09-05, ne reste que la décision de purge de l'historique git (P0, propriétaire). Reste : 3 validations externes bloquantes (légal/comptable/tests facture dépendants), catalogue vide à peupler. |
+| Dernier commit | Lot Phase 16 (T16-03/04/05/06/11/12), poussé sur `origin/develop`, déployé en production — un commit par tâche |
+| Fichiers modifiés non commités | Aucun |
+| Phase active | Phase 16 — retours de la deuxième phase de tests utilisateur, EN COURS (T16-03/04/05/06/11/12 DONE et déployés, 7 tâches restantes — voir `PLAN_CORRECTION_AUDIT.md` §5) |
+| Tâche active | Session 2026-09-07 : 13 points remontés, plan approuvé. T16-12 (bug financier/légal code promo, migration 0014 appliquée sur `jana-db`) puis T16-03/T16-04/T16-05/T16-06/T16-11 corrigés, testés (unitaires + E2E réel + vérification navigateur systématique) et **déployés en production** (déploiements Fly.io confirmés verts), chacun en commit séparé. Prochain lot prévu : T16-10 (avoir sur OrderDetailPage + suppression Mes Factures). |
+| Verdict | **EN PRODUCTION SUR FLY.IO et fonctionnel, facturation légale complète** (T5-14 immuabilité + T5-15 avoir + T15-03 devis + T16-12 remise code promo). DB-04 : rotation Gmail confirmée le 2026-09-05, ne reste que la décision de purge de l'historique git (P0, propriétaire). Reste : 3 validations externes bloquantes (légal/comptable/tests facture dépendants), catalogue vide à peupler, 7 tâches Phase 16 restantes. |
 | Avancement estimé | Voir `PLAN_CORRECTION_AUDIT.md` §1 pour le compte à jour — ne pas recopier un pourcentage figé ici (il dérive vite, incident constaté le 2026-09-04) |
 
 ---
