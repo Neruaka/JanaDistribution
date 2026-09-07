@@ -9,18 +9,18 @@
 
 | Indicateur | Valeur |
 |---|---|
-| Phase active | Phase 15 (retours de la première phase de tests utilisateur) COMPLÈTE — 12/12 tâches DONE (T15-01..T15-12, voir §5). **0 tâche TODO restante dans le document** — reste uniquement DB-04 (décision propriétaire, non une tâche de code) et les 4 BLOCKED (dépendances externes : validation légale/comptable). |
-| Tâche active | Session 2026-09-05/06 : 11 bugs remontés par l'utilisateur en test réel + nettoyage documentation, tous investigués (lecture directe du code avant tout correctif), plan écrit et validé avant exécution. Le plus gros morceau (T15-03) a nécessité une fonctionnalité neuve (devis) inexistante côté backend jusqu'ici. Sans trailer de co-autorat, comme demandé. Détail complet dans les entrées individuelles Phase 15. |
-| Tâches totales | 146 — 134 (état au 2026-09-05) + 12 nouvelles tâches Phase 15 (T15-01..T15-12) |
+| Phase active | Phase 16 (deuxième phase de tests utilisateur) — investigation TERMINÉE, exécution EN ATTENTE de validation (voir §5, T16-01..T16-13). Phase 15 reste COMPLÈTE (12/12, T15-01..T15-12). |
+| Tâche active | Session 2026-09-07 : 13 nouveaux points remontés (bugs + refonte design + fonctionnalités manquantes), tous investigués en profondeur (root cause confirmée par lecture de code, citations fichier:ligne) avant tout correctif. Plan d'exécution en cours de rédaction, en attente de validation propriétaire avant implémentation — aucun correctif Phase 16 appliqué à ce stade. |
+| Tâches totales | 159 — 146 (état fin Phase 15) + 13 nouvelles tâches Phase 16 (T16-01..T16-13) |
 | READY | 0 |
 | IN_PROGRESS | 0 |
 | BLOCKED | 4 — T5-16, T5-17 (tests facture, dépendent de T5-14/15 maintenant DONE) ; T9-03 (validation légale CGV/RGPD) ; T9-04 (validation comptable TVA, = DB-03). DB-04 (secret git) est une **décision**, pas une tâche BLOCKED de ce compteur — voir §3. |
-| TODO | 0 |
+| TODO | 13 (Phase 16, T16-01..T16-13 — voir §5 pour le détail et les priorités P0/P1/P2/P3) |
 | DONE | 122 (110 + 12 Phase 15) |
 | CANCELLED | 20 (9 + Phase 8 : T8-01..T8-06 + T11-04, T11-05, T11-07, T11-09 supersédées par Fly.io + T3-03 supersédée par la décision MODE DISTANCE, le 2026-09-04/05) |
-| P0 restants | 1 (DB-04 — rotation Gmail confirmée le 2026-09-05, ne reste que la décision de purge de l'historique git d'un dépôt GitHub public, voir §3) |
-| P1 restants | 1 (npm audit frontend react-router open redirect [nécessite migration v7, breaking change non appliqué par prudence]). Rotation SMTP_USER/SMTP_PASS legacy (Phase 12 T12-10, = DB-04) confirmée le 2026-09-05. Tout le reste des P1 identifiés (T5-14, T5-15, T7-05, T9-07, T9-08, Phase 15) sont DONE. |
-| Verdict | EN PRODUCTION SUR FLY.IO et fonctionnel (jana-frontend.fly.dev / jana-backend.fly.dev), facturation légale complète (immuable + avoir + devis, T15-03), backlog de code entièrement traité (0 TODO). Auto-deploy Fly.io actif sur push `develop` (`deploy-flyio.yml`, temporaire — voir T9-08) ; `.github/workflows/deploy.yml` (homeserver) désactivé (2026-09-05, décision propriétaire). **PAS "terminé" pour autant** : DB-04 (P0) réduit à la seule décision de purge de l'historique git (rotation secret déjà faite), 3 validations externes bloquantes (légal, comptable, tests facture), catalogue à peupler. |
+| P0 restants | 2 — DB-04 (rotation Gmail confirmée le 2026-09-05, ne reste que la décision de purge de l'historique git d'un dépôt GitHub public, voir §3) ; T16-12 (bug financier/légal — code promo absent du calcul devis/facture, affecte aussi les vraies factures pas seulement les devis) |
+| P1 restants | 3 — T16-03 (navigation catégorie catalogue cassée), T16-09 (validation comptes pro, terrain vierge), T16-11 (perte de session sur nouvel onglet). npm audit frontend react-router open redirect [nécessite migration v7, breaking change non appliqué par prudence] toujours présent. Rotation SMTP_USER/SMTP_PASS legacy (Phase 12 T12-10, = DB-04) confirmée le 2026-09-05. |
+| Verdict | EN PRODUCTION SUR FLY.IO et fonctionnel (jana-frontend.fly.dev / jana-backend.fly.dev), facturation légale complète en théorie (immuable + avoir + devis) mais **T16-12 en remet une partie en cause** (totaux HT/TVA faux dès qu'un code promo est utilisé, y compris sur les vraies factures). Auto-deploy Fly.io actif sur push `develop` (`deploy-flyio.yml`, temporaire — voir T9-08) ; `.github/workflows/deploy.yml` (homeserver) désactivé (2026-09-05, décision propriétaire). **PAS "terminé" pour autant** : DB-04 (P0) réduit à la seule décision de purge de l'historique git (rotation secret déjà faite), 3 validations externes bloquantes (légal, comptable, tests facture), catalogue à peupler, 13 tâches Phase 16 en attente d'exécution. |
 
 ---
 
@@ -1482,6 +1482,87 @@ Checklist complète : `docs/archive/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 - **Détail :** audit complet des 39 fichiers de `docs/`. Contenu corrigé (pas seulement un bandeau) dans les fichiers encore actifs mais partiellement obsolètes : `docs/guides/GUIDE_GMAIL_SMTP.md` (Railway → secrets Fly.io), `docs/workflow/ETAT_ACTUEL_PROJET.md` §2/§3/§4 (verdict/stack/archi pointaient encore vers le homeserver/Railway), `docs/workflow/PLAN_CORRECTION_AUDIT.md` §2 (chemin critique listait des tâches en TODO en réalité DONE/CANCELLED depuis longtemps), `docs/workflow/CLAUDE_WORKFLOW.md` (stack Railway, règle webhook Stripe morte, convention migrations incorrecte), `docs/deploiement/README-CI-CD.md` (`deploy-flyio.yml`, le pipeline réellement actif, n'était pas documenté), root `README.md` et `CLAUDE.md` (affirmaient un déploiement manuel sans CI/CD, alors que `deploy-flyio.yml` redéploie automatiquement à chaque push `develop` depuis le 2026-09-05 — incohérence trouvée en vérifiant l'exécution réelle du pipeline pendant cette session, pas seulement en lisant le texte).
 - **Archivage** (déplacés tels quels vers `docs/archive/`, structure d'origine conservée, liens internes mis à jour) : `docs/audit-finalisation/` (17 fichiers), `docs/deploiement/DEPLOY-HOMESERVER.md`, `docs/deploiement/DEPLOY-RAILWAY.md`, `docs/deploiement/RAILWAY_CONFIG_READY.md`, `docs/guides/GUIDE_BREVO_CONFIGURATION.md`, `docs/checklists/RESTE_A_FAIRE_PROD.md`, `docs/sessions/` (2 fichiers), `docs/workflow/README_AGENTS.md`.
 - **Laissés inchangés (vérifiés à jour, contrairement au doute initial) :** `docs/checklists/CHECKLIST_TEST_LOCAL.md`, `docs/deploiement/DEPLOY-FLYIO.md`, `docs/guides/GUIDE_NOM_DOMAINE*.md`, `docs/produit/*`.
+
+---
+
+## Phase 16 — Deuxième phase de tests utilisateur (2026-09-07)
+
+> 13 problèmes remontés après la Phase 15 (bugs, refonte design, fonctionnalités
+> manquantes). Investigation approfondie effectuée pour chaque point (root cause
+> confirmée par lecture de code, citations fichier:ligne) avant tout correctif —
+> plan d'exécution en attente de validation, voir la conversation. Aucun correctif
+> appliqué à ce stade : toutes les tâches ci-dessous sont TODO.
+
+### T16-01 — Refonte design : pages légales (Accessibilité, Confidentialité, CGV, Mentions légales)
+
+- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** DESIGN
+- **Fichiers :** `frontend/src/pages/AccessibilitePage.jsx` (336 lignes), `CGVPage.jsx` (389), `ConfidentialitePage.jsx` (373), `MentionsLegalesPage.jsx` (319)
+- **Root cause :** les 4 pages partagent une structure copiée-collée pré-refonte (hero `bg-gradient-to-r from-green-600 to-emerald-700`, cartes `rounded-2xl shadow-sm border-gray-100`, animations framer-motion) — zéro occurrence des tokens du design system actuel (`font-display`, `rounded-8`, `sand-200`, `ink-900`). Le contenu juridique lui-même est correct et n'a pas besoin d'être réécrit.
+
+### T16-02 — Créer la page Livraison
+
+- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE + CONTENU
+- **Root cause :** la page n'existe pas du tout — aucune route dans `App.jsx`. `frontend/src/components/Footer.jsx:78` affiche un `<FooterStub>Livraison</FooterStub>` délibérément inerte (commentaire en ligne 18 : "libellé du design sans page correspondante"). À construire : contenu (zones desservies, délais, frais, seuil franco) + route + remplacement du `FooterStub` par un vrai `FooterLink`.
+
+### T16-03 — Navigation catégorie catalogue cassée après le premier clic
+
+- **Statut :** TODO | **Priorité :** P1 | **Catégorie :** CODE (bug)
+- **Root cause confirmée :** `frontend/src/pages/CataloguePage.jsx:64` — `useState(getFiltersFromUrl)` n'exécute son initialiseur qu'au **montage**. Les liens catégorie de `Navbar.jsx` (lignes 254/269/312) pointent tous vers `/catalogue?categorie=X` : React Router met à jour `searchParams` sans démonter `CataloguePage` (même composant déjà monté), donc l'état local `filters` (dont dépend `loadProducts`) ne se resynchronise jamais sur une navigation externe suivante. Seules les interactions internes (clic sur un filtre déjà affiché, `handleFilterChange`) fonctionnent car elles appellent `setFilters` directement. Reproductible depuis n'importe quelle catégorie de départ.
+- **Fichier :** `frontend/src/pages/CataloguePage.jsx`
+
+### T16-04 — Image produit trop grande sur desktop (fiche produit)
+
+- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE (bug)
+- **Root cause confirmée :** `frontend/src/pages/ProductDetailPage.jsx:164` — le conteneur image desktop n'a que `min-h-[450px]`, aucun `max-h-*`/hauteur fixe. La version mobile (ligne 173) a bien `h-[300px]` fixe ; l'oubli du plafond côté desktop est exactement ce qui fait déborder la page sous la ligne de flottaison.
+
+### T16-05 — Miniatures placeholder fantômes sur la fiche produit
+
+- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE (bug)
+- **Root cause confirmée :** `ProductDetailPage.jsx:158-163` — `Array.from({ length: 4 }).map(...)` génère 4 cases vides codées en dur, **pas** une boucle sur de vraies images. Constat plus profond : il n'existe aucun modèle multi-image dans toute l'app — `product.imageUrl` est un champ chaîne unique partout (DB, repository, frontend). Il n'y a donc jamais eu de vraie galerie à masquer partiellement ; c'est du scaffolding de maquette jamais raccordé à de vraies données. **Décision à prendre :** supprimer purement cette rangée de miniatures fictive (correspond à la demande, portée minimale) plutôt que construire un vrai système multi-image (hors périmètre du retour utilisateur, chantier bien plus large).
+
+### T16-06 — Retirer le bloc "service client" de la page d'accueil
+
+- **Statut :** TODO | **Priorité :** P3 | **Catégorie :** CODE
+- **Root cause :** `frontend/src/pages/HomePage.jsx:148` — `<Stat value="6 h – 18 h" label="service client" />`, 4ᵉ enfant d'un conteneur `flex flex-wrap` (ligne 144, pas une grille à colonnes fixes) : suppression sans risque de mise en page pour les 3 autres stats.
+
+### T16-07 — Refonte design : mot de passe oublié / réinitialisation
+
+- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** DESIGN
+- **Fichiers :** `frontend/src/pages/ForgotPasswordPage.jsx` (166 lignes), `ResetPasswordPage.jsx` (278 lignes)
+- **Root cause :** même situation que T16-01 — `bg-white rounded-2xl shadow-xl`, `border-gray-200`, `text-gray-600`, zéro token du design system actuel (à comparer à `LoginPage.jsx`, déjà à jour, 14 occurrences des mêmes tokens). Logique (soumission/chargement/erreur/succès) séparable du balisage.
+
+### T16-08 — Refonte design : tous les emails transactionnels
+
+- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** DESIGN
+- **Fichier :** `backend/src/services/email.service.js` (511 lignes)
+- **Root cause :** un seul point de refonte possible — `getBaseTemplate(content)` (lignes 89-140) est réutilisé par les 6 méthodes d'envoi (`sendOrderStatusEmail`, `sendInvoiceEmail`, `sendQuoteEmail`, `sendPasswordResetEmail`, `sendPasswordChangedEmail`, `sendWelcomeEmail`). HTML inline (pratique correcte pour l'email, pas un problème en soi), couleurs hexadécimales approximant la charte sans lien réel avec les tokens Tailwind du site, police système générique (Segoe UI) au lieu des polices de marque (Archivo/Instrument Sans). Refondre `getBaseTemplate` (en-tête/pied de page/palette/police) couvre la cohérence de marque pour les 6 emails d'un coup ; chaque contenu suit déjà un même schéma (titre → intro → encart info → CTA → note de bas de page), donc répétition mécanique après le premier gabarit.
+
+### T16-09 — Système de validation des comptes professionnels
+
+- **Statut :** TODO | **Priorité :** P1 | **Catégorie :** CODE (fonctionnalité, terrain vierge)
+- **Root cause :** `auth.service.js:113-115` valide seulement le format du SIRET (14 chiffres), aucune vérification d'authenticité, et le compte est actif immédiatement (`est_actif` par défaut `true`, pas de traitement spécial pour `typeClient='PROFESSIONNEL'`). Aucune autre colonne de statut sur `utilisateur`. `AdminClientsList.jsx` n'a qu'une action Bloquer/Activer qui réutilise ce même `est_actif` avec une sémantique de bannissement — l'utiliser aussi pour "en attente de validation" créerait une ambiguïté (un pro bloqué et un pro non-validé seraient indiscernables). **Décision à prendre :** nouvelle colonne/enum de statut dédiée, action admin de validation, et blocage/restriction du compte tant que non validé (checkout ? connexion ?).
+
+### T16-10 — Page "Mes factures" : intégration ou suppression
+
+- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE
+- **Root cause confirmée :** `AccountSidebar.jsx:9-16` (utilisé par `MonComptePage.jsx` pour la disposition avec menu latéral persistant) pointe "Mes factures" vers la route `/mes-factures` — une vraie page à part (`App.jsx:186-188`, enveloppée seulement dans `PublicLayout`), pas un onglet interne comme Adresses/Informations/Sécurité : d'où la sortie brutale du shell Mon Compte que l'utilisateur décrit. `MesFacturesPage.jsx` (88 lignes) est en plus toujours en design pré-refonte. `OrderDetailPage.jsx` (déjà construit en Phase 15) expose déjà Devis et Facture par commande, mais **pas les AVOIR** (avoirs) — supprimer purement `/mes-factures` priverait un client de retélécharger un avoir déjà émis. Comme le remboursement admin est désormais désactivé (T15 récent), plus aucun nouvel avoir ne sera créé — l'impact se limite donc à l'avoir déjà existant en base. **Décision à prendre :** supprimer la page/l'onglet (préférence exprimée par l'utilisateur) avec ou sans ajouter l'affichage AVOIR à `OrderDetailPage.jsx` au préalable.
+
+### T16-11 — Perte de session sur nouvel onglet
+
+- **Statut :** TODO | **Priorité :** P1 | **Catégorie :** CODE (bug)
+- **Root cause confirmée :** `frontend/src/pages/LoginPage.jsx:29` — case "Rester connecté sur cet appareil" **décochée par défaut**. `AuthContext.jsx` transmet ce `rememberMe` tel quel comme argument `persist` à `writeAuthStorage` (`api.js:27-36`) : `persist === false` → écriture dans `sessionStorage` (jamais partagé entre onglets, y compris même origine) au lieu de `localStorage`. `register()` (`AuthContext.jsx:73-81`) n'a même pas de case à cocher : il n'envoie aucun `persist`, et `writeAuthStorage` retombe sur "localStorage a-t-il déjà cette clé ?" — faux sur un navigateur neuf → atterrit aussi dans `sessionStorage`. Résultat : sans cocher explicitement la case, **toute** connexion (register ou login par défaut) ne vit que dans `sessionStorage` — d'où un nouvel onglet toujours déconnecté (y compris après F5, puisqu'il n'a jamais eu de session), alors que l'onglet d'origine (même `sessionStorage`, même onglet) survit à un F5. **Décision à prendre :** basculer par défaut sur `localStorage` pour login/register (recommandé, comportement attendu par la quasi-totalité des utilisateurs), ou inverser la valeur par défaut de la case à cocher.
+
+### T16-12 — Code promo absent du devis/facture + affichage de l'usage d'un code promo
+
+- **Statut :** TODO | **Priorité :** P0 | **Catégorie :** CODE (bug financier/légal)
+- **Root cause confirmée :** `backend/src/services/invoice.service.js#_buildLignesAndTotals` (lignes 25-102, partagée par `generateForOrder()` **et** `generateQuoteForOrder()`) recalcule HT/TVA/TTC en re-sommant les lignes de commande, sans jamais lire `commande.montant_rabais` ni `commande.code_promo_id`. **Ce bug touche donc aussi bien les vraies factures que les devis**, pas seulement le devis. Côté commande elle-même (`order.service.js#createOrder`, lignes 104-210), `total_ht`/`total_tva` sont figés *avant* application du code promo, et seul `total_ttc` est ensuite écrasé par le montant après rabais (sans jamais redécomposer HT/TVA en conséquence) — un troisième nombre, différent à la fois du devis/facture et de la réalité. Trois totaux différents pour la même commande.
+- **Affichage de l'usage promo :** absent à la fois sur `OrderConfirmationPage.jsx` (client) et `AdminOrderDetail.jsx` (admin) — mais `order.montantRabais`/`order.codePromoId`/`order.totalAvantRabais` sont déjà exposés par `order.repository.js` (lignes 833-835) sur l'objet commande que ces deux pages reçoivent déjà : ajout uniquement frontend, aucun travail backend supplémentaire nécessaire pour cette partie.
+- **Fichiers :** `backend/src/services/invoice.service.js`, `backend/src/services/order.service.js`, `frontend/src/pages/OrderConfirmationPage.jsx`, `frontend/src/pages/admin/AdminOrderDetail.jsx`
+
+### T16-13 — Liste récurrente : bouton "Enregistrer" non fonctionnel
+
+- **Statut :** TODO | **Priorité :** P3 | **Catégorie :** CODE (fonctionnalité, terrain vierge)
+- **Root cause confirmée :** `CartPage.jsx:231-233` — bouton `disabled`, `title="Bientôt disponible"`, aucun `onClick`. Recherche exhaustive côté backend (`recurrent|liste_produit|favori|wishlist`) : aucun résultat, rien n'existe. `AccountSidebar.jsx:11` a déjà une entrée "Mes listes récurrentes" avec le même statut désactivé — à construire ensemble. Nécessite : nouvelle table (liste + éléments), repository/service/routes, et le frontend (bouton d'enregistrement, écran de gestion des listes, ré-ajout au panier).
 
 ---
 
