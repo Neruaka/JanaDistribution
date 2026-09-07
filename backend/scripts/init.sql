@@ -100,6 +100,11 @@ CREATE TABLE utilisateur (
   accepte_newsletter BOOLEAN NOT NULL DEFAULT false,
   notifications_commandes BOOLEAN NOT NULL DEFAULT true,
   est_actif BOOLEAN NOT NULL DEFAULT true,
+  -- Validation compte pro (migration 0015, T16-09) : NON_APPLICABLE pour un
+  -- particulier, EN_ATTENTE a l'inscription d'un compte PROFESSIONNEL
+  -- (checkout bloque tant que non VALIDE par un admin).
+  statut_validation_pro VARCHAR(20) NOT NULL DEFAULT 'NON_APPLICABLE'
+    CHECK (statut_validation_pro IN ('NON_APPLICABLE', 'EN_ATTENTE', 'VALIDE')),
   reset_token VARCHAR(255),
   reset_token_expiry TIMESTAMP,
   date_creation TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
