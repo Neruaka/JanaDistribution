@@ -157,6 +157,11 @@ const adminService = {
     const response = await api.patch(`/admin/clients/${id}/toggle-status`);
     return response.data;
   },
+
+  async validerComptePro(id) {
+    const response = await api.patch(`/admin/clients/${id}/valider-pro`);
+    return response.data;
+  },
   
   /**
    * Supprimer un client (anonymisation RGPD)

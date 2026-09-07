@@ -3,13 +3,11 @@
  * @description Ecran A7 — Clients
  * @see design_handoff_jana_refonte/README.md (A7 — Clients)
  *
- * La maquette prevoit un statut "SIRET a valider" et un KPI "En attente de
- * validation" : aucun workflow de validation SIRET n'existe (juste une
- * contrainte NOT NULL en base), et le KPI "CA moyen" n'est pas expose par
- * l'API. Remplaces par 2 KPI reels (Particuliers, Bloques) plutot que
- * fabriques. Le detail client reste une modale (aucun ecran dedie dans la
- * maquette A1-A8), mais lit desormais ?clientId= pour honorer le lien
- * "Voir la fiche client" pose depuis A3.
+ * Le detail client reste une modale (aucun ecran dedie dans la maquette
+ * A1-A8), mais lit desormais ?clientId= pour honorer le lien "Voir la
+ * fiche client" pose depuis A3. Le statut "SIRET a valider"/"En attente de
+ * validation" (T16-09) est desormais un vrai workflow (statut_validation_pro),
+ * plus une contrainte NOT NULL sans verification.
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -114,6 +112,18 @@ const AdminClientsList = () => {
     setOpenMenu(null);
   };
 
+  const handleValiderPro = async (client) => {
+    try {
+      await adminService.validerComptePro(client.id);
+      toast.success('Compte professionnel validé');
+      loadClients(pagination.page);
+      if (selectedClient?.id === client.id) setSelectedClient((prev) => ({ ...prev, statutValidationPro: 'VALIDE' }));
+    } catch (error) {
+      toast.error('Erreur lors de la validation');
+    }
+    setOpenMenu(null);
+  };
+
   const handleDeleteConfirm = async () => {
     if (!clientToDelete) return;
     try {
@@ -161,11 +171,12 @@ const AdminClientsList = () => {
         </div>
 
         {stats && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
             <KPI label="Comptes actifs" value={stats.actifs} />
             <KPI label="Professionnels" value={stats.professionnels} />
             <KPI label="Particuliers" value={stats.particuliers} />
             <KPI label="Bloqués" value={bloques} />
+            <KPI label="Pros en attente" value={stats.prosEnAttente || 0} />
           </div>
         )}
 
@@ -202,9 +213,14 @@ const AdminClientsList = () => {
                 </span>
                 <span className="font-mono text-[13px] text-graphite-600 text-center">{client.nbCommandes || 0}</span>
                 <span className="font-mono text-[13.5px] text-ink-900 text-right">{formatMoney(client.caTotal)}</span>
-                <span className={`w-fit text-[12px] font-semibold px-2 py-[3px] rounded-4 ${client.estActif ? 'bg-success-bg text-success-text' : 'bg-danger-bg text-danger-text'}`}>
-                  {client.estActif ? 'Actif' : 'Bloqué'}
-                </span>
+                <div className="flex flex-col gap-1 items-start">
+                  <span className={`w-fit text-[12px] font-semibold px-2 py-[3px] rounded-4 ${client.estActif ? 'bg-success-bg text-success-text' : 'bg-danger-bg text-danger-text'}`}>
+                    {client.estActif ? 'Actif' : 'Bloqué'}
+                  </span>
+                  {client.statutValidationPro === 'EN_ATTENTE' && (
+                    <span className="w-fit text-[11px] font-semibold px-2 py-[2px] rounded-4 bg-warning-bg text-warning-text">En attente</span>
+                  )}
+                </div>
                 <div className="relative flex justify-end">
                   <button type="button" onClick={() => setOpenMenu(openMenu === client.id ? null : client.id)} className="p-1.5 text-graphite-300 hover:text-ink-900 transition-colors">⋯</button>
                   {openMenu === client.id && (
@@ -213,6 +229,9 @@ const AdminClientsList = () => {
                       <div className="absolute right-0 top-full mt-1 w-44 bg-white border border-sand-200 rounded-6 shadow-modal py-1 z-50">
                         <button type="button" onClick={() => handleViewDetail(client)} className="w-full text-left px-3.5 py-2 text-[13px] text-ink-900 hover:bg-sand-50">Voir le profil</button>
                         <button type="button" onClick={() => handleToggleStatus(client)} className="w-full text-left px-3.5 py-2 text-[13px] text-ink-900 hover:bg-sand-50">{client.estActif ? 'Bloquer' : 'Activer'}</button>
+                        {client.statutValidationPro === 'EN_ATTENTE' && (
+                          <button type="button" onClick={() => handleValiderPro(client)} className="w-full text-left px-3.5 py-2 text-[13px] text-success-text hover:bg-sand-50">Valider ce compte pro</button>
+                        )}
                         <hr className="my-1 border-sand-150" />
                         <button type="button" onClick={() => { setClientToDelete(client); setShowDeleteModal(true); setOpenMenu(null); }} className="w-full text-left px-3.5 py-2 text-[13px] text-danger-text hover:bg-danger-bg">Supprimer</button>
                       </div>
@@ -244,6 +263,9 @@ const AdminClientsList = () => {
                     <span className={`text-[10.5px] font-semibold px-1.5 py-[1px] rounded-4 ${client.estActif ? 'bg-success-bg text-success-text' : 'bg-danger-bg text-danger-text'}`}>
                       {client.estActif ? 'Actif' : 'Bloqué'}
                     </span>
+                    {client.statutValidationPro === 'EN_ATTENTE' && (
+                      <span className="block mt-0.5 text-[10.5px] font-semibold px-1.5 py-[1px] rounded-4 bg-warning-bg text-warning-text">En attente</span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -284,6 +306,9 @@ const AdminClientsList = () => {
                       <span className={`text-[12px] font-semibold px-2 py-[3px] rounded-4 ${selectedClient.estActif ? 'bg-success-bg text-success-text' : 'bg-danger-bg text-danger-text'}`}>
                         {selectedClient.estActif ? 'Actif' : 'Bloqué'}
                       </span>
+                      {selectedClient.statutValidationPro === 'EN_ATTENTE' && (
+                        <span className="text-[12px] font-semibold px-2 py-[3px] rounded-4 bg-warning-bg text-warning-text">En attente de validation</span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -360,6 +385,16 @@ const AdminClientsList = () => {
                       ))}
                     </div>
                   </div>
+                )}
+
+                {selectedClient.statutValidationPro === 'EN_ATTENTE' && (
+                  <button
+                    type="button"
+                    onClick={() => handleValiderPro(selectedClient)}
+                    className="w-full text-[13.5px] font-semibold py-2.5 rounded-6 bg-success-bg text-success-text hover:opacity-90 transition-colors"
+                  >
+                    Valider ce compte professionnel
+                  </button>
                 )}
 
                 <div className="flex gap-2.5 pt-2 border-t border-sand-150">
