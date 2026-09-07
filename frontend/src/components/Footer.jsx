@@ -67,7 +67,7 @@ const Footer = () => {
           <div className="flex flex-col gap-[11px]">
             <div className="text-[11px] tracking-wide text-mist-4 uppercase">Mon compte</div>
             <FooterLink to="/mes-commandes">Mes commandes</FooterLink>
-            <FooterStub>Mes listes récurrentes</FooterStub>
+            <FooterLink to="/mes-listes-recurrentes">Mes listes récurrentes</FooterLink>
             <FooterLink to="/mon-compte">Adresses de livraison</FooterLink>
           </div>
 

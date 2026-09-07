@@ -8,12 +8,14 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { AlertTriangle, Loader2, RefreshCw, Tag, X } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useSettings } from '../contexts/SettingsContext';
 import CartItem from '../components/CartItem';
 import productService from '../services/productService';
 import { validerCodePromo } from '../services/promoService';
+import listeRecurrenteService from '../services/listeRecurrenteService';
 import { getImageUrl } from '../utils/imageUtils';
 import { formatAmount } from '../utils/priceUtils';
 
@@ -113,6 +115,26 @@ const CartPage = () => {
   const handleClearCart = async () => {
     if (window.confirm('Êtes-vous sûr de vouloir vider votre panier ?')) {
       await clearCart();
+    }
+  };
+
+  const [savingListe, setSavingListe] = useState(false);
+  const [showSaveListeModal, setShowSaveListeModal] = useState(false);
+  const [nomListe, setNomListe] = useState('');
+
+  const handleConfirmSaveListe = async (e) => {
+    e.preventDefault();
+    if (!nomListe.trim()) return;
+    setSavingListe(true);
+    try {
+      await listeRecurrenteService.creerDepuisPanier(nomListe.trim());
+      toast.success('Liste récurrente enregistrée');
+      setShowSaveListeModal(false);
+      setNomListe('');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Erreur lors de l\'enregistrement de la liste');
+    } finally {
+      setSavingListe(false);
     }
   };
 
@@ -228,7 +250,12 @@ const CartPage = () => {
             <button onClick={handleClearCart} className="text-[13px] text-graphite-200 hover:text-danger-text transition-colors">
               Vider le panier
             </button>
-            <button disabled title="Bientôt disponible" className="text-[13px] font-semibold text-graphite-300 cursor-not-allowed">
+            <button
+              type="button"
+              onClick={() => setShowSaveListeModal(true)}
+              disabled={isEmpty}
+              className="text-[13px] font-semibold text-ink-900 hover:text-green-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
               Enregistrer comme liste récurrente
             </button>
           </div>
@@ -354,6 +381,32 @@ const CartPage = () => {
           Valider ma commande
         </button>
       </div>
+
+      {showSaveListeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay-desktop" onClick={() => setShowSaveListeModal(false)}>
+          <form onSubmit={handleConfirmSaveListe} onClick={(e) => e.stopPropagation()} className="bg-white rounded-10 shadow-modal max-w-[400px] w-full p-5 flex flex-col gap-4">
+            <div>
+              <h2 className="font-display text-[16px] font-bold text-ink-900">Enregistrer comme liste récurrente</h2>
+              <p className="text-[12.5px] text-graphite-500 mt-1">Les {items.length} référence{items.length > 1 ? 's' : ''} de ce panier seront réutilisables en un clic.</p>
+            </div>
+            <input
+              type="text"
+              autoFocus
+              value={nomListe}
+              onChange={(e) => setNomListe(e.target.value)}
+              placeholder="Ex. Commande hebdo restaurant"
+              maxLength={100}
+              className="border border-sand-250 rounded-6 px-3.5 py-2.5 text-[13.5px] text-ink-900 outline-none focus:border-green-700"
+            />
+            <div className="flex gap-2.5">
+              <button type="button" onClick={() => setShowSaveListeModal(false)} className="flex-1 border border-sand-250 text-graphite-700 text-[13.5px] font-semibold py-2.5 rounded-6 hover:border-sand-300 transition-colors">Annuler</button>
+              <button type="submit" disabled={savingListe || !nomListe.trim()} className="flex-1 bg-green-700 hover:bg-green-800 disabled:opacity-60 text-white text-[13.5px] font-semibold py-2.5 rounded-6 transition-colors">
+                {savingListe ? 'Enregistrement…' : 'Enregistrer'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 };

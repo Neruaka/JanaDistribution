@@ -35,6 +35,7 @@ import CheckoutPage from './pages/CheckoutPage';
 import OrderConfirmationPage from './pages/OrderConfirmationPage';
 import OrderHistoryPage from './pages/OrderHistoryPage';
 import OrderDetailPage from './pages/OrderDetailPage';
+import MesListesRecurrentesPage from './pages/MesListesRecurrentesPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 
@@ -179,6 +180,13 @@ function App() {
               <PrivateRoute>
                 <PublicLayout>
                   <OrderDetailPage />
+                </PublicLayout>
+              </PrivateRoute>
+            } />
+            <Route path="/mes-listes-recurrentes" element={
+              <PrivateRoute>
+                <PublicLayout>
+                  <MesListesRecurrentesPage />
                 </PublicLayout>
               </PrivateRoute>
             } />
