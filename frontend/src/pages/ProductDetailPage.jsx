@@ -161,7 +161,10 @@ const ProductDetailPage = () => {
                 <div key={i} className={`h-[84px] rounded-6 placeholder-stripe ${i === 0 ? 'border-2 border-ink-900' : 'border border-sand-250'}`} />
               ))}
             </div>
-            <div className="min-h-[450px] rounded-8 border border-sand-200 placeholder-stripe flex items-end p-3.5 overflow-hidden">
+            {/* T16-04 : hauteur plafonnée (max-h-420px + aspect-square) pour
+                tenir sans scroll sur un écran desktop standard — le
+                conteneur n'avait avant que min-h-[450px], sans plafond. */}
+            <div className="max-h-[420px] aspect-square rounded-8 border border-sand-200 placeholder-stripe flex items-end p-3.5 overflow-hidden">
               {fullImageUrl ? (
                 <img src={fullImageUrl} alt={product.nom} className="w-full h-full object-cover" />
               ) : (

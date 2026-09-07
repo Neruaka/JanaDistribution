@@ -1513,8 +1513,8 @@ Checklist complète : `docs/archive/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 
 ### T16-04 — Image produit trop grande sur desktop (fiche produit)
 
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE (bug)
-- **Root cause confirmée :** `frontend/src/pages/ProductDetailPage.jsx:164` — le conteneur image desktop n'a que `min-h-[450px]`, aucun `max-h-*`/hauteur fixe. La version mobile (ligne 173) a bien `h-[300px]` fixe ; l'oubli du plafond côté desktop est exactement ce qui fait déborder la page sous la ligne de flottaison.
+- **Statut :** DONE (2026-09-07) | **Priorité :** P2 | **Catégorie :** CODE (bug)
+- **Root cause confirmée :** `frontend/src/pages/ProductDetailPage.jsx:164` — le conteneur image desktop n'avait que `min-h-[450px]`, aucun `max-h-*`. **Correctif :** `max-h-[420px] aspect-square`. Vérifié en navigateur (fiche produit tient sans scroll).
 
 ### T16-05 — Miniatures placeholder fantômes sur la fiche produit
 
