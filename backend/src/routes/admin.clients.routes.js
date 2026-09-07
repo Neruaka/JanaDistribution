@@ -12,6 +12,7 @@ const { authenticate, isAdmin } = require('../middlewares/auth.middleware');
 const validate = require('../middlewares/validate.middleware');
 const { query: dbQuery, getClient } = require('../config/database');
 const auditRepository = require('../repositories/audit.repository');
+const emailService = require('../services/email.service');
 const logger = require('../config/logger');
 
 // Toutes les routes nécessitent d'être admin
@@ -137,6 +138,7 @@ router.get('/',
           u.siret,
           u.numero_tva,
           u.est_actif,
+          u.statut_validation_pro,
           u.date_creation,
           u.derniere_connexion,
           COUNT(c.id) as nb_commandes,
@@ -163,7 +165,8 @@ router.get('/',
           COUNT(*) as total,
           COUNT(*) FILTER (WHERE type_client = 'PARTICULIER') as particuliers,
           COUNT(*) FILTER (WHERE type_client = 'PROFESSIONNEL') as professionnels,
-          COUNT(*) FILTER (WHERE est_actif = true) as actifs
+          COUNT(*) FILTER (WHERE est_actif = true) as actifs,
+          COUNT(*) FILTER (WHERE statut_validation_pro = 'EN_ATTENTE') as pros_en_attente
         FROM utilisateur
         WHERE role = 'CLIENT'
       `;
@@ -185,6 +188,7 @@ router.get('/',
         siret: row.siret,
         numeroTva: row.numero_tva,
         estActif: row.est_actif,
+        statutValidationPro: row.statut_validation_pro,
         dateCreation: row.date_creation,
         derniereConnexion: row.derniere_connexion,
         nbCommandes: parseInt(row.nb_commandes) || 0,
@@ -207,7 +211,8 @@ router.get('/',
           total: parseInt(statsRow.total) || 0,
           particuliers: parseInt(statsRow.particuliers) || 0,
           professionnels: parseInt(statsRow.professionnels) || 0,
-          actifs: parseInt(statsRow.actifs) || 0
+          actifs: parseInt(statsRow.actifs) || 0,
+          prosEnAttente: parseInt(statsRow.pros_en_attente) || 0
         }
       });
     } catch (error) {
@@ -263,6 +268,7 @@ router.get('/:id',
         siret: row.siret,
         numeroTva: row.numero_tva,
         estActif: row.est_actif,
+        statutValidationPro: row.statut_validation_pro,
         dateCreation: row.date_creation,
         derniereConnexion: row.derniere_connexion,
         nbCommandes: parseInt(row.nb_commandes) || 0,
@@ -446,6 +452,68 @@ router.patch('/:id/toggle-status',
       });
     } catch (error) {
       logger.error('Erreur toggle status client', { error: error.message });
+      next(error);
+    }
+  }
+);
+
+/**
+ * @route   PATCH /api/admin/clients/:id/valider-pro
+ * @desc    Valider un compte professionnel en attente (T16-09) - debloque le checkout
+ * @access  Admin
+ */
+router.patch('/:id/valider-pro',
+  [param('id').isUUID()],
+  validate,
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+
+      const sql = `
+        UPDATE utilisateur
+        SET statut_validation_pro = 'VALIDE', date_modification = NOW()
+        WHERE id = $1 AND role = 'CLIENT' AND type_client = 'PROFESSIONNEL' AND statut_validation_pro != 'VALIDE'
+        RETURNING id, nom, prenom, email, statut_validation_pro
+      `;
+
+      const result = await dbQuery(sql, [id]);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Client professionnel non trouvé ou déjà validé'
+        });
+      }
+
+      const client = result.rows[0];
+
+      logger.info('Compte professionnel validé', { clientId: id });
+
+      auditRepository.log({
+        action: 'CLIENT_VALIDER_PRO',
+        entiteType: 'utilisateur',
+        entiteId: id,
+        utilisateurId: req.user.id,
+        details: { statutValidationPro: client.statut_validation_pro },
+        ipAddress: req.ip
+      }).catch(err => logger.warn('Audit log non enregistré:', err.message));
+
+      emailService.sendProAccountValidatedEmail({ email: client.email, prenom: client.prenom, nom: client.nom })
+        .catch(err => logger.error('Erreur envoi email validation pro:', err.message));
+
+      res.json({
+        success: true,
+        message: 'Compte professionnel validé avec succès',
+        data: {
+          id: client.id,
+          nom: client.nom,
+          prenom: client.prenom,
+          email: client.email,
+          statutValidationPro: client.statut_validation_pro
+        }
+      });
+    } catch (error) {
+      logger.error('Erreur validation compte pro', { error: error.message });
       next(error);
     }
   }

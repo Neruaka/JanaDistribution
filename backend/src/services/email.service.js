@@ -501,6 +501,39 @@ class EmailService {
       html: this.getBaseTemplate(content)
     });
   }
+
+  /**
+   * Email de notification - compte professionnel validé (T16-09)
+   */
+  async sendProAccountValidatedEmail(user) {
+    const content = `
+      <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px;">
+        Votre compte professionnel est validé !
+      </h2>
+
+      <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+        Bonjour ${user.prenom || user.nom},
+      </p>
+
+      <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+        Bonne nouvelle : votre compte professionnel vient d'etre verifie et valide par notre equipe. Vous pouvez desormais passer commande normalement.
+      </p>
+
+      <!-- CTA Button -->
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/catalogue"
+           style="display: inline-block; background-color: #22C55E; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+          Passer commande
+        </a>
+      </div>
+    `;
+
+    return this.sendMail({
+      to: user.email,
+      subject: 'Votre compte professionnel Jana Distribution est validé',
+      html: this.getBaseTemplate(content)
+    });
+  }
 }
 
 // Singleton
