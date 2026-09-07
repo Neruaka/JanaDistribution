@@ -145,7 +145,6 @@ const HomePage = () => {
             <Stat value={totalReferences ? totalReferences.toLocaleString('fr-FR') : '—'} label="références" />
             <Stat value="24–48 h" label="livraison" />
             <Stat value={`${minStat} €`} label="minimum HT" />
-            <Stat value="6 h – 18 h" label="service client" />
           </div>
         </div>
 

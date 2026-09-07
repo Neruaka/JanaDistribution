@@ -1523,8 +1523,8 @@ Checklist complète : `docs/archive/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 
 ### T16-06 — Retirer le bloc "service client" de la page d'accueil
 
-- **Statut :** TODO | **Priorité :** P3 | **Catégorie :** CODE
-- **Root cause :** `frontend/src/pages/HomePage.jsx:148` — `<Stat value="6 h – 18 h" label="service client" />`, 4ᵉ enfant d'un conteneur `flex flex-wrap` (ligne 144, pas une grille à colonnes fixes) : suppression sans risque de mise en page pour les 3 autres stats.
+- **Statut :** DONE (2026-09-07) | **Priorité :** P3 | **Catégorie :** CODE
+- **Root cause :** `frontend/src/pages/HomePage.jsx:148` — `<Stat value="6 h – 18 h" label="service client" />`, 4ᵉ enfant d'un conteneur `flex flex-wrap`. **Correctif :** ligne supprimée. Vérifié en navigateur.
 
 ### T16-07 — Refonte design : mot de passe oublié / réinitialisation
 
