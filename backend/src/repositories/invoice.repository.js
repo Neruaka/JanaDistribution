@@ -8,21 +8,22 @@ class InvoiceRepository {
     return `${prefix}-${year}-${seq}`;
   }
 
-  async create({ numero, commandeId, utilisateurId, clientSnapshot, entrepriseSnapshot, totaux, type = 'FACTURE' }) {
+  async create({ numero, commandeId, utilisateurId, clientSnapshot, entrepriseSnapshot, totaux, type = 'FACTURE', remise = null }) {
     const result = await query(
       `INSERT INTO facture
          (numero, commande_id, utilisateur_id,
           client_nom, client_email, client_adresse,
           entreprise_nom, entreprise_siret, entreprise_tva_numero, entreprise_adresse,
-          total_ht, total_tva, total_ttc, type)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+          total_ht, total_tva, total_ttc, type, remise_montant, remise_code)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
        RETURNING *`,
       [
         numero, commandeId, utilisateurId,
         clientSnapshot.nom, clientSnapshot.email, clientSnapshot.adresse,
         entrepriseSnapshot.nom, entrepriseSnapshot.siret,
         entrepriseSnapshot.tvaNumero, entrepriseSnapshot.adresse,
-        totaux.ht, totaux.tva, totaux.ttc, type
+        totaux.ht, totaux.tva, totaux.ttc, type,
+        remise?.montant ?? null, remise?.code ?? null
       ]
     );
     return result.rows[0];

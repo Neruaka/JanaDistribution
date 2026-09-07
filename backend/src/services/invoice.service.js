@@ -31,9 +31,10 @@ class InvoiceService {
     // courante du profil utilisateur serait de toute façon incorrect si le
     // client l'a modifiée depuis.
     const cmdResult = await query(
-      `SELECT c.*, u.prenom, u.nom AS client_nom_famille, u.email
+      `SELECT c.*, u.prenom, u.nom AS client_nom_famille, u.email, cp.code AS code_promo_texte
        FROM commande c
        JOIN utilisateur u ON u.id = c.utilisateur_id
+       LEFT JOIN code_promo cp ON cp.id = c.code_promo_id
        WHERE c.id = $1`,
       [commandeId]
     );
@@ -96,9 +97,33 @@ class InvoiceService {
 
     totalHt = Math.round(totalHt * 100) / 100;
     totalTva = Math.round(totalTva * 100) / 100;
-    const totalTtc = Math.round((totalHt + totalTva) * 100) / 100;
 
-    return { commande, adresseLivraison, lignes, totalHt, totalTva, totalTtc };
+    // Code promo (T16-12) : commande.montant_rabais/total_avant_rabais sont
+    // calcules par order.service.js#createOrder sur le total TTC combine
+    // (produits + livraison, voir promo.service.js#_calculerRabais). On
+    // applique le meme ratio de reduction aux totaux HT/TVA des lignes
+    // produits (pour que la ventilation TVA affichee reste cohérente), et on
+    // affiche le montant COMPLET de la remise (montant_rabais, qui couvre
+    // aussi la part livraison) plutot qu'une valeur partielle recalculee.
+    const montantRabais = parseFloat(commande.montant_rabais) || 0;
+    const totalAvantRabais = parseFloat(commande.total_avant_rabais) || 0;
+    let remise = null;
+    if (montantRabais > 0) {
+      const ratio = totalAvantRabais > 0 ? montantRabais / totalAvantRabais : 0;
+      totalHt = Math.round(totalHt * (1 - ratio) * 100) / 100;
+      totalTva = Math.round(totalTva * (1 - ratio) * 100) / 100;
+      remise = { montant: montantRabais, code: commande.code_promo_texte || null };
+    }
+
+    // Total TTC = le montant reellement du par le client. On reprend
+    // directement commande.total_ttc (source de verite deja calculee par
+    // order.service.js, livraison + remise incluses) plutot que de re-sommer
+    // totalHt+totalTva : la livraison n'etant pas ventilee HT/TVA sur ce
+    // document, une simple somme des lignes produits ne refleterait pas le
+    // montant reel des qu'il y a des frais de livraison payants.
+    const totalTtc = Math.round(parseFloat(commande.total_ttc) * 100) / 100;
+
+    return { commande, adresseLivraison, lignes, totalHt, totalTva, totalTtc, remise };
   }
 
   async generateForOrder(commandeId) {
@@ -113,7 +138,7 @@ class InvoiceService {
       return existing;
     }
 
-    const { commande, adresseLivraison, lignes: lignesFacture, totalHt, totalTva, totalTtc } =
+    const { commande, adresseLivraison, lignes: lignesFacture, totalHt, totalTva, totalTtc, remise } =
       await this._buildLignesAndTotals(commandeId);
 
     const numero = await invoiceRepository.getNextNumber();
@@ -132,6 +157,7 @@ class InvoiceService {
           ].filter(Boolean).join(', ')
           : null
       },
+      remise,
       entrepriseSnapshot: ENTREPRISE,
       totaux: { ht: totalHt, tva: totalTva, ttc: totalTtc }
     });
@@ -176,7 +202,7 @@ class InvoiceService {
       return existing;
     }
 
-    const { commande, adresseLivraison, lignes, totalHt, totalTva, totalTtc } =
+    const { commande, adresseLivraison, lignes, totalHt, totalTva, totalTtc, remise } =
       await this._buildLignesAndTotals(commandeId);
 
     const numero = await invoiceRepository.getNextNumber('DEV');
@@ -196,6 +222,7 @@ class InvoiceService {
           ].filter(Boolean).join(', ')
           : null
       },
+      remise,
       entrepriseSnapshot: ENTREPRISE,
       totaux: { ht: totalHt, tva: totalTva, ttc: totalTtc },
       type: 'DEVIS'

@@ -64,12 +64,20 @@ async function generateInvoicePDF(facture) {
     doc.moveTo(50, y).lineTo(545, y).stroke();
     y += 10;
 
-    // Totaux
+    // Totaux (deja nets de remise le cas echeant, voir T16-12 — total_ht/
+    // total_tva/total_ttc integrent deja la remise, remise_montant n'est
+    // affiche ici que pour la transparence du calcul).
     doc.font('Helvetica').fontSize(9);
     doc.text(`Total HT : ${parseFloat(facture.total_ht).toFixed(2)} €`, col.tva, y, { align: 'right', width: 145 });
     y += 15;
     doc.text(`TVA : ${parseFloat(facture.total_tva).toFixed(2)} €`, col.tva, y, { align: 'right', width: 145 });
     y += 15;
+    if (facture.remise_montant && parseFloat(facture.remise_montant) > 0) {
+      const libelleRemise = facture.remise_code ? `Remise (code ${facture.remise_code})` : 'Remise';
+      doc.fillColor('#B45309').text(`${libelleRemise} : -${parseFloat(facture.remise_montant).toFixed(2)} €`, col.tva, y, { align: 'right', width: 145 });
+      doc.fillColor('black');
+      y += 15;
+    }
     doc.font('Helvetica-Bold').fontSize(10);
     doc.text(`TOTAL ${isAvoir ? 'AVOIR' : isDevis ? 'ESTIMÉ' : 'TTC'} : ${parseFloat(facture.total_ttc).toFixed(2)} €`, col.tva, y, { align: 'right', width: 145 });
 
