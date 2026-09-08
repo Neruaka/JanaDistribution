@@ -17,7 +17,6 @@ import { usePriceMode } from '../contexts/PriceModeContext';
 import { getImageUrl } from '../utils/imageUtils';
 import { getDisplayPrice, formatAmount } from '../utils/priceUtils';
 import ProductCard from '../components/ProductCard';
-import ProductImageFrame from '../components/ProductImageFrame';
 
 const LABEL_TEXT = {
   BIO: 'BIO',
@@ -97,8 +96,8 @@ const ProductDetailPage = () => {
   if (loading) {
     return (
       <div className="bg-sand-50 min-h-screen px-4 md:px-10 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_430px] gap-9 animate-pulse">
-          <div className="h-[450px] bg-sand-100 rounded-8" />
+        <div className="grid grid-cols-1 md:grid-cols-[637px_430px] md:justify-center gap-9 animate-pulse">
+          <div className="h-[450px] md:h-[637px] bg-sand-100 rounded-8" />
           <div className="space-y-4">
             <div className="h-4 w-1/3 bg-sand-100 rounded" />
             <div className="h-8 w-2/3 bg-sand-100 rounded" />
@@ -153,7 +152,7 @@ const ProductDetailPage = () => {
         <span className="text-ink-900">{product.nom}</span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-[1fr_430px] gap-9 px-4 md:px-10 pt-7 pb-[34px]">
+      <div className="grid grid-cols-1 md:grid-cols-[637px_430px] md:justify-center gap-9 px-4 md:px-10 pt-7 pb-[34px]">
         {/* Colonne galerie + onglets */}
         <div className="flex flex-col gap-[22px]">
           {/* T16-05 : plus de rangée de vignettes — aucun système multi-image
@@ -162,7 +161,7 @@ const ProductDetailPage = () => {
               données. */}
           <div className="hidden md:block md:w-[637px] md:h-[637px] rounded-8 border border-sand-200 placeholder-stripe overflow-hidden">
             {fullImageUrl ? (
-              <ProductImageFrame src={fullImageUrl} alt={product.nom} className="w-full h-full object-contain" />
+              <img src={fullImageUrl} alt={product.nom} className="w-full h-full object-contain" />
             ) : (
               <div className="w-full h-full flex items-end p-3.5">
                 <span className="font-mono text-[11px] text-graphite-300">photo produit — 1200 × 1200, fond neutre</span>
@@ -172,7 +171,7 @@ const ProductDetailPage = () => {
           {/* Mobile : image unique 300px, sans bandeau de vignettes (pas de galerie multi-photos reelle) */}
           <div className="md:hidden h-[300px] rounded-8 border border-sand-200 placeholder-stripe flex items-end p-3.5 overflow-hidden">
             {fullImageUrl ? (
-              <ProductImageFrame src={fullImageUrl} alt={product.nom} className="w-full h-full object-contain" />
+              <img src={fullImageUrl} alt={product.nom} className="w-full h-full object-contain" />
             ) : (
               <span className="font-mono text-[11px] text-graphite-300">photo produit — 1200 × 1200, fond neutre</span>
             )}
