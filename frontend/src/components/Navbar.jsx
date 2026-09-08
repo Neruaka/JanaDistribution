@@ -64,15 +64,21 @@ const Navbar = () => {
   return (
     <header className="sticky top-0 z-50 bg-white font-sans">
       {/* Bande 1 — barre utilitaire */}
-      <div className="hidden md:flex items-center justify-between h-[38px] px-10 bg-ink-900 text-[12.5px] text-mist-2">
-        <div className="flex items-center gap-7">
-          <span>Livraison 24–48 h en Île-de-France</span>
-          <span className="text-ink-500">|</span>
-          <span>Commande minimum 50 € HT</span>
-          <span className="text-ink-500">|</span>
-          <span>Créneaux confirmés par téléphone</span>
+      <div className="hidden md:flex items-center justify-between h-[38px] px-10 bg-ink-900 text-[12.5px] text-mist">
+        <div className="flex-1 min-w-0 overflow-hidden mr-8">
+          <div className="flex w-max marquee-track">
+            {[0, 1].map((dup) => (
+              <div key={dup} className="flex items-center gap-7 pr-7" aria-hidden={dup === 1}>
+                <span>Livraison 24–48 h en Île-de-France</span>
+                <span className="text-mist-3">|</span>
+                <span>Commande minimum 50 € HT</span>
+                <span className="text-mist-3">|</span>
+                <span>Créneaux confirmés par téléphone</span>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="flex items-center gap-[22px]">
+        <div className="flex items-center gap-[22px] flex-shrink-0">
           {telephoneSite && (
             <a href={`tel:${telephoneSite.replace(/\s/g, '')}`} className="font-mono text-mist-2 hover:text-white">
               {telephoneSite}
