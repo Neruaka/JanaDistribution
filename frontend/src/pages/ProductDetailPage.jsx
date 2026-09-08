@@ -17,6 +17,7 @@ import { usePriceMode } from '../contexts/PriceModeContext';
 import { getImageUrl } from '../utils/imageUtils';
 import { getDisplayPrice, formatAmount } from '../utils/priceUtils';
 import ProductCard from '../components/ProductCard';
+import ProductImageFrame from '../components/ProductImageFrame';
 
 const LABEL_TEXT = {
   BIO: 'BIO',
@@ -161,7 +162,7 @@ const ProductDetailPage = () => {
               données. */}
           <div className="hidden md:block md:w-[637px] md:h-[637px] rounded-8 border border-sand-200 placeholder-stripe overflow-hidden">
             {fullImageUrl ? (
-              <img src={fullImageUrl} alt={product.nom} className="w-full h-full object-contain" />
+              <ProductImageFrame src={fullImageUrl} alt={product.nom} className="w-full h-full object-contain" />
             ) : (
               <div className="w-full h-full flex items-end p-3.5">
                 <span className="font-mono text-[11px] text-graphite-300">photo produit — 1200 × 1200, fond neutre</span>
@@ -171,7 +172,7 @@ const ProductDetailPage = () => {
           {/* Mobile : image unique 300px, sans bandeau de vignettes (pas de galerie multi-photos reelle) */}
           <div className="md:hidden h-[300px] rounded-8 border border-sand-200 placeholder-stripe flex items-end p-3.5 overflow-hidden">
             {fullImageUrl ? (
-              <img src={fullImageUrl} alt={product.nom} className="w-full h-full object-contain" />
+              <ProductImageFrame src={fullImageUrl} alt={product.nom} className="w-full h-full object-contain" />
             ) : (
               <span className="font-mono text-[11px] text-graphite-300">photo produit — 1200 × 1200, fond neutre</span>
             )}
