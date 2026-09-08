@@ -11,11 +11,11 @@
 |---|---|
 | Projet | Jana Distribution — e-commerce alimentaire B2C/B2B |
 | Branche active | `develop` |
-| Dernier commit | Lot design Phase 16 (T16-01/02/07/08), commité localement — **pas encore poussé** (migration 0017 à appliquer en prod avant push) |
-| Fichiers modifiés non commités | Aucun (tout committé) |
-| Phase active | Phase 16 — retours de la deuxième phase de tests utilisateur, **COMPLÈTE EN CODE** (13/13, T16-01..T16-13 DONE — voir `PLAN_CORRECTION_AUDIT.md` §5). 9/13 déployées en production, le lot design (T16-01/02/07/08) reste à déployer. |
-| Tâche active | Session 2026-09-07/08 : 13 points remontés, plan approuvé, exécutés lot par lot (T16-12 → T16-03/04/05/06/11 → T16-10 → T16-09 → T16-13 → lot design T16-01/07/02/08), chacun testé et commité en atomique. Bug incident trouvé et corrigé (T16-02) : clés de config livraison mal nommées depuis la migration 0006 (jamais lues par le code), production déjà correcte via l'admin, local dev/init.sql resynchronisés, nouvelle migration 0017. |
-| Verdict | **EN PRODUCTION SUR FLY.IO et fonctionnel, facturation légale complète** (T5-14 immuabilité + T5-15 avoir + T15-03 devis + T16-12 remise code promo). Backlog de code Phase 16 **entièrement traité** (13/13), reste le déploiement du lot design. DB-04 : rotation Gmail confirmée le 2026-09-05, ne reste que la décision de purge de l'historique git (P0, propriétaire). Reste : 3 validations externes bloquantes (légal/comptable/tests facture dépendants), catalogue vide à peupler. |
+| Dernier commit | Lot design Phase 16 (T16-01/02/07/08), poussé sur `origin/develop`, déployé en production et vérifié en direct |
+| Fichiers modifiés non commités | Aucun |
+| Phase active | Phase 16 — retours de la deuxième phase de tests utilisateur, **TERMINÉE** (13/13, T16-01..T16-13 DONE et déployées — voir `PLAN_CORRECTION_AUDIT.md` §5) |
+| Tâche active | Session 2026-09-07/08 : 13 points remontés, plan approuvé, exécutés lot par lot (T16-12 → T16-03/04/05/06/11 → T16-10 → T16-09 → T16-13 → lot design T16-01/07/02/08), chacun testé, commité en atomique et **déployé en production** (déploiements Fly.io confirmés verts, pages de production vérifiées en direct après le dernier déploiement). Bug incident trouvé et corrigé (T16-02) : clés de config livraison mal nommées depuis la migration 0006 (jamais lues par le code), production déjà correcte via l'admin, local dev/init.sql resynchronisés (migration 0017, appliquée en local et en prod). |
+| Verdict | **EN PRODUCTION SUR FLY.IO et fonctionnel, facturation légale complète** (T5-14 immuabilité + T5-15 avoir + T15-03 devis + T16-12 remise code promo). Backlog de code Phase 16 **entièrement traité et déployé** (13/13). DB-04 : rotation Gmail confirmée le 2026-09-05, ne reste que la décision de purge de l'historique git (P0, propriétaire). Reste : 3 validations externes bloquantes (légal/comptable/tests facture dépendants), catalogue vide à peupler. |
 | Avancement estimé | Voir `PLAN_CORRECTION_AUDIT.md` §1 pour le compte à jour — ne pas recopier un pourcentage figé ici (il dérive vite, incident constaté le 2026-09-04) |
 
 ---
