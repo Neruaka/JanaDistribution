@@ -498,14 +498,16 @@ INSERT INTO configuration (cle, valeur, type, categorie, description) VALUES
 ('site_siret', '798787784', 'string', 'site', 'Numéro SIRET'),
 ('site_tva_intra', 'FR92798787784', 'string', 'site', 'Numéro TVA Intracommunautaire'),
 
--- Livraison (mode DISTANCE — décision propriétaire 2026-06-27, migration 0006)
-('livraison_mode', 'DISTANCE', 'string', 'livraison', 'Mode de calcul des frais de livraison'),
+-- Livraison (mode DISTANCE — décision propriétaire 2026-06-27, migration 0006,
+-- noms de clé corrigés migration 0017 pour matcher settings.service.js)
+('livraison_mode_calcul', 'DISTANCE', 'string', 'livraison', 'Mode de calcul des frais de livraison'),
 ('livraison_frais_base', '5.00', 'number', 'livraison', 'Frais de base en euros'),
-('livraison_tarif_km', '0.80', 'number', 'livraison', 'Tarif par kilomètre en euros'),
-('livraison_franco_seuil', '80.00', 'number', 'livraison', 'Montant au-delà duquel la livraison est gratuite'),
-('livraison_rayon_max_km', '80', 'number', 'livraison', 'Distance maximale de livraison en km (0 = illimitée)'),
+('livraison_prix_par_km', '0.80', 'number', 'livraison', 'Tarif par kilomètre en euros'),
+('livraison_distance_max_km', '80', 'number', 'livraison', 'Distance maximale de livraison en km (0 = illimitée)'),
+('livraison_depart_lat', '48.860647', 'number', 'livraison', 'Latitude du point de départ (calcul Haversine)'),
+('livraison_depart_lng', '2.34371', 'number', 'livraison', 'Longitude du point de départ (calcul Haversine)'),
 ('livraison_frais_standard', '5.90', 'number', 'livraison', 'Frais de livraison standard (fallback)'),
-('livraison_seuil_franco', '50', 'number', 'livraison', 'Montant minimum pour livraison gratuite (fallback)'),
+('livraison_seuil_franco', '50', 'number', 'livraison', 'Montant minimum pour livraison gratuite'),
 ('livraison_delai_min', '2', 'number', 'livraison', 'Délai minimum de livraison (jours)'),
 ('livraison_delai_max', '5', 'number', 'livraison', 'Délai maximum de livraison (jours)'),
 ('livraison_zones', 'France métropolitaine', 'string', 'livraison', 'Zones de livraison'),
