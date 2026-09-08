@@ -84,9 +84,18 @@ class EmailService {
   // ==========================================
 
   /**
-   * Template de base pour tous les emails
+   * Template de base pour tous les emails (T16-08)
+   *
+   * Reprend l'identite du site (design_handoff_jana_refonte) plutot que la
+   * palette generique #22C55E/gray-* d'origine : en-tete ink-900 avec la
+   * meme marque "J" que le header du site, corps sand-50/graphite-700,
+   * CTA green-700. Polices de marque (Archivo/Instrument Sans) non fiables
+   * dans un client email : fallback sur une pile web-safe au caractere
+   * proche (grotesque humaniste), pas de @font-face/import externe qui
+   * echoue silencieusement sur la plupart des clients.
    */
   getBaseTemplate(content) {
+    const bodyFont = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
     return `
     <!DOCTYPE html>
     <html>
@@ -95,38 +104,45 @@ class EmailService {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Jana Distribution</title>
     </head>
-    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5;">
-      <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 20px 0;">
+    <body style="margin: 0; padding: 0; font-family: ${bodyFont}; background-color: #F6F4EE;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #F6F4EE; padding: 24px 0;">
         <tr>
           <td align="center">
-            <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #E6E3DA;">
               <!-- Header -->
               <tr>
-                <td style="background-color: #22C55E; padding: 30px; text-align: center;">
-                  <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">
-                    Jana Distribution
-                  </h1>
-                  <p style="margin: 10px 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">
-                    Produits alimentaires de qualite
+                <td style="background-color: #10231A; padding: 28px 30px; text-align: center;">
+                  <table cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                    <tr>
+                      <td style="background-color: #1E7A46; width: 32px; height: 32px; border-radius: 6px; text-align: center; vertical-align: middle;">
+                        <span style="color: #ffffff; font-size: 16px; font-weight: 800; font-family: ${bodyFont};">J</span>
+                      </td>
+                      <td style="padding-left: 11px; vertical-align: middle;">
+                        <span style="color: #ffffff; font-size: 16px; font-weight: 800; letter-spacing: -0.02em; font-family: ${bodyFont};">JANA DISTRIBUTION</span>
+                      </td>
+                    </tr>
+                  </table>
+                  <p style="margin: 14px 0 0; color: #B9CCC1; font-size: 13px;">
+                    Produits alimentaires de qualité
                   </p>
                 </td>
               </tr>
 
               <!-- Content -->
               <tr>
-                <td style="padding: 40px 30px;">
+                <td style="padding: 36px 30px; font-family: ${bodyFont};">
                   ${content}
                 </td>
               </tr>
 
               <!-- Footer -->
               <tr>
-                <td style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-top: 1px solid #e9ecef;">
-                  <p style="margin: 0; color: #6c757d; font-size: 12px;">
-                    &copy; ${new Date().getFullYear()} Jana Distribution - Tous droits reserves
+                <td style="background-color: #FAF9F5; padding: 20px 30px; text-align: center; border-top: 1px solid #E6E3DA;">
+                  <p style="margin: 0; color: #6B7A72; font-size: 12px;">
+                    &copy; ${new Date().getFullYear()} Jana Distribution — Tous droits réservés
                   </p>
-                  <p style="margin: 10px 0 0; color: #6c757d; font-size: 12px;">
-                    Cet email a ete envoye automatiquement, merci de ne pas y repondre.
+                  <p style="margin: 8px 0 0; color: #6B7A72; font-size: 12px;">
+                    Cet email a été envoyé automatiquement, merci de ne pas y répondre.
                   </p>
                 </td>
               </tr>
@@ -144,18 +160,20 @@ class EmailService {
   // ==========================================
 
   /**
-   * Labels des statuts de commande
+   * Labels des statuts de commande — mêmes tokens de couleur que
+   * STATUT_BADGE côté frontend (OrderDetailPage.jsx) pour rester cohérent
+   * avec ce que le client voit déjà sur le site.
    */
   getStatusLabel(statut) {
     const labels = {
-      'EN_ATTENTE': { label: 'En attente de confirmation', color: '#f59e0b', icon: '⏳' },
-      'CONFIRMEE': { label: 'Confirmee', color: '#3b82f6', icon: '✅' },
-      'EN_PREPARATION': { label: 'En cours de preparation', color: '#8b5cf6', icon: '📦' },
-      'EXPEDIEE': { label: 'Expediee', color: '#06b6d4', icon: '🚚' },
-      'LIVREE': { label: 'Livree', color: '#22c55e', icon: '🎉' },
-      'ANNULEE': { label: 'Annulee', color: '#ef4444', icon: '❌' }
+      'EN_ATTENTE': { label: 'En attente de confirmation', bg: '#FBF4E4', color: '#8A5A16', icon: '⏳' },
+      'CONFIRMEE': { label: 'Confirmee', bg: '#F2F1EC', color: '#3D4A43', icon: '✅' },
+      'EN_PREPARATION': { label: 'En cours de preparation', bg: '#F2F1EC', color: '#3D4A43', icon: '📦' },
+      'EXPEDIEE': { label: 'Expediee', bg: '#F2F1EC', color: '#3D4A43', icon: '🚚' },
+      'LIVREE': { label: 'Livree', bg: '#EAF3EC', color: '#155C34', icon: '🎉' },
+      'ANNULEE': { label: 'Annulee', bg: '#FBEDE9', color: '#9A3A2E', icon: '❌' }
     };
-    return labels[statut] || { label: statut, color: '#6b7280', icon: '📋' };
+    return labels[statut] || { label: statut, bg: '#F2F1EC', color: '#3D4A43', icon: '📋' };
   }
 
   /**
@@ -173,40 +191,40 @@ class EmailService {
     };
 
     const content = `
-      <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px;">
+      <h2 style="margin: 0 0 20px; color: #10231A; font-size: 22px; font-weight: 800;">
         Bonjour ${user.prenom || user.nom} ! ${statusInfo.icon}
       </h2>
 
-      <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+      <p style="margin: 0 0 20px; color: #3D4A43; font-size: 15px; line-height: 1.6;">
         ${messages[newStatus] || 'Le statut de votre commande a ete mis a jour.'}
       </p>
 
       <!-- Status Badge -->
-      <div style="background-color: ${statusInfo.color}15; border-left: 4px solid ${statusInfo.color}; padding: 15px 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">
-        <p style="margin: 0; color: ${statusInfo.color}; font-weight: 600; font-size: 18px;">
+      <div style="background-color: ${statusInfo.bg}; padding: 14px 20px; margin: 20px 0; border-radius: 6px;">
+        <p style="margin: 0; color: ${statusInfo.color}; font-weight: 700; font-size: 16px;">
           ${statusInfo.icon} ${statusInfo.label}
         </p>
       </div>
 
       <!-- Order Info -->
-      <div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0;">
-        <h3 style="margin: 0 0 15px; color: #374151; font-size: 16px; font-weight: 600;">
-          Details de la commande
+      <div style="background-color: #F6F4EE; border: 1px solid #E6E3DA; border-radius: 6px; padding: 18px 20px; margin: 20px 0;">
+        <h3 style="margin: 0 0 12px; color: #3D4A43; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;">
+          Détails de la commande
         </h3>
-        <table width="100%" style="font-size: 14px; color: #4b5563;">
+        <table width="100%" style="font-size: 14px; color: #3D4A43;">
           <tr>
-            <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
-              <strong>N de commande</strong>
+            <td style="padding: 8px 0; border-bottom: 1px solid #E6E3DA;">
+              <strong>N° de commande</strong>
             </td>
-            <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb; text-align: right;">
+            <td style="padding: 8px 0; border-bottom: 1px solid #E6E3DA; text-align: right;">
               ${order.numeroCommande}
             </td>
           </tr>
           <tr>
-            <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
+            <td style="padding: 8px 0; border-bottom: 1px solid #E6E3DA;">
               <strong>Date</strong>
             </td>
-            <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb; text-align: right;">
+            <td style="padding: 8px 0; border-bottom: 1px solid #E6E3DA; text-align: right;">
     ${new Date(order.createdAt || order.dateCreation).toLocaleDateString('fr-FR', {
     day: 'numeric',
     month: 'long',
@@ -218,7 +236,7 @@ class EmailService {
             <td style="padding: 8px 0;">
               <strong>Total</strong>
             </td>
-            <td style="padding: 8px 0; text-align: right; font-weight: 600; color: #22c55e;">
+            <td style="padding: 8px 0; text-align: right; font-weight: 700; color: #1E7A46;">
               ${parseFloat(order.totalTtc).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
             </td>
           </tr>
@@ -228,13 +246,13 @@ class EmailService {
       <!-- CTA Button -->
       <div style="text-align: center; margin: 30px 0;">
         <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/mes-commandes/${order.id}"
-           style="display: inline-block; background-color: #22C55E; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+           style="display: inline-block; background-color: #1E7A46; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 6px; font-weight: 600; font-size: 15px;">
           Voir ma commande
         </a>
       </div>
 
-      <p style="margin: 20px 0 0; color: #6b7280; font-size: 14px; text-align: center;">
-        Une question ? Contactez-nous a <a href="mailto:contact@jana-distribution.fr" style="color: #22c55e;">contact@jana-distribution.fr</a>
+      <p style="margin: 20px 0 0; color: #6B7A72; font-size: 13px; text-align: center;">
+        Une question ? Contactez-nous à <a href="mailto:contact@jana-distribution.fr" style="color: #1E7A46;">contact@jana-distribution.fr</a>
       </p>
     `;
 
@@ -261,15 +279,15 @@ class EmailService {
     const isAvoir = facture.type === 'AVOIR';
     const montantAffiche = Math.abs(parseFloat(facture.total_ttc)).toFixed(2);
     const content = `
-      <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px;">
+      <h2 style="margin: 0 0 20px; color: #10231A; font-size: 22px; font-weight: 800;">
         ${isAvoir ? 'Votre avoir est disponible' : 'Votre facture est disponible'}
       </h2>
 
-      <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+      <p style="margin: 0 0 20px; color: #3D4A43; font-size: 15px; line-height: 1.6;">
         Bonjour ${destinataireNom},
       </p>
 
-      <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+      <p style="margin: 0 0 20px; color: #3D4A43; font-size: 15px; line-height: 1.6;">
         ${isAvoir
     ? `Veuillez trouver ci-joint votre avoir <strong>${facture.numero}</strong>
              d'un montant de <strong>${montantAffiche} €</strong>,
@@ -280,13 +298,13 @@ class EmailService {
       </p>
 
       <div style="text-align: center; margin: 30px 0;">
-        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/mes-factures"
-           style="display: inline-block; background-color: #22C55E; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-          Voir mes factures
+        <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/mes-commandes"
+           style="display: inline-block; background-color: #1E7A46; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 6px; font-weight: 600; font-size: 15px;">
+          Voir mes commandes
         </a>
       </div>
 
-      <p style="margin: 20px 0 0; color: #6b7280; font-size: 12px; text-align: center;">
+      <p style="margin: 20px 0 0; color: #6B7A72; font-size: 12px; text-align: center;">
         Jana Distribution — SIRET ${process.env.ENTREPRISE_SIRET || '798787784'}<br>
         Conservez ce document 10 ans (obligation légale française).
       </p>
@@ -313,15 +331,15 @@ class EmailService {
   async sendQuoteEmail({ destinataireEmail, destinataireNom, devis, commandeId, pdfBuffer }) {
     const montantAffiche = parseFloat(devis.total_ttc).toFixed(2);
     const content = `
-      <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px;">
+      <h2 style="margin: 0 0 20px; color: #10231A; font-size: 22px; font-weight: 800;">
         Votre devis est disponible
       </h2>
 
-      <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+      <p style="margin: 0 0 20px; color: #3D4A43; font-size: 15px; line-height: 1.6;">
         Bonjour ${destinataireNom},
       </p>
 
-      <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+      <p style="margin: 0 0 20px; color: #3D4A43; font-size: 15px; line-height: 1.6;">
         Veuillez trouver ci-joint votre devis <strong>${devis.numero}</strong>
         d'un montant de <strong>${montantAffiche} €</strong>,
         émis le ${new Date(devis.date_emission).toLocaleDateString('fr-FR')}.
@@ -331,12 +349,12 @@ class EmailService {
 
       <div style="text-align: center; margin: 30px 0;">
         <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/mes-commandes/${commandeId}"
-           style="display: inline-block; background-color: #22C55E; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+           style="display: inline-block; background-color: #1E7A46; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 6px; font-weight: 600; font-size: 15px;">
           Voir ma commande
         </a>
       </div>
 
-      <p style="margin: 20px 0 0; color: #6b7280; font-size: 12px; text-align: center;">
+      <p style="margin: 20px 0 0; color: #6B7A72; font-size: 12px; text-align: center;">
         Jana Distribution — SIRET ${process.env.ENTREPRISE_SIRET || '798787784'}
       </p>
     `;
@@ -365,36 +383,36 @@ class EmailService {
     const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
 
     const content = `
-      <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px;">
-        Reinitialisation de votre mot de passe
+      <h2 style="margin: 0 0 20px; color: #10231A; font-size: 22px; font-weight: 800;">
+        Réinitialisation de votre mot de passe
       </h2>
 
-      <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+      <p style="margin: 0 0 20px; color: #3D4A43; font-size: 15px; line-height: 1.6;">
         Bonjour ${user.prenom || user.nom},
       </p>
 
-      <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
-        Vous avez demande la reinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour creer un nouveau mot de passe :
+      <p style="margin: 0 0 20px; color: #3D4A43; font-size: 15px; line-height: 1.6;">
+        Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe :
       </p>
 
       <!-- CTA Button -->
       <div style="text-align: center; margin: 30px 0;">
         <a href="${resetUrl}"
-           style="display: inline-block; background-color: #22C55E; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-          Reinitialiser mon mot de passe
+           style="display: inline-block; background-color: #1E7A46; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 6px; font-weight: 600; font-size: 15px;">
+          Réinitialiser mon mot de passe
         </a>
       </div>
 
       <!-- Warning -->
-      <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">
-        <p style="margin: 0; color: #92400e; font-size: 14px;">
-          Ce lien expire dans <strong>1 heure</strong>. Si vous n'avez pas demande cette reinitialisation, ignorez cet email.
+      <div style="background-color: #FBF4E4; border: 1px solid #EBD8BC; padding: 14px 20px; margin: 20px 0; border-radius: 6px;">
+        <p style="margin: 0; color: #8A5A16; font-size: 13px;">
+          Ce lien expire dans <strong>1 heure</strong>. Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.
         </p>
       </div>
 
-      <p style="margin: 20px 0 0; color: #6b7280; font-size: 14px;">
+      <p style="margin: 20px 0 0; color: #6B7A72; font-size: 13px;">
         Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br>
-        <a href="${resetUrl}" style="color: #22c55e; word-break: break-all;">${resetUrl}</a>
+        <a href="${resetUrl}" style="color: #1E7A46; word-break: break-all;">${resetUrl}</a>
       </p>
     `;
 
@@ -410,16 +428,16 @@ class EmailService {
    */
   async sendPasswordChangedEmail(user) {
     const content = `
-      <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px;">
-        Mot de passe modifie
+      <h2 style="margin: 0 0 20px; color: #10231A; font-size: 22px; font-weight: 800;">
+        Mot de passe modifié
       </h2>
 
-      <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+      <p style="margin: 0 0 20px; color: #3D4A43; font-size: 15px; line-height: 1.6;">
         Bonjour ${user.prenom || user.nom},
       </p>
 
-      <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
-        Votre mot de passe a ete modifie avec succes le ${new Date().toLocaleDateString('fr-FR', {
+      <p style="margin: 0 0 20px; color: #3D4A43; font-size: 15px; line-height: 1.6;">
+        Votre mot de passe a été modifié avec succès le ${new Date().toLocaleDateString('fr-FR', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -429,17 +447,17 @@ class EmailService {
       </p>
 
       <!-- Warning -->
-      <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 15px 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">
-        <p style="margin: 0; color: #991b1b; font-size: 14px;">
-          Si vous n'etes pas a l'origine de cette modification, contactez-nous immediatement a
-          <a href="mailto:contact@jana-distribution.fr" style="color: #ef4444;">contact@jana-distribution.fr</a>
+      <div style="background-color: #FBEDE9; border: 1px solid #E7CFCF; padding: 14px 20px; margin: 20px 0; border-radius: 6px;">
+        <p style="margin: 0; color: #9A3A2E; font-size: 13px;">
+          Si vous n'êtes pas à l'origine de cette modification, contactez-nous immédiatement à
+          <a href="mailto:contact@jana-distribution.fr" style="color: #9A3A2E;">contact@jana-distribution.fr</a>
         </p>
       </div>
 
       <!-- CTA Button -->
       <div style="text-align: center; margin: 30px 0;">
         <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/login"
-           style="display: inline-block; background-color: #22C55E; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+           style="display: inline-block; background-color: #1E7A46; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 6px; font-weight: 600; font-size: 15px;">
           Me connecter
         </a>
       </div>
@@ -461,27 +479,27 @@ class EmailService {
    */
   async sendWelcomeEmail(user) {
     const content = `
-      <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px;">
+      <h2 style="margin: 0 0 20px; color: #10231A; font-size: 22px; font-weight: 800;">
         Bienvenue chez Jana Distribution !
       </h2>
 
-      <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+      <p style="margin: 0 0 20px; color: #3D4A43; font-size: 15px; line-height: 1.6;">
         Bonjour ${user.prenom || user.nom},
       </p>
 
-      <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
-        Merci de nous avoir rejoint ! Votre compte a ete cree avec succes. Vous pouvez maintenant profiter de tous nos produits alimentaires de qualite.
+      <p style="margin: 0 0 20px; color: #3D4A43; font-size: 15px; line-height: 1.6;">
+        Merci de nous avoir rejoint ! Votre compte a été créé avec succès. Vous pouvez maintenant profiter de tous nos produits alimentaires de qualité.
       </p>
 
       <!-- Features -->
-      <div style="background-color: #f0fdf4; border-radius: 8px; padding: 20px; margin: 20px 0;">
-        <h3 style="margin: 0 0 15px; color: #166534; font-size: 16px; font-weight: 600;">
+      <div style="background-color: #EAF3EC; border-radius: 6px; padding: 20px; margin: 20px 0;">
+        <h3 style="margin: 0 0 12px; color: #155C34; font-size: 14px; font-weight: 700;">
           Ce qui vous attend
         </h3>
-        <ul style="margin: 0; padding: 0 0 0 20px; color: #4b5563; font-size: 14px; line-height: 1.8;">
-          <li>Des produits frais et de qualite</li>
-          <li>Des prix adaptes aux particuliers et professionnels</li>
-          <li>Un suivi de vos commandes en temps reel</li>
+        <ul style="margin: 0; padding: 0 0 0 20px; color: #3D4A43; font-size: 14px; line-height: 1.8;">
+          <li>Des produits frais et de qualité</li>
+          <li>Des prix adaptés aux particuliers et professionnels</li>
+          <li>Un suivi de vos commandes en temps réel</li>
           <li>Des promotions exclusives</li>
         </ul>
       </div>
@@ -489,8 +507,8 @@ class EmailService {
       <!-- CTA Button -->
       <div style="text-align: center; margin: 30px 0;">
         <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/catalogue"
-           style="display: inline-block; background-color: #22C55E; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-          Decouvrir nos produits
+           style="display: inline-block; background-color: #1E7A46; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 6px; font-weight: 600; font-size: 15px;">
+          Découvrir nos produits
         </a>
       </div>
     `;
@@ -507,22 +525,22 @@ class EmailService {
    */
   async sendProAccountValidatedEmail(user) {
     const content = `
-      <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px;">
+      <h2 style="margin: 0 0 20px; color: #10231A; font-size: 22px; font-weight: 800;">
         Votre compte professionnel est validé !
       </h2>
 
-      <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+      <p style="margin: 0 0 20px; color: #3D4A43; font-size: 15px; line-height: 1.6;">
         Bonjour ${user.prenom || user.nom},
       </p>
 
-      <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
-        Bonne nouvelle : votre compte professionnel vient d'etre verifie et valide par notre equipe. Vous pouvez desormais passer commande normalement.
+      <p style="margin: 0 0 20px; color: #3D4A43; font-size: 15px; line-height: 1.6;">
+        Bonne nouvelle : votre compte professionnel vient d'être vérifié et validé par notre équipe. Vous pouvez désormais passer commande normalement.
       </p>
 
       <!-- CTA Button -->
       <div style="text-align: center; margin: 30px 0;">
         <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/catalogue"
-           style="display: inline-block; background-color: #22C55E; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+           style="display: inline-block; background-color: #1E7A46; color: #ffffff; text-decoration: none; padding: 14px 30px; border-radius: 6px; font-weight: 600; font-size: 15px;">
           Passer commande
         </a>
       </div>
