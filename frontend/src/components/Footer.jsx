@@ -74,7 +74,7 @@ const Footer = () => {
           {/* Colonne 4 : Infos */}
           <div className="flex flex-col gap-[11px]">
             <div className="text-[11px] tracking-wide text-mist-4 uppercase">Infos</div>
-            <FooterStub>Livraison</FooterStub>
+            <FooterLink to="/livraison">Livraison</FooterLink>
             {!isAuthenticated && <FooterLink to="/register?type=PROFESSIONNEL">Ouvrir un compte pro</FooterLink>}
             <FooterLink to="/cgv">CGV</FooterLink>
             <FooterLink to="/mentions-legales">Mentions légales</FooterLink>

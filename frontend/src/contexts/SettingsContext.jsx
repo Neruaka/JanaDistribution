@@ -35,7 +35,11 @@ const DEFAULT_SETTINGS = {
     fraisStandard: 15,
     seuilFranco: 150,
     delaiMin: 2,
-    delaiMax: 5
+    delaiMax: 5,
+    modeCalcul: 'FIXE',
+    fraisBase: 5,
+    prixParKm: 0.8,
+    distanceMaxKm: 80
   },
   commande: {
     montantMin: 0,
@@ -92,7 +96,13 @@ export const SettingsProvider = ({ children }) => {
           fraisStandard: livraisonData.fraisLivraisonStandard ?? livraisonData.fraisStandard ?? DEFAULT_SETTINGS.livraison.fraisStandard,
           seuilFranco: livraisonData.seuilFrancoPort ?? livraisonData.seuilFranco ?? DEFAULT_SETTINGS.livraison.seuilFranco,
           delaiMin: livraisonData.delaiLivraisonMin ?? livraisonData.delaiMin ?? DEFAULT_SETTINGS.livraison.delaiMin,
-          delaiMax: livraisonData.delaiLivraisonMax ?? livraisonData.delaiMax ?? DEFAULT_SETTINGS.livraison.delaiMax
+          delaiMax: livraisonData.delaiLivraisonMax ?? livraisonData.delaiMax ?? DEFAULT_SETTINGS.livraison.delaiMax,
+          // T16-02 : champs déjà renvoyés par GET /settings/public mais pas
+          // encore exposés au frontend (page Livraison).
+          modeCalcul: livraisonData.modeCalcul ?? DEFAULT_SETTINGS.livraison.modeCalcul,
+          fraisBase: livraisonData.fraisBase ?? DEFAULT_SETTINGS.livraison.fraisBase,
+          prixParKm: livraisonData.prixParKm ?? DEFAULT_SETTINGS.livraison.prixParKm,
+          distanceMaxKm: livraisonData.distanceMaxKm ?? DEFAULT_SETTINGS.livraison.distanceMaxKm
         };
 
         const mappedSite = {

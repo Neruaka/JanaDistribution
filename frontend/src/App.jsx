@@ -47,6 +47,7 @@ import CGVPage from './pages/CGVPage';
 import ConfidentialitePage from './pages/ConfidentialitePage';
 import MentionsLegalesPage from './pages/MentionsLegalesPage';
 import AccessibilitePage from './pages/AccessibilitePage';
+import LivraisonPage from './pages/LivraisonPage';
 
 // Pages Admin
 import AdminLayout from './components/admin/AdminLayout';
@@ -132,6 +133,7 @@ function App() {
             <Route path="/confidentialite" element={<PublicLayout><ConfidentialitePage /></PublicLayout>} />
             <Route path="/mentions-legales" element={<PublicLayout><MentionsLegalesPage /></PublicLayout>} />
             <Route path="/accessibilite" element={<PublicLayout><AccessibilitePage /></PublicLayout>} />
+            <Route path="/livraison" element={<PublicLayout><LivraisonPage /></PublicLayout>} />
 
             {/* ==================== */}
             {/* Pages auth (sans Navbar/Footer) */}
