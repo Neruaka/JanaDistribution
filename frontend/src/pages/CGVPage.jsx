@@ -6,26 +6,12 @@
 
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
   FileText, ShoppingCart, Truck, CreditCard, RotateCcw,
   AlertTriangle, Scale, Shield, Package, Clock, MapPin, Ban
 } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
-
-const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.5, ease: 'easeOut' }
-};
-
-const staggerContainer = {
-  animate: {
-    transition: {
-      staggerChildren: 0.08
-    }
-  }
-};
+import LegalPageLayout from '../components/LegalPageLayout';
 
 const CGVPage = () => {
   const { site, livraison, loading, fraisLivraisonStandard, seuilFrancoPort } = useSettings();
@@ -155,7 +141,7 @@ const CGVPage = () => {
             des produits pour exercer son droit de rétractation, sans avoir à justifier de motif
             ni à payer de pénalités.
           </p>
-          <p className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+          <p className="bg-warning-bg border border-warning-border rounded-6 p-4">
             <strong>Exception importante :</strong> Conformément à l'article L221-28 du Code de la
             consommation, le droit de rétractation ne peut être exercé pour les denrées alimentaires
             périssables ou dont la date de péremption est courte, ainsi que pour les produits
@@ -203,7 +189,7 @@ const CGVPage = () => {
           <p>
             Pour en savoir plus sur la collecte, le traitement et la protection de vos données
             personnelles, veuillez consulter notre{' '}
-            <Link to="/confidentialite" className="text-green-600 hover:text-green-700 underline">
+            <Link to="/confidentialite" className="text-green-700 hover:text-green-800 underline">
               Politique de confidentialité
             </Link>.
           </p>
@@ -276,20 +262,20 @@ const CGVPage = () => {
             Pour toute question relative aux présentes CGV ou à une commande, vous pouvez
             contacter <strong>{site.nom}</strong> :
           </p>
-          <ul className="list-none space-y-2">
+          <ul className="list-none flex flex-col gap-2">
             {site.adresse && (
               <li className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-green-600 flex-shrink-0" />
+                <MapPin className="w-4 h-4 text-green-700 flex-shrink-0" />
                 <span>{site.adresse}, {site.codePostal} {site.ville}</span>
               </li>
             )}
             <li className="flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-green-600 flex-shrink-0" />
-              <span>Email : <a href={`mailto:${site.email}`} className="text-green-600 hover:text-green-700 underline">{site.email}</a></span>
+              <CreditCard className="w-4 h-4 text-green-700 flex-shrink-0" />
+              <span>Email : <a href={`mailto:${site.email}`} className="text-green-700 hover:text-green-800 underline">{site.email}</a></span>
             </li>
             <li className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-green-600 flex-shrink-0" />
-              <span>Téléphone : <a href={`tel:${site.telephone?.replace(/\s/g, '')}`} className="text-green-600 hover:text-green-700 underline">{site.telephone}</a></span>
+              <Clock className="w-4 h-4 text-green-700 flex-shrink-0" />
+              <span>Téléphone : <a href={`tel:${site.telephone?.replace(/\s/g, '')}`} className="text-green-700 hover:text-green-800 underline">{site.telephone}</a></span>
             </li>
           </ul>
         </>
@@ -298,91 +284,27 @@ const CGVPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero */}
-      <section className="bg-gradient-to-r from-green-600 to-emerald-700 text-white">
-        <div className="max-w-4xl mx-auto px-4 py-12 sm:py-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center"
-          >
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-2xl mb-6">
-              <FileText className="w-8 h-8" />
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-bold mb-3">
-              Conditions Générales de Vente
-            </h1>
-            <p className="text-green-100 max-w-2xl mx-auto">
-              Consultez les conditions régissant vos achats sur {site.nom}
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Contenu */}
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        {/* Carte info entreprise */}
-        {!loading && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-green-50 border border-green-200 rounded-2xl p-6 mb-8"
-          >
-            <p className="text-green-800 font-medium">{site.nom}</p>
-            <p className="text-green-700 text-sm">
-              {site.siret && <>SIRET : {site.siret} | </>}
-              {site.adresse && <>{site.adresse}, {site.codePostal} {site.ville}</>}
-            </p>
-            <p className="text-green-700 text-sm">
-              Email : {site.email} | Tél : {site.telephone}
-            </p>
-          </motion.div>
-        )}
-
-        {/* Sections */}
-        <motion.div
-          initial="initial"
-          animate="animate"
-          variants={staggerContainer}
-          className="space-y-6"
-        >
-          {sections.map((section, index) => (
-            <motion.section
-              key={index}
-              variants={fadeInUp}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="flex items-center justify-center w-10 h-10 bg-green-100 rounded-xl">
-                  <section.icon className="w-5 h-5 text-green-600" />
-                </div>
-                <h2 className="text-xl font-bold text-gray-900">{section.title}</h2>
-              </div>
-              <div className="text-gray-600 leading-relaxed space-y-3">
-                {section.content}
-              </div>
-            </motion.section>
-          ))}
-        </motion.div>
-
-        {/* Footer navigation */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="mt-12 text-center text-sm text-gray-400"
-        >
-          <p>Dernière mise à jour : février 2025</p>
-          <div className="mt-4 flex justify-center gap-6 flex-wrap">
-            <Link to="/confidentialite" className="hover:text-green-600 transition-colors">Confidentialité</Link>
-            <Link to="/mentions-legales" className="hover:text-green-600 transition-colors">Mentions légales</Link>
-            <Link to="/accessibilite" className="hover:text-green-600 transition-colors">Accessibilité</Link>
-          </div>
-        </motion.div>
-      </div>
-    </div>
+    <LegalPageLayout
+      icon={FileText}
+      title="Conditions générales de vente"
+      subtitle={`Consultez les conditions régissant vos achats sur ${site.nom}`}
+      intro={!loading && (
+        <>
+          <p className="text-[13.5px] font-semibold text-success-text">{site.nom}</p>
+          <p className="text-[13px] text-graphite-700">
+            {site.siret && <>SIRET : {site.siret} · </>}
+            {site.adresse && <>{site.adresse}, {site.codePostal} {site.ville}</>}
+          </p>
+          <p className="text-[13px] text-graphite-700">Email : {site.email} · Tél : {site.telephone}</p>
+        </>
+      )}
+      sections={sections}
+      footerLinks={[
+        { to: '/confidentialite', label: 'Confidentialité' },
+        { to: '/mentions-legales', label: 'Mentions légales' },
+        { to: '/accessibilite', label: 'Accessibilité' }
+      ]}
+    />
   );
 };
 

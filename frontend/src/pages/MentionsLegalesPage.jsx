@@ -6,26 +6,12 @@
 
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
   Building2, Globe, Server, FileText, Scale,
   Camera, Link2, AlertCircle, Shield, MapPin, Phone, Mail
 } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
-
-const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.5, ease: 'easeOut' }
-};
-
-const staggerContainer = {
-  animate: {
-    transition: {
-      staggerChildren: 0.08
-    }
-  }
-};
+import LegalPageLayout from '../components/LegalPageLayout';
 
 const MentionsLegalesPage = () => {
   const { site, loading } = useSettings();
@@ -41,29 +27,29 @@ const MentionsLegalesPage = () => {
       content: (
         <>
           <p>Le présent site est édité par :</p>
-          <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+          <div className="bg-sand-100 border border-sand-200 rounded-6 p-4 flex flex-col gap-2">
             <p><strong>Raison sociale :</strong> {site.nom}</p>
             {site.siret && <p><strong>SIRET :</strong> {site.siret}</p>}
             <p><strong>Forme juridique :</strong> Société par actions simplifiée (SAS)</p>
             <p><strong>Activité :</strong> Commerce de gros alimentaire, distribution de produits alimentaires</p>
             {site.adresse && (
               <p className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 text-gray-500 mt-1 flex-shrink-0" />
+                <MapPin className="w-4 h-4 text-graphite-400 mt-1 flex-shrink-0" />
                 <span><strong>Siège social :</strong> {site.adresse}, {site.codePostal} {site.ville}</span>
               </p>
             )}
             <p className="flex items-center gap-2">
-              <Phone className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <Phone className="w-4 h-4 text-graphite-400 flex-shrink-0" />
               <span><strong>Téléphone :</strong>{' '}
-                <a href={`tel:${site.telephone?.replace(/\s/g, '')}`} className="text-green-600 hover:text-green-700 underline">
+                <a href={`tel:${site.telephone?.replace(/\s/g, '')}`} className="text-green-700 hover:text-green-800 underline">
                   {site.telephone}
                 </a>
               </span>
             </p>
             <p className="flex items-center gap-2">
-              <Mail className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <Mail className="w-4 h-4 text-graphite-400 flex-shrink-0" />
               <span><strong>Email :</strong>{' '}
-                <a href={`mailto:${site.email}`} className="text-green-600 hover:text-green-700 underline">
+                <a href={`mailto:${site.email}`} className="text-green-700 hover:text-green-800 underline">
                   {site.email}
                 </a>
               </span>
@@ -81,7 +67,7 @@ const MentionsLegalesPage = () => {
       content: (
         <>
           <p>Le site est hébergé par :</p>
-          <div className="bg-gray-50 rounded-xl p-4 space-y-1">
+          <div className="bg-sand-100 border border-sand-200 rounded-6 p-4 flex flex-col gap-1">
             <p><strong>Hébergeur :</strong> Prestataire d'hébergement web</p>
             <p><strong>Localisation des serveurs :</strong> France / Union Européenne</p>
           </div>
@@ -210,7 +196,7 @@ const MentionsLegalesPage = () => {
           <p>
             Pour connaître en détail notre politique en matière de collecte, traitement et
             protection des données personnelles, veuillez consulter notre{' '}
-            <Link to="/confidentialite" className="text-green-600 hover:text-green-700 underline">
+            <Link to="/confidentialite" className="text-green-700 hover:text-green-800 underline">
               Politique de confidentialité
             </Link>.
           </p>
@@ -218,7 +204,7 @@ const MentionsLegalesPage = () => {
             Conformément à la loi, vous disposez de droits sur vos données personnelles
             (accès, rectification, suppression, portabilité). Pour les exercer, contactez-nous
             à l'adresse :{' '}
-            <a href={`mailto:${site.email}`} className="text-green-600 hover:text-green-700 underline">
+            <a href={`mailto:${site.email}`} className="text-green-700 hover:text-green-800 underline">
               {site.email}
             </a>
           </p>
@@ -228,91 +214,27 @@ const MentionsLegalesPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero */}
-      <section className="bg-gradient-to-r from-green-600 to-emerald-700 text-white">
-        <div className="max-w-4xl mx-auto px-4 py-12 sm:py-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center"
-          >
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-2xl mb-6">
-              <FileText className="w-8 h-8" />
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-bold mb-3">
-              Mentions Légales
-            </h1>
-            <p className="text-green-100 max-w-2xl mx-auto">
-              Informations légales relatives au site {site.nom}
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Contenu */}
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        {/* Carte info entreprise */}
-        {!loading && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-green-50 border border-green-200 rounded-2xl p-6 mb-8"
-          >
-            <p className="text-green-800 font-medium">{site.nom}</p>
-            <p className="text-green-700 text-sm">
-              {site.siret && <>SIRET : {site.siret} | </>}
-              {site.adresse && <>{site.adresse}, {site.codePostal} {site.ville}</>}
-            </p>
-            <p className="text-green-700 text-sm">
-              Email : {site.email} | Tél : {site.telephone}
-            </p>
-          </motion.div>
-        )}
-
-        {/* Sections */}
-        <motion.div
-          initial="initial"
-          animate="animate"
-          variants={staggerContainer}
-          className="space-y-6"
-        >
-          {sections.map((section, index) => (
-            <motion.section
-              key={index}
-              variants={fadeInUp}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="flex items-center justify-center w-10 h-10 bg-green-100 rounded-xl">
-                  <section.icon className="w-5 h-5 text-green-600" />
-                </div>
-                <h2 className="text-xl font-bold text-gray-900">{section.title}</h2>
-              </div>
-              <div className="text-gray-600 leading-relaxed space-y-3">
-                {section.content}
-              </div>
-            </motion.section>
-          ))}
-        </motion.div>
-
-        {/* Footer navigation */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="mt-12 text-center text-sm text-gray-400"
-        >
-          <p>Dernière mise à jour : février 2025</p>
-          <div className="mt-4 flex justify-center gap-6 flex-wrap">
-            <Link to="/cgv" className="hover:text-green-600 transition-colors">CGV</Link>
-            <Link to="/confidentialite" className="hover:text-green-600 transition-colors">Confidentialité</Link>
-            <Link to="/accessibilite" className="hover:text-green-600 transition-colors">Accessibilité</Link>
-          </div>
-        </motion.div>
-      </div>
-    </div>
+    <LegalPageLayout
+      icon={FileText}
+      title="Mentions légales"
+      subtitle={`Informations légales relatives au site ${site.nom}`}
+      intro={!loading && (
+        <>
+          <p className="text-[13.5px] font-semibold text-success-text">{site.nom}</p>
+          <p className="text-[13px] text-graphite-700">
+            {site.siret && <>SIRET : {site.siret} · </>}
+            {site.adresse && <>{site.adresse}, {site.codePostal} {site.ville}</>}
+          </p>
+          <p className="text-[13px] text-graphite-700">Email : {site.email} · Tél : {site.telephone}</p>
+        </>
+      )}
+      sections={sections}
+      footerLinks={[
+        { to: '/cgv', label: 'CGV' },
+        { to: '/confidentialite', label: 'Confidentialité' },
+        { to: '/accessibilite', label: 'Accessibilité' }
+      ]}
+    />
   );
 };
 

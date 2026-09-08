@@ -5,27 +5,12 @@
  */
 
 import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
   Shield, Database, UserCheck, Lock, Cookie, Eye,
-  Clock, Mail, FileText, Globe, Server, Trash2
+  Clock, FileText, Globe, Server
 } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
-
-const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.5, ease: 'easeOut' }
-};
-
-const staggerContainer = {
-  animate: {
-    transition: {
-      staggerChildren: 0.08
-    }
-  }
-};
+import LegalPageLayout from '../components/LegalPageLayout';
 
 const ConfidentialitePage = () => {
   const { site, loading } = useSettings();
@@ -71,7 +56,7 @@ const ConfidentialitePage = () => {
             <li><strong>Données de navigation :</strong> adresse IP, type de navigateur, pages consultées</li>
             <li><strong>Données de compte :</strong> identifiant, mot de passe (hashé), préférences</li>
           </ul>
-          <p className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <p className="bg-selection-bg border border-success-border rounded-6 p-4">
             <strong>Note importante :</strong> Nous ne stockons jamais vos données bancaires
             complètes. Les paiements sont traités par notre prestataire de paiement sécurisé,
             certifié PCI-DSS.
@@ -215,7 +200,7 @@ const ConfidentialitePage = () => {
           </ul>
           <p>
             Pour exercer ces droits, contactez-nous à l'adresse :{' '}
-            <a href={`mailto:${site.email}`} className="text-green-600 hover:text-green-700 underline">
+            <a href={`mailto:${site.email}`} className="text-green-700 hover:text-green-800 underline">
               {site.email}
             </a>
           </p>
@@ -282,91 +267,27 @@ const ConfidentialitePage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero */}
-      <section className="bg-gradient-to-r from-green-600 to-emerald-700 text-white">
-        <div className="max-w-4xl mx-auto px-4 py-12 sm:py-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center"
-          >
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-2xl mb-6">
-              <Shield className="w-8 h-8" />
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-bold mb-3">
-              Politique de Confidentialité
-            </h1>
-            <p className="text-green-100 max-w-2xl mx-auto">
-              Découvrez comment {site.nom} protège vos données personnelles
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Contenu */}
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        {/* Carte info entreprise */}
-        {!loading && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-green-50 border border-green-200 rounded-2xl p-6 mb-8"
-          >
-            <p className="text-green-800 font-medium">Responsable du traitement : {site.nom}</p>
-            <p className="text-green-700 text-sm">
-              {site.siret && <>SIRET : {site.siret} | </>}
-              {site.adresse && <>{site.adresse}, {site.codePostal} {site.ville}</>}
-            </p>
-            <p className="text-green-700 text-sm">
-              Contact DPO : {site.email}
-            </p>
-          </motion.div>
-        )}
-
-        {/* Sections */}
-        <motion.div
-          initial="initial"
-          animate="animate"
-          variants={staggerContainer}
-          className="space-y-6"
-        >
-          {sections.map((section, index) => (
-            <motion.section
-              key={index}
-              variants={fadeInUp}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="flex items-center justify-center w-10 h-10 bg-green-100 rounded-xl">
-                  <section.icon className="w-5 h-5 text-green-600" />
-                </div>
-                <h2 className="text-xl font-bold text-gray-900">{section.title}</h2>
-              </div>
-              <div className="text-gray-600 leading-relaxed space-y-3">
-                {section.content}
-              </div>
-            </motion.section>
-          ))}
-        </motion.div>
-
-        {/* Footer navigation */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="mt-12 text-center text-sm text-gray-400"
-        >
-          <p>Dernière mise à jour : février 2025</p>
-          <div className="mt-4 flex justify-center gap-6 flex-wrap">
-            <Link to="/cgv" className="hover:text-green-600 transition-colors">CGV</Link>
-            <Link to="/mentions-legales" className="hover:text-green-600 transition-colors">Mentions légales</Link>
-            <Link to="/accessibilite" className="hover:text-green-600 transition-colors">Accessibilité</Link>
-          </div>
-        </motion.div>
-      </div>
-    </div>
+    <LegalPageLayout
+      icon={Shield}
+      title="Politique de confidentialité"
+      subtitle={`Découvrez comment ${site.nom} protège vos données personnelles`}
+      intro={!loading && (
+        <>
+          <p className="text-[13.5px] font-semibold text-success-text">Responsable du traitement : {site.nom}</p>
+          <p className="text-[13px] text-graphite-700">
+            {site.siret && <>SIRET : {site.siret} · </>}
+            {site.adresse && <>{site.adresse}, {site.codePostal} {site.ville}</>}
+          </p>
+          <p className="text-[13px] text-graphite-700">Contact DPO : {site.email}</p>
+        </>
+      )}
+      sections={sections}
+      footerLinks={[
+        { to: '/cgv', label: 'CGV' },
+        { to: '/mentions-legales', label: 'Mentions légales' },
+        { to: '/accessibilite', label: 'Accessibilité' }
+      ]}
+    />
   );
 };
 
