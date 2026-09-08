@@ -9,18 +9,18 @@
 
 | Indicateur | Valeur |
 |---|---|
-| Phase active | Phase 17 (troisième phase de tests utilisateur) — 3/3 tâches DONE (T17-01..T17-03). Phase 16 reste COMPLÈTE (13/13). Phase 15 reste COMPLÈTE (12/12). |
-| Tâche active | Session 2026-09-08 : 3 retours traités (image produit zoomée → redimensionnement propre + cadre desktop 637×637, bandeau utilitaire statique/peu lisible → défilant + couleur relevée, import des 188 visuels catalogue réel). En parallèle : validations légale (T9-03) et comptable (T9-04/DB-03) confirmées par le propriétaire, et les vraies informations d'entreprise (SIRET, adresse, TVA intracommunautaire — vérifiées via annuaire-entreprises.data.gouv.fr) posées en secrets Fly sur `jana-backend`, backend redéployé et vérifié. |
-| Tâches totales | 162 — 159 (état fin Phase 16) + 3 nouvelles tâches Phase 17 (T17-01..T17-03) |
+| Phase active | Phase 17 (troisième phase de tests utilisateur) — 4/4 tâches DONE (T17-01..T17-04). Phase 16 reste COMPLÈTE (13/13). Phase 15 reste COMPLÈTE (12/12). |
+| Tâche active | Session 2026-09-08 : 4 retours traités — image produit zoomée → redimensionnement propre + cadre desktop 637×637 (T17-01, corrigé une seconde fois le même jour après retour propriétaire sur le rendu réel), bandeau utilitaire statique/peu lisible → défilant + couleur relevée (T17-02), visuels catalogue réel versionnés dans le dépôt (T17-03), grand vide entre image et bloc prix sur écran large → layout centré (T17-04). En parallèle : validations légale (T9-03) et comptable (T9-04/DB-03) confirmées par le propriétaire, et les vraies informations d'entreprise (SIRET, adresse, TVA intracommunautaire — vérifiées via annuaire-entreprises.data.gouv.fr) posées en secrets Fly sur `jana-backend`, backend redéployé et vérifié. |
+| Tâches totales | 163 — 159 (état fin Phase 16) + 4 nouvelles tâches Phase 17 (T17-01..T17-04) |
 | READY | 0 |
 | IN_PROGRESS | 0 |
 | BLOCKED | 2 — T5-16, T5-17 (tests facture, dépendent de T5-14/15 maintenant DONE). DB-04 (secret git) est une **décision** tranchée (report de la purge), pas une tâche BLOCKED de ce compteur — voir §3. |
 | TODO | 0 (Phase 17 intégralement traitée — voir §5) |
-| DONE | 139 (136 + 3 Phase 17 : T17-01..T17-03 toutes DONE) |
+| DONE | 140 (136 + 4 Phase 17 : T17-01..T17-04 toutes DONE) |
 | CANCELLED | 20 (9 + Phase 8 : T8-01..T8-06 + T11-04, T11-05, T11-07, T11-09 supersédées par Fly.io + T3-03 supersédée par la décision MODE DISTANCE, le 2026-09-04/05) |
 | P0 restants | 0 — DB-04 (rotation Gmail confirmée le 2026-09-05, purge de l'historique git explicitement reportée par décision propriétaire le 2026-09-08, voir §3) n'est plus comptée comme une tâche P0 ouverte. |
 | P1 restants | 0. npm audit frontend react-router open redirect [nécessite migration v7, breaking change non appliqué par prudence] toujours présent. Rotation SMTP_USER/SMTP_PASS legacy (Phase 12 T12-10, = DB-04) confirmée le 2026-09-05. |
-| Verdict | EN PRODUCTION SUR FLY.IO et fonctionnel (jana-frontend.fly.dev / jana-backend.fly.dev), facturation légale complète (immuable + avoir + devis + remise code promo). **Phase 17 intégralement traitée et déployée (3/3).** Validations légale et comptable confirmées par le propriétaire (2026-09-08) ; mentions d'entreprise réelles (SIRET/TVA/adresse) posées en production. Auto-deploy Fly.io actif sur push `develop` (`deploy-flyio.yml`, temporaire — voir T9-08) ; `.github/workflows/deploy.yml` (homeserver) désactivé (2026-09-05, décision propriétaire). **Reste avant clôture complète :** catalogue produit à peupler (188 visuels importés dans `jana-catalogue-images/`, fiches produits à créer dans l'admin), T5-16/T5-17 (tests facture) à débloquer. |
+| Verdict | EN PRODUCTION SUR FLY.IO et fonctionnel (jana-frontend.fly.dev / jana-backend.fly.dev), facturation légale complète (immuable + avoir + devis + remise code promo). **Phase 17 intégralement traitée et déployée (4/4).** Validations légale et comptable confirmées par le propriétaire (2026-09-08) ; mentions d'entreprise réelles (SIRET/TVA/adresse) posées en production. Auto-deploy Fly.io actif sur push `develop` (`deploy-flyio.yml`, temporaire — voir T9-08) ; `.github/workflows/deploy.yml` (homeserver) désactivé (2026-09-05, décision propriétaire). **Reste avant clôture complète :** décision propriétaire sur la mise à jour des 189 visuels déjà en ligne avec leur version recadrée (T17-01), T5-16/T5-17 (tests facture) à débloquer. |
 
 ---
 
@@ -1592,6 +1592,11 @@ Checklist complète : `docs/archive/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 - **Root cause confirmée :** `ProductDetailPage.jsx:164` (desktop) et `:174` (mobile) utilisaient `object-cover` — l'image est recadrée/zoomée pour remplir le cadre au lieu d'être simplement redimensionnée, coupant une partie du visuel produit.
 - **Correctif appliqué :** `object-cover` → `object-contain` sur les deux versions (image entière visible, lettrboxing sur fond `placeholder-stripe` si le ratio ne correspond pas). Cadre desktop fixé à **637×637** (`md:w-[637px] md:h-[637px]`, remplace `max-h-[420px] aspect-square`) sur demande explicite du propriétaire.
 - **Fichier :** `frontend/src/pages/ProductDetailPage.jsx`
+- **Correction ultérieure le même jour (retour propriétaire sur le rendu réel) :** deux essais avant le bon diagnostic.
+  1. Tentative de recadrage automatique côté client (composant `ProductImageFrame.jsx`, détection de la zone utile par différence de couleur avec le fond) — **abandonnée** : sa détection échouait sur le dégradé doux des photos studio (confondait fond et produit), ne coupait quasi rien en pratique, composant supprimé.
+  2. Diagnostic correct obtenu en comparant directement le fichier source au rendu de la page : les photos elles-mêmes étaient déjà bien cadrées ; le vrai problème était le **layout** — la colonne image en `1fr` s'étirait sur toute la largeur restante du grid, poussant le bloc prix/info tout à droite sur un écran large et laissant un grand vide au milieu (cf. capture propriétaire, comparée à une maquette de référence où image et info restent proches, layout bordé). **Correctif retenu :** colonne image passée à une largeur fixe `637px` (alignée sur son propre cadre) et grid centré (`md:justify-center`) — voir T17-04.
+  3. En parallèle, une passe de recadrage serveur (`sharp trim`, one-shot, vérifiée visuellement sur plusieurs photos dont les cas les plus rognés avant application) a quand même été appliquée aux 188 visuels de `jana-catalogue-images/` pour retirer l'excès de fond neutre restant (0 à 42 % selon la photo, jamais de rognage du produit) — amélioration secondaire, pas la cause principale du problème signalé.
+- **Reste ouvert :** les 189 produits déjà en prod pointent vers des copies identiques (même hash) déjà uploadées séparément sur le volume Fly persistant — recadrer les fichiers du dépôt ne met pas à jour ces copies. Remplacer les fichiers déjà en ligne nécessite soit un SSH direct sur le volume (bloqué par le classificateur de sécurité de la session, décision explicitement demandée au propriétaire), soit un ré-upload via l'admin. Décision propriétaire en attente.
 
 ### T17-02 — Bandeau utilitaire Navbar : texte statique et peu lisible
 
@@ -1603,9 +1608,16 @@ Checklist complète : `docs/archive/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 ### T17-03 — Import des visuels du catalogue réel
 
 - **Statut :** DONE (2026-09-08) | **Priorité :** P2 | **Catégorie :** CONTENU
-- **Détail :** 188 photos produits (`.webp`, ~14 Mo) committées dans `jana-catalogue-images/` à la racine du dépôt, en vue du peuplement du catalogue réel via le back-office. Fichiers Excel de listing (`docs/listing/`) volontairement **non commités** (non demandé, contenu tarifaire potentiellement sensible).
-- **Reste à faire (hors périmètre de cette tâche) :** création des fiches produits réelles dans l'admin et association de chaque image à sa fiche — le catalogue de production reste vide de produits tant que cet import n'est pas fait.
+- **Détail :** 188 photos produits (`.webp`, ~14 Mo) committées dans `jana-catalogue-images/` à la racine du dépôt. Fichiers Excel de listing (`docs/listing/`) volontairement **non commités** (non demandé, contenu tarifaire potentiellement sensible).
+- **Constat (vérifié le même jour, T17-01) :** contrairement à la note initiale de cette tâche, le catalogue de production **n'est pas vide** — les 189 produits déjà en ligne utilisent déjà ces mêmes 188 visuels (uploadés séparément via l'admin à un moment non documenté, correspondance confirmée par hash MD5 identique fichier-à-fichier). Le commit de `jana-catalogue-images/` sert de source de vérité versionnée pour ces visuels (et de base pour le recadrage `sharp trim`, voir T17-01), pas d'un premier import.
 - **Fichiers :** `jana-catalogue-images/*.webp`
+
+### T17-04 — Fiche produit : grand vide entre l'image et le bloc prix sur écran large
+
+- **Statut :** DONE (2026-09-08) | **Priorité :** P2 | **Catégorie :** CODE (bug design)
+- **Root cause confirmée :** `ProductDetailPage.jsx` — le grid `md:grid-cols-[1fr_430px]` donnait une largeur **flexible** à la colonne image (`1fr`), qui s'étire pour occuper tout l'espace restant du grid ; le cadre image lui-même restant fixé à 637px (T17-01), l'écart entre le bord droit de l'image et la colonne prix (calée à droite) devenait un vide grandissant à mesure que l'écran s'élargit. Confirmé par comparaison directe photo source vs rendu réel (photos déjà bien cadrées, donc pas un problème d'image) et par une maquette de référence fournie par le propriétaire (image et bloc prix proches, layout bordé plutôt qu'étiré).
+- **Correctif appliqué :** colonne image passée à une largeur fixe `637px` (`md:grid-cols-[637px_430px]`) et grid centré (`md:justify-center`) — les deux colonnes restent group ées, le vide se répartit en marges extérieures symétriques au lieu de s'accumuler au milieu. Même correctif appliqué au squelette de chargement (`animate-pulse`) pour éviter un flash de mise en page différente.
+- **Fichier :** `frontend/src/pages/ProductDetailPage.jsx`
 
 ---
 
