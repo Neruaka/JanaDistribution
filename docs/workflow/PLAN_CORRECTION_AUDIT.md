@@ -9,18 +9,18 @@
 
 | Indicateur | Valeur |
 |---|---|
-| Phase active | Phase 16 (deuxième phase de tests utilisateur) — **COMPLÈTE** (13/13, T16-01..T16-13 DONE). Phase 15 reste COMPLÈTE (12/12, T15-01..T15-12). |
-| Tâche active | Session 2026-09-07/08 : 13 points remontés, investigués, plan approuvé, exécutés lot par lot (T16-12 → T16-03/04/05/06/11 → T16-10 → T16-09 → T16-13 → lot design T16-01/07/02/08), chacun testé, commité en atomique et **déployé en production** (déploiements Fly.io confirmés verts ; pages vérifiées en direct : /livraison, /cgv, /confidentialite, /accessibilite, /mentions-legales, /mot-de-passe-oublie toutes 200, estimation de livraison distance re-confirmée). **Phase 16 terminée, code et déploiement.** Bug incident trouvé et corrigé au passage (T16-02) : clés de config livraison mal nommées depuis la migration 0006, invisibles au code, retombant silencieusement en mode FIXE — production n'était pas affectée (déjà corrigée via l'admin), local dev et init.sql resynchronisés (migration 0017). |
-| Tâches totales | 159 — 146 (état fin Phase 15) + 13 nouvelles tâches Phase 16 (T16-01..T16-13) |
+| Phase active | Phase 17 (troisième phase de tests utilisateur) — 3/3 tâches DONE (T17-01..T17-03). Phase 16 reste COMPLÈTE (13/13). Phase 15 reste COMPLÈTE (12/12). |
+| Tâche active | Session 2026-09-08 : 3 retours traités (image produit zoomée → redimensionnement propre + cadre desktop 637×637, bandeau utilitaire statique/peu lisible → défilant + couleur relevée, import des 188 visuels catalogue réel). En parallèle : validations légale (T9-03) et comptable (T9-04/DB-03) confirmées par le propriétaire, et les vraies informations d'entreprise (SIRET, adresse, TVA intracommunautaire — vérifiées via annuaire-entreprises.data.gouv.fr) posées en secrets Fly sur `jana-backend`, backend redéployé et vérifié. |
+| Tâches totales | 162 — 159 (état fin Phase 16) + 3 nouvelles tâches Phase 17 (T17-01..T17-03) |
 | READY | 0 |
 | IN_PROGRESS | 0 |
-| BLOCKED | 4 — T5-16, T5-17 (tests facture, dépendent de T5-14/15 maintenant DONE) ; T9-03 (validation légale CGV/RGPD) ; T9-04 (validation comptable TVA, = DB-03). DB-04 (secret git) est une **décision**, pas une tâche BLOCKED de ce compteur — voir §3. |
-| TODO | 0 (Phase 16 intégralement traitée — voir §5) |
-| DONE | 136 (110 + 12 Phase 15 + 13 Phase 16 : T16-01..T16-13 toutes DONE) |
+| BLOCKED | 2 — T5-16, T5-17 (tests facture, dépendent de T5-14/15 maintenant DONE). DB-04 (secret git) est une **décision** tranchée (report de la purge), pas une tâche BLOCKED de ce compteur — voir §3. |
+| TODO | 0 (Phase 17 intégralement traitée — voir §5) |
+| DONE | 139 (136 + 3 Phase 17 : T17-01..T17-03 toutes DONE) |
 | CANCELLED | 20 (9 + Phase 8 : T8-01..T8-06 + T11-04, T11-05, T11-07, T11-09 supersédées par Fly.io + T3-03 supersédée par la décision MODE DISTANCE, le 2026-09-04/05) |
-| P0 restants | 1 — DB-04 (rotation Gmail confirmée le 2026-09-05, ne reste que la décision de purge de l'historique git d'un dépôt GitHub public, voir §3). |
+| P0 restants | 0 — DB-04 (rotation Gmail confirmée le 2026-09-05, purge de l'historique git explicitement reportée par décision propriétaire le 2026-09-08, voir §3) n'est plus comptée comme une tâche P0 ouverte. |
 | P1 restants | 0. npm audit frontend react-router open redirect [nécessite migration v7, breaking change non appliqué par prudence] toujours présent. Rotation SMTP_USER/SMTP_PASS legacy (Phase 12 T12-10, = DB-04) confirmée le 2026-09-05. |
-| Verdict | EN PRODUCTION SUR FLY.IO et fonctionnel (jana-frontend.fly.dev / jana-backend.fly.dev), facturation légale complète (immuable + avoir + devis + remise code promo). **Phase 16 intégralement traitée ET déployée (13/13)** — dernier lot (design T16-01/02/07/08) confirmé en direct sur les URLs de production. Auto-deploy Fly.io actif sur push `develop` (`deploy-flyio.yml`, temporaire — voir T9-08) ; `.github/workflows/deploy.yml` (homeserver) désactivé (2026-09-05, décision propriétaire). **PAS "terminé" pour autant** : DB-04 (P0) réduit à la seule décision de purge de l'historique git (rotation secret déjà faite), 3 validations externes bloquantes (légal, comptable, tests facture), catalogue à peupler. |
+| Verdict | EN PRODUCTION SUR FLY.IO et fonctionnel (jana-frontend.fly.dev / jana-backend.fly.dev), facturation légale complète (immuable + avoir + devis + remise code promo). **Phase 17 intégralement traitée et déployée (3/3).** Validations légale et comptable confirmées par le propriétaire (2026-09-08) ; mentions d'entreprise réelles (SIRET/TVA/adresse) posées en production. Auto-deploy Fly.io actif sur push `develop` (`deploy-flyio.yml`, temporaire — voir T9-08) ; `.github/workflows/deploy.yml` (homeserver) désactivé (2026-09-05, décision propriétaire). **Reste avant clôture complète :** catalogue produit à peupler (188 visuels importés dans `jana-catalogue-images/`, fiches produits à créer dans l'admin), T5-16/T5-17 (tests facture) à débloquer. |
 
 ---
 
@@ -68,8 +68,8 @@ T9-01..T9-08  Go-live                   → DONE ✓ sauf T9-03/T9-04 BLOCKED (v
 |---|---|---|---|---|
 | DB-01 | Provider stockage images (S3 / Cloudflare R2 / Railway Volume) | Propriétaire (coût) | T0-02 | RÉSOLU — Cloudflare R2 |
 | DB-02 | Stratégie de livraison définitive (FIXE ou DISTANCE) + zones | Propriétaire | T3-01, T3-02 | RÉSOLU — MODE DISTANCE, rayon 80km, 5€+0.80/km, franco 80€ |
-| DB-03 | Validation TVA + règles facturation + durée conservation | Comptable | T5-01..T5-17 | RÉSOLU — taux 5.5/10/20% CGI implémentés (⚠️ validation comptable requise avant prod) |
-| DB-04 | **P0 — Secret réel (`backend/.env`) committé dans l'historique git (commit `79fccb1`, scrubé plus tard par `a3ce33d` mais jamais purgé), dépôt GitHub `Neruaka/JanaDistribution` confirmé **public** (re-vérifié via l'API GitHub, `"private": false`, 2026-09-04). **Mécanisme exact confirmé (audit 2026-09-04) :** le commit `79fccb1` commente d'abord les 7 lignes `.env*` du `.gitignore` (désactivation volontaire de la protection), puis ajoute `backend/.env` réel dans le même commit ; confirmé être un ancêtre de `origin/develop` (donc réellement poussé). Valeurs concernées : `JWT_SECRET`, `JWT_REFRESH_SECRET` (chaînes de template jamais personnalisées à l'époque de ce commit), `DB_PASSWORD=postgres` (mot de passe par défaut faible), `SMTP_USER`, `SMTP_PASS` — **confirmé le 2026-09-04 qu'il s'agit d'une vraie adresse Gmail personnelle et d'un vrai mot de passe d'application Gmail (format 16 caractères), non d'un placeholder** (valeurs non répétées ici, voir règle §7 docs/workflow/CLAUDE_WORKFLOW.md). C'est la donnée la plus directement exploitable : si ce mot de passe d'application est encore actif, n'importe qui ayant cloné le dépôt public peut envoyer des emails via ce compte Gmail. **Rotation Gmail confirmée le 2026-09-05** : nouveau mot de passe d'application fourni par le propriétaire, posé en secret Fly (`GMAIL_APP_PASSWORD`, app `jana-backend`, via `flyctl secrets import` depuis stdin — jamais visible en argument de commande ni écrit dans un fichier), backend redéployé et healthcheck vérifié. JWT_SECRET/JWT_REFRESH_SECRET déjà régénérés from scratch sur Fly (T14-03). DB_PASSWORD Fly géré par l'attachement Postgres managé (`DATABASE_URL` auto-injecté, jamais le mot de passe legacy exposé). Recherche exhaustive de l'historique git complet (214 commits, 2026-09-04) : aucun autre secret réel trouvé en dehors de ce commit. **Reste ouvert :** purge de l'historique git (`git filter-repo`/BFG + force-push) = action destructive hors périmètre d'exécution automatique — décision et exécution toujours réservées au propriétaire du dépôt (le secret leaké reste lisible dans l'historique public tant que non purgé, même si sa valeur a été révoquée côté Gmail/Fly). | Propriétaire | Décision de purge de l'historique git uniquement — la rotation elle-même n'est plus bloquante | **Rotation DONE (2026-09-05) — purge historique toujours BLOCKED, décision propriétaire** |
+| DB-03 | Validation TVA + règles facturation + durée conservation | Comptable | T5-01..T5-17 | RÉSOLU — taux 5.5/10/20% CGI implémentés, **validation comptable confirmée par le propriétaire le 2026-09-08** |
+| DB-04 | **P0 — Secret réel (`backend/.env`) committé dans l'historique git (commit `79fccb1`, scrubé plus tard par `a3ce33d` mais jamais purgé), dépôt GitHub `Neruaka/JanaDistribution` confirmé **public** (re-vérifié via l'API GitHub, `"private": false`, 2026-09-04). **Mécanisme exact confirmé (audit 2026-09-04) :** le commit `79fccb1` commente d'abord les 7 lignes `.env*` du `.gitignore` (désactivation volontaire de la protection), puis ajoute `backend/.env` réel dans le même commit ; confirmé être un ancêtre de `origin/develop` (donc réellement poussé). Valeurs concernées : `JWT_SECRET`, `JWT_REFRESH_SECRET` (chaînes de template jamais personnalisées à l'époque de ce commit), `DB_PASSWORD=postgres` (mot de passe par défaut faible), `SMTP_USER`, `SMTP_PASS` — **confirmé le 2026-09-04 qu'il s'agit d'une vraie adresse Gmail personnelle et d'un vrai mot de passe d'application Gmail (format 16 caractères), non d'un placeholder** (valeurs non répétées ici, voir règle §7 docs/workflow/CLAUDE_WORKFLOW.md). C'est la donnée la plus directement exploitable : si ce mot de passe d'application est encore actif, n'importe qui ayant cloné le dépôt public peut envoyer des emails via ce compte Gmail. **Rotation Gmail confirmée le 2026-09-05** : nouveau mot de passe d'application fourni par le propriétaire, posé en secret Fly (`GMAIL_APP_PASSWORD`, app `jana-backend`, via `flyctl secrets import` depuis stdin — jamais visible en argument de commande ni écrit dans un fichier), backend redéployé et healthcheck vérifié. JWT_SECRET/JWT_REFRESH_SECRET déjà régénérés from scratch sur Fly (T14-03). DB_PASSWORD Fly géré par l'attachement Postgres managé (`DATABASE_URL` auto-injecté, jamais le mot de passe legacy exposé). Recherche exhaustive de l'historique git complet (214 commits, 2026-09-04) : aucun autre secret réel trouvé en dehors de ce commit. **Décision propriétaire (2026-09-08) : purge de l'historique NON faite pour l'instant** — le propriétaire a été informé que la purge (`git filter-repo`/BFG + force-push) réécrit le hash de tous les commits en aval de `79fccb1` (donc, en pratique, l'ensemble de l'historique du dépôt : tags, éventuels forks/clones existants deviennent obsolètes) sans perte de code ni de contenu de commit — et a choisi de laisser l'historique tel quel pour l'instant, la rotation des valeurs exposées étant déjà effective. | Propriétaire | Aucune — décision prise, purge non planifiée | **Rotation DONE (2026-09-05) — purge historique explicitement reportée (décision propriétaire, 2026-09-08)** |
 
 ---
 
@@ -1014,16 +1014,16 @@ Checklist complète : `docs/archive/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 
 ### T9-03 — Validation légale (mentions, CGV, RGPD)
 
-- **Statut :** BLOCKED | **Priorité :** P0 | **Catégorie :** ACTION EXTERNE
-- **Blocage :** Validation juridique requise
-- **Note (2026-07-04) :** Bannière d'information cookies ajoutée (`frontend/src/components/CookieBanner.jsx`) — cookies strictement techniques uniquement (JWT/session), exemptés de consentement CNIL, fermable et persistante. Ne lève pas le blocage global (validation juridique CGV/mentions légales toujours requise).
+- **Statut :** DONE (2026-09-08) | **Priorité :** P0 | **Catégorie :** ACTION EXTERNE
+- **Détail :** validation confirmée par le propriétaire — une vraie juriste a relu et validé les mentions légales, CGV et RGPD. Contenu des pages inchangé côté code (pas de correctif déclenché par cette validation).
+- **Note (2026-07-04) :** Bannière d'information cookies ajoutée (`frontend/src/components/CookieBanner.jsx`) — cookies strictement techniques uniquement (JWT/session), exemptés de consentement CNIL, fermable et persistante.
 
 ---
 
 ### T9-04 — Validation comptable facturation et TVA
 
-- **Statut :** BLOCKED | **Priorité :** P0 | **Catégorie :** ACTION EXTERNE
-- **Blocage :** DB-03 — comptable
+- **Statut :** DONE (2026-09-08) | **Priorité :** P0 | **Catégorie :** ACTION EXTERNE
+- **Détail :** validation comptable confirmée par le propriétaire — taux TVA 5,5 %/10 %/20 % (CGI) appliqués par référence produit validés. Voir DB-03.
 
 ---
 
@@ -1581,6 +1581,31 @@ Checklist complète : `docs/archive/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 - **Correctif appliqué :** migration `0016_liste_recurrente.sql` (`liste_recurrente` / `liste_recurrente_produit`) ; repository/service/routes (`POST /api/listes-recurrentes` — créé depuis le panier **serveur**, jamais depuis des données client ; `GET` mes listes ; `POST /:id/ajouter-au-panier` — ré-ajoute chaque produit avec tolérance aux échecs individuels, même pattern que `OrderDetailPage#handleReorder` ; `DELETE /:id`). Frontend : bouton du panier branché sur une modale de saisie du nom (**pas** `window.prompt` — bloque le rendu de la page pour l'utilisateur et l'automatisation, remplacé par une modale cohérente avec le reste de l'app), nouvelle page `/mes-listes-recurrentes`, entrées `AccountSidebar`/`Footer` activées.
 - **Testé :** unitaires (`liste-recurrente.service.test.js`, 8 cas) + vérification navigateur complète (panier → enregistrement → liste affichée avec les bons produits/quantités → ajout au panier incrémente correctement les quantités existantes, requête API 200 confirmée).
 - **Fichiers :** `backend/scripts/migrations/0016_liste_recurrente.sql`, `backend/scripts/init.sql`, `backend/src/repositories/liste-recurrente.repository.js`, `backend/src/services/liste-recurrente.service.js`, `backend/src/routes/liste-recurrente.routes.js`, `backend/src/index.js`, `backend/tests/unit/liste-recurrente.service.test.js`, `frontend/src/services/listeRecurrenteService.js`, `frontend/src/pages/MesListesRecurrentesPage.jsx`, `frontend/src/pages/CartPage.jsx`, `frontend/src/App.jsx`, `frontend/src/components/mon-compte/AccountSidebar.jsx`, `frontend/src/components/Footer.jsx`.
+
+---
+
+## Phase 17 — Troisième phase de tests utilisateur (2026-09-08)
+
+### T17-01 — Image produit fiche détail : zoom au lieu d'un redimensionnement propre
+
+- **Statut :** DONE (2026-09-08) | **Priorité :** P2 | **Catégorie :** CODE (bug design)
+- **Root cause confirmée :** `ProductDetailPage.jsx:164` (desktop) et `:174` (mobile) utilisaient `object-cover` — l'image est recadrée/zoomée pour remplir le cadre au lieu d'être simplement redimensionnée, coupant une partie du visuel produit.
+- **Correctif appliqué :** `object-cover` → `object-contain` sur les deux versions (image entière visible, lettrboxing sur fond `placeholder-stripe` si le ratio ne correspond pas). Cadre desktop fixé à **637×637** (`md:w-[637px] md:h-[637px]`, remplace `max-h-[420px] aspect-square`) sur demande explicite du propriétaire.
+- **Fichier :** `frontend/src/pages/ProductDetailPage.jsx`
+
+### T17-02 — Bandeau utilitaire Navbar : texte statique et peu lisible
+
+- **Statut :** DONE (2026-09-08) | **Priorité :** P3 | **Catégorie :** CODE (design)
+- **Root cause :** la barre utilitaire (bande 1, `Navbar.jsx`) affichait 3 informations statiques en `text-mist-2` (`#8FA89B`) sur fond `ink-900` (`#10231A`) — jugé peu lisible par le propriétaire.
+- **Correctif appliqué :** contenu transformé en bandeau défilant (`marquee-scroll`, boucle CSS sans dépendance, pause au survol, désactivé si `prefers-reduced-motion`), contenu dupliqué une fois pour un défilement continu sans coupure (le doublon est `aria-hidden` pour les lecteurs d'écran). Couleur relevée à `text-mist` (`#B9CCC1`, jeton déjà prévu pour le texte principal sur fond sombre) pour un meilleur contraste. Partie droite (téléphone, contact, bascule HT/TTC) laissée statique et inchangée.
+- **Fichiers :** `frontend/src/components/Navbar.jsx`, `frontend/src/index.css`
+
+### T17-03 — Import des visuels du catalogue réel
+
+- **Statut :** DONE (2026-09-08) | **Priorité :** P2 | **Catégorie :** CONTENU
+- **Détail :** 188 photos produits (`.webp`, ~14 Mo) committées dans `jana-catalogue-images/` à la racine du dépôt, en vue du peuplement du catalogue réel via le back-office. Fichiers Excel de listing (`docs/listing/`) volontairement **non commités** (non demandé, contenu tarifaire potentiellement sensible).
+- **Reste à faire (hors périmètre de cette tâche) :** création des fiches produits réelles dans l'admin et association de chaque image à sa fiche — le catalogue de production reste vide de produits tant que cet import n'est pas fait.
+- **Fichiers :** `jana-catalogue-images/*.webp`
 
 ---
 
