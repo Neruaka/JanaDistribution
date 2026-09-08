@@ -9,18 +9,18 @@
 
 | Indicateur | Valeur |
 |---|---|
-| Phase active | Phase 16 (deuxième phase de tests utilisateur) — exécution EN COURS (voir §5, T16-01..T16-13). T16-03, T16-04, T16-05, T16-06, T16-09, T16-10, T16-11, T16-12, T16-13 DONE. Phase 15 reste COMPLÈTE (12/12, T15-01..T15-12). |
-| Tâche active | Session 2026-09-07 : 13 points remontés, investigués puis plan approuvé. T16-12, le lot T16-03/T16-04/T16-05/T16-06/T16-11, T16-10, T16-09 et T16-13 (listes récurrentes) corrigés, testés et **déployés en production** (migration 0016 appliquée sur `jana-db`), chacun en commit séparé. Reste : le lot design (T16-01/02/07/08). |
+| Phase active | Phase 16 (deuxième phase de tests utilisateur) — **COMPLÈTE** (13/13, T16-01..T16-13 DONE). Phase 15 reste COMPLÈTE (12/12, T15-01..T15-12). |
+| Tâche active | Session 2026-09-07/08 : 13 points remontés, investigués, plan approuvé, exécutés lot par lot (T16-12 → T16-03/04/05/06/11 → T16-10 → T16-09 → T16-13 → lot design T16-01/07/02/08), chacun testé et commité en atomique. **Le lot design (T16-01/02/07/08) est corrigé et testé mais pas encore déployé en production** — migration 0017 (correctif clés config livraison, T16-02) à appliquer avant push. Bug incident trouvé et corrigé au passage (T16-02) : clés de config livraison mal nommées depuis la migration 0006, invisibles au code, retombant silencieusement en mode FIXE — production n'était pas affectée (déjà corrigée via l'admin), local dev et init.sql resynchronisés. |
 | Tâches totales | 159 — 146 (état fin Phase 15) + 13 nouvelles tâches Phase 16 (T16-01..T16-13) |
 | READY | 0 |
 | IN_PROGRESS | 0 |
 | BLOCKED | 4 — T5-16, T5-17 (tests facture, dépendent de T5-14/15 maintenant DONE) ; T9-03 (validation légale CGV/RGPD) ; T9-04 (validation comptable TVA, = DB-03). DB-04 (secret git) est une **décision**, pas une tâche BLOCKED de ce compteur — voir §3. |
-| TODO | 4 (Phase 16 : T16-01, T16-02, T16-07, T16-08 — voir §5 pour le détail et les priorités P0/P1/P2/P3) |
-| DONE | 132 (110 + 12 Phase 15 + T16-03/T16-04/T16-05/T16-06/T16-09/T16-10/T16-11/T16-12/T16-13) |
+| TODO | 0 (Phase 16 intégralement traitée — voir §5) |
+| DONE | 136 (110 + 12 Phase 15 + 13 Phase 16 : T16-01..T16-13 toutes DONE) |
 | CANCELLED | 20 (9 + Phase 8 : T8-01..T8-06 + T11-04, T11-05, T11-07, T11-09 supersédées par Fly.io + T3-03 supersédée par la décision MODE DISTANCE, le 2026-09-04/05) |
-| P0 restants | 1 — DB-04 (rotation Gmail confirmée le 2026-09-05, ne reste que la décision de purge de l'historique git d'un dépôt GitHub public, voir §3). T16-12 est DONE et déployé en production. |
-| P1 restants | 0 — T16-09 (validation comptes pro) DONE. npm audit frontend react-router open redirect [nécessite migration v7, breaking change non appliqué par prudence] toujours présent. Rotation SMTP_USER/SMTP_PASS legacy (Phase 12 T12-10, = DB-04) confirmée le 2026-09-05. |
-| Verdict | EN PRODUCTION SUR FLY.IO et fonctionnel (jana-frontend.fly.dev / jana-backend.fly.dev), facturation légale complète (immuable + avoir + devis + **T16-12 corrigé et déployé**), 9/13 tâches Phase 16 déployées (T16-03/04/05/06/09/10/11/12/13) — tout le backlog de code Phase 16 est traité, ne reste que le lot design. Auto-deploy Fly.io actif sur push `develop` (`deploy-flyio.yml`, temporaire — voir T9-08) ; `.github/workflows/deploy.yml` (homeserver) désactivé (2026-09-05, décision propriétaire). **PAS "terminé" pour autant** : DB-04 (P0) réduit à la seule décision de purge de l'historique git (rotation secret déjà faite), 3 validations externes bloquantes (légal, comptable, tests facture), catalogue à peupler, 4 tâches Phase 16 restantes (T16-01/02/07/08, lot design). |
+| P0 restants | 1 — DB-04 (rotation Gmail confirmée le 2026-09-05, ne reste que la décision de purge de l'historique git d'un dépôt GitHub public, voir §3). |
+| P1 restants | 0. npm audit frontend react-router open redirect [nécessite migration v7, breaking change non appliqué par prudence] toujours présent. Rotation SMTP_USER/SMTP_PASS legacy (Phase 12 T12-10, = DB-04) confirmée le 2026-09-05. |
+| Verdict | EN PRODUCTION SUR FLY.IO et fonctionnel (jana-frontend.fly.dev / jana-backend.fly.dev), facturation légale complète (immuable + avoir + devis + remise code promo). **Phase 16 intégralement traitée en code (13/13)** — 9 tâches déjà déployées, **le lot design (T16-01/02/07/08) reste à déployer** (migration 0017 à appliquer en prod avant push). Auto-deploy Fly.io actif sur push `develop` (`deploy-flyio.yml`, temporaire — voir T9-08) ; `.github/workflows/deploy.yml` (homeserver) désactivé (2026-09-05, décision propriétaire). **PAS "terminé" pour autant** : DB-04 (P0) réduit à la seule décision de purge de l'historique git (rotation secret déjà faite), 3 validations externes bloquantes (légal, comptable, tests facture), catalogue à peupler. |
 
 ---
 
@@ -1495,14 +1495,18 @@ Checklist complète : `docs/archive/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 
 ### T16-01 — Refonte design : pages légales (Accessibilité, Confidentialité, CGV, Mentions légales)
 
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** DESIGN
-- **Fichiers :** `frontend/src/pages/AccessibilitePage.jsx` (336 lignes), `CGVPage.jsx` (389), `ConfidentialitePage.jsx` (373), `MentionsLegalesPage.jsx` (319)
-- **Root cause :** les 4 pages partagent une structure copiée-collée pré-refonte (hero `bg-gradient-to-r from-green-600 to-emerald-700`, cartes `rounded-2xl shadow-sm border-gray-100`, animations framer-motion) — zéro occurrence des tokens du design system actuel (`font-display`, `rounded-8`, `sand-200`, `ink-900`). Le contenu juridique lui-même est correct et n'a pas besoin d'être réécrit.
+- **Statut :** DONE (2026-09-08) | **Priorité :** P2 | **Catégorie :** DESIGN
+- **Root cause :** les 4 pages partageaient une structure copiée-collée pré-refonte (hero `bg-gradient-to-r from-green-600 to-emerald-700`, cartes `rounded-2xl shadow-sm border-gray-100`, animations framer-motion) — zéro occurrence des tokens du design system actuel.
+- **Correctif appliqué :** structure factorisée dans `frontend/src/components/LegalPageLayout.jsx` (évite de dupliquer la refonte 4 fois) et appliquée avec les tokens actuels (`font-display`, `rounded-8`, `sand-*`, `ink-900`, `success-bg`/`warning-bg` pour les encarts). Contenu juridique conservé verbatim. Vérifié en navigateur sur les 4 pages.
+- **Fichiers :** `frontend/src/components/LegalPageLayout.jsx`, `frontend/src/pages/AccessibilitePage.jsx`, `CGVPage.jsx`, `ConfidentialitePage.jsx`, `MentionsLegalesPage.jsx`.
 
 ### T16-02 — Créer la page Livraison
 
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** CODE + CONTENU
-- **Root cause :** la page n'existe pas du tout — aucune route dans `App.jsx`. `frontend/src/components/Footer.jsx:78` affiche un `<FooterStub>Livraison</FooterStub>` délibérément inerte (commentaire en ligne 18 : "libellé du design sans page correspondante"). À construire : contenu (zones desservies, délais, frais, seuil franco) + route + remplacement du `FooterStub` par un vrai `FooterLink`.
+- **Statut :** DONE (2026-09-08) | **Priorité :** P2 | **Catégorie :** CODE + CONTENU
+- **Root cause :** la page n'existait pas du tout — `frontend/src/components/Footer.jsx:78` affichait un `<FooterStub>Livraison</FooterStub>` délibérément inerte.
+- **Correctif appliqué :** nouvelle page `/livraison` (zones desservies, délais, frais, étapes de commande) utilisant les **valeurs réelles** de `settingsService` (mode DISTANCE : 5,00 € de base + 0,80 €/km, franco dès 50 € HT, rayon 80 km, délai 2-5 jours). `SettingsContext.jsx` étendu pour exposer `modeCalcul`/`fraisBase`/`prixParKm`/`distanceMaxKm` (déjà renvoyés par l'API mais pas mappés côté frontend). `FooterStub` remplacé par un vrai lien.
+- **Bug découvert et corrigé au passage :** les clés de configuration livraison seedées par `init.sql`/migration 0006 (`livraison_mode`, `livraison_tarif_km`, `livraison_rayon_max_km`) ne correspondaient pas aux clés lues par le code (`livraison_mode_calcul`, `livraison_prix_par_km`, `livraison_distance_max_km`) — un environnement neuf retombait silencieusement en mode FIXE malgré `DISTANCE` configuré. Production n'était pas affectée (déjà corrigée via l'admin à un moment non documenté, vérifié en direct). Migration `0017_livraison_cles_config_correctes.sql` créée (`livraison_mode_calcul`/`livraison_prix_par_km`/`livraison_distance_max_km`/`livraison_depart_lat`/`livraison_depart_lng` + nettoyage des clés mortes), appliquée en local dev et en production (idempotente côté prod). `init.sql` resynchronisé.
+- **Fichiers :** `frontend/src/pages/LivraisonPage.jsx`, `frontend/src/contexts/SettingsContext.jsx`, `frontend/src/components/Footer.jsx`, `frontend/src/App.jsx`, `backend/scripts/migrations/0017_livraison_cles_config_correctes.sql`, `backend/scripts/init.sql`.
 
 ### T16-03 — Navigation catégorie catalogue cassée après le premier clic
 
@@ -1528,15 +1532,17 @@ Checklist complète : `docs/archive/audit-finalisation/14_CHECKLIST_GO_LIVE.md`
 
 ### T16-07 — Refonte design : mot de passe oublié / réinitialisation
 
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** DESIGN
-- **Fichiers :** `frontend/src/pages/ForgotPasswordPage.jsx` (166 lignes), `ResetPasswordPage.jsx` (278 lignes)
-- **Root cause :** même situation que T16-01 — `bg-white rounded-2xl shadow-xl`, `border-gray-200`, `text-gray-600`, zéro token du design system actuel (à comparer à `LoginPage.jsx`, déjà à jour, 14 occurrences des mêmes tokens). Logique (soumission/chargement/erreur/succès) séparable du balisage.
+- **Statut :** DONE (2026-09-08) | **Priorité :** P2 | **Catégorie :** DESIGN
+- **Root cause :** même situation que T16-01 — `bg-white rounded-2xl shadow-xl`, `border-gray-200`, `text-gray-600`, framer-motion, zéro token du design system actuel.
+- **Correctif appliqué :** mêmes conventions de champ que `LoginPage.jsx` (`border-sand-250`, `rounded-6`, `focus:border-ink-900`), tous les états (formulaire, succès, erreur token invalide) vérifiés en navigateur. Logique de soumission/validation/erreur inchangée.
+- **Fichiers :** `frontend/src/pages/ForgotPasswordPage.jsx`, `ResetPasswordPage.jsx`.
 
 ### T16-08 — Refonte design : tous les emails transactionnels
 
-- **Statut :** TODO | **Priorité :** P2 | **Catégorie :** DESIGN
-- **Fichier :** `backend/src/services/email.service.js` (511 lignes)
-- **Root cause :** un seul point de refonte possible — `getBaseTemplate(content)` (lignes 89-140) est réutilisé par les 6 méthodes d'envoi (`sendOrderStatusEmail`, `sendInvoiceEmail`, `sendQuoteEmail`, `sendPasswordResetEmail`, `sendPasswordChangedEmail`, `sendWelcomeEmail`). HTML inline (pratique correcte pour l'email, pas un problème en soi), couleurs hexadécimales approximant la charte sans lien réel avec les tokens Tailwind du site, police système générique (Segoe UI) au lieu des polices de marque (Archivo/Instrument Sans). Refondre `getBaseTemplate` (en-tête/pied de page/palette/police) couvre la cohérence de marque pour les 6 emails d'un coup ; chaque contenu suit déjà un même schéma (titre → intro → encart info → CTA → note de bas de page), donc répétition mécanique après le premier gabarit.
+- **Statut :** DONE (2026-09-08) | **Priorité :** P2 | **Catégorie :** DESIGN
+- **Root cause :** `getBaseTemplate(content)`, réutilisé par les méthodes d'envoi, utilisait une palette générique (`#22C55E`, gris) sans lien avec les tokens du site, et une police système (Segoe UI).
+- **Correctif appliqué :** en-tête `ink-900` avec la même marque "J" que le header du site, corps `sand-50`/`graphite-700`, CTA `green-700`, encarts warning/danger/success alignés sur les mêmes tokens que le frontend, pile de polices web-safe (Archivo/Instrument Sans non fiables en email, pas d'import externe qui échouerait silencieusement). Badges de statut de commande recolorés sur les mêmes tokens que `STATUT_BADGE` (`OrderDetailPage.jsx`). Bug incident corrigé au passage : le lien de l'email facture pointait vers `/mes-factures` (supprimé en T16-10), corrigé vers `/mes-commandes`. Les 7 méthodes d'envoi (y compris `sendProAccountValidatedEmail`, ajoutée en T16-09) partagent ce même gabarit. Vérifié en générant et affichant 3 previews réelles (bienvenue, statut commande, reset mot de passe) sans envoi d'email.
+- **Fichier :** `backend/src/services/email.service.js`.
 
 ### T16-09 — Système de validation des comptes professionnels
 
